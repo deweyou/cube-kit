@@ -10,7 +10,8 @@
     "build:wx": "vp run wx-app#build",
     "build": "vp run build -r",
     "test": "vp run test -r",
-    "check": "vp check"
+    "check": "vp check",
+    "postinstall": "npx skills install"
   },
   "engines": {
     "node": ">=22.12.0"
