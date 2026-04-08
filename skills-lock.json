@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "harness-dev": {
+      "source": "deweyou/skills",
+      "sourceType": "github",
+      "computedHash": "4f8b8a0ac6c593894c3a38411271cedc38b9f2f3e49c08756039266d733980dc"
+    },
+    "harness-init": {
+      "source": "deweyou/skills",
+      "sourceType": "github",
+      "computedHash": "8284da16332a133b6cb27bcd0198a77480b9fc15fc892b45d80f1e4ea2465b8d"
+    }
+  }
+}

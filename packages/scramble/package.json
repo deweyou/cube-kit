@@ -1,0 +1,26 @@
+{
+  "name": "@cubekit/scramble",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Text scramble animation utility for web and mini-programs.",
+  "license": "MIT",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}
