@@ -11,7 +11,7 @@
     "build": "vp run build -r",
     "test": "vp run test -r",
     "check": "vp check",
-    "postinstall": "npx skills install"
+    "postinstall": "npx skills experimental_install"
   },
   "devDependencies": {
     "vite-plus": "catalog:"

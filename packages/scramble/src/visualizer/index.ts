@@ -2,7 +2,8 @@ import type { WcaEvent, ImageOptions } from '../types';
 import { applyScramble } from './apply-moves';
 import { svgWrap } from './svg';
 import { renderNxNNet, nxnViewBox } from './nxn-net';
-import { renderSkewbNet, skewbSolvedState, viewBoxSkewb } from './skewb-net';
+import { renderSkewbNet, viewBoxSkewb } from './skewb-net';
+import { applySkewbScramble } from './skewb-state';
 import { renderPyramNet, pyramSolvedState, viewBoxPyram } from './pyram-net';
 import { renderSq1Net, viewBoxSq1 } from './sq1-net';
 import { renderClockNet, viewBoxClock } from './clock-net';
@@ -49,7 +50,7 @@ export const generateImage = (
     content = renderNxNNet(state);
     viewBox = nxnViewBox(n);
   } else if (event === 'skewb') {
-    const state = skewbSolvedState();
+    const state = applySkewbScramble(scramble);
     content = renderSkewbNet(state);
     viewBox = viewBoxSkewb;
   } else if (event === 'pyram') {

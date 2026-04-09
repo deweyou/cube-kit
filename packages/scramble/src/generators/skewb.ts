@@ -22,7 +22,7 @@ import { randomInt } from './utils/random';
  * is not trivially short.
  */
 
-const GENERATORS = ['R', 'L', 'U', 'B', 'F'] as const;
+const GENERATORS = ['R', 'L', 'U', 'B'] as const;
 const MODIFIERS = ['', "'"] as const;
 
 // Skewb state: encoded as arrays for corner orientations and center permutation
