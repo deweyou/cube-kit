@@ -71,3 +71,18 @@
 > It records cross-feature insights that improve future development.
 
 <!-- harness-dev archive step appends entries here -->
+
+### 20260409-scramble-generator-and-visualizer — 2026-04-09
+
+- Type: feature
+- Key findings:
+  - Move-engine correctness for puzzle simulators must be validated with group-theory commutator tests `(X Y X' Y')^6 = identity` for all adjacent face pairs, not just individual move tests. Geometric reasoning alone is insufficient and error-prone.
+  - `new Array(n)` is banned project-wide by `unicorn/no-new-array`; use `Array.from({ length: n })` or `Array.from<T>({ length: n }).fill(v)`.
+  - The project enforces `func-style: expression` everywhere — all function declarations must be `const f = () =>` arrow functions.
+- Promoted: `knowledge/cube-move-engine.md` (group-theory validation pattern)
+
+### WCA scramble special formats — 2026-04-09
+
+Full rules documented in `knowledge/wca-scramble-rules.md`.
+Key events with non-standard formats: 333bf (wide-move orientation suffix), 444bf/555bf (rotation suffix), 333fm (wrapped as `R' U' F … R' U' F`).
+Notable gaps vs TNoodle: 333/444/555 use random-move rather than true random-state.

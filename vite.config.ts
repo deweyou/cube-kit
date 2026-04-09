@@ -18,10 +18,7 @@ export default defineConfig({
     plugins: ['typescript', 'react', 'unicorn'],
     overrides: [
       {
-        files: [
-          'apps/**/src/**/*.{ts,tsx}',
-          'packages/**/src/**/*.{ts,tsx}',
-        ],
+        files: ['apps/**/src/**/*.{ts,tsx}', 'packages/**/src/**/*.{ts,tsx}'],
         rules: {
           'func-style': 'error',
           'unicorn/filename-case': [

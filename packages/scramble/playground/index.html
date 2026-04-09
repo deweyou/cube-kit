@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CubeKit Scramble Playground</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        background: #1a1a2e;
+        color: #eee;
+        padding: 24px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: #a9d6e5;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+      }
+      select,
+      button {
+        padding: 8px 14px;
+        border-radius: 6px;
+        border: 1px solid #444;
+        background: #2a2a4a;
+        color: #eee;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      button {
+        background: #3a5f8a;
+        border-color: #5a8fc0;
+      }
+      button:hover {
+        background: #4a7fa0;
+      }
+      .scramble-text {
+        font-family: monospace;
+        font-size: 1.1rem;
+        background: #2a2a4a;
+        padding: 10px 16px;
+        border-radius: 6px;
+        border: 1px solid #444;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 200px;
+      }
+      .svg-container {
+        background: #2a2a4a;
+        border-radius: 8px;
+        border: 1px solid #444;
+        padding: 16px;
+        display: inline-block;
+      }
+      .svg-container svg {
+        display: block;
+      }
+      .status {
+        margin-top: 12px;
+        color: #888;
+        font-size: 0.9rem;
+        min-height: 1.2em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CubeKit Scramble Playground</h1>
+    <div class="controls">
+      <select id="event">
+        <option value="333">3x3 (333)</option>
+        <option value="222">2x2 (222)</option>
+        <option value="444">4x4 (444)</option>
+        <option value="555">5x5 (555)</option>
+        <option value="666">6x6 (666)</option>
+        <option value="777">7x7 (777)</option>
+        <option value="333bf">3x3 BLD (333bf)</option>
+        <option value="333fm">3x3 FM (333fm)</option>
+        <option value="333oh">3x3 OH (333oh)</option>
+        <option value="444bf">4x4 BLD (444bf)</option>
+        <option value="555bf">5x5 BLD (555bf)</option>
+        <option value="skewb">Skewb</option>
+        <option value="pyram">Pyraminx</option>
+        <option value="sq1">Square-1</option>
+        <option value="clock">Clock</option>
+        <option value="minx">Megaminx</option>
+      </select>
+      <button id="generate">Generate Scramble</button>
+      <div class="scramble-text" id="scramble-text">—</div>
+    </div>
+    <div class="svg-container" id="svg-container"></div>
+    <div class="status" id="status"></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
