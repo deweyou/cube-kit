@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "scramble-playground",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@cubekit/scramble", "playground"],
+      "port": 5180
+    }
+  ]
+}

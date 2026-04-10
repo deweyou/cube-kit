@@ -1,46 +1,24 @@
-import { expect, test, vi } from 'vite-plus/test';
-import { scrambleText, scramble, createScrambler } from '../src/index.js';
+import { expect, test } from 'vite-plus/test';
+import * as scramblePkg from '../src/index.js';
 
-test('scrambleText resolves with the target text', async () => {
-  const updates: string[] = [];
-  await scrambleText('hello', { steps: 2, speed: 0 }, (t) => updates.push(t));
-
-  const last = updates.at(-1);
-  expect(last).toBe('hello');
+test('public API surface exposes exactly the documented functions', () => {
+  expect(typeof scramblePkg.getScramble).toBe('function');
+  expect(typeof scramblePkg.getImage).toBe('function');
+  expect(typeof scramblePkg.setSeed).toBe('function');
+  expect(typeof scramblePkg.getWcaEvents).toBe('function');
 });
 
-test('scrambleText calls onUpdate on every frame', async () => {
-  const updates: string[] = [];
-  await scrambleText('hi', { steps: 3, speed: 0 }, (t) => updates.push(t));
-
-  // At least one intermediate frame + the final resolved frame.
-  expect(updates.length).toBeGreaterThan(1);
+test('public API exposes WCA_EVENTS and WCA_EVENT_BY_ID constants', () => {
+  expect(Array.isArray(scramblePkg.WCA_EVENTS)).toBe(true);
+  expect(scramblePkg.WCA_EVENTS.length).toBe(17);
+  expect(typeof scramblePkg.WCA_EVENT_BY_ID).toBe('object');
 });
 
-test('scrambleText preserves spaces without scrambling', async () => {
-  const updates: string[] = [];
-  await scrambleText('a b', { steps: 2, speed: 0 }, (t) => updates.push(t));
-
-  // Every frame should keep the space in position 1.
-  for (const frame of updates) {
-    expect(frame[1]).toBe(' ');
+test('full end-to-end sanity: generate + image for each WCA event via public entry', () => {
+  for (const event of scramblePkg.getWcaEvents()) {
+    const scr = scramblePkg.getScramble(event.id);
+    const svg = scramblePkg.getImage(scr, event.id);
+    expect(scr.length).toBeGreaterThan(0);
+    expect(svg).toContain('<svg');
   }
-});
-
-test('scramble sets element textContent and resolves', async () => {
-  const el = { textContent: '' };
-  await scramble(el, 'world', { steps: 2, speed: 0 });
-  expect(el.textContent).toBe('world');
-});
-
-test('scramble is a no-op for null element', async () => {
-  await expect(scramble(null, 'any')).resolves.toBeUndefined();
-});
-
-test('createScrambler returns a controller that plays text', async () => {
-  const frames: string[] = [];
-  const ctrl = createScrambler((t) => frames.push(t));
-
-  await ctrl.play('abc', { steps: 2, speed: 0 });
-  expect(frames.at(-1)).toBe('abc');
 });

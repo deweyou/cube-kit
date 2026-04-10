@@ -1,7 +1,7 @@
 {
   "name": "wx-app",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "taro build --type weapp --watch",

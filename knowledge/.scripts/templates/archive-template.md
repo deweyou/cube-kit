@@ -12,9 +12,9 @@
 
 <!-- Record important technical decisions made during plan/implement phases -->
 
-| Decision | Choice | Rationale | Alternatives considered |
-|----------|--------|-----------|------------------------|
-| [e.g. state management] | [chose X] | [because Y] | [considered Z] |
+| Decision                | Choice    | Rationale   | Alternatives considered |
+| ----------------------- | --------- | ----------- | ----------------------- |
+| [e.g. state management] | [chose X] | [because Y] | [considered Z]          |
 
 ## Pitfalls
 

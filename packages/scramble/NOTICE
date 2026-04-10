@@ -1,0 +1,31 @@
+@cubekit/scramble
+Copyright (C) 2026 The CubeKit authors
+
+This package is licensed under the GNU General Public License version 3.
+See the LICENSE file in this directory, or https://www.gnu.org/licenses/gpl-3.0.html,
+for the full text.
+
+------------------------------------------------------------------------------
+Third-party code redistributed in the published output
+------------------------------------------------------------------------------
+
+This package bundles cstimer_module into `dist/cstimer-*.mjs` at build time.
+
+    Name:       cstimer_module
+    Author:     cs0x7f
+    Version:    0.1.5
+    Homepage:   https://github.com/cs0x7f/cstimer
+    npm:        https://www.npmjs.com/package/cstimer_module
+    License:    GNU General Public License v3.0
+
+cstimer_module is part of csTimer and shares the same source tree. Because
+this package statically links (bundles) cstimer_module into its published
+output, the combined work is distributed under GPL-3.0 in accordance with
+the copyleft terms of the license.
+
+Modifications to cstimer_module made by this package: none. It is included
+verbatim, only passed through a module bundler (`vite-plus` / `rolldown`).
+
+The upstream npm tarball for cstimer_module does not ship a LICENSE file;
+the canonical GPL-3.0 text is available from the upstream repository linked
+above and is also reproduced in the LICENSE file in this directory.

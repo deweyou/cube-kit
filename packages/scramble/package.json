@@ -1,26 +1,35 @@
 {
   "name": "@cubekit/scramble",
-  "type": "module",
   "version": "0.0.0",
-  "description": "Text scramble animation utility for web and mini-programs.",
-  "license": "MIT",
+  "description": "WCA scramble generation and scramble-image rendering, backed by cstimer_module.",
+  "license": "GPL-3.0",
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "type": "module",
   "exports": {
     ".": "./dist/index.mjs",
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "vp pack",
     "dev": "vp pack --watch",
     "test": "vp test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "playground": "vite playground"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "cstimer_module": "^0.1.5",
     "typescript": "catalog:",
-    "vitest": "catalog:",
-    "vite-plus": "catalog:"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "inlinedDependencies": {
+    "cstimer_module": "0.1.5"
   }
 }
