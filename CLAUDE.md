@@ -17,7 +17,15 @@ pnpm check         # Lint + format check (vp check)
 Context and knowledge base for AI-assisted development:
 
 - **Constitution** (project principles): [knowledge/constitution.md](knowledge/constitution.md)
-- **Feature specs**: [knowledge/specs/](knowledge/specs/)
+- **Feature specs index**: [knowledge/specs/index.md](knowledge/specs/index.md)
+- **Dependency licensing** (bundle + license audit flow): [knowledge/dependency-licensing.md](knowledge/dependency-licensing.md)
 
 > Scripts and templates are managed by harness-dev at `knowledge/.scripts/` — do not edit manually.
-> Topic-specific knowledge files (e.g. `knowledge/design-tokens.md`) are added here by the archive step when generalizable patterns are discovered.
+> Topic-specific knowledge files under `knowledge/` are added by the archive step when generalizable patterns are discovered.
+
+## Active Technologies
+
+- **Monorepo**: pnpm 10 workspaces (`apps/*` + `packages/*`), `vite-plus` (`vp`) for build/test/lint
+- **Language**: TypeScript 5.x strict, `module: preserve`, `moduleResolution: bundler`, `verbatimModuleSyntax: true`
+- **Apps**: React 18 (web/H5), Taro (WeChat miniprogram)
+- **Packages**: `@cubekit/scramble` — WCA scramble + SVG preview backed by `cstimer_module@^0.1.5` (bundled, GPL-3.0 — see package CLAUDE.md)
