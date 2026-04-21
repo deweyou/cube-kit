@@ -1,5 +1,5 @@
-import { getWcaEvents } from '@cubekit/scramble'
-import type { WcaEventId } from '@cubekit/scramble'
+import { getWcaEvents } from '@cubekit/scramble';
+import type { WcaEventId } from '@cubekit/scramble';
 
 // Short display labels
 const DISPLAY_LABELS: Record<WcaEventId, string> = {
@@ -20,19 +20,19 @@ const DISPLAY_LABELS: Record<WcaEventId, string> = {
   '444bld': '4BLD',
   '555bld': '5BLD',
   '333mbld': 'Multi',
-}
+};
 
 interface EventSelectorProps {
-  value: WcaEventId
-  onChange: (id: WcaEventId) => void
+  value: WcaEventId;
+  onChange: (id: WcaEventId) => void;
 }
 
 export const EventSelector = ({ value, onChange }: EventSelectorProps) => {
-  const events = getWcaEvents()
+  const events = getWcaEvents();
   return (
     <select
       value={value}
-      onChange={e => onChange(e.target.value as WcaEventId)}
+      onChange={(e) => onChange(e.target.value as WcaEventId)}
       style={{
         background: 'var(--ui-color-surface)',
         border: '1px solid var(--ui-color-border)',
@@ -43,11 +43,11 @@ export const EventSelector = ({ value, onChange }: EventSelectorProps) => {
         cursor: 'pointer',
       }}
     >
-      {events.map(event => (
+      {events.map((event) => (
         <option key={event.id} value={event.id}>
           {DISPLAY_LABELS[event.id]}
         </option>
       ))}
     </select>
-  )
-}
+  );
+};

@@ -1,11 +1,11 @@
-import { Button } from '@deweyou-design/react/button'
+import { Button } from '@deweyou-design/react/button';
 
-export type Penalty = 'none' | '+2' | 'dnf'
+export type Penalty = 'none' | '+2' | 'dnf';
 
 interface ResultActionsProps {
-  penalty: Penalty
-  onPenalty: (p: Penalty) => void
-  onDiscard: () => void
+  penalty: Penalty;
+  onPenalty: (p: Penalty) => void;
+  onDiscard: () => void;
 }
 
 export const ResultActions = ({ penalty, onPenalty, onDiscard }: ResultActionsProps) => (
@@ -17,7 +17,11 @@ export const ResultActions = ({ penalty, onPenalty, onDiscard }: ResultActionsPr
         size="sm"
         onClick={() => onPenalty(penalty === '+2' ? 'none' : '+2')}
         aria-pressed={penalty === '+2'}
-        style={penalty === '+2' ? { background: 'color-mix(in srgb, var(--ui-color-text) 10%, transparent)' } : undefined}
+        style={
+          penalty === '+2'
+            ? { background: 'color-mix(in srgb, var(--ui-color-text) 10%, transparent)' }
+            : undefined
+        }
       >
         +2
       </Button>
@@ -31,13 +35,8 @@ export const ResultActions = ({ penalty, onPenalty, onDiscard }: ResultActionsPr
         DNF
       </Button>
     </div>
-    <Button
-      variant="link"
-      color="neutral"
-      size="sm"
-      onClick={onDiscard}
-    >
+    <Button variant="link" color="neutral" size="sm" onClick={onDiscard}>
       不记录
     </Button>
   </div>
-)
+);

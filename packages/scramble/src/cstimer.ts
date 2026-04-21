@@ -19,11 +19,9 @@ interface CstimerModule {
 
 const mod = cstimer as unknown as CstimerModule;
 
-export const rawGetScramble = (type: string, length = 0): string =>
-  mod.getScramble(type, length);
+export const rawGetScramble = (type: string, length = 0): string => mod.getScramble(type, length);
 
-export const rawGetImage = (scramble: string, type: string): string =>
-  mod.getImage(scramble, type);
+export const rawGetImage = (scramble: string, type: string): string => mod.getImage(scramble, type);
 
 export const rawSetSeed = (seed: string): void => {
   mod.setSeed(seed);

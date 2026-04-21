@@ -1,5 +1,5 @@
 interface ScrambleImageProps {
-  svg: string
+  svg: string;
 }
 
 export const ScrambleImage = ({ svg }: ScrambleImageProps) => (
@@ -17,4 +17,4 @@ export const ScrambleImage = ({ svg }: ScrambleImageProps) => (
     }}
     dangerouslySetInnerHTML={{ __html: svg }}
   />
-)
+);

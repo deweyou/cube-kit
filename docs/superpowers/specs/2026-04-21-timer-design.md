@@ -42,10 +42,10 @@ Pure functions only — no React dependency, usable in any platform (Node, brows
 
 ```ts
 // Core timer factory
-export function createTimer(): Timer
+export function createTimer(): Timer;
 
 // Display utility — format raw ms for UI display
-export function formatElapsed(ms: number, decimals: 0 | 1 | 2 | 3 = 3): string
+export function formatElapsed(ms: number, decimals: 0 | 1 | 2 | 3 = 3): string;
 // formatElapsed(12347, 3) → "12.347"
 // formatElapsed(12347, 2) → "12.34"
 // formatElapsed(12347, 0) → "12"
@@ -58,12 +58,12 @@ React hook lives in `apps/web/src/timer/hooks/use-timer.ts`, not in the package:
 ```ts
 // Thin wrapper over createTimer(); drives re-renders via requestAnimationFrame
 export function useTimer(): {
-  state: TimerState
-  elapsed: number   // real-time ms when running; final ms when stopped
-  start: () => void
-  stop: () => number
-  reset: () => void
-}
+  state: TimerState;
+  elapsed: number; // real-time ms when running; final ms when stopped
+  start: () => void;
+  stop: () => number;
+  reset: () => void;
+};
 ```
 
 This keeps `packages/timer` platform-agnostic (follows the same convention as `packages/scramble`).
@@ -74,17 +74,17 @@ This keeps `packages/timer` platform-agnostic (follows the same convention as `p
 type TimerState =
   | { status: 'idle' }
   | { status: 'running'; startTime: number }
-  | { status: 'stopped'; elapsed: number }
+  | { status: 'stopped'; elapsed: number };
 ```
 
 ### Timer interface
 
 ```ts
 interface Timer {
-  getState(): TimerState
-  start(): void    // idle → running
-  stop(): number   // running → stopped; returns elapsed ms
-  reset(): void    // any state → idle
+  getState(): TimerState;
+  start(): void; // idle → running
+  stop(): number; // running → stopped; returns elapsed ms
+  reset(): void; // any state → idle
 }
 ```
 
@@ -150,16 +150,16 @@ TimerPage
 
 ### Component / design token mapping
 
-| Element | Component | Notes |
-|---|---|---|
-| WCA event selector | `Select` | All 17 WCA events from `getWcaEvents()` |
-| ↻ refresh scramble | `Button` variant=`ghost` size=`sm` | |
-| +2 | `Button` variant=`outlined` color=`neutral` | |
-| DNF | `Button` variant=`outlined` color=`danger` | |
-| 「不记录」discard | `Button` variant=`link` color=`neutral` | Low-visibility ghost link |
-| Elapsed display | `<span>` | `font-family: var(--ui-font-mono)`, custom large size — outside Text component's type scale |
-| Scramble text | `Text` variant=`caption` | |
-| Scramble review (result) | `<details>` + `Text` variant=`caption` | Native collapsible |
+| Element                  | Component                                   | Notes                                                                                       |
+| ------------------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| WCA event selector       | `Select`                                    | All 17 WCA events from `getWcaEvents()`                                                     |
+| ↻ refresh scramble       | `Button` variant=`ghost` size=`sm`          |                                                                                             |
+| +2                       | `Button` variant=`outlined` color=`neutral` |                                                                                             |
+| DNF                      | `Button` variant=`outlined` color=`danger`  |                                                                                             |
+| 「不记录」discard        | `Button` variant=`link` color=`neutral`     | Low-visibility ghost link                                                                   |
+| Elapsed display          | `<span>`                                    | `font-family: var(--ui-font-mono)`, custom large size — outside Text component's type scale |
+| Scramble text            | `Text` variant=`caption`                    |                                                                                             |
+| Scramble review (result) | `<details>` + `Text` variant=`caption`      | Native collapsible                                                                          |
 
 ---
 
@@ -167,18 +167,20 @@ TimerPage
 
 ### Desktop
 
-| Trigger | Action |
-|---|---|
-| Hold `Space` | Enter timing UI immediately, start timer |
-| Release `Space` | Stop timer, go to result |
-| `Escape` (while timing) | No-op (no cancel on desktop) |
+| Trigger                 | Action                                   |
+| ----------------------- | ---------------------------------------- |
+| Hold `Space`            | Enter timing UI immediately, start timer |
+| Release `Space`         | Stop timer, go to result                 |
+| `Escape` (while timing) | No-op (no cancel on desktop)             |
 
 ### H5
 
 **Starting:**
+
 - Long press anywhere (> 300ms `touchstart`) → immediately switch to timing UI, start timer
 
 **While timing — cancel gesture:**
+
 - Timer UI shows a faint "↑ 上滑取消" hint at the top
 - Finger swipes up into the top cancel zone → zone turns red, elapsed display dims
 - Release finger:
@@ -218,6 +220,7 @@ TimerPage
 All logic tested with vitest, co-located at `src/timer.test.ts` and `src/format.test.ts`:
 
 **createTimer:**
+
 - Initial state is `idle`
 - `start()` transitions to `running`
 - `stop()` transitions to `stopped` and returns elapsed ms > 0
@@ -227,6 +230,7 @@ All logic tested with vitest, co-located at `src/timer.test.ts` and `src/format.
 - `elapsed` increases monotonically while running
 
 **formatElapsed:**
+
 - `(0, 3)` → `"0.000"`
 - `(1500, 3)` → `"1.500"`
 - `(12347, 3)` → `"12.347"`
@@ -235,6 +239,7 @@ All logic tested with vitest, co-located at `src/timer.test.ts` and `src/format.
 - `(3600000, 3)` → `"3600.000"` (no minute formatting this iteration)
 
 **useTimer (renderHook, in apps/web):**
+
 - Initial state is `idle`, elapsed is 0
 - After `start()`, state becomes `running`
 - After `stop()`, state becomes `stopped`, elapsed is final value
@@ -264,6 +269,7 @@ Use `bindtouchstart` / `bindtouchmove` / `bindtouchend` on a full-screen view. L
 
 **SVG scramble image — known technical risk:**
 WeChat miniprogram cannot render raw SVG strings via `innerHTML`. Options to investigate:
+
 1. Render SVG in a `<web-view>` component (requires a hosted URL)
 2. Convert SVG to Canvas drawing commands at build time
 3. Use an image URL if `@cubekit/scramble` adds a data-URI export

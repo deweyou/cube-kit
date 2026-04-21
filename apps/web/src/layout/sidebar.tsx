@@ -1,23 +1,21 @@
-import { useState, useEffect } from 'react'
-import styles from './sidebar.module.css'
+import { useState, useEffect } from 'react';
+import styles from './sidebar.module.css';
 
-const STORAGE_KEY = 'cubekit-sidebar-expanded'
+const STORAGE_KEY = 'cubekit-sidebar-expanded';
 
 const NAV_ITEMS = [
   { id: 'timer', label: '计时', icon: '⏱' },
   { id: 'history', label: '历史', icon: '📋' },
   { id: 'settings', label: '设置', icon: '⚙' },
-] as const
+] as const;
 
 export const Sidebar = () => {
-  const [expanded, setExpanded] = useState(
-    () => localStorage.getItem(STORAGE_KEY) !== 'false',
-  )
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [expanded, setExpanded] = useState(() => localStorage.getItem(STORAGE_KEY) !== 'false');
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, String(expanded))
-  }, [expanded])
+    localStorage.setItem(STORAGE_KEY, String(expanded));
+  }, [expanded]);
 
   return (
     <>
@@ -29,13 +27,13 @@ export const Sidebar = () => {
         {expanded && <span className={styles.logo}>CubeKit</span>}
         <button
           className={styles.toggleBtn}
-          onClick={() => setExpanded(e => !e)}
+          onClick={() => setExpanded((e) => !e)}
           aria-label={expanded ? '收起侧边栏' : '展开侧边栏'}
         >
           {expanded ? '⊟' : '⊞'}
         </button>
         <nav className={styles.nav}>
-          {NAV_ITEMS.map(item => (
+          {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
               className={`${styles.navItem} ${item.id === 'timer' ? styles.active : ''}`}
@@ -73,7 +71,7 @@ export const Sidebar = () => {
               </button>
             </div>
             <nav>
-              {NAV_ITEMS.map(item => (
+              {NAV_ITEMS.map((item) => (
                 <button
                   key={item.id}
                   className={`${styles.drawerNavItem} ${item.id === 'timer' ? styles.active : ''}`}
@@ -94,5 +92,5 @@ export const Sidebar = () => {
         </div>
       )}
     </>
-  )
-}
+  );
+};

@@ -1,8 +1,8 @@
-import { Button } from '@deweyou-design/react/button'
+import { Button } from '@deweyou-design/react/button';
 
 interface ScrambleTextProps {
-  scramble: string
-  onRefresh: () => void
+  scramble: string;
+  onRefresh: () => void;
 }
 
 export const ScrambleText = ({ scramble, onRefresh }: ScrambleTextProps) => (
@@ -39,4 +39,4 @@ export const ScrambleText = ({ scramble, onRefresh }: ScrambleTextProps) => (
       ↻
     </Button>
   </div>
-)
+);

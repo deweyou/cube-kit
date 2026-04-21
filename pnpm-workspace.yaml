@@ -2,9 +2,8 @@ packages:
   - apps/*
   - packages/*
 
-catalogMode: prefer
-
 catalog:
+  '@testing-library/user-event': ^14.6.1
   '@types/node': ^24
   '@types/react': ^19
   '@types/react-dom': ^19
@@ -13,8 +12,10 @@ catalog:
   react-dom: ^19
   typescript: ^5
   vite: npm:@voidzero-dev/vite-plus-core@latest
-  vitest: npm:@voidzero-dev/vite-plus-test@latest
   vite-plus: latest
+  vitest: npm:@voidzero-dev/vite-plus-test@latest
+
+catalogMode: prefer
 
 overrides:
   vite: 'catalog:'
@@ -25,6 +26,6 @@ peerDependencyRules:
     - vite
     - vitest
   allowedVersions:
+    '@deweyou-design/react>react': '18 || 19'
     vite: '*'
     vitest: '*'
-    '@deweyou-design/react>react': '18 || 19'

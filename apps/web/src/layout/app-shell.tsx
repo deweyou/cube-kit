@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react'
-import { Sidebar } from './sidebar'
-import styles from './app-shell.module.css'
+import type { ReactNode } from 'react';
+import { Sidebar } from './sidebar';
+import styles from './app-shell.module.css';
 
 interface AppShellProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export const AppShell = ({ children }: AppShellProps) => (
@@ -13,4 +13,4 @@ export const AppShell = ({ children }: AppShellProps) => (
     </div>
     <main className={styles.main}>{children}</main>
   </div>
-)
+);

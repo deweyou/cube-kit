@@ -1,9 +1,9 @@
-import { formatElapsed } from '@cubekit/timer'
+import { formatElapsed } from '@cubekit/timer';
 
 interface ElapsedDisplayProps {
-  ms: number
-  decimals?: 0 | 1 | 2 | 3
-  dimmed?: boolean
+  ms: number;
+  decimals?: 0 | 1 | 2 | 3;
+  dimmed?: boolean;
 }
 
 export const ElapsedDisplay = ({ ms, decimals = 2, dimmed = false }: ElapsedDisplayProps) => (
@@ -21,4 +21,4 @@ export const ElapsedDisplay = ({ ms, decimals = 2, dimmed = false }: ElapsedDisp
   >
     {formatElapsed(ms, decimals)}
   </span>
-)
+);

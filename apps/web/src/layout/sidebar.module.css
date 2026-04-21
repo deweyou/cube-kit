@@ -67,7 +67,9 @@
   cursor: pointer;
   text-align: left;
   white-space: nowrap;
-  transition: background 140ms ease, color 140ms ease;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
 }
 
 .navItem:hover:not(:disabled) {

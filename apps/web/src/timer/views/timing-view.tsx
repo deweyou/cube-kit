@@ -1,8 +1,8 @@
-import { ElapsedDisplay } from '../components/elapsed-display'
+import { ElapsedDisplay } from '../components/elapsed-display';
 
 interface TimingViewProps {
-  elapsed: number
-  isInCancelZone: boolean
+  elapsed: number;
+  isInCancelZone: boolean;
 }
 
 export const TimingView = ({ elapsed, isInCancelZone }: TimingViewProps) => (
@@ -33,7 +33,9 @@ export const TimingView = ({ elapsed, isInCancelZone }: TimingViewProps) => (
       <span
         style={{
           fontSize: '0.75rem',
-          color: isInCancelZone ? 'var(--ui-color-danger-bg)' : 'color-mix(in srgb, var(--ui-color-text-muted) 30%, transparent)',
+          color: isInCancelZone
+            ? 'var(--ui-color-danger-bg)'
+            : 'color-mix(in srgb, var(--ui-color-text-muted) 30%, transparent)',
           transition: 'color 140ms ease',
         }}
       >
@@ -53,4 +55,4 @@ export const TimingView = ({ elapsed, isInCancelZone }: TimingViewProps) => (
       <ElapsedDisplay ms={elapsed} decimals={2} dimmed={isInCancelZone} />
     </div>
   </div>
-)
+);
