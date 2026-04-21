@@ -1,18 +1,25 @@
-import { getImage } from '@cubekit/scramble'
-import type { WcaEventId } from '@cubekit/scramble'
-import { EventSelector } from '../components/event-selector'
-import { ScrambleText } from '../components/scramble-text'
-import { ScrambleImage } from '../components/scramble-image'
+import { getImage } from '@cubekit/scramble';
+import type { WcaEventId } from '@cubekit/scramble';
+import { EventSelector } from '../components/event-selector';
+import { ScrambleText } from '../components/scramble-text';
+import { ScrambleImage } from '../components/scramble-image';
 
 interface ScrambleViewProps {
-  eventId: WcaEventId
-  scramble: string
-  onEventChange: (id: WcaEventId) => void
-  onRefresh: () => void
+  eventId: WcaEventId;
+  scramble: string;
+  isReady?: boolean;
+  onEventChange: (id: WcaEventId) => void;
+  onRefresh: () => void;
 }
 
-export const ScrambleView = ({ eventId, scramble, onEventChange, onRefresh }: ScrambleViewProps) => {
-  const svg = getImage(scramble, eventId)
+export const ScrambleView = ({
+  eventId,
+  scramble,
+  isReady = false,
+  onEventChange,
+  onRefresh,
+}: ScrambleViewProps) => {
+  const svg = getImage(scramble, eventId);
 
   return (
     <div
@@ -31,15 +38,16 @@ export const ScrambleView = ({ eventId, scramble, onEventChange, onRefresh }: Sc
       <ScrambleImage svg={svg} />
       <p
         style={{
-          color: 'var(--ui-color-text-muted)',
           fontSize: '0.8rem',
-          opacity: 0.4,
           margin: 0,
           marginTop: 12,
+          color: isReady ? 'var(--ui-color-success-text, #4ade80)' : 'var(--ui-color-text-muted)',
+          opacity: isReady ? 1 : 0.4,
+          transition: 'color 100ms ease, opacity 100ms ease',
         }}
       >
-        长按开始
+        {isReady ? '松开开始' : '长按开始'}
       </p>
     </div>
-  )
-}
+  );
+};
