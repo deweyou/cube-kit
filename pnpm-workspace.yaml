@@ -6,11 +6,11 @@ catalogMode: prefer
 
 catalog:
   '@types/node': ^24
-  '@types/react': ^18
-  '@types/react-dom': ^18
+  '@types/react': ^19
+  '@types/react-dom': ^19
   '@vitejs/plugin-react': ^4
-  react: ^18
-  react-dom: ^18
+  react: ^19
+  react-dom: ^19
   typescript: ^5
   vite: npm:@voidzero-dev/vite-plus-core@latest
   vitest: npm:@voidzero-dev/vite-plus-test@latest
@@ -27,3 +27,4 @@ peerDependencyRules:
   allowedVersions:
     vite: '*'
     vitest: '*'
+    '@deweyou-design/react>react': '18 || 19'
