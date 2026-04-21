@@ -14,12 +14,12 @@ This topic codifies a minimum process for keeping our packages legally consisten
 
 2. **Classify the license**:
 
-   | Class | Examples | Implication when bundled |
-   |---|---|---|
-   | **Permissive** | MIT, Apache-2.0, BSD-2/3-Clause, ISC, 0BSD | Safe to bundle into MIT/Apache packages. Must preserve copyright notices in a `NOTICE` file. |
-   | **Weak copyleft** | LGPL-2.1/3.0, MPL-2.0 | Bundling statically = combined work must also allow LGPL linking. Usually means the bundling package becomes LGPL or ships object files the user can relink. Gray area — prefer `peerDependencies`. |
-   | **Strong copyleft** | GPL-2.0/3.0, AGPL-3.0 | Combined work MUST be GPL-compatible. Cannot ship as MIT/Apache. If the upstream is AGPL, even network use triggers distribution. |
-   | **Unknown / custom** | Anything else | STOP. Require explicit review before bundling. |
+   | Class                | Examples                                   | Implication when bundled                                                                                                                                                                            |
+   | -------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+   | **Permissive**       | MIT, Apache-2.0, BSD-2/3-Clause, ISC, 0BSD | Safe to bundle into MIT/Apache packages. Must preserve copyright notices in a `NOTICE` file.                                                                                                        |
+   | **Weak copyleft**    | LGPL-2.1/3.0, MPL-2.0                      | Bundling statically = combined work must also allow LGPL linking. Usually means the bundling package becomes LGPL or ships object files the user can relink. Gray area — prefer `peerDependencies`. |
+   | **Strong copyleft**  | GPL-2.0/3.0, AGPL-3.0                      | Combined work MUST be GPL-compatible. Cannot ship as MIT/Apache. If the upstream is AGPL, even network use triggers distribution.                                                                   |
+   | **Unknown / custom** | Anything else                              | STOP. Require explicit review before bundling.                                                                                                                                                      |
 
 3. **Cross-check the bundling package's declared license**:
 
@@ -31,7 +31,6 @@ This topic codifies a minimum process for keeping our packages legally consisten
    ```
 
 4. **Decision gate**: bundle only when the bundling package's license is compatible with every bundled dep's license. Otherwise, pick one of:
-
    - Change the bundling package's license to match (usually GPL-3.0 when wrapping GPL upstreams).
    - Stop bundling — declare the dep as a `peerDependencies` or load it out-of-process (Web Worker, subprocess, etc.) so the boundary is "mere aggregation" rather than linkage.
    - Replace the dep with a differently-licensed alternative.

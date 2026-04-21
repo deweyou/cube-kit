@@ -1,0 +1,27 @@
+.root {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--ui-color-canvas);
+  color: var(--ui-color-text);
+  overflow: hidden;
+}
+
+.desktopSidebar {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.main {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+}
+
+/* On mobile, hide the desktop sidebar — sidebar renders its own mobile toggle */
+@media (max-width: 639px) {
+  .desktopSidebar {
+    display: none;
+  }
+}

@@ -62,11 +62,11 @@ const f2l = getScramble('f2l'); // forwarded to cstimer_module as-is
 
 This matters for three distinct consumers:
 
-| Environment | Works out of the box? | Notes |
-|---|---|---|
-| **Node.js / vitest / build-time scripts** | ✅ | This is the normal case. No shim needed. |
-| **Web Worker (browser)** | ✅ | Import `@cubekit/scramble` from inside a worker and it just works. Recommended approach for browser apps — matches upstream's official guidance. |
-| **Browser main thread** | ❌ by default | You must install a pre-import shim that fakes `process` / `require` / `global` on `globalThis`. See the shim used by the playground at `playground/cstimer-browser-shim.ts`. |
+| Environment                               | Works out of the box? | Notes                                                                                                                                                                        |
+| ----------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Node.js / vitest / build-time scripts** | ✅                    | This is the normal case. No shim needed.                                                                                                                                     |
+| **Web Worker (browser)**                  | ✅                    | Import `@cubekit/scramble` from inside a worker and it just works. Recommended approach for browser apps — matches upstream's official guidance.                             |
+| **Browser main thread**                   | ❌ by default         | You must install a pre-import shim that fakes `process` / `require` / `global` on `globalThis`. See the shim used by the playground at `playground/cstimer-browser-shim.ts`. |
 
 The package's **core API stays synchronous and platform-agnostic** (string in, string out) — the shim / worker concern lives entirely on the consumer side.
 
@@ -155,10 +155,10 @@ Seeds cstimer's internal CSPRNG. Two `setSeed(s) → getScramble('333')` pairs w
 function getWcaEvents(): readonly WcaEvent[];
 
 interface WcaEvent {
-  id: WcaEventId;     // '333' | '222' | ... | '333mbld'
-  label: string;      // 'e.g. 3x3x3 Cube'
+  id: WcaEventId; // '333' | '222' | ... | '333mbld'
+  label: string; // 'e.g. 3x3x3 Cube'
   cstimerType: string; // underlying cstimer type id (normally hidden)
-  length: number;      // WCA scramble length (0 = cstimer default)
+  length: number; // WCA scramble length (0 = cstimer default)
 }
 ```
 
@@ -168,10 +168,23 @@ Returns a stable reference — the same array is returned on every call. Do not 
 
 ```ts
 type WcaEventId =
-  | '333' | '222' | '444' | '555' | '666' | '777'
-  | '333bld' | '333fm' | '333oh'
-  | 'clock' | 'minx' | 'pyram' | 'skewb' | 'sq1'
-  | '444bld' | '555bld' | '333mbld';
+  | '333'
+  | '222'
+  | '444'
+  | '555'
+  | '666'
+  | '777'
+  | '333bld'
+  | '333fm'
+  | '333oh'
+  | 'clock'
+  | 'minx'
+  | 'pyram'
+  | 'skewb'
+  | 'sq1'
+  | '444bld'
+  | '555bld'
+  | '333mbld';
 
 type ScrambleType = WcaEventId | (string & {});
 ```
@@ -180,25 +193,25 @@ The `(string & {})` intersection is a TypeScript idiom that keeps literal autoco
 
 ## Supported WCA events
 
-| ID | Event | Default length |
-|---|---|---|
-| `333` | 3x3x3 Cube | cstimer default |
-| `222` | 2x2x2 Cube | cstimer default |
-| `444` | 4x4x4 Cube | cstimer default |
-| `555` | 5x5x5 Cube | 60 |
-| `666` | 6x6x6 Cube | 80 |
-| `777` | 7x7x7 Cube | 100 |
-| `333bld` | 3x3 Blindfolded | cstimer default |
-| `333fm` | 3x3 Fewest Moves | cstimer default |
-| `333oh` | 3x3 One-Handed | cstimer default (same scramble as `333`) |
-| `clock` | Clock | cstimer default |
-| `minx` | Megaminx | 70 |
-| `pyram` | Pyraminx | 10 |
-| `skewb` | Skewb | cstimer default |
-| `sq1` | Square-1 | cstimer default |
-| `444bld` | 4x4 Blindfolded | 40 |
-| `555bld` | 5x5 Blindfolded | 60 |
-| `333mbld` | 3x3 Multi-Blind | 5 |
+| ID        | Event            | Default length                           |
+| --------- | ---------------- | ---------------------------------------- |
+| `333`     | 3x3x3 Cube       | cstimer default                          |
+| `222`     | 2x2x2 Cube       | cstimer default                          |
+| `444`     | 4x4x4 Cube       | cstimer default                          |
+| `555`     | 5x5x5 Cube       | 60                                       |
+| `666`     | 6x6x6 Cube       | 80                                       |
+| `777`     | 7x7x7 Cube       | 100                                      |
+| `333bld`  | 3x3 Blindfolded  | cstimer default                          |
+| `333fm`   | 3x3 Fewest Moves | cstimer default                          |
+| `333oh`   | 3x3 One-Handed   | cstimer default (same scramble as `333`) |
+| `clock`   | Clock            | cstimer default                          |
+| `minx`    | Megaminx         | 70                                       |
+| `pyram`   | Pyraminx         | 10                                       |
+| `skewb`   | Skewb            | cstimer default                          |
+| `sq1`     | Square-1         | cstimer default                          |
+| `444bld`  | 4x4 Blindfolded  | 40                                       |
+| `555bld`  | 5x5 Blindfolded  | 60                                       |
+| `333mbld` | 3x3 Multi-Blind  | 5                                        |
 
 Lengths > 0 are WCA regulation requirements — upstream `cstimer_module` returns scrambles that are too short without them.
 

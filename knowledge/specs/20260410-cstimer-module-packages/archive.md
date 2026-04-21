@@ -18,17 +18,17 @@
 
 ## Key Decisions
 
-| Decision | Options Considered | Choice Made | Rationale |
-|---|---|---|---|
-| Public API shape | Overloads / discriminated union / single fn with `(string & {})` escape hatch | Single `getScramble(type, length?)` with `ScrambleType = WcaEventId \| (string & {})` | Keeps call sites tiny (`getScramble('333')`), preserves literal autocomplete for the 17 WCA ids, still allows non-WCA training types as an escape hatch with zero API-surface bloat |
-| Event id naming | Pass-through cstimer ids (`333ni`, `mgmp`, `pyrso`) / WCA official short codes (`333bld`, `minx`, `pyram`) / pure numeric (`3bld`, `meg`) | WCA official short codes | Matches WCA website, decouples public API from upstream's opaque naming, gives downstream apps stable ids even if we swap scramble engines later |
-| WCA length source | Derive at runtime from cstimer / hardcode in a whitelist table | Hardcode `LENGTH_*` named constants feeding into `WCA_EVENTS` | Upstream's lengths are a regulation contract, not runtime data; hardcoding documents intent; named constants keep the table readable |
-| Error strategy | Structured `{ ok, error }` / custom error class / native `Error` with prefixed message | Native `Error` with `@cubekit/scramble:` prefix | Matches JS ecosystem norms, matches what cstimer itself does, trivial to `try/catch` |
-| `cstimer_module` bundling | External runtime dep / bundled via `alwaysBundle` / dynamic Worker import | Bundled via `deps.alwaysBundle`, moved to `devDependencies` | Downstream apps don't need to declare cstimer themselves. Trade-off: the bundled combined work is GPL-3.0 (see pitfalls) |
-| Output chunk strategy | Single file / manual chunks / rolldown `codeSplitting.groups` | `codeSplitting.groups: [{ name: 'cstimer', test: /cstimer_module/ }]` | Keeps our 6 KB wrapper in its own file so wrapper updates don't force a re-download of the 411 KB solver tables |
-| Playground framework | React (consistency with apps) / Vanilla TS + Vite / no playground | Vanilla TS + Vite | Diagnostic tool, not a product — React would add bundle and config noise for no benefit; <50 LOC delivers the whole thing |
-| Old text-scramble migration | Keep under `legacy/` / rewrite with compat shims / delete and rewrite | Delete and rewrite | `grep -r` across `apps/` and `packages/` confirmed zero consumers; no migration burden |
-| Package license | Keep `"MIT"` (from scaffold) / switch to GPL-3.0 / restructure so cstimer runs out-of-process | Switch to GPL-3.0 | `cstimer_module` is GPL-3.0 and we statically bundle its source; copyleft applies to the combined work; aligning with upstream is the safe default |
+| Decision                    | Options Considered                                                                                                                        | Choice Made                                                                           | Rationale                                                                                                                                                                           |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public API shape            | Overloads / discriminated union / single fn with `(string & {})` escape hatch                                                             | Single `getScramble(type, length?)` with `ScrambleType = WcaEventId \| (string & {})` | Keeps call sites tiny (`getScramble('333')`), preserves literal autocomplete for the 17 WCA ids, still allows non-WCA training types as an escape hatch with zero API-surface bloat |
+| Event id naming             | Pass-through cstimer ids (`333ni`, `mgmp`, `pyrso`) / WCA official short codes (`333bld`, `minx`, `pyram`) / pure numeric (`3bld`, `meg`) | WCA official short codes                                                              | Matches WCA website, decouples public API from upstream's opaque naming, gives downstream apps stable ids even if we swap scramble engines later                                    |
+| WCA length source           | Derive at runtime from cstimer / hardcode in a whitelist table                                                                            | Hardcode `LENGTH_*` named constants feeding into `WCA_EVENTS`                         | Upstream's lengths are a regulation contract, not runtime data; hardcoding documents intent; named constants keep the table readable                                                |
+| Error strategy              | Structured `{ ok, error }` / custom error class / native `Error` with prefixed message                                                    | Native `Error` with `@cubekit/scramble:` prefix                                       | Matches JS ecosystem norms, matches what cstimer itself does, trivial to `try/catch`                                                                                                |
+| `cstimer_module` bundling   | External runtime dep / bundled via `alwaysBundle` / dynamic Worker import                                                                 | Bundled via `deps.alwaysBundle`, moved to `devDependencies`                           | Downstream apps don't need to declare cstimer themselves. Trade-off: the bundled combined work is GPL-3.0 (see pitfalls)                                                            |
+| Output chunk strategy       | Single file / manual chunks / rolldown `codeSplitting.groups`                                                                             | `codeSplitting.groups: [{ name: 'cstimer', test: /cstimer_module/ }]`                 | Keeps our 6 KB wrapper in its own file so wrapper updates don't force a re-download of the 411 KB solver tables                                                                     |
+| Playground framework        | React (consistency with apps) / Vanilla TS + Vite / no playground                                                                         | Vanilla TS + Vite                                                                     | Diagnostic tool, not a product — React would add bundle and config noise for no benefit; <50 LOC delivers the whole thing                                                           |
+| Old text-scramble migration | Keep under `legacy/` / rewrite with compat shims / delete and rewrite                                                                     | Delete and rewrite                                                                    | `grep -r` across `apps/` and `packages/` confirmed zero consumers; no migration burden                                                                                              |
+| Package license             | Keep `"MIT"` (from scaffold) / switch to GPL-3.0 / restructure so cstimer runs out-of-process                                             | Switch to GPL-3.0                                                                     | `cstimer_module` is GPL-3.0 and we statically bundle its source; copyleft applies to the combined work; aligning with upstream is the safe default                                  |
 
 ## Pitfalls
 
@@ -37,6 +37,7 @@
 **What happened**: The playground's dropdown populated correctly but clicking Generate did nothing. No visible error. Scramble and SVG stayed empty. Console was silent.
 
 **Why non-obvious**:
+
 - All 54 unit tests passed — vitest runs in Node, where cstimer's environment probe succeeds.
 - The build produced a valid bundle — bundlers don't care about runtime environment assumptions.
 - The browser DevTools network panel showed the module loading successfully (200 OK).
@@ -76,17 +77,20 @@ In a browser main thread: `Na = false`, `lb = false`, `tb` returns `{}` **withou
 **What happened**: `package.json` declared `"license": "MIT"` throughout the feature work. The user specifically asked to verify upstream licensing during the archive phase, and investigation revealed the mismatch.
 
 **Why non-obvious**:
+
 - The scaffold's MIT declaration was correct at the time the file was created (when the package was a text-animation utility with no deps).
 - `cstimer_module`'s own npm tarball does NOT include a LICENSE file — its `package.json` declares `"license": "GPL-3.0"` but the canonical text is only in the upstream GitHub repo, which is easy to miss if you only look at `node_modules`.
 - It's tempting to reason "we're just calling an API, we don't modify anything" — but GPL-3.0 treats statically linked / bundled code as part of the combined work, and `deps.alwaysBundle: ['cstimer_module']` literally inlines cstimer's minified source into our `dist/cstimer-*.mjs`.
 
 **Resolution**:
+
 - `packages/scramble/package.json`: `"license": "GPL-3.0"`, `files` extended to include `LICENSE`, `NOTICE`, `README.md`.
 - `packages/scramble/LICENSE`: full GPL-3.0 text fetched from `https://www.gnu.org/licenses/gpl-3.0.txt`.
 - `packages/scramble/NOTICE`: attribution of `cstimer_module@0.1.5` with upstream repo link, noting that cstimer is bundled verbatim with no modifications.
 - `packages/scramble/README.md` and `packages/scramble/CLAUDE.md`: prominent GPL-3.0 notices explaining downstream implications.
 
 **Signal to watch for**:
+
 - Any monorepo package declaring `"license": "MIT"` while bundling / linking code from a `devDependencies` entry — audit the dep tree for GPL, LGPL, MPL, AGPL packages.
 - `package.json` `license` field inherited from scaffolding rather than set intentionally for the current code.
 - `pnpm licenses list` or `license-checker` output showing any GPL/AGPL package in the transitive closure of a package you intend to publish permissively.
@@ -96,6 +100,7 @@ In a browser main thread: `Na = false`, `lb = false`, `tb` returns `{}` **withou
 **What happened**: After the playground was rendering correctly for 3x3, switching to 7x7 showed only the top face fully plus part of two middle-row faces — the bottom half of the unfolded net was gone. At first glance it looked like a layout / overflow bug.
 
 **Why non-obvious**:
+
 - The SVG returned by `cstimer_module.getImage` has proper `width` and `height` attributes (`916` and `682.667` for 7x7). Inspecting the raw output looks fine.
 - CSS `max-width: 100%; height: auto;` on the `<svg>` element scales the element's bounding box correctly, and the element's `getBoundingClientRect()` reports the expected scaled size (e.g. 602×449). No visible overflow on the wrapper div.
 - The clipped faces are still PRESENT in the DOM — `querySelectorAll('polygon').length === 294`, matching a full 7x7 net. They're just drawn at user-space coordinates (like `(700, 600)`) that fall outside the CSS pixel box after scaling.
@@ -107,6 +112,7 @@ Root cause: without a `viewBox` attribute, an SVG's user-space coordinate system
 **Resolution**: `src/image.ts` now runs an `ensureViewBox()` post-processor on every upstream SVG. It parses the `<svg>` opening tag, reads the `width` and `height` attributes, and injects `viewBox="0 0 W H"` if no viewBox exists. Idempotent — if the upstream ever starts emitting its own viewBox we skip the injection. Regression guard in `tests/image.test.ts`: `test.each(getWcaEvents())` asserts every event's SVG has a viewBox that matches its declared width/height exactly (so any future upstream change that drifts the numbers fails loudly instead of silently distorting aspect ratio).
 
 **Signal to watch for**:
+
 - Any SVG from a third-party library that "works small but breaks when resized". Inspect the SVG's outer attributes: if there's `width=` and `height=` but no `viewBox=`, this bug is waiting to happen.
 - Users reporting "the image is getting cut off" or "only half the image shows" on mobile / narrow viewports, while the same image renders correctly on desktop.
 - `querySelectorAll('polygon').length` (or similar) showing the expected element count while the rendered image only shows a subset — strong hint that content exists but is drawn outside the visible coordinate space.
@@ -149,6 +155,7 @@ When NOT to use: if the upstream can be replaced with a properly isomorphic alte
 For any package that wraps a third-party library, concentrate all direct imports of that library in ONE internal file (convention: `src/<dep>.ts`). Every other source file in the package goes through wrapper functions exported from that file.
 
 Benefits:
+
 - Error wrapping, retry, logging, and telemetry happen in one place.
 - Type refinement (turning `any` from a loose upstream `.d.ts` into safer local types) lives in one place.
 - Swapping the upstream or upgrading across a breaking change means editing one file.
