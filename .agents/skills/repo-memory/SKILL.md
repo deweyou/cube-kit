@@ -57,7 +57,7 @@ Inspect the repository state:
 - `git status --short`
 - current branch and likely base branch
 - `git diff --stat` and focused diffs for changed files
-- existing `AGENTS.md`, `CLAUDE.md`, `docs/`, and `knowledge/`
+- existing `AGENTS.md`, `CLAUDE.md`, `docs/`, and any legacy memory directory
 - changed specs, plans, README files, skills, rules, or workflow scripts
 
 If there are no relevant changes and the user did not ask for initialization, say
@@ -68,8 +68,7 @@ that no repo-memory update is needed.
 Use the repository's existing convention when it is clear:
 
 - Prefer `docs/` for the knowledge base.
-- Keep using `knowledge/` only when the repo already has it and migration was not
-  requested.
+- Treat a legacy memory directory as a migration source when migration is requested.
 - Create `docs/` when no knowledge base exists.
 - Keep `AGENTS.md` at the repo root as the navigation page.
 - Create `CLAUDE.md` as a symlink to `AGENTS.md` when safe.
