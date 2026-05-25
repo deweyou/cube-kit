@@ -3,11 +3,26 @@ export type { PuzzleId, WcaEventId, WcaEventInfo } from './events.js';
 export { splitAlgorithm, applyAlgorithm } from './algorithm.js';
 export { createCubeDefinition } from './cube/cube-definition.js';
 export { parseCubeAlgorithm, parseCubeMove } from './cube/cube-parser.js';
+export { createClockDefinition } from './clock/clock-definition.js';
+export { parseClockAlgorithm, parseClockMove } from './clock/clock-parser.js';
 export {
   applyCubeMove,
   areCubeStatesEqual,
   createSolvedCubeState,
 } from './cube/cube-state.js';
+export {
+  applyClockMove,
+  areClockStatesEqual,
+  createSolvedClockState,
+} from './clock/clock-state.js';
+export type {
+  ClockDirection,
+  ClockMove,
+  ClockRotationMove,
+  ClockTurnMove,
+  ClockTurnName,
+} from './clock/clock-parser.js';
+export type { ClockPositions, ClockState } from './clock/clock-state.js';
 export type {
   CubeFace,
   CubeLayerMove,
