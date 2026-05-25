@@ -1,0 +1,40 @@
+{
+  "mode": "copy",
+  "source": {
+    "root": "/Users/bytedance/.deweyou/agents/source",
+    "commit": "83df65b729297b865810dc9e36485493af597ad3"
+  },
+  "cacheRoot": "/Users/bytedance/.deweyou/agents/assets",
+  "assets": {
+    "skills": [
+      "git-delivery",
+      "repo-memory",
+      "spec-driven-coding"
+    ],
+    "rules": []
+  },
+  "assetSnapshot": {
+    "skills": {
+      "git-delivery": {
+        "description": "Branch-aware git delivery workflow. Use before editing new coding or asset tasks to check branch, dirty work, and base sync; use when the user asks to commit, submit, push, open a PR, ship work, resolve base conflicts, or follow PR CI, while protecting unrelated work.\n",
+        "hash": "sha256:321555c198d624493a17ace8798e007de1d3f6f178a5c4674d67e9065cdbb479"
+      },
+      "repo-memory": {
+        "description": "Repository memory workflow for durable project knowledge. Use before commits or PRs, after meaningful code or workflow changes, when initializing or updating AGENTS.md/docs/CLAUDE.md, or when local skills and repo conventions may need knowledge updates.\n",
+        "hash": "sha256:129e7082448b4349cbf76c52d9a2f7056274a8b2c50b98c7bb9555dc0a7f6c45"
+      },
+      "spec-driven-coding": {
+        "description": "Enforce the repository's spec-driven coding workflow for new features, behavior changes, and multi-step implementation work. Use this skill when starting a requirement, feature, refactor with behavior impact, or ambiguous coding task. It requires Superpowers brainstorming/spec/plan/task flow before coding unless the task is a simple bugfix, and still requires TDD, unit coverage, verification, and spec updates when requirements change.\n",
+        "hash": "sha256:4bd83ca870a1eb2cb56ae9f48b42b491012577c4389749ebac02581934af318f"
+      }
+    },
+    "rules": {}
+  },
+  "scope": "project",
+  "tools": [
+    "codex",
+    "claude"
+  ],
+  "ruleWiring": "reference",
+  "initializedAt": "2026-05-25T15:25:36.067Z"
+}
