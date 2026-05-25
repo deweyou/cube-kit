@@ -3,7 +3,7 @@ import {
   applyMegaminxMove,
   createSolvedMegaminxState,
   parseMegaminxAlgorithm,
-} from '../../../scramble-puzzle/src/index.js';
+} from '@cubekit/scramble-puzzle';
 import { renderMegaminxState } from './megaminx.js';
 
 describe('renderMegaminxState', () => {

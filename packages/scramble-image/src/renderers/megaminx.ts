@@ -1,29 +1,14 @@
+import {
+  MEGAMINX_FACES,
+  type MegaminxFace,
+  type MegaminxFacelet,
+  type MegaminxState,
+} from '@cubekit/scramble-puzzle';
 import type { HexColor } from '../color.js';
 import { createSvgDocument } from '../svg/svg-document.js';
 import { path, text, type SvgNode } from '../svg/svg-elements.js';
 
-const MEGAMINX_FACES = [
-  'U',
-  'BL',
-  'BR',
-  'R',
-  'F',
-  'L',
-  'D',
-  'DR',
-  'DBR',
-  'B',
-  'DBL',
-  'DL',
-] as const;
-
-type MegaminxFace = (typeof MEGAMINX_FACES)[number];
-type MegaminxFacelet = number;
-
-export interface MegaminxState {
-  readonly image: readonly (readonly MegaminxFacelet[])[];
-}
-
+// Mirrors TNoodle's preferred unfolded Megaminx SVG layout.
 const GAP = 2;
 const MINX_RADIUS = 30;
 const UNFOLD_HEIGHT = 2 + 3 * Math.sin(0.3 * Math.PI) + Math.sin(0.1 * Math.PI);
