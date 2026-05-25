@@ -84,4 +84,5 @@ export const applyClockMove = (state: ClockState, move: ClockMove): ClockState =
 };
 
 export const areClockStatesEqual = (a: ClockState, b: ClockState): boolean =>
+  a.rightSideUp === b.rightSideUp &&
   a.positions.every((position, index) => position === b.positions[index]);

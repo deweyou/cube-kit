@@ -19,12 +19,12 @@ describe('3x3 WCA generators', () => {
     expect(scramble.split(/\s+/).length).toBeLessThanOrEqual(21);
   });
 
-  it('generates a no-inspection scramble with an orientation token', () => {
+  it('draws from TNoodle no-inspection orientation choices', () => {
     const scramble = generateThreeByThreeNoInspectionScramble({
-      random: createSeededRandom(0x333b1d),
+      random: createOrientationProbeRandom(),
     });
 
-    expect(scramble).toMatch(/[xyz]|Rw|Fw|Uw/);
+    expect(scramble).not.toMatch(/\b(?:[URF]w2?|[URF]w')\b/u);
   });
 
   it('does not collide between no-inspection scramble and orientation axes', () => {
@@ -34,6 +34,8 @@ describe('3x3 WCA generators', () => {
       });
       const tokens = splitMoves(scramble);
       const orientationStart = tokens.findIndex((move) => move.includes('w'));
+      if (orientationStart === -1) continue;
+
       const lastScrambleMove = tokens[orientationStart - 1];
       const firstOrientationMove = tokens[orientationStart];
 
@@ -222,6 +224,24 @@ const createSeededRandom = (seed: number): RandomSource => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
 
       return state % maxExclusive;
+    },
+  };
+};
+
+const createOrientationProbeRandom = (): RandomSource => {
+  const fallback = createSeededRandom(0x333b1d);
+  let isOrientationChoice = true;
+
+  return {
+    nextInt(maxExclusive) {
+      if (isOrientationChoice) {
+        isOrientationChoice = false;
+        expect(maxExclusive).toBe(24);
+
+        return 0;
+      }
+
+      return fallback.nextInt(maxExclusive);
     },
   };
 };

@@ -57,6 +57,15 @@ describe('Clock state transitions', () => {
     expect(rotated.positions.slice(0, 9)).toEqual(moved.positions.slice(9));
   });
 
+  it('does not treat the opposite Clock side as solved', () => {
+    const definition = createClockDefinition();
+    const [rotation] = parseClockAlgorithm('y2');
+    const rotated = applyClockMove(definition.createSolvedState(), rotation);
+
+    expect(areClockStatesEqual(definition.createSolvedState(), rotated)).toBe(false);
+    expect(definition.isSolved(rotated)).toBe(false);
+  });
+
   it('wraps invalid algorithms through the shared applyAlgorithm helper', () => {
     const definition = createClockDefinition();
 
