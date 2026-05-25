@@ -49,9 +49,7 @@ export const randomState = (
     if (cornerPermutation === STATE_SOLVED) {
       cpValue = 0;
     } else if (cornerPermutation === STATE_RANDOM) {
-      do {
-        cpValue = drawRandomInt(random, 40_320);
-      } while (getNParity(cpValue, 8) !== parity);
+      cpValue = drawRandomPermutationWithParity(random, 40_320, 8, parity);
     } else {
       const resolvedCp = materializeState(cornerPermutation, 8);
       resolvePerm(resolvedCp, cpUnknownCount, parity, random);
@@ -71,9 +69,12 @@ export const randomState = (
     }
 
     if (edgePermutation === STATE_RANDOM) {
-      do {
-        epValue = drawRandomInt(random, 479_001_600);
-      } while (getNParity(epValue, 12) !== parity);
+      epValue = drawRandomPermutationWithParity(
+        random,
+        479_001_600,
+        12,
+        parity,
+      );
     } else {
       const resolvedEp = materializeState(edgePermutation, 12);
       resolvePerm(resolvedEp, epUnknownCount, parity, random);
@@ -95,6 +96,52 @@ export const randomState = (
         ? 0
         : resolveOri(materializeState(edgeOrientation, 12), 2, random),
   ).toFaceCube();
+};
+
+const drawRandomPermutationWithParity = (
+  random: RandomSource,
+  maxExclusive: number,
+  pieceCount: number,
+  parity: number,
+): number => {
+  const permutationValue = drawRandomInt(random, maxExclusive);
+
+  return getNParity(permutationValue, pieceCount) === parity
+    ? permutationValue
+    : flipPermutationParity(permutationValue, pieceCount);
+};
+
+const flipPermutationParity = (
+  permutationValue: number,
+  pieceCount: number,
+): number => {
+  const permutation = permutationFromIndex(permutationValue, pieceCount);
+  const first = permutation[0] ?? 0;
+  permutation[0] = permutation[1] ?? 0;
+  permutation[1] = first;
+
+  return getNPerm(permutation, pieceCount);
+};
+
+const permutationFromIndex = (
+  permutationValue: number,
+  pieceCount: number,
+): number[] => {
+  const permutation = Array<number>(pieceCount);
+  let index = permutationValue;
+
+  for (let i = pieceCount - 1; i >= 0; i -= 1) {
+    permutation[i] = index % (pieceCount - i);
+    index = Math.floor(index / (pieceCount - i));
+
+    for (let j = i + 1; j < pieceCount; j += 1) {
+      if ((permutation[j] ?? 0) >= (permutation[i] ?? 0)) {
+        permutation[j] = (permutation[j] ?? 0) + 1;
+      }
+    }
+  }
+
+  return permutation;
 };
 
 const resolveOri = (

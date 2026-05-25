@@ -8,7 +8,7 @@ import {
 } from './three-by-three.js';
 import type { RandomSource } from '../random-source.js';
 import { SearchWCA, INVERSE_SOLUTION } from '../solvers/min2phase/search-wca.js';
-import { randomCube } from '../solvers/min2phase/tools.js';
+import { randomCube, randomState } from '../solvers/min2phase/tools.js';
 
 describe('3x3 WCA generators', () => {
   it('generates a normal scramble within the WCA max length', () => {
@@ -27,6 +27,27 @@ describe('3x3 WCA generators', () => {
     expect(scramble).toMatch(/[xyz]|Rw|Fw|Uw/);
   });
 
+  it(
+    'does not collide between no-inspection scramble and orientation axes',
+    () => {
+      for (let seed = 0; seed < 40; seed += 1) {
+        const scramble = generateThreeByThreeNoInspectionScramble({
+          random: createSeededRandom(0x333b1d + seed),
+        });
+        const tokens = splitMoves(scramble);
+        const orientationStart = tokens.findIndex((move) => move.includes('w'));
+        const lastScrambleMove = tokens[orientationStart - 1];
+        const firstOrientationMove = tokens[orientationStart];
+
+        expect(
+          hasSameAxis(lastScrambleMove, firstOrientationMove),
+          scramble,
+        ).toBe(false);
+      }
+    },
+    10_000,
+  );
+
   it('generates an FMC scramble with the TNoodle prefix', () => {
     const scramble = generateThreeByThreeFewestMovesScramble({
       random: createSeededRandom(0x333f),
@@ -34,6 +55,23 @@ describe('3x3 WCA generators', () => {
 
     expect(scramble.startsWith("R' U' F ")).toBe(true);
   });
+
+  it(
+    'does not collide between FMC padding and inner scramble axes',
+    () => {
+      for (let seed = 0; seed < 40; seed += 1) {
+        const scramble = generateThreeByThreeFewestMovesScramble({
+          random: createSeededRandom(0x333f + seed),
+        });
+        const tokens = splitMoves(scramble);
+        const innerMoves = tokens.slice(3, -3);
+
+        expect(hasSameAxis('F', innerMoves[0]), scramble).toBe(false);
+        expect(hasSameAxis(innerMoves.at(-1), "R'"), scramble).toBe(false);
+      }
+    },
+    10_000,
+  );
 
   it('generates one no-inspection-style line per multi-blind cube', () => {
     const scramble = generateMultiBlindScramble({
@@ -96,6 +134,56 @@ describe('3x3 WCA generators', () => {
     });
   });
 
+  it('randomCube resolves repeated random edge-parity mismatches without retrying forever', () => {
+    const facelets = randomCube(createParityMismatchRandom());
+    const solution = new SearchWCA().solution(
+      facelets,
+      21,
+      100_000,
+      0,
+      INVERSE_SOLUTION,
+    );
+
+    expect(facelets).toHaveLength(54);
+    expect(solution).not.toMatch(/^Error/);
+    expect(countFacelets(facelets)).toEqual({
+      B: 9,
+      D: 9,
+      F: 9,
+      L: 9,
+      R: 9,
+      U: 9,
+    });
+  });
+
+  it('randomState resolves repeated random corner-parity mismatches without retrying forever', () => {
+    const facelets = randomState(
+      null,
+      null,
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+      null,
+      createCornerParityMismatchRandom(),
+    );
+    const solution = new SearchWCA().solution(
+      facelets,
+      21,
+      100_000,
+      0,
+      INVERSE_SOLUTION,
+    );
+
+    expect(facelets).toHaveLength(54);
+    expect(solution).not.toMatch(/^Error/);
+    expect(countFacelets(facelets)).toEqual({
+      B: 9,
+      D: 9,
+      F: 9,
+      L: 9,
+      R: 9,
+      U: 9,
+    });
+  });
+
   it('SearchWCA solves a real randomCube facelet string', () => {
     const facelets = randomCube(createSeededRandom(0x333_2));
     const solution = new SearchWCA().solution(
@@ -141,6 +229,33 @@ const countFacelets = (facelets: string): Record<string, number> => {
   return counts;
 };
 
+const splitMoves = (scramble: string): string[] => scramble.trim().split(/\s+/);
+
+const hasSameAxis = (
+  firstMove: string | undefined,
+  secondMove: string | undefined,
+): boolean => {
+  if (firstMove === undefined || secondMove === undefined) return false;
+
+  return axisForMove(firstMove) === axisForMove(secondMove);
+};
+
+const axisForMove = (move: string): number | undefined => {
+  switch (move[0]) {
+    case 'U':
+    case 'D':
+      return 0;
+    case 'R':
+    case 'L':
+      return 1;
+    case 'F':
+    case 'B':
+      return 2;
+    default:
+      return undefined;
+  }
+};
+
 const createSeededRandom = (seed: number): RandomSource => {
   let state = seed >>> 0;
 
@@ -149,6 +264,44 @@ const createSeededRandom = (seed: number): RandomSource => {
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
 
       return state % maxExclusive;
+    },
+  };
+};
+
+const createParityMismatchRandom = (): RandomSource => {
+  let edgePermutationDraws = 0;
+
+  return {
+    nextInt(maxExclusive) {
+      if (maxExclusive === 479_001_600) {
+        edgePermutationDraws += 1;
+        if (edgePermutationDraws > 4) {
+          throw new Error('edge parity retry loop exceeded');
+        }
+
+        return 1;
+      }
+
+      return 0;
+    },
+  };
+};
+
+const createCornerParityMismatchRandom = (): RandomSource => {
+  let cornerPermutationDraws = 0;
+
+  return {
+    nextInt(maxExclusive) {
+      if (maxExclusive === 40_320) {
+        cornerPermutationDraws += 1;
+        if (cornerPermutationDraws > 4) {
+          throw new Error('corner parity retry loop exceeded');
+        }
+
+        return 1;
+      }
+
+      return 0;
     },
   };
 };

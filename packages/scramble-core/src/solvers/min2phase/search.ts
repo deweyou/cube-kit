@@ -37,6 +37,8 @@ export class Search {
     if (verification !== 0) return `Error ${Math.abs(verification)}`;
 
     const solution = solve(cube).trim();
+    // TODO(Task 16 P2): thread probeMax/probeMin into the mechanical engine
+    // port or add an interruptible bounded-search guard around solve().
     if (solution.startsWith('Error')) return solution;
 
     const tokens = solution.length === 0 ? [] : solution.split(/\s+/);

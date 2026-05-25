@@ -1,7 +1,11 @@
 import type { RandomSource } from '../random-source.js';
 import { SearchWCA } from '../solvers/min2phase/search-wca.js';
 import { randomCube } from '../solvers/min2phase/tools.js';
-import { INVERSE_SOLUTION, splitAlgorithm } from '../solvers/min2phase/util.js';
+import {
+  axisForRestriction,
+  INVERSE_SOLUTION,
+  splitAlgorithm,
+} from '../solvers/min2phase/util.js';
 
 const THREE_BY_THREE_MAX_SCRAMBLE_LENGTH = 21;
 const THREE_BY_THREE_PROBE_MAX = 100_000;
@@ -53,10 +57,10 @@ export const generateThreeByThreeNoInspectionScramble = ({
   random,
 }: ThreeByThreeScrambleOptions): string => {
   const orientation = chooseOrientation(random);
-  const firstAxisRestriction = orientation[0]?.[0] ?? null;
+  const lastAxisRestriction = orientation[0]?.[0] ?? null;
   const scramble = generateInverseSolution({
     random,
-    firstAxisRestriction,
+    lastAxisRestriction,
   });
 
   return [...splitAlgorithm(scramble), ...orientation].join(' ');
@@ -67,8 +71,8 @@ export const generateThreeByThreeFewestMovesScramble = ({
 }: ThreeByThreeScrambleOptions): string => {
   const scramble = generateInverseSolution({
     random,
-    firstAxisRestriction: 'R',
-    lastAxisRestriction: 'F',
+    firstAxisRestriction: 'F',
+    lastAxisRestriction: 'R',
   });
 
   return `${FMC_PADDING} ${scramble} ${FMC_PADDING}`;
@@ -111,7 +115,19 @@ const generateInverseSolution = ({
       )
       .trim();
 
-    if (!solution.startsWith('Error')) return solution;
+    if (!solution.startsWith('Error')) {
+      if (
+        satisfiesAxisRestrictions(
+          solution,
+          firstAxisRestriction,
+          lastAxisRestriction,
+        )
+      ) {
+        return solution;
+      }
+
+      continue;
+    }
     if (solution !== 'Error 7' && solution !== 'Error 8') {
       throw new Error(`@cubekit/scramble-core: min2phase returned ${solution}`);
     }
@@ -120,6 +136,34 @@ const generateInverseSolution = ({
   throw new Error(
     '@cubekit/scramble-core: min2phase could not find a 3x3 scramble within retry limit',
   );
+};
+
+const satisfiesAxisRestrictions = (
+  scramble: string,
+  firstAxisRestriction: string | null | undefined,
+  lastAxisRestriction: string | null | undefined,
+): boolean => {
+  const moves = splitAlgorithm(scramble);
+
+  return (
+    !violatesAxisRestriction(moves[0], firstAxisRestriction) &&
+    !violatesAxisRestriction(moves.at(-1), lastAxisRestriction)
+  );
+};
+
+const violatesAxisRestriction = (
+  move: string | undefined,
+  restriction: string | null | undefined,
+): boolean => {
+  if (
+    move === undefined ||
+    restriction === null ||
+    restriction === undefined
+  ) {
+    return false;
+  }
+
+  return axisForRestriction(move[0]) === axisForRestriction(restriction);
 };
 
 const chooseOrientation = (random: RandomSource): readonly string[] => {
