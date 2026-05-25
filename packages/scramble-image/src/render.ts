@@ -22,9 +22,7 @@ export const renderScrambleImage = (eventId: WcaEventId, scramble: string): stri
   if (!size) throw new Error(`@cubekit/scramble-image: event '${eventId}' is not renderable yet`);
 
   const cube = createCubeDefinition(size, [eventId]);
-  const state = cube
-    .parseAlgorithm(scramble)
-    .reduce((next, move) => cube.applyMove(next, move), cube.createSolvedState());
+  const state = cube.applyAlgorithm(cube.createSolvedState(), scramble);
 
   return renderCubeNet(state);
 };
