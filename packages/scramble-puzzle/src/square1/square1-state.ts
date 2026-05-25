@@ -1,6 +1,6 @@
 import { InvalidMoveError } from '../errors.js';
 import {
-  isSquareOneTupleMove,
+  validateSquareOneMove,
   type SquareOneMove,
   type SquareOneTupleMove,
   type SquareOneTurn,
@@ -24,9 +24,6 @@ const TOP_START = 0;
 const BOTTOM_START = 12;
 const HALF_PIECE_COUNT = 12;
 const SLICE_WIDTH = 6;
-const MALFORMED_MOVE = '<malformed>';
-const MIN_TURN = -5;
-const MAX_TURN = 6;
 
 const SOLVED_SQUARE_ONE_PIECES = [
   0, 0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 9, 10, 11, 11, 12, 13, 13, 14,
@@ -35,12 +32,6 @@ const SOLVED_SQUARE_ONE_PIECES = [
 const SQUARE_ONE_TURNS = [
   -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6,
 ] as const satisfies readonly SquareOneTurn[];
-
-const isSquareOneTurn = (turn: unknown): turn is SquareOneTupleMove['top'] =>
-  typeof turn === 'number' &&
-  Number.isSafeInteger(turn) &&
-  turn >= MIN_TURN &&
-  turn <= MAX_TURN;
 
 const createSquareOneState = (
   sliceSolved: boolean,
@@ -64,25 +55,6 @@ const createSquareOneState = (
     sliceSolved,
     pieces: Object.freeze([...pieces]),
   });
-};
-
-const validateMove = (move: SquareOneMove): SquareOneMove => {
-  if (typeof move !== 'object' || move === null) {
-    throw new InvalidMoveError(MALFORMED_MOVE, 'square1');
-  }
-
-  if (move.type === 'slash') return move;
-
-  if (
-    isSquareOneTupleMove(move) &&
-    isSquareOneTurn(move.top) &&
-    isSquareOneTurn(move.bottom) &&
-    (move.top !== 0 || move.bottom !== 0)
-  ) {
-    return move;
-  }
-
-  throw new InvalidMoveError(MALFORMED_MOVE, 'square1');
 };
 
 const rotateHalf = (
@@ -140,7 +112,7 @@ export const applySquareOneMove = (
   state: SquareOneState,
   move: SquareOneMove,
 ): SquareOneState => {
-  const validMove = validateMove(move);
+  const validMove = validateSquareOneMove(move);
 
   if (validMove.type === 'slash') {
     if (!canSquareOneSlash(state)) {
@@ -161,6 +133,8 @@ export const areSquareOneStatesEqual = (
   b: SquareOneState,
 ): boolean =>
   a.sliceSolved === b.sliceSolved &&
+  a.pieces.length === PIECE_COUNT &&
+  b.pieces.length === PIECE_COUNT &&
   a.pieces.every((piece, index) => piece === b.pieces[index]);
 
 export const getSquareOneSuccessors = (

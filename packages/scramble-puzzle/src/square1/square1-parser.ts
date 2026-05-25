@@ -30,13 +30,49 @@ export type SquareOneMove = SquareOneTupleMove | SquareOneSlashMove;
 const SQUARE_ONE_MOVE_PATTERN = /^\((-?\d+),(-?\d+)\)$/;
 const MIN_TURN = -5;
 const MAX_TURN = 6;
+const MALFORMED_MOVE = '<malformed>';
 
-const isSquareOneTurn = (turn: number): turn is SquareOneTurn =>
-  Number.isSafeInteger(turn) && turn >= MIN_TURN && turn <= MAX_TURN;
+const isSquareOneRecord = (move: unknown): move is Record<string, unknown> =>
+  typeof move === 'object' && move !== null;
+
+const isSquareOneTurn = (turn: unknown): turn is SquareOneTurn =>
+  typeof turn === 'number' &&
+  Number.isSafeInteger(turn) &&
+  turn >= MIN_TURN &&
+  turn <= MAX_TURN;
+
+const hasOnlyKeys = (
+  move: object,
+  expectedKeys: readonly string[],
+): boolean =>
+  Object.keys(move).length === expectedKeys.length &&
+  expectedKeys.every((key) => Object.hasOwn(move, key));
 
 export const isSquareOneTupleMove = (
-  move: SquareOneMove,
-): move is SquareOneTupleMove => move.type === 'tuple';
+  move: unknown,
+): move is SquareOneTupleMove =>
+  isSquareOneRecord(move) && move.type === 'tuple';
+
+const isSquareOneSlashMove = (move: unknown): move is SquareOneSlashMove =>
+  isSquareOneRecord(move) &&
+  move.type === 'slash' &&
+  hasOnlyKeys(move, ['type']);
+
+export const validateSquareOneMove = (move: unknown): SquareOneMove => {
+  if (isSquareOneSlashMove(move)) return move;
+
+  if (
+    isSquareOneTupleMove(move) &&
+    hasOnlyKeys(move, ['type', 'top', 'bottom']) &&
+    isSquareOneTurn(move.top) &&
+    isSquareOneTurn(move.bottom) &&
+    (move.top !== 0 || move.bottom !== 0)
+  ) {
+    return move;
+  }
+
+  throw new InvalidMoveError(MALFORMED_MOVE, 'square1');
+};
 
 export const parseSquareOneMove = (token: string): SquareOneMove => {
   if (token === '/') return { type: 'slash' };
@@ -64,15 +100,7 @@ export const parseSquareOneAlgorithm = (
 ): readonly SquareOneMove[] => splitAlgorithm(algorithm).map(parseSquareOneMove);
 
 export const getSquareOneMoveCost = (move: SquareOneMove): number => {
-  if (move.type === 'slash') return 1;
-
-  if (
-    !isSquareOneTurn(move.top) ||
-    !isSquareOneTurn(move.bottom) ||
-    (move.top === 0 && move.bottom === 0)
-  ) {
-    throw new InvalidMoveError('<malformed>', 'square1');
-  }
+  validateSquareOneMove(move);
 
   return 1;
 };
@@ -80,15 +108,8 @@ export const getSquareOneMoveCost = (move: SquareOneMove): number => {
 export const getSquareOneSlashabilityMoveCost = (
   move: SquareOneMove,
 ): number | undefined => {
-  if (move.type === 'slash') return undefined;
+  const validMove = validateSquareOneMove(move);
+  if (validMove.type === 'slash') return undefined;
 
-  if (
-    !isSquareOneTurn(move.top) ||
-    !isSquareOneTurn(move.bottom) ||
-    (move.top === 0 && move.bottom === 0)
-  ) {
-    throw new InvalidMoveError('<malformed>', 'square1');
-  }
-
-  return Math.abs(move.top) + Math.abs(move.bottom);
+  return Math.abs(validMove.top) + Math.abs(validMove.bottom);
 };
