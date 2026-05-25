@@ -11,6 +11,13 @@ flowchart TD
     TimerPage --> TimerPkg["@cubekit/timer"]
     TimerPage --> ScramblePkg["@cubekit/scramble"]
     ScramblePkg --> Cstimer["cstimer_module"]
+    Packages --> PuzzlePkg["@cubekit/scramble-puzzle"]
+    Packages --> CorePkg["@cubekit/scramble-core"]
+    Packages --> ImagePkg["@cubekit/scramble-image"]
+    CorePkg --> PuzzlePkg
+    ImagePkg --> PuzzlePkg
+    CorePkg -. "not app-wired yet" .-> Apps
+    ImagePkg -. "not app-wired yet" .-> Apps
 ```
 
 CubeKit is organized as a pnpm workspace where apps compose reusable packages.
@@ -24,6 +31,9 @@ apps/web/              React 18 web/H5 app and timer UI
 apps/wx-app/           Taro WeChat miniprogram shell
 packages/timer/        platform-agnostic timer state and formatting
 packages/scramble/     WCA scramble and SVG wrapper around cstimer_module
+packages/scramble-puzzle/  TNoodle-compatible event ids, parsers, and states
+packages/scramble-core/    TNoodle-compatible WCA scramble generators
+packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
 docs/                  repository memory and Superpowers specs/plans
 scripts/               lightweight repository checks
 ```
@@ -52,7 +62,11 @@ scripts/               lightweight repository checks
   browser aliases, and jsdom test environment.
 - [apps/wx-app/config/index.ts#L3](../apps/wx-app/config/index.ts#L3) - Taro
   build configuration.
+- [packages/scramble-puzzle/src/index.ts#L1](../packages/scramble-puzzle/src/index.ts#L1) - TNoodle-compatible puzzle domain barrel.
+- [packages/scramble-core/src/index.ts#L1](../packages/scramble-core/src/index.ts#L1) - TNoodle-compatible generator barrel.
+- [packages/scramble-image/src/index.ts#L1](../packages/scramble-image/src/index.ts#L1) - TNoodle-compatible SVG renderer barrel.
+- [docs/tnoodle-implementation-notes.md#L1](tnoodle-implementation-notes.md#L1) - implementation notes and upgrade routing for the new packages.
 
 ---
 
-_Last updated: 2026-05-25 | Reason: initial memory setup after replacing legacy knowledge docs_
+_Last updated: 2026-05-26 | Reason: document TNoodle-compatible package split_
