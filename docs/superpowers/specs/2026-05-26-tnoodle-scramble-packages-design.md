@@ -20,6 +20,11 @@ The work targets the current official WCA scramble program baseline:
 - `thewca/tnoodle-lib` `v0.19.2`
 - 17 WCA event families currently exposed by CubeKit
 
+The baseline is recorded in [docs/tnoodle-baseline.md](../../tnoodle-baseline.md).
+Future TNoodle updates should be handled by diffing the old and new upstream
+tags first, then creating focused CubeKit update tasks from the changed
+upstream areas.
+
 The finished packages should prove capability migration through unit tests and
 fixture/property checks before any consumer app imports them. The TypeScript
 interfaces in this document are implementation contracts for the new packages,
@@ -292,17 +297,39 @@ Subagents can work independently once the shared contracts land.
 
 Suggested work streams:
 
-- stream A: package scaffolding, shared types, test harness, fixture format
-- stream B: cube state, cube parser, cube SVG net renderer
-- stream C: Clock and Megaminx generation/rendering
-- stream D: Pyraminx and Skewb states, solvers, renderers
-- stream E: 2x2 solver and fixtures
-- stream F: 3x3 min2phase-compatible solver
-- stream G: 4x4 threephase-compatible solver
-- stream H: Square-1 state, solver, renderer
+- stream A1: package scaffolding and workspace wiring
+- stream A2: shared event ids, puzzle ids, and public type contracts
+- stream A3: shared test harness, fixture schema, and TNoodle fixture import
+- stream B1: cube move parser and algorithm validation
+- stream B2: cube state transitions and normalization
+- stream B3: cube SVG net renderer
+- stream C1: Clock parser, state, and generator
+- stream C2: Clock SVG renderer
+- stream C3: Megaminx parser, state, and generator
+- stream C4: Megaminx SVG renderer
+- stream D1: Pyraminx parser and state transitions
+- stream D2: Pyraminx solver and generator
+- stream D3: Pyraminx SVG renderer
+- stream E1: Skewb parser and state transitions
+- stream E2: Skewb solver and generator
+- stream E3: Skewb SVG renderer
+- stream F1: 2x2 solver tables and random-state generator
+- stream F2: 2x2 fixtures and WCA-distance tests
+- stream G1: 3x3 min2phase tables and solver port
+- stream G2: 3x3 event variants: normal, no-inspection, FMC, and MultiBLD
+- stream H1: 4x4 threephase table initialization and solver port
+- stream H2: 4x4 normal and no-inspection generator tests
+- stream I1: Square-1 parser and state transitions
+- stream I2: Square-1 solver and slashability tests
+- stream I3: Square-1 SVG renderer
 
 The integration rule is that puzzle streams merge through `scramble-puzzle`
 interfaces, not through ad hoc helper functions.
+
+Implementation tasks should stay small enough that each subagent owns one
+testable slice: a parser, a state transition set, one renderer, one solver
+module, or one event-family integration. Avoid assigning a whole package or all
+renderers to a single subagent.
 
 ---
 

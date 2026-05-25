@@ -10,6 +10,7 @@ generation, scramble visualization, and a WeChat miniprogram shell.
 | [docs/project-structure.md](docs/project-structure.md)       | Workspace layout, startup paths, and package roles  |
 | [docs/timer-workflow.md](docs/timer-workflow.md)             | Web timer state flow, gestures, and timer ownership |
 | [docs/scramble-runtime.md](docs/scramble-runtime.md)         | cstimer wrapper, WCA events, browser shim, SVG flow |
+| [docs/tnoodle-baseline.md](docs/tnoodle-baseline.md)         | TNoodle official baseline, tags, and upgrade diff flow |
 | [docs/dependency-licensing.md](docs/dependency-licensing.md) | GPL boundary created by bundled cstimer_module      |
 | [docs/.state.md](docs/.state.md)                             | Last memory pass and covered areas                  |
 | [docs/.todo.md](docs/.todo.md)                               | Follow-up memory and repo hygiene tasks             |
@@ -35,6 +36,9 @@ generation, scramble visualization, and a WeChat miniprogram shell.
   [docs/timer-workflow.md](docs/timer-workflow.md) first.
 - If you change WCA events, scramble generation, SVG output, cstimer integration,
   or browser runtime behavior, read [docs/scramble-runtime.md](docs/scramble-runtime.md)
+  first.
+- If you change TNoodle-compatible scramble logic or upgrade the upstream
+  compatibility target, read [docs/tnoodle-baseline.md](docs/tnoodle-baseline.md)
   first.
 - If you add bundled dependencies, change package licenses, or alter published
   files, read [docs/dependency-licensing.md](docs/dependency-licensing.md) first.
