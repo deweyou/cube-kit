@@ -11,6 +11,16 @@ export { generateSkewbScramble } from './generators/skewb.js';
 export type { SkewbScrambleOptions } from './generators/skewb.js';
 export { generateSquareOneScramble } from './generators/square1.js';
 export type { SquareOneScrambleOptions } from './generators/square1.js';
+export {
+  generateMultiBlindScramble,
+  generateThreeByThreeFewestMovesScramble,
+  generateThreeByThreeNoInspectionScramble,
+  generateThreeByThreeScramble,
+} from './generators/three-by-three.js';
+export type {
+  MultiBlindScrambleOptions,
+  ThreeByThreeScrambleOptions,
+} from './generators/three-by-three.js';
 export { generateTwoByTwoScramble } from './generators/two-by-two.js';
 export type { TwoByTwoScrambleOptions } from './generators/two-by-two.js';
 export { PyraminxSolver } from './solvers/pyraminx-solver.js';

@@ -1,0 +1,107 @@
+import { describe, expect, it } from 'vitest';
+import { createCubeDefinition } from '@cubekit/scramble-puzzle';
+import {
+  generateMultiBlindScramble,
+  generateThreeByThreeFewestMovesScramble,
+  generateThreeByThreeNoInspectionScramble,
+  generateThreeByThreeScramble,
+} from './three-by-three.js';
+import type { RandomSource } from '../random-source.js';
+
+describe('3x3 WCA generators', () => {
+  it('generates a normal scramble within the WCA max length', () => {
+    const scramble = generateThreeByThreeScramble({
+      random: createSeededRandom(0x333),
+    });
+
+    expect(scramble.split(/\s+/).length).toBeLessThanOrEqual(21);
+  });
+
+  it('generates a no-inspection scramble with an orientation token', () => {
+    const scramble = generateThreeByThreeNoInspectionScramble({
+      random: createSeededRandom(0x333b1d),
+    });
+
+    expect(scramble).toMatch(/[xyz]|Rw|Fw|Uw/);
+  });
+
+  it('generates an FMC scramble with the TNoodle prefix', () => {
+    const scramble = generateThreeByThreeFewestMovesScramble({
+      random: createSeededRandom(0x333f),
+    });
+
+    expect(scramble.startsWith("R' U' F ")).toBe(true);
+  });
+
+  it('generates one no-inspection-style line per multi-blind cube', () => {
+    const scramble = generateMultiBlindScramble({
+      random: createSeededRandom(0x333_0003),
+      cubeCount: 3,
+    });
+
+    expect(scramble.split('\n')).toHaveLength(3);
+  });
+
+  it.each([
+    ['333', () => generateThreeByThreeScramble({ random: createSeededRandom(1) })],
+    [
+      '333bld',
+      () =>
+        generateThreeByThreeNoInspectionScramble({
+          random: createSeededRandom(2),
+        }),
+    ],
+    [
+      '333fm',
+      () =>
+        generateThreeByThreeFewestMovesScramble({
+          random: createSeededRandom(3),
+        }),
+    ],
+  ] as const)('generates parseable %s scrambles', (eventId, generate) => {
+    const cube = createCubeDefinition(3, [eventId]);
+
+    expect(() => cube.parseAlgorithm(generate())).not.toThrow();
+  });
+
+  it('is deterministic for deterministic random sources', () => {
+    const first = generateThreeByThreeNoInspectionScramble({
+      random: createSeededRandom(0x5eed),
+    });
+    const second = generateThreeByThreeNoInspectionScramble({
+      random: createSeededRandom(0x5eed),
+    });
+
+    expect(second).toBe(first);
+  });
+
+  it.each([
+    0,
+    -1,
+    1.5,
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    Number.MAX_SAFE_INTEGER + 1,
+  ])('rejects invalid multi-blind cubeCount %s', (cubeCount) => {
+    expect(() =>
+      generateMultiBlindScramble({
+        random: createSeededRandom(0x333),
+        cubeCount,
+      }),
+    ).toThrow(
+      '@cubekit/scramble-core: multi-blind cubeCount must be a positive safe integer',
+    );
+  });
+});
+
+const createSeededRandom = (seed: number): RandomSource => {
+  let state = seed >>> 0;
+
+  return {
+    nextInt(maxExclusive) {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+
+      return state % maxExclusive;
+    },
+  };
+};
