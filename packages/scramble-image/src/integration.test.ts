@@ -12,8 +12,7 @@ const SAMPLE_SCRAMBLES = {
   '333bld': 'R U x',
   '333fm': "R' U' F R U F'",
   '333oh': 'R U',
-  clock:
-    'UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-',
+  clock: 'UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-',
   minx: "R++ D-- R-- D++ R++ D++ R-- D-- R++ D-- U'",
   pyram: "U L R B u' l' r' b'",
   skewb: "R U L B R' U'",
