@@ -22,7 +22,7 @@ export class InvalidScrambleError extends ScramblePuzzleError {
   constructor(scramble: string, cause: unknown) {
     const causeMessage = cause instanceof Error ? cause.message : String(cause);
 
-    super(`scramble '${scramble}' is invalid: ${causeMessage}`);
+    super(`scramble '${scramble}' is invalid: ${causeMessage}`, { cause });
     this.name = 'InvalidScrambleError';
   }
 }
