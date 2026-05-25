@@ -1,4 +1,6 @@
 export { createScrambleGenerator } from './generator.js';
+export { generateCubeRandomTurnScramble } from './generators/cube-random-turns.js';
+export type { CubeRandomTurnOptions } from './generators/cube-random-turns.js';
 export type {
   EventScrambleGenerator,
   GenerateOptions,
