@@ -6,11 +6,18 @@ export { parseCubeAlgorithm, parseCubeMove } from './cube/cube-parser.js';
 export { createClockDefinition } from './clock/clock-definition.js';
 export { parseClockAlgorithm, parseClockMove } from './clock/clock-parser.js';
 export { createMegaminxDefinition } from './megaminx/megaminx-definition.js';
+export { createPyraminxDefinition } from './pyraminx/pyraminx-definition.js';
 export {
   MEGAMINX_FACES,
   parseMegaminxAlgorithm,
   parseMegaminxMove,
 } from './megaminx/megaminx-parser.js';
+export {
+  PYRAMINX_AXES,
+  PYRAMINX_FACES,
+  parsePyraminxAlgorithm,
+  parsePyraminxMove,
+} from './pyraminx/pyraminx-parser.js';
 export {
   applyCubeMove,
   areCubeStatesEqual,
@@ -26,6 +33,11 @@ export {
   areMegaminxStatesEqual,
   createSolvedMegaminxState,
 } from './megaminx/megaminx-state.js';
+export {
+  applyPyraminxMove,
+  arePyraminxStatesEqual,
+  createSolvedPyraminxState,
+} from './pyraminx/pyraminx-state.js';
 export type {
   ClockDirection,
   ClockMove,
@@ -48,6 +60,20 @@ export type {
   MegaminxImage,
   MegaminxState,
 } from './megaminx/megaminx-state.js';
+export type {
+  PyraminxAxis,
+  PyraminxMove,
+  PyraminxMoveAmount,
+  PyraminxTipMove,
+  PyraminxTurnMove,
+} from './pyraminx/pyraminx-parser.js';
+export type {
+  PyraminxFace,
+  PyraminxFacelet,
+  PyraminxFaceState,
+  PyraminxImage,
+  PyraminxState,
+} from './pyraminx/pyraminx-state.js';
 export type {
   CubeFace,
   CubeLayerMove,
