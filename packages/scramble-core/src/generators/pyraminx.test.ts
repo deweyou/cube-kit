@@ -11,11 +11,39 @@ const zeroRandom: RandomSource = { nextInt: () => 0 };
 
 describe('generatePyraminxScramble', () => {
   it('generates a parseable scramble with at least 11 moves', () => {
-    const random = zeroRandom;
+    const random = createSequenceRandom({
+      720: [42],
+      32: [1],
+      81: [1, 0],
+    });
     const scramble = generatePyraminxScramble({ random });
 
     expect(scramble.split(/\s+/).length).toBeGreaterThanOrEqual(11);
     expect(() => parsePyraminxAlgorithm(scramble)).not.toThrow();
+  });
+
+  it('rejects a solved first state before accepting a later WCA-distance state', () => {
+    const calls: number[] = [];
+    const random = createSequenceRandom(
+      {
+        720: [0, 42],
+        32: [0, 1],
+        81: [0, 0, 1, 0],
+      },
+      calls,
+    );
+
+    const scramble = generatePyraminxScramble({ random });
+
+    expect(calls.filter((maxExclusive) => maxExclusive === 720)).toHaveLength(2);
+    expect(scramble.split(/\s+/).length).toBeGreaterThanOrEqual(11);
+    expect(() => parsePyraminxAlgorithm(scramble)).not.toThrow();
+  });
+
+  it('throws clearly when no sampled state reaches WCA minimum distance', () => {
+    expect(() => generatePyraminxScramble({ random: zeroRandom })).toThrow(
+      '@cubekit/scramble-core: could not generate a Pyraminx WCA scramble after 100 attempts',
+    );
   });
 
   it('draws TNoodle coordinates in order after finding reachable edge parity', () => {
@@ -85,4 +113,15 @@ const createState = (
   cornerOrient: 0,
   tips: 0,
   ...overrides,
+});
+
+const createSequenceRandom = (
+  valuesByMaxExclusive: Record<number, number[]>,
+  calls: number[] = [],
+): RandomSource => ({
+  nextInt(maxExclusive) {
+    calls.push(maxExclusive);
+
+    return valuesByMaxExclusive[maxExclusive]?.shift() ?? 0;
+  },
 });
