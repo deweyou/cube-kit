@@ -1,8 +1,12 @@
 import type { RandomSource } from '../random-source.js';
 import { SearchWCA } from '../solvers/min2phase/search-wca.js';
-import { splitAlgorithm } from '../solvers/min2phase/util.js';
+import { randomCube } from '../solvers/min2phase/tools.js';
+import { INVERSE_SOLUTION, splitAlgorithm } from '../solvers/min2phase/util.js';
 
 const THREE_BY_THREE_MAX_SCRAMBLE_LENGTH = 21;
+const THREE_BY_THREE_PROBE_MAX = 100_000;
+const THREE_BY_THREE_PROBE_MIN = 0;
+const THREE_BY_THREE_MAX_ATTEMPTS = 20;
 const FMC_PADDING = "R' U' F";
 
 const ORIENTATION_SEQUENCES = [
@@ -41,9 +45,8 @@ export interface MultiBlindScrambleOptions {
 export const generateThreeByThreeScramble = ({
   random,
 }: ThreeByThreeScrambleOptions): string =>
-  createSearcher().generateInverseSolution({
+  generateInverseSolution({
     random,
-    maxDepth: THREE_BY_THREE_MAX_SCRAMBLE_LENGTH,
   });
 
 export const generateThreeByThreeNoInspectionScramble = ({
@@ -51,9 +54,8 @@ export const generateThreeByThreeNoInspectionScramble = ({
 }: ThreeByThreeScrambleOptions): string => {
   const orientation = chooseOrientation(random);
   const firstAxisRestriction = orientation[0]?.[0] ?? null;
-  const scramble = createSearcher().generateInverseSolution({
+  const scramble = generateInverseSolution({
     random,
-    maxDepth: THREE_BY_THREE_MAX_SCRAMBLE_LENGTH,
     firstAxisRestriction,
   });
 
@@ -63,9 +65,8 @@ export const generateThreeByThreeNoInspectionScramble = ({
 export const generateThreeByThreeFewestMovesScramble = ({
   random,
 }: ThreeByThreeScrambleOptions): string => {
-  const scramble = createSearcher().generateInverseSolution({
+  const scramble = generateInverseSolution({
     random,
-    maxDepth: THREE_BY_THREE_MAX_SCRAMBLE_LENGTH,
     firstAxisRestriction: 'R',
     lastAxisRestriction: 'F',
   });
@@ -84,7 +85,42 @@ export const generateMultiBlindScramble = ({
   ).join('\n');
 };
 
-const createSearcher = (): SearchWCA => new SearchWCA();
+interface GenerateInverseSolutionOptions {
+  random: RandomSource;
+  firstAxisRestriction?: string | null;
+  lastAxisRestriction?: string | null;
+}
+
+const generateInverseSolution = ({
+  random,
+  firstAxisRestriction,
+  lastAxisRestriction,
+}: GenerateInverseSolutionOptions): string => {
+  const search = new SearchWCA();
+
+  for (let attempt = 0; attempt < THREE_BY_THREE_MAX_ATTEMPTS; attempt += 1) {
+    const solution = search
+      .solution(
+        randomCube(random),
+        THREE_BY_THREE_MAX_SCRAMBLE_LENGTH,
+        THREE_BY_THREE_PROBE_MAX,
+        THREE_BY_THREE_PROBE_MIN,
+        INVERSE_SOLUTION,
+        firstAxisRestriction,
+        lastAxisRestriction,
+      )
+      .trim();
+
+    if (!solution.startsWith('Error')) return solution;
+    if (solution !== 'Error 7' && solution !== 'Error 8') {
+      throw new Error(`@cubekit/scramble-core: min2phase returned ${solution}`);
+    }
+  }
+
+  throw new Error(
+    '@cubekit/scramble-core: min2phase could not find a 3x3 scramble within retry limit',
+  );
+};
 
 const chooseOrientation = (random: RandomSource): readonly string[] => {
   const index = random.nextInt(ORIENTATION_SEQUENCES.length);

@@ -7,6 +7,8 @@ import {
   generateThreeByThreeScramble,
 } from './three-by-three.js';
 import type { RandomSource } from '../random-source.js';
+import { SearchWCA, INVERSE_SOLUTION } from '../solvers/min2phase/search-wca.js';
+import { randomCube } from '../solvers/min2phase/tools.js';
 
 describe('3x3 WCA generators', () => {
   it('generates a normal scramble within the WCA max length', () => {
@@ -60,8 +62,12 @@ describe('3x3 WCA generators', () => {
     ],
   ] as const)('generates parseable %s scrambles', (eventId, generate) => {
     const cube = createCubeDefinition(3, [eventId]);
+    const scramble = generate();
 
-    expect(() => cube.parseAlgorithm(generate())).not.toThrow();
+    expect(() => cube.parseAlgorithm(scramble)).not.toThrow();
+    expect(() =>
+      cube.applyAlgorithm(cube.createSolvedState(), scramble),
+    ).not.toThrow();
   });
 
   it('is deterministic for deterministic random sources', () => {
@@ -73,6 +79,37 @@ describe('3x3 WCA generators', () => {
     });
 
     expect(second).toBe(first);
+  });
+
+  it('randomCube returns a real 54-facelet cube definition', () => {
+    const facelets = randomCube(createSeededRandom(0x333_54));
+
+    expect(facelets).toHaveLength(54);
+    expect(facelets).not.toContain(':');
+    expect(countFacelets(facelets)).toEqual({
+      B: 9,
+      D: 9,
+      F: 9,
+      L: 9,
+      R: 9,
+      U: 9,
+    });
+  });
+
+  it('SearchWCA solves a real randomCube facelet string', () => {
+    const facelets = randomCube(createSeededRandom(0x333_2));
+    const solution = new SearchWCA().solution(
+      facelets,
+      21,
+      100_000,
+      0,
+      INVERSE_SOLUTION,
+    );
+
+    expect(solution).not.toMatch(/^Error/);
+    expect(() =>
+      createCubeDefinition(3, ['333']).parseAlgorithm(solution.trim()),
+    ).not.toThrow();
   });
 
   it.each([
@@ -93,6 +130,16 @@ describe('3x3 WCA generators', () => {
     );
   });
 });
+
+const countFacelets = (facelets: string): Record<string, number> => {
+  const counts: Record<string, number> = {};
+
+  for (const facelet of facelets) {
+    counts[facelet] = (counts[facelet] ?? 0) + 1;
+  }
+
+  return counts;
+};
 
 const createSeededRandom = (seed: number): RandomSource => {
   let state = seed >>> 0;
