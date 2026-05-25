@@ -1,4 +1,4 @@
-export { createScrambleGenerator } from './generator.js';
+export { createDefaultScrambleGenerator, createScrambleGenerator } from './generator.js';
 export { generateClockScramble } from './generators/clock.js';
 export type { ClockScrambleOptions } from './generators/clock.js';
 export { generateCubeRandomTurnScramble } from './generators/cube-random-turns.js';
@@ -36,6 +36,7 @@ export { TwoByTwoSolver } from './solvers/two-by-two-solver.js';
 export type { TwoByTwoState } from './solvers/two-by-two-solver.js';
 export type {
   EventScrambleGenerator,
+  DefaultScrambleGeneratorOptions,
   GenerateOptions,
   ScrambleGenerator,
   ScrambleGeneratorOptions,
