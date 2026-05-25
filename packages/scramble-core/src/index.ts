@@ -9,6 +9,8 @@ export { generatePyraminxScramble } from './generators/pyraminx.js';
 export type { PyraminxScrambleOptions } from './generators/pyraminx.js';
 export { generateSkewbScramble } from './generators/skewb.js';
 export type { SkewbScrambleOptions } from './generators/skewb.js';
+export { generateSquareOneScramble } from './generators/square1.js';
+export type { SquareOneScrambleOptions } from './generators/square1.js';
 export { generateTwoByTwoScramble } from './generators/two-by-two.js';
 export type { TwoByTwoScrambleOptions } from './generators/two-by-two.js';
 export { PyraminxSolver } from './solvers/pyraminx-solver.js';
