@@ -46,10 +46,8 @@ describe('renderScrambleImage', () => {
     expect(svg.match(/<rect/g)?.length).toBe(54);
   });
 
-  it('rejects unsupported events', () => {
-    expect(() => renderScrambleImage('clock', '')).toThrow(
-      "@cubekit/scramble-image: event 'clock' is not renderable yet",
-    );
+  it('renders non-cube WCA events through the public image renderer', () => {
+    expect(renderScrambleImage('clock', '')).toContain('viewBox=');
   });
 
   it('wraps invalid cube scrambles', () => {

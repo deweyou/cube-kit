@@ -1,9 +1,18 @@
 import {
+  createClockDefinition,
   createCubeDefinition,
+  createMegaminxDefinition,
+  createPyraminxDefinition,
+  createSkewbDefinition,
   createSquareOneDefinition,
+  WCA_EVENT_INFO,
   type WcaEventId,
 } from '@cubekit/scramble-puzzle';
+import { renderClockState } from './renderers/clock.js';
 import { renderCubeNet } from './renderers/cube-net.js';
+import { renderMegaminxState } from './renderers/megaminx.js';
+import { renderPyraminxState } from './renderers/pyraminx.js';
+import { renderSkewbState } from './renderers/skewb.js';
 import { renderSquareOneState } from './renderers/square1.js';
 
 const CUBE_SIZE_BY_EVENT = {
@@ -21,20 +30,65 @@ const CUBE_SIZE_BY_EVENT = {
   '777': 7,
 } as Partial<Record<WcaEventId, number>>;
 
-export const renderScrambleImage = (eventId: WcaEventId, scramble: string): string => {
-  if (eventId === 'sq1') {
-    const squareOne = createSquareOneDefinition();
-    const state = squareOne.applyAlgorithm(squareOne.createSolvedState(), scramble);
+export const renderScrambleImage = (
+  eventId: WcaEventId,
+  scramble: string,
+): string => {
+  const eventInfo = WCA_EVENT_INFO[eventId];
 
-    return renderSquareOneState(state);
+  switch (eventInfo.puzzleId) {
+    case 'cube': {
+      const size = CUBE_SIZE_BY_EVENT[eventId];
+
+      if (!size) {
+        throw new Error(
+          `@cubekit/scramble-image: event '${eventId}' is not renderable yet`,
+        );
+      }
+
+      const cube = createCubeDefinition(size, [eventId]);
+      const state = cube.applyAlgorithm(cube.createSolvedState(), scramble);
+
+      return renderCubeNet(state);
+    }
+    case 'clock': {
+      const clock = createClockDefinition();
+      const state = clock.applyAlgorithm(clock.createSolvedState(), scramble);
+
+      return renderClockState(state);
+    }
+    case 'megaminx': {
+      const megaminx = createMegaminxDefinition();
+      const state = megaminx.applyAlgorithm(
+        megaminx.createSolvedState(),
+        scramble,
+      );
+
+      return renderMegaminxState(state);
+    }
+    case 'pyraminx': {
+      const pyraminx = createPyraminxDefinition();
+      const state = pyraminx.applyAlgorithm(
+        pyraminx.createSolvedState(),
+        scramble,
+      );
+
+      return renderPyraminxState(state);
+    }
+    case 'skewb': {
+      const skewb = createSkewbDefinition();
+      const state = skewb.applyAlgorithm(skewb.createSolvedState(), scramble);
+
+      return renderSkewbState(state);
+    }
+    case 'square1': {
+      const squareOne = createSquareOneDefinition();
+      const state = squareOne.applyAlgorithm(
+        squareOne.createSolvedState(),
+        scramble,
+      );
+
+      return renderSquareOneState(state);
+    }
   }
-
-  const size = CUBE_SIZE_BY_EVENT[eventId];
-
-  if (!size) throw new Error(`@cubekit/scramble-image: event '${eventId}' is not renderable yet`);
-
-  const cube = createCubeDefinition(size, [eventId]);
-  const state = cube.applyAlgorithm(cube.createSolvedState(), scramble);
-
-  return renderCubeNet(state);
 };
