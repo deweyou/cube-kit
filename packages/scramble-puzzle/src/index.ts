@@ -7,6 +7,7 @@ export { createClockDefinition } from './clock/clock-definition.js';
 export { parseClockAlgorithm, parseClockMove } from './clock/clock-parser.js';
 export { createMegaminxDefinition } from './megaminx/megaminx-definition.js';
 export { createPyraminxDefinition } from './pyraminx/pyraminx-definition.js';
+export { createSkewbDefinition } from './skewb/skewb-definition.js';
 export {
   MEGAMINX_FACES,
   parseMegaminxAlgorithm,
@@ -18,6 +19,12 @@ export {
   parsePyraminxAlgorithm,
   parsePyraminxMove,
 } from './pyraminx/pyraminx-parser.js';
+export {
+  SKEWB_AXES,
+  SKEWB_FACES,
+  parseSkewbAlgorithm,
+  parseSkewbMove,
+} from './skewb/skewb-parser.js';
 export {
   applyCubeMove,
   areCubeStatesEqual,
@@ -38,6 +45,11 @@ export {
   arePyraminxStatesEqual,
   createSolvedPyraminxState,
 } from './pyraminx/pyraminx-state.js';
+export {
+  applySkewbMove,
+  areSkewbStatesEqual,
+  createSolvedSkewbState,
+} from './skewb/skewb-state.js';
 export type {
   ClockDirection,
   ClockMove,
@@ -68,12 +80,24 @@ export type {
   PyraminxTurnMove,
 } from './pyraminx/pyraminx-parser.js';
 export type {
+  SkewbAxis,
+  SkewbMove,
+  SkewbMoveAmount,
+} from './skewb/skewb-parser.js';
+export type {
   PyraminxFace,
   PyraminxFacelet,
   PyraminxFaceState,
   PyraminxImage,
   PyraminxState,
 } from './pyraminx/pyraminx-state.js';
+export type {
+  SkewbFace,
+  SkewbFacelet,
+  SkewbFaceState,
+  SkewbImage,
+  SkewbState,
+} from './skewb/skewb-state.js';
 export type {
   CubeFace,
   CubeLayerMove,
