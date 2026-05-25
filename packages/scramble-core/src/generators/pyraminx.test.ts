@@ -8,6 +8,7 @@ import {
 import type { RandomSource } from '../random-source.js';
 
 const zeroRandom: RandomSource = { nextInt: () => 0 };
+const UNREACHABLE_EDGE_PERM = 1;
 
 describe('generatePyraminxScramble', () => {
   it('generates a parseable scramble with at least 11 moves', () => {
@@ -58,6 +59,14 @@ describe('generatePyraminxScramble', () => {
     new PyraminxSolver().randomState(random);
 
     expect(calls).toEqual([720, 32, 81, 81]);
+  });
+
+  it('throws clearly when edge parity sampling never reaches a reachable permutation', () => {
+    const random = createUnreachableEdgePermRandom();
+
+    expect(() => new PyraminxSolver().randomState(random)).toThrow(
+      '@cubekit/scramble-core: could not sample a reachable Pyraminx edge permutation after 100 attempts',
+    );
   });
 });
 
@@ -125,3 +134,20 @@ const createSequenceRandom = (
     return valuesByMaxExclusive[maxExclusive]?.shift() ?? 0;
   },
 });
+
+const createUnreachableEdgePermRandom = (): RandomSource => {
+  let edgePermCalls = 0;
+
+  return {
+    nextInt(maxExclusive) {
+      if (maxExclusive !== 720) return 0;
+
+      edgePermCalls += 1;
+      if (edgePermCalls > 101) {
+        throw new Error('test guard: unbounded Pyraminx edge parity sampling');
+      }
+
+      return UNREACHABLE_EDGE_PERM;
+    },
+  };
+};

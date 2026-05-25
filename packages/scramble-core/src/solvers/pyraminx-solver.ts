@@ -9,6 +9,7 @@ const N_ORIENT = N_EDGE_ORIENT * N_CORNER_ORIENT;
 const N_TIPS = 81;
 const N_MOVES = 8;
 const MAX_LENGTH = 20;
+const MAX_EDGE_PERM_ATTEMPTS = 100;
 
 const MOVE_TO_STRING = ['U', "U'", 'L', "L'", 'R', "R'", 'B', "B'"] as const;
 const INVERSE_MOVE_TO_STRING = ["U'", 'U', "L'", 'L', "R'", 'R', "B'", 'B'] as const;
@@ -430,10 +431,20 @@ const formatSolution = (
 export class PyraminxSolver {
   randomState(random: RandomSource): PyraminxSolverState {
     const tables = getTables();
-    let edgePerm = nextCoordinate(random, 'edgePerm', N_EDGE_PERM);
+    let edgePerm: number | undefined;
 
-    while (tables.prunPerm[edgePerm] === -1) {
-      edgePerm = nextCoordinate(random, 'edgePerm', N_EDGE_PERM);
+    for (let attempt = 0; attempt < MAX_EDGE_PERM_ATTEMPTS; attempt += 1) {
+      const sampledEdgePerm = nextCoordinate(random, 'edgePerm', N_EDGE_PERM);
+      if (tables.prunPerm[sampledEdgePerm] === -1) continue;
+
+      edgePerm = sampledEdgePerm;
+      break;
+    }
+
+    if (edgePerm === undefined) {
+      throw new Error(
+        `${ERROR_PREFIX}: could not sample a reachable Pyraminx edge permutation after ${MAX_EDGE_PERM_ATTEMPTS} attempts`,
+      );
     }
 
     const state = {
