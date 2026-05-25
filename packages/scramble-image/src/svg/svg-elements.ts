@@ -1,7 +1,10 @@
+export type SvgElementName = 'rect' | 'circle' | 'path' | 'text' | 'g';
+
 export interface SvgNode {
-  name: string;
+  name: SvgElementName;
   attrs: Record<string, string | number>;
   children?: readonly SvgNode[];
+  text?: string;
 }
 
 export const rect = (attrs: Record<string, string | number>): SvgNode => ({ name: 'rect', attrs });
@@ -12,7 +15,8 @@ export const path = (attrs: Record<string, string | number>): SvgNode => ({ name
 
 export const text = (attrs: Record<string, string | number>, value: string): SvgNode => ({
   name: 'text',
-  attrs: { ...attrs, 'data-text': value },
+  attrs,
+  text: value,
 });
 
 export const group = (attrs: Record<string, string | number>, children: readonly SvgNode[]): SvgNode => ({
