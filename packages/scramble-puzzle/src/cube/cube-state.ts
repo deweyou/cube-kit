@@ -6,12 +6,12 @@ const CUBE_FACES = ['R', 'U', 'F', 'L', 'D', 'B'] as const;
 type MutableCubeImage = CubeFacelet[][][];
 
 export type CubeFacelet = CubeFace;
-export type CubeFaceState = readonly CubeFacelet[][];
+export type CubeFaceState = readonly (readonly CubeFacelet[])[];
 export type CubeImage = readonly CubeFaceState[];
 
 export interface CubeState {
-  size: number;
-  image: CubeImage;
+  readonly size: number;
+  readonly image: CubeImage;
 }
 
 const faceIndex = (face: CubeFace): number => CUBE_FACES.indexOf(face);
