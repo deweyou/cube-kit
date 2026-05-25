@@ -3,6 +3,11 @@ export { generateClockScramble } from './generators/clock.js';
 export type { ClockScrambleOptions } from './generators/clock.js';
 export { generateCubeRandomTurnScramble } from './generators/cube-random-turns.js';
 export type { CubeRandomTurnOptions } from './generators/cube-random-turns.js';
+export {
+  generateFourByFourNoInspectionScramble,
+  generateFourByFourScramble,
+} from './generators/four-by-four.js';
+export type { FourByFourScrambleOptions } from './generators/four-by-four.js';
 export { generateMegaminxScramble } from './generators/megaminx.js';
 export type { MegaminxScrambleOptions } from './generators/megaminx.js';
 export { generatePyraminxScramble } from './generators/pyraminx.js';
