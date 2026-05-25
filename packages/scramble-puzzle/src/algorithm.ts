@@ -33,6 +33,6 @@ export function applyAlgorithm<State, Move>(
       throw error;
     }
 
-    throw new InvalidScrambleError(algorithm, { cause: error });
+    throw new InvalidScrambleError(algorithm, error);
   }
 }

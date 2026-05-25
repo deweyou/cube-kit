@@ -12,15 +12,17 @@ export class ScramblePuzzleError extends Error {
 }
 
 export class InvalidMoveError extends ScramblePuzzleError {
-  constructor(move: string, options?: ErrorOptions) {
-    super(`invalid move '${move}'`, options);
+  constructor(move: string, puzzleId: string) {
+    super(`move '${move}' is invalid for puzzle '${puzzleId}'`);
     this.name = 'InvalidMoveError';
   }
 }
 
 export class InvalidScrambleError extends ScramblePuzzleError {
-  constructor(scramble: string, options?: ErrorOptions) {
-    super(`invalid scramble '${scramble}'`, options);
+  constructor(scramble: string, cause: unknown) {
+    const causeMessage = cause instanceof Error ? cause.message : String(cause);
+
+    super(`scramble '${scramble}' is invalid: ${causeMessage}`);
     this.name = 'InvalidScrambleError';
   }
 }
