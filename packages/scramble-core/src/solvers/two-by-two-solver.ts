@@ -1,5 +1,6 @@
 import type { RandomSource } from '../random-source.js';
 
+// Ported from TNoodle v0.19.2 TwoByTwoSolver: BLD corner fixed, U/R/F search only.
 const ERROR_PREFIX = '@cubekit/scramble-core';
 
 const N_PERM = 5040;
