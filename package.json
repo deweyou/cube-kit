@@ -10,7 +10,8 @@
     "build:web": "vp run web#build",
     "build:wx": "vp run wx-app#build",
     "build": "vp run build -r",
-    "test": "vp run test -r",
+    "test": "pnpm test:docs && vp run test -r",
+    "test:docs": "node --test scripts/docs-home.test.mjs",
     "check": "vp check",
     "postinstall": "npx skills install"
   },

@@ -1,6 +1,6 @@
 # @cubekit/scramble — guidance for Claude sessions
 
-Package-level notes that apply when Claude is working inside `packages/scramble`. Read this alongside the repo-root `CLAUDE.md` and the project `knowledge/constitution.md`.
+Package-level notes that apply when Claude is working inside `packages/scramble`. Read this alongside the repo-root `AGENTS.md`, especially `docs/scramble-runtime.md` and `docs/dependency-licensing.md`.
 
 ## What this package is
 
@@ -104,7 +104,7 @@ From repo root: `pnpm test` / `pnpm build` / `pnpm check` run the workspace-wide
 3. Co-locate a test file under `tests/`.
 4. Add the function to the public API surface test in `tests/index.test.ts`.
 5. Update `README.md` API section.
-6. Update the error matrix in `knowledge/specs/.../contracts/scramble-api.md` if the feature is still open.
+6. Update `docs/scramble-runtime.md` or `docs/dependency-licensing.md` when the change moves a durable runtime or licensing invariant.
 
 ## Things to leave alone unless explicitly asked
 

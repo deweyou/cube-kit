@@ -4,11 +4,10 @@ Use this rule whenever `repo-memory` creates or updates repository knowledge.
 
 ## Directory Contract
 
-Use `docs/` as the default knowledge directory. Detect `knowledge/` only for
-backward compatibility:
+Use `docs/` as the default knowledge directory. Treat any legacy memory directory
+as a migration source only when migration is requested:
 
 - If `docs/` exists, use it.
-- Else if `knowledge/` exists, keep using it unless the user wants migration.
 - Else create `docs/`.
 
 Required files for a newly initialized repository:
@@ -104,10 +103,10 @@ doc edit.
 
 ## Knowledge Base
 
-| Document | What it covers |
-|----------|----------------|
+| Document                                               | What it covers                            |
+| ------------------------------------------------------ | ----------------------------------------- |
 | [docs/project-structure.md](docs/project-structure.md) | Top-level structure and how the app boots |
-| [docs/<topic>.md](docs/<topic>.md) | <description> |
+| [docs/<topic>.md](docs/<topic>.md)                     | <description>                             |
 
 ## Hard Constraints
 
@@ -148,7 +147,8 @@ docs/                   repository memory
 - [src/main.ts#L1](../src/main.ts#L1) - entry point
 
 ---
-*Last updated: YYYY-MM-DD | Reason: initial memory setup*
+
+_Last updated: YYYY-MM-DD | Reason: initial memory setup_
 ````
 
 ### Topic Doc
@@ -178,7 +178,8 @@ flowchart TD
 - TODO: <unknown that needs confirmation>
 
 ---
-*Last updated: YYYY-MM-DD | Reason: <why this was written or updated>*
+
+_Last updated: YYYY-MM-DD | Reason: <why this was written or updated>_
 ````
 
 ### .state.md
