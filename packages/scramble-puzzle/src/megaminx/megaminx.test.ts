@@ -57,9 +57,7 @@ describe('parseMegaminxAlgorithm', () => {
 
   it('rejects malformed Megaminx moves', () => {
     expect(() => parseMegaminxAlgorithm('R+++')).toThrow(InvalidMoveError);
-    expect(() => parseMegaminxAlgorithm('M')).toThrow(
-      "move 'M' is invalid for puzzle 'megaminx'",
-    );
+    expect(() => parseMegaminxAlgorithm('M')).toThrow("move 'M' is invalid for puzzle 'megaminx'");
     expect(() => parseMegaminxAlgorithm('BL+')).toThrow(InvalidMoveError);
   });
 
@@ -88,7 +86,7 @@ describe('Megaminx state transitions', () => {
   it('applies a move and its inverse back to solved', () => {
     const definition = createMegaminxDefinition();
     const solved = definition.createSolvedState();
-    const [move, inverse] = definition.parseAlgorithm("R++ R--");
+    const [move, inverse] = definition.parseAlgorithm('R++ R--');
     const restored = definition.applyMove(definition.applyMove(solved, move), inverse);
 
     expect(definition.isSolved(restored)).toBe(true);
@@ -101,10 +99,7 @@ describe('Megaminx state transitions', () => {
   )('restores solved after five %s face moves', (move) => {
     const definition = createMegaminxDefinition();
 
-    const moved = definition.applyAlgorithm(
-      definition.createSolvedState(),
-      repeatMove(move, 5),
-    );
+    const moved = definition.applyAlgorithm(definition.createSolvedState(), repeatMove(move, 5));
 
     expect(definition.isSolved(moved)).toBe(true);
   });
@@ -123,10 +118,7 @@ describe('Megaminx state transitions', () => {
   )('restores solved after face move %s and inverse %s', (move, inverse) => {
     const definition = createMegaminxDefinition();
 
-    const moved = definition.applyAlgorithm(
-      definition.createSolvedState(),
-      `${move} ${inverse}`,
-    );
+    const moved = definition.applyAlgorithm(definition.createSolvedState(), `${move} ${inverse}`);
 
     expect(definition.isSolved(moved)).toBe(true);
   });
@@ -138,10 +130,7 @@ describe('Megaminx state transitions', () => {
   )('restores solved after five %s big turns', (move) => {
     const definition = createMegaminxDefinition();
 
-    const moved = definition.applyAlgorithm(
-      definition.createSolvedState(),
-      repeatMove(move, 5),
-    );
+    const moved = definition.applyAlgorithm(definition.createSolvedState(), repeatMove(move, 5));
 
     expect(definition.isSolved(moved)).toBe(true);
   });
@@ -160,10 +149,7 @@ describe('Megaminx state transitions', () => {
   )('restores solved after big turn %s and inverse %s', (move, inverse) => {
     const definition = createMegaminxDefinition();
 
-    const moved = definition.applyAlgorithm(
-      definition.createSolvedState(),
-      `${move} ${inverse}`,
-    );
+    const moved = definition.applyAlgorithm(definition.createSolvedState(), `${move} ${inverse}`);
 
     expect(definition.isSolved(moved)).toBe(true);
   });
@@ -173,9 +159,7 @@ describe('Megaminx state transitions', () => {
     const scramble = createSevenLineScramble();
 
     expect(scramble.split('\n')).toHaveLength(7);
-    expect(() =>
-      definition.applyAlgorithm(definition.createSolvedState(), scramble),
-    ).not.toThrow();
+    expect(() => definition.applyAlgorithm(definition.createSolvedState(), scramble)).not.toThrow();
   });
 
   it('keeps big-turn centers compatible with TNoodle state shape', () => {
@@ -189,9 +173,9 @@ describe('Megaminx state transitions', () => {
   it('wraps invalid algorithms through the shared applyAlgorithm helper', () => {
     const definition = createMegaminxDefinition();
 
-    expect(() =>
-      applyAlgorithm(definition, definition.createSolvedState(), 'R+++'),
-    ).toThrow(InvalidScrambleError);
+    expect(() => applyAlgorithm(definition, definition.createSolvedState(), 'R+++')).toThrow(
+      InvalidScrambleError,
+    );
   });
 
   it('compares non-equal Megaminx states', () => {

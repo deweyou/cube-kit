@@ -50,12 +50,7 @@ export class CubieCube {
     return new CubieCube();
   }
 
-  static fromCoordinates(
-    cperm: number,
-    twist: number,
-    eperm: number,
-    flip: number,
-  ): CubieCube {
+  static fromCoordinates(cperm: number, twist: number, eperm: number, flip: number): CubieCube {
     const cube = new CubieCube();
     setNPerm(cube.cp, cperm, 8);
     setTwist(cube.co, twist);
@@ -76,7 +71,7 @@ export class CubieCube {
       facelets[40],
       facelets[49],
     ];
-    const colors = [...facelets].map((facelet) => centerColors.indexOf(facelet));
+    const colors = Array.from(facelets, (facelet) => centerColors.indexOf(facelet));
     if (colors.some((color) => color < 0)) return null;
 
     const cp = Array<number>(8).fill(0);
@@ -99,8 +94,7 @@ export class CubieCube {
       const color2 = colors[CORNER_FACELET[corner][(orientation + 2) % 3]];
       const cubie = CORNER_FACELET.findIndex(
         ([, facelet1, facelet2]) =>
-          color1 === Math.floor(facelet1 / 9) &&
-          color2 === Math.floor(facelet2 / 9),
+          color1 === Math.floor(facelet1 / 9) && color2 === Math.floor(facelet2 / 9),
       );
       if (cubie < 0) return null;
 
@@ -113,8 +107,7 @@ export class CubieCube {
       const color1 = colors[EDGE_FACELET[edge][1]];
       const cubie = EDGE_FACELET.findIndex(
         ([facelet0, facelet1]) =>
-          color0 === Math.floor(facelet0 / 9) &&
-          color1 === Math.floor(facelet1 / 9),
+          color0 === Math.floor(facelet0 / 9) && color1 === Math.floor(facelet1 / 9),
       );
       if (cubie >= 0) {
         ep[edge] = cubie;
@@ -124,8 +117,7 @@ export class CubieCube {
 
       const flippedCubie = EDGE_FACELET.findIndex(
         ([facelet0, facelet1]) =>
-          color0 === Math.floor(facelet1 / 9) &&
-          color1 === Math.floor(facelet0 / 9),
+          color0 === Math.floor(facelet1 / 9) && color1 === Math.floor(facelet0 / 9),
       );
       if (flippedCubie < 0) return null;
 
@@ -137,7 +129,7 @@ export class CubieCube {
   }
 
   toFaceCube(): string {
-    const facelets = [...SOLVED_FACE_CUBE];
+    const facelets = Array.from(SOLVED_FACE_CUBE);
 
     for (let corner = 0; corner < 8; corner += 1) {
       const cubie = this.cp[corner];

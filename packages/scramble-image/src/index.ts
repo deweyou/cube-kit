@@ -10,10 +10,7 @@ export type { PyraminxColorScheme } from './renderers/pyraminx.js';
 export { renderSkewbState } from './renderers/skewb.js';
 export type { SkewbColorScheme } from './renderers/skewb.js';
 export { renderSquareOneState } from './renderers/square1.js';
-export type {
-  SquareOneColorScheme,
-  SquareOneFace,
-} from './renderers/square1.js';
+export type { SquareOneColorScheme, SquareOneFace } from './renderers/square1.js';
 export { createSvgDocument } from './svg/svg-document.js';
 export { circle, group, path, rect, text } from './svg/svg-elements.js';
 export type { SvgNode } from './svg/svg-elements.js';

@@ -27,9 +27,7 @@ describe('parsePyraminxAlgorithm', () => {
 
   it('rejects malformed Pyraminx moves', () => {
     expect(() => parsePyraminxAlgorithm('U2')).toThrow(InvalidMoveError);
-    expect(() => parsePyraminxAlgorithm('F')).toThrow(
-      "move 'F' is invalid for puzzle 'pyraminx'",
-    );
+    expect(() => parsePyraminxAlgorithm('F')).toThrow("move 'F' is invalid for puzzle 'pyraminx'");
     expect(() => parsePyraminxAlgorithm("uu'")).toThrow(InvalidMoveError);
   });
 
@@ -58,10 +56,7 @@ describe('Pyraminx state transitions', () => {
   it.each(MOVE_INVERSES)('restores solved after %s and %s', (move, inverse) => {
     const definition = createPyraminxDefinition();
 
-    const moved = definition.applyAlgorithm(
-      definition.createSolvedState(),
-      `${move} ${inverse}`,
-    );
+    const moved = definition.applyAlgorithm(definition.createSolvedState(), `${move} ${inverse}`);
 
     expect(definition.isSolved(moved)).toBe(true);
   });
@@ -97,9 +92,9 @@ describe('Pyraminx state transitions', () => {
   it('wraps invalid algorithms through the shared applyAlgorithm helper', () => {
     const definition = createPyraminxDefinition();
 
-    expect(() =>
-      applyAlgorithm(definition, definition.createSolvedState(), 'U2'),
-    ).toThrow(InvalidScrambleError);
+    expect(() => applyAlgorithm(definition, definition.createSolvedState(), 'U2')).toThrow(
+      InvalidScrambleError,
+    );
   });
 
   it('rejects malformed move API inputs', () => {

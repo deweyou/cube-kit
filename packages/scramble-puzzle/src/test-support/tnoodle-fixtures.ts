@@ -10,8 +10,7 @@ export const TNOODLE_SCRAMBLE_FIXTURES = [
   { eventId: '333', scramble: "R U R' U'", note: 'basic 3x3 notation' },
   {
     eventId: 'clock',
-    scramble:
-      'UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-',
+    scramble: 'UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-',
     note: 'clock WCA grammar',
   },
   {

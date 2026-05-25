@@ -25,9 +25,7 @@ describe('generateMegaminxScramble', () => {
   it('emits 10 alternating R and D moves plus U per row', () => {
     const scramble = generateMegaminxScramble({ random: cyclingRandom() });
 
-    expect(scramble.split('\n')[0]).toBe(
-      "R++ D-- R++ D-- R++ D-- R++ D-- R++ D-- U'",
-    );
+    expect(scramble.split('\n')[0]).toBe("R++ D-- R++ D-- R++ D-- R++ D-- R++ D-- U'");
   });
 
   it('maps the final row U direction from the last R/D random direction', () => {

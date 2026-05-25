@@ -2,27 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { applyAlgorithm } from '../algorithm.js';
 import { InvalidMoveError, InvalidScrambleError } from '../errors.js';
 import { createClockDefinition } from './clock-definition.js';
-import {
-  applyClockMove,
-  areClockStatesEqual,
-  createSolvedClockState,
-} from './clock-state.js';
+import { applyClockMove, areClockStatesEqual, createSolvedClockState } from './clock-state.js';
 import { parseClockAlgorithm } from './clock-parser.js';
 
 describe('parseClockAlgorithm', () => {
   it('parses TNoodle Clock notation', () => {
     expect(
-      parseClockAlgorithm(
-        'UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-',
-      ),
+      parseClockAlgorithm('UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-'),
     ).toHaveLength(15);
   });
 
   it('rejects malformed Clock moves', () => {
     expect(() => parseClockAlgorithm('UR7+')).toThrow(InvalidMoveError);
-    expect(() => parseClockAlgorithm('A5+')).toThrow(
-      "move 'A5+' is invalid for puzzle 'clock'",
-    );
+    expect(() => parseClockAlgorithm('A5+')).toThrow("move 'A5+' is invalid for puzzle 'clock'");
     expect(() => parseClockAlgorithm('y')).toThrow(InvalidMoveError);
   });
 
@@ -68,9 +60,9 @@ describe('Clock state transitions', () => {
   it('wraps invalid algorithms through the shared applyAlgorithm helper', () => {
     const definition = createClockDefinition();
 
-    expect(() =>
-      applyAlgorithm(definition, definition.createSolvedState(), 'UR7+'),
-    ).toThrow(InvalidScrambleError);
+    expect(() => applyAlgorithm(definition, definition.createSolvedState(), 'UR7+')).toThrow(
+      InvalidScrambleError,
+    );
   });
 
   it('compares non-equal Clock states', () => {

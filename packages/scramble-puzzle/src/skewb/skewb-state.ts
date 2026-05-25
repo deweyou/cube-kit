@@ -24,13 +24,11 @@ const MALFORMED_MOVE = '<malformed>';
 const isSkewbAxis = (face: unknown): face is SkewbAxis =>
   typeof face === 'string' && SKEWB_AXES.includes(face as SkewbAxis);
 
-const isMoveAmount = (amount: unknown): amount is SkewbMoveAmount =>
-  amount === 1 || amount === 2;
+const isMoveAmount = (amount: unknown): amount is SkewbMoveAmount => amount === 1 || amount === 2;
 
 const axisIndex = (face: SkewbAxis): number => SKEWB_AXES.indexOf(face);
 
-const cloneSkewbImage = (image: SkewbImage): MutableSkewbImage =>
-  image.map((face) => [...face]);
+const cloneSkewbImage = (image: SkewbImage): MutableSkewbImage => image.map((face) => [...face]);
 
 const freezeSkewbImage = (image: MutableSkewbImage): SkewbImage => {
   const frozenFaces = image.map((face) => Object.freeze([...face]));
@@ -48,14 +46,8 @@ const createSkewbState = (image: MutableSkewbImage): SkewbState => {
 
   for (const face of image) {
     for (const sticker of face) {
-      if (
-        !Number.isSafeInteger(sticker) ||
-        sticker < 0 ||
-        sticker >= SKEWB_FACES.length
-      ) {
-        throw new RangeError(
-          'skewb stickers must be integer face indexes from 0 to 5',
-        );
+      if (!Number.isSafeInteger(sticker) || sticker < 0 || sticker >= SKEWB_FACES.length) {
+        throw new RangeError('skewb stickers must be integer face indexes from 0 to 5');
       }
     }
   }
@@ -136,16 +128,9 @@ const validateMove = (move: SkewbMove): SkewbMove => {
 };
 
 export const createSolvedSkewbState = (): SkewbState =>
-  createSkewbState(
-    SKEWB_FACES.map((_, face) =>
-      Array<SkewbFacelet>(STICKERS_PER_FACE).fill(face),
-    ),
-  );
+  createSkewbState(SKEWB_FACES.map((_, face) => Array<SkewbFacelet>(STICKERS_PER_FACE).fill(face)));
 
-export const applySkewbMove = (
-  state: SkewbState,
-  move: SkewbMove,
-): SkewbState => {
+export const applySkewbMove = (state: SkewbState, move: SkewbMove): SkewbState => {
   const validMove = validateMove(move);
   const nextImage = cloneSkewbImage(state.image);
   const axis = axisIndex(validMove.face);
@@ -155,15 +140,9 @@ export const applySkewbMove = (
   return createSkewbState(nextImage);
 };
 
-export const areSkewbStatesEqual = (
-  a: SkewbState,
-  b: SkewbState,
-): boolean =>
+export const areSkewbStatesEqual = (a: SkewbState, b: SkewbState): boolean =>
   a.image.every((face, faceIndexValue) =>
-    face.every(
-      (sticker, stickerIndex) =>
-        sticker === b.image[faceIndexValue]?.[stickerIndex],
-    ),
+    face.every((sticker, stickerIndex) => sticker === b.image[faceIndexValue]?.[stickerIndex]),
   );
 
 export type { SkewbFace };

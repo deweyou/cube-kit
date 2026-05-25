@@ -37,19 +37,12 @@ const parseRotationFace = (rotation: string): CubeFace | undefined => {
   }
 };
 
-const parseWideMoveWidth = (
-  token: string,
-  prefixWidth: string | undefined,
-): number => {
+const parseWideMoveWidth = (token: string, prefixWidth: string | undefined): number => {
   if (prefixWidth === undefined) return 2;
 
   const width = Number(prefixWidth);
 
-  if (
-    prefixWidth.startsWith('0') ||
-    !Number.isSafeInteger(width) ||
-    width < 3
-  ) {
+  if (prefixWidth.startsWith('0') || !Number.isSafeInteger(width) || width < 3) {
     throw new InvalidMoveError(token, 'cube');
   }
 

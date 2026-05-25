@@ -8,20 +8,15 @@ import {
   type SkewbState,
 } from './skewb-state.js';
 
-export const createSkewbDefinition = (): PuzzleDefinition<
-  SkewbState,
-  SkewbMove
-> => {
+export const createSkewbDefinition = (): PuzzleDefinition<SkewbState, SkewbMove> => {
   const definition: PuzzleDefinition<SkewbState, SkewbMove> = {
     id: 'skewb',
     eventIds: ['skewb'],
     createSolvedState: createSolvedSkewbState,
     parseAlgorithm: parseSkewbAlgorithm,
     applyMove: applySkewbMove,
-    applyAlgorithm: (state, algorithm) =>
-      applyAlgorithm(definition, state, algorithm),
-    isSolved: (state) =>
-      areSkewbStatesEqual(state, createSolvedSkewbState()),
+    applyAlgorithm: (state, algorithm) => applyAlgorithm(definition, state, algorithm),
+    isSolved: (state) => areSkewbStatesEqual(state, createSolvedSkewbState()),
   };
 
   return definition;

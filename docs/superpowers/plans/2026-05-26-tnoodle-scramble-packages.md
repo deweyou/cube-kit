@@ -399,7 +399,9 @@ import { createPuzzleRegistry } from './registry.js';
 describe('createPuzzleRegistry', () => {
   it('throws a typed error for unknown events', () => {
     const registry = createPuzzleRegistry([]);
-    expect(() => registry.getByEventId('333')).toThrow("@cubekit/scramble-puzzle: event '333' is not registered");
+    expect(() => registry.getByEventId('333')).toThrow(
+      "@cubekit/scramble-puzzle: event '333' is not registered",
+    );
   });
 });
 ```
@@ -566,7 +568,9 @@ export interface PuzzleRegistry {
   getByEventId(eventId: WcaEventId): AnyPuzzleDefinition;
 }
 
-export const createPuzzleRegistry = (definitions: readonly AnyPuzzleDefinition[]): PuzzleRegistry => {
+export const createPuzzleRegistry = (
+  definitions: readonly AnyPuzzleDefinition[],
+): PuzzleRegistry => {
   const byEventId = new Map<WcaEventId, AnyPuzzleDefinition>();
 
   for (const definition of definitions) {
@@ -596,8 +600,16 @@ export interface TnoodleScrambleFixture {
 
 export const TNOODLE_SCRAMBLE_FIXTURES: readonly TnoodleScrambleFixture[] = [
   { eventId: '333', scramble: "R U R' U'", note: 'basic 3x3 notation' },
-  { eventId: 'clock', scramble: 'UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-', note: 'clock WCA grammar' },
-  { eventId: 'minx', scramble: "R++ D-- R-- D++ R++ D++ R-- D-- R++ D-- U'", note: 'megaminx line grammar' },
+  {
+    eventId: 'clock',
+    scramble: 'UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-',
+    note: 'clock WCA grammar',
+  },
+  {
+    eventId: 'minx',
+    scramble: "R++ D-- R-- D++ R++ D++ R-- D-- R++ D-- U'",
+    note: 'megaminx line grammar',
+  },
   { eventId: 'sq1', scramble: '(3,-2) / (0,3) /', note: 'square-1 tuple and slash grammar' },
 ];
 ```
@@ -613,7 +625,10 @@ export const expectScrambleApplies = <State, Move>(
 ): State => {
   const state = definition
     .parseAlgorithm(scramble)
-    .reduce((nextState, move) => definition.applyMove(nextState, move), definition.createSolvedState());
+    .reduce(
+      (nextState, move) => definition.applyMove(nextState, move),
+      definition.createSolvedState(),
+    );
   return state;
 };
 ```
@@ -815,15 +830,22 @@ describe('cube state transitions', () => {
 
   it('R followed by R prime returns to solved', () => {
     const cube = createCubeDefinition(3, ['333']);
-    const state = cube.applyMove(cube.applyMove(cube.createSolvedState(), cube.parseAlgorithm('R')[0]), cube.parseAlgorithm("R'")[0]);
+    const state = cube.applyMove(
+      cube.applyMove(cube.createSolvedState(), cube.parseAlgorithm('R')[0]),
+      cube.parseAlgorithm("R'")[0],
+    );
     expect(cube.isSolved(state)).toBe(true);
   });
 
   it('wide moves change a 4x4 state and inverse back to solved', () => {
     const cube = createCubeDefinition(4, ['444']);
-    const moved = cube.parseAlgorithm("Rw U Rw' U'").reduce((state, move) => cube.applyMove(state, move), cube.createSolvedState());
+    const moved = cube
+      .parseAlgorithm("Rw U Rw' U'")
+      .reduce((state, move) => cube.applyMove(state, move), cube.createSolvedState());
     expect(cube.isSolved(moved)).toBe(false);
-    const restored = cube.parseAlgorithm("U Rw U' Rw'").reduce((state, move) => cube.applyMove(state, move), moved);
+    const restored = cube
+      .parseAlgorithm("U Rw U' Rw'")
+      .reduce((state, move) => cube.applyMove(state, move), moved);
     expect(cube.isSolved(restored)).toBe(true);
   });
 });
@@ -900,17 +922,8 @@ Update `packages/scramble-puzzle/src/index.ts`:
 
 ```ts
 export { createCubeDefinition } from './cube/cube-definition.js';
-export {
-  applyCubeMove,
-  areCubeStatesEqual,
-  createSolvedCubeState,
-} from './cube/cube-state.js';
-export type {
-  CubeFacelet,
-  CubeFaceState,
-  CubeImage,
-  CubeState,
-} from './cube/cube-state.js';
+export { applyCubeMove, areCubeStatesEqual, createSolvedCubeState } from './cube/cube-state.js';
+export type { CubeFacelet, CubeFaceState, CubeImage, CubeState } from './cube/cube-state.js';
 ```
 
 - [ ] **Step 4: Run tests**
@@ -953,7 +966,9 @@ import { rect } from './svg-elements.js';
 
 describe('SVG serialization', () => {
   it('serializes width, height, viewBox, and escaped attributes', () => {
-    const svg = createSvgDocument(20, 10, [rect({ x: 0, y: 0, width: 10, height: 10, fill: '#fff', stroke: '#000' })]);
+    const svg = createSvgDocument(20, 10, [
+      rect({ x: 0, y: 0, width: 10, height: 10, fill: '#fff', stroke: '#000' }),
+    ]);
     expect(svg).toContain('<svg');
     expect(svg).toContain('width="20"');
     expect(svg).toContain('height="10"');
@@ -983,13 +998,19 @@ export interface SvgNode {
 }
 
 export const rect = (attrs: Record<string, string | number>): SvgNode => ({ name: 'rect', attrs });
-export const circle = (attrs: Record<string, string | number>): SvgNode => ({ name: 'circle', attrs });
+export const circle = (attrs: Record<string, string | number>): SvgNode => ({
+  name: 'circle',
+  attrs,
+});
 export const path = (attrs: Record<string, string | number>): SvgNode => ({ name: 'path', attrs });
 export const text = (attrs: Record<string, string | number>, value: string): SvgNode => ({
   name: 'text',
   attrs: { ...attrs, 'data-text': value },
 });
-export const group = (attrs: Record<string, string | number>, children: readonly SvgNode[]): SvgNode => ({
+export const group = (
+  attrs: Record<string, string | number>,
+  children: readonly SvgNode[],
+): SvgNode => ({
   name: 'g',
   attrs,
   children,
@@ -1026,7 +1047,11 @@ export const serializeSvgNode = (node: SvgNode): string => {
 import { serializeSvgNode } from './svg-serialize.js';
 import type { SvgNode } from './svg-elements.js';
 
-export const createSvgDocument = (width: number, height: number, children: readonly SvgNode[]): string => {
+export const createSvgDocument = (
+  width: number,
+  height: number,
+  children: readonly SvgNode[],
+): string => {
   const body = children.map(serializeSvgNode).join('');
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" version="1.1" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
 };
@@ -1103,7 +1128,9 @@ describe('renderCubeNet', () => {
 
   it('renders a scrambled state', () => {
     const cube = createCubeDefinition(3, ['333']);
-    const state = cube.parseAlgorithm('R U').reduce((next, move) => cube.applyMove(next, move), cube.createSolvedState());
+    const state = cube
+      .parseAlgorithm('R U')
+      .reduce((next, move) => cube.applyMove(next, move), cube.createSolvedState());
     expect(renderCubeNet(state)).toContain('<svg');
   });
 });
@@ -1196,7 +1223,9 @@ export const renderScrambleImage = (eventId: WcaEventId, scramble: string): stri
   const size = CUBE_SIZE_BY_EVENT[eventId];
   if (!size) throw new Error(`@cubekit/scramble-image: event '${eventId}' is not renderable yet`);
   const cube = createCubeDefinition(size, [eventId]);
-  const state = cube.parseAlgorithm(scramble).reduce((next, move) => cube.applyMove(next, move), cube.createSolvedState());
+  const state = cube
+    .parseAlgorithm(scramble)
+    .reduce((next, move) => cube.applyMove(next, move), cube.createSolvedState());
   return renderCubeNet(state);
 };
 ```
@@ -1254,7 +1283,9 @@ const deterministicRandom: RandomSource = {
 describe('createScrambleGenerator', () => {
   it('throws for generators that are not registered', async () => {
     const generator = createScrambleGenerator({ random: deterministicRandom, generators: {} });
-    await expect(generator.generate('333')).rejects.toThrow("@cubekit/scramble-core: event '333' has no generator");
+    await expect(generator.generate('333')).rejects.toThrow(
+      "@cubekit/scramble-core: event '333' has no generator",
+    );
   });
 });
 ```
@@ -1301,7 +1332,9 @@ export interface ScrambleResult {
   scramble: string;
 }
 
-export type EventScrambleGenerator = (options: GenerateOptions & { random: RandomSource }) => ScrambleResult;
+export type EventScrambleGenerator = (
+  options: GenerateOptions & { random: RandomSource },
+) => ScrambleResult;
 
 export interface ScrambleGeneratorOptions {
   random: RandomSource;
@@ -1310,10 +1343,17 @@ export interface ScrambleGeneratorOptions {
 
 export interface ScrambleGenerator {
   generate(eventId: WcaEventId, options?: GenerateOptions): Promise<ScrambleResult>;
-  generateBatch(eventId: WcaEventId, count: number, options?: GenerateOptions): Promise<readonly ScrambleResult[]>;
+  generateBatch(
+    eventId: WcaEventId,
+    count: number,
+    options?: GenerateOptions,
+  ): Promise<readonly ScrambleResult[]>;
 }
 
-export const createScrambleGenerator = ({ random, generators }: ScrambleGeneratorOptions): ScrambleGenerator => {
+export const createScrambleGenerator = ({
+  random,
+  generators,
+}: ScrambleGeneratorOptions): ScrambleGenerator => {
   const api: ScrambleGenerator = {
     async generate(eventId, options = {}) {
       const generator = generators[eventId];
@@ -1401,13 +1441,25 @@ const cyclingRandom = (): RandomSource => {
 
 describe('generateCubeRandomTurnScramble', () => {
   it('generates TNoodle-length random-turn scrambles', () => {
-    expect(generateCubeRandomTurnScramble({ size: 5, length: 60, random: cyclingRandom() }).split(/\s+/)).toHaveLength(60);
-    expect(generateCubeRandomTurnScramble({ size: 6, length: 80, random: cyclingRandom() }).split(/\s+/)).toHaveLength(80);
-    expect(generateCubeRandomTurnScramble({ size: 7, length: 100, random: cyclingRandom() }).split(/\s+/)).toHaveLength(100);
+    expect(
+      generateCubeRandomTurnScramble({ size: 5, length: 60, random: cyclingRandom() }).split(/\s+/),
+    ).toHaveLength(60);
+    expect(
+      generateCubeRandomTurnScramble({ size: 6, length: 80, random: cyclingRandom() }).split(/\s+/),
+    ).toHaveLength(80);
+    expect(
+      generateCubeRandomTurnScramble({ size: 7, length: 100, random: cyclingRandom() }).split(
+        /\s+/,
+      ),
+    ).toHaveLength(100);
   });
 
   it('produces parseable cube moves', () => {
-    const scramble = generateCubeRandomTurnScramble({ size: 7, length: 100, random: cyclingRandom() });
+    const scramble = generateCubeRandomTurnScramble({
+      size: 7,
+      length: 100,
+      random: cyclingRandom(),
+    });
     expect(parseCubeAlgorithm(scramble)).toHaveLength(100);
   });
 });
@@ -1445,7 +1497,11 @@ const chooseWidthPrefix = (size: number, random: RandomSource): string => {
   return `${width}w`;
 };
 
-export const generateCubeRandomTurnScramble = ({ size, length, random }: CubeRandomTurnOptions): string => {
+export const generateCubeRandomTurnScramble = ({
+  size,
+  length,
+  random,
+}: CubeRandomTurnOptions): string => {
   const moves: string[] = [];
   let previousAxis = -1;
 
@@ -1501,7 +1557,9 @@ git commit -m "feat(scramble-core): add big cube random turns"
 Clock tests must cover:
 
 ```ts
-expect(parseClockAlgorithm('UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-')).toHaveLength(15);
+expect(
+  parseClockAlgorithm('UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-'),
+).toHaveLength(15);
 expect(generateClockScramble({ random })).toMatch(/^UR\d[+-] DR\d[+-] DL\d[+-] UL\d[+-]/);
 expect(renderClockState(createSolvedClockState())).toContain('<svg');
 ```
@@ -1875,7 +1933,9 @@ describe('Square-1 parser and state', () => {
 
   it('applies a valid scramble to the solved state', () => {
     const sq1 = createSquareOneDefinition();
-    const state = sq1.parseAlgorithm('(3,-2) /').reduce((next, move) => sq1.applyMove(next, move), sq1.createSolvedState());
+    const state = sq1
+      .parseAlgorithm('(3,-2) /')
+      .reduce((next, move) => sq1.applyMove(next, move), sq1.createSolvedState());
     expect(sq1.isSolved(state)).toBe(false);
   });
 });
@@ -1938,7 +1998,9 @@ Tests must cover:
 
 ```ts
 expect(generateSquareOneScramble({ random })).toContain('/');
-expect(() => createSquareOneDefinition().parseAlgorithm(generateSquareOneScramble({ random }))).not.toThrow();
+expect(() =>
+  createSquareOneDefinition().parseAlgorithm(generateSquareOneScramble({ random })),
+).not.toThrow();
 expect(renderSquareOneState(createSolvedSquareOneState())).toContain('<svg');
 ```
 
@@ -2026,9 +2088,14 @@ Public exports:
 
 ```ts
 export const generateThreeByThreeScramble: (options: { random: RandomSource }) => string;
-export const generateThreeByThreeNoInspectionScramble: (options: { random: RandomSource }) => string;
+export const generateThreeByThreeNoInspectionScramble: (options: {
+  random: RandomSource;
+}) => string;
 export const generateThreeByThreeFewestMovesScramble: (options: { random: RandomSource }) => string;
-export const generateMultiBlindScramble: (options: { random: RandomSource; cubeCount: number }) => string;
+export const generateMultiBlindScramble: (options: {
+  random: RandomSource;
+  cubeCount: number;
+}) => string;
 ```
 
 - [ ] **Step 4: Run tests and typecheck**
@@ -2067,8 +2134,14 @@ Tests must cover:
 
 ```ts
 expect(generateFourByFourScramble({ random }).split(/\s+/).length).toBeGreaterThan(30);
-expect(() => createCubeDefinition(4, ['444']).parseAlgorithm(generateFourByFourScramble({ random }))).not.toThrow();
-expect(() => createCubeDefinition(4, ['444bld']).parseAlgorithm(generateFourByFourNoInspectionScramble({ random }))).not.toThrow();
+expect(() =>
+  createCubeDefinition(4, ['444']).parseAlgorithm(generateFourByFourScramble({ random })),
+).not.toThrow();
+expect(() =>
+  createCubeDefinition(4, ['444bld']).parseAlgorithm(
+    generateFourByFourNoInspectionScramble({ random }),
+  ),
+).not.toThrow();
 ```
 
 - [ ] **Step 2: Run test to verify failure**
@@ -2143,7 +2216,10 @@ describe('default scramble generator', () => {
   it('generates a non-empty scramble for every WCA event', async () => {
     const generator = createDefaultScrambleGenerator({ random: cyclingRandom() });
     for (const eventId of WCA_EVENT_IDS) {
-      const result = await generator.generate(eventId, eventId === '333mbld' ? { multiBlindCubeCount: 3 } : undefined);
+      const result = await generator.generate(
+        eventId,
+        eventId === '333mbld' ? { multiBlindCubeCount: 3 } : undefined,
+      );
       expect(result.eventId).toBe(eventId);
       expect(result.scramble.trim().length).toBeGreaterThan(0);
     }

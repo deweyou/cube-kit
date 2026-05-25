@@ -21,9 +21,7 @@ const METRIC = WCA_TURN_METRIC;
 const PRUN_INC = METRIC === WCA_TURN_METRIC ? 2 : 1;
 const MAX_OPT_LENGTH = 31;
 
-const SQUARE_ONE_TURNS = [
-  -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6,
-] as const;
+const SQUARE_ONE_TURNS = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6] as const;
 
 interface Phase1SearchState {
   shape: number;
@@ -68,11 +66,7 @@ export class Search {
     const { shapePrun } = getShapeTables();
     const shape = cube.getShapeIdx();
 
-    for (
-      this.length1 = shapePrun[shape];
-      this.length1 < 100;
-      this.length1 += 1
-    ) {
+    for (this.length1 = shapePrun[shape]; this.length1 < 100; this.length1 += 1) {
       this.maxLength2 = Math.min(31 - this.length1, 17);
       if (
         this.idaPhase1({
@@ -130,12 +124,8 @@ export class Search {
     lastTurns,
   }: Phase1SearchState & { lastTurns: number }): boolean {
     const turnBalance =
-      count0xf((lastTurns ^ ~0x000000) & 0xff00ff) -
-      count0xf((lastTurns ^ ~0x666666) & 0xff00ff);
-    if (
-      turnBalance < 0 ||
-      (turnBalance === 0 && ((lastTurns >> 20) & 0xf) >= 6)
-    ) {
+      count0xf((lastTurns ^ ~0x000000) & 0xff00ff) - count0xf((lastTurns ^ ~0x666666) & 0xff00ff);
+    if (turnBalance < 0 || (turnBalance === 0 && ((lastTurns >> 20) & 0xf) >= 6)) {
       return false;
     }
 
@@ -238,13 +228,7 @@ export class Search {
     return false;
   }
 
-  private idaPhase1({
-    shape,
-    prunValue,
-    maxLength,
-    depth,
-    lastMove,
-  }: Phase1SearchState): boolean {
+  private idaPhase1({ shape, prunValue, maxLength, depth, lastMove }: Phase1SearchState): boolean {
     if (prunValue === 0 && maxLength < 4) {
       this.moveLength1 = depth;
       return maxLength === 0 && this.initPhase2();
@@ -366,10 +350,7 @@ export class Search {
     const edge = this.square.edgePerm;
     const corner = this.square.cornPerm;
     const ml = this.square.ml;
-    const prun = Math.max(
-      squarePrun[(edge << 1) | ml],
-      squarePrun[(corner << 1) | ml],
-    );
+    const prun = Math.max(squarePrun[(edge << 1) | ml], squarePrun[(corner << 1) | ml]);
 
     for (let length = prun; length < this.maxLength2; length += 1) {
       if (
@@ -398,8 +379,7 @@ export class Search {
     if ((this.verbose & INVERSE_SOLUTION) !== 0) {
       for (let index = length - 1; index >= 0; index -= 1) {
         const move = this.move[index];
-        outputMoves[length - 1 - index] =
-          move > 0 ? 12 - move : move < 0 ? -12 - move : move;
+        outputMoves[length - 1 - index] = move > 0 ? 12 - move : move < 0 ? -12 - move : move;
       }
     } else {
       for (let index = 0; index < length; index += 1) {
@@ -524,11 +504,7 @@ export class Search {
       let edgePrun = squarePrun[(nextEdge << 1) | ml];
       let cornerPrun = squarePrun[(nextCorner << 1) | ml];
 
-      while (
-        move < (maxLength > 6 ? 6 : 12) &&
-        edgePrun <= maxLength &&
-        edgePrun <= maxLength
-      ) {
+      while (move < (maxLength > 6 ? 6 : 12) && edgePrun <= maxLength && edgePrun <= maxLength) {
         if (edgePrun < maxLength && cornerPrun < maxLength) {
           this.move[depth] = -move;
           if (
@@ -572,10 +548,7 @@ export class Search {
   }
 }
 
-export const solveSquareOneStateIn = (
-  state: SquareOneState,
-  maxLength: number,
-): string | null => {
+export const solveSquareOneStateIn = (state: SquareOneState, maxLength: number): string | null => {
   validateSolveLength(maxLength);
 
   if (!canSquareOneSlash(state)) {
@@ -591,10 +564,7 @@ export const solveSquareOneStateIn = (
     );
   }
 
-  const solution = new Search().solutionOpt(
-    FullCube.fromSquareOneState(state),
-    maxLength,
-  );
+  const solution = new Search().solutionOpt(FullCube.fromSquareOneState(state), maxLength);
 
   return solution === null ? null : solution.trim();
 };
@@ -670,15 +640,8 @@ class SquareOneAlgorithmBuilder {
 
     this.totalCost += newCost - oldCost;
 
-    for (
-      let index = moveIndex.index + 1;
-      index < this.states.length;
-      index += 1
-    ) {
-      this.states[index] = applyMoveName(
-        this.states[index - 1],
-        this.moves[index - 1],
-      );
+    for (let index = moveIndex.index + 1; index < this.states.length; index += 1) {
+      this.states[index] = applyMoveName(this.states[index - 1], this.moves[index - 1]);
     }
 
     this.unNormalizedState = applyMoveName(this.unNormalizedState, newMove);
@@ -693,29 +656,17 @@ class SquareOneAlgorithmBuilder {
   }
 
   private findBestIndexForMove(moveName: string): BestMoveIndex {
-    const newUnNormalizedState = applyMoveName(
-      this.unNormalizedState,
-      moveName,
-    );
+    const newUnNormalizedState = applyMoveName(this.unNormalizedState, moveName);
     if (areSquareOneStatesEqual(newUnNormalizedState, this.unNormalizedState)) {
       return { index: 0, moveName: null };
     }
 
-    const canonicalMove = findCanonicalMoveToState(
-      this.getState(),
-      newUnNormalizedState,
-    );
+    const canonicalMove = findCanonicalMoveToState(this.getState(), newUnNormalizedState);
     if (canonicalMove === null) {
-      throw new Error(
-        `${ERROR_PREFIX}: could not canonicalize Square-1 move ${moveName}`,
-      );
+      throw new Error(`${ERROR_PREFIX}: could not canonicalize Square-1 move ${moveName}`);
     }
 
-    for (
-      let lastMoveIndex = this.moves.length - 1;
-      lastMoveIndex >= 0;
-      lastMoveIndex -= 1
-    ) {
+    for (let lastMoveIndex = this.moves.length - 1; lastMoveIndex >= 0; lastMoveIndex -= 1) {
       const lastMove = this.moves[lastMoveIndex];
       const stateBeforeLastMove = this.states[lastMoveIndex];
       if (!movesCommute(stateBeforeLastMove, lastMove, canonicalMove)) {
@@ -729,10 +680,7 @@ class SquareOneAlgorithmBuilder {
         return { index: lastMoveIndex, moveName: null };
       }
 
-      const alternateLastMove = findCanonicalMoveToState(
-        stateBeforeLastMove,
-        stateAfterBoth,
-      );
+      const alternateLastMove = findCanonicalMoveToState(stateBeforeLastMove, stateAfterBoth);
       if (alternateLastMove !== null) {
         return { index: lastMoveIndex, moveName: alternateLastMove };
       }
@@ -817,20 +765,10 @@ const getSuccessorsByName = (
   return successors;
 };
 
-const movesCommute = (
-  state: SquareOneState,
-  firstMove: string,
-  secondMove: string,
-): boolean => {
+const movesCommute = (state: SquareOneState, firstMove: string, secondMove: string): boolean => {
   try {
-    const firstThenSecond = applyMoveName(
-      applyMoveName(state, firstMove),
-      secondMove,
-    );
-    const secondThenFirst = applyMoveName(
-      applyMoveName(state, secondMove),
-      firstMove,
-    );
+    const firstThenSecond = applyMoveName(applyMoveName(state, firstMove), secondMove);
+    const secondThenFirst = applyMoveName(applyMoveName(state, secondMove), firstMove);
 
     return areSquareOneStatesEqual(firstThenSecond, secondThenFirst);
   } catch {
@@ -838,10 +776,8 @@ const movesCommute = (
   }
 };
 
-const applyMoveName = (
-  state: SquareOneState,
-  moveName: string,
-): SquareOneState => applySquareOneMove(state, parseSquareOneMove(moveName));
+const applyMoveName = (state: SquareOneState, moveName: string): SquareOneState =>
+  applySquareOneMove(state, parseSquareOneMove(moveName));
 
 const formatSquareOneMove = (move: SquareOneMove): string =>
   move.type === 'slash' ? '/' : `(${move.top},${move.bottom})`;
@@ -858,11 +794,7 @@ const assertMoveName = (moveName: string | null): string => {
 };
 
 const validateSolveLength = (maxLength: number): void => {
-  if (
-    !Number.isSafeInteger(maxLength) ||
-    maxLength < 0 ||
-    maxLength > MAX_OPT_LENGTH
-  ) {
+  if (!Number.isSafeInteger(maxLength) || maxLength < 0 || maxLength > MAX_OPT_LENGTH) {
     throw new RangeError(
       `${ERROR_PREFIX}: Square-1 solve length must be an integer from 0 to ${MAX_OPT_LENGTH}`,
     );

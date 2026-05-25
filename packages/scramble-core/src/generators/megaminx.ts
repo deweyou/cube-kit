@@ -4,9 +4,7 @@ export interface MegaminxScrambleOptions {
   random: RandomSource;
 }
 
-export const generateMegaminxScramble = ({
-  random,
-}: MegaminxScrambleOptions): string => {
+export const generateMegaminxScramble = ({ random }: MegaminxScrambleOptions): string => {
   const rows: string[] = [];
 
   for (let row = 0; row < 7; row += 1) {

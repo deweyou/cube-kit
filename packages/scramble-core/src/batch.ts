@@ -29,7 +29,9 @@ export const generateUniqueScrambleBatch = async <Result extends UniqueScrambleR
   }
 
   if (results.length < count) {
-    throw new Error(`${ERROR_PREFIX}: generated ${results.length} unique scrambles after ${maxAttempts} attempts`);
+    throw new Error(
+      `${ERROR_PREFIX}: generated ${results.length} unique scrambles after ${maxAttempts} attempts`,
+    );
   }
 
   return results;

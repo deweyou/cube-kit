@@ -36,8 +36,7 @@ interface Point {
 
 type Polygon = readonly Point[];
 
-const degreesToRadians = (degrees: number): number =>
-  (degrees * Math.PI) / 180;
+const degreesToRadians = (degrees: number): number => (degrees * Math.PI) / 180;
 
 const polygonPath = (points: Polygon): string => {
   const [firstPoint, ...remainingPoints] = points;
@@ -50,11 +49,7 @@ const polygonPath = (points: Polygon): string => {
   ].join(' ');
 };
 
-const translatePolygon = (
-  points: Polygon,
-  translateX: number,
-  translateY: number,
-): Polygon =>
+const translatePolygon = (points: Polygon, translateX: number, translateY: number): Polygon =>
   points.map((pointValue) => ({
     x: pointValue.x + translateX,
     y: pointValue.y + translateY,
@@ -135,13 +130,10 @@ const cornerPolygons = (
   ];
 };
 
-const isCornerPiece = (piece: number): boolean =>
-  (piece + (piece <= 7 ? 0 : 1)) % 2 === 0;
+const isCornerPiece = (piece: number): boolean => (piece + (piece <= 7 ? 0 : 1)) % 2 === 0;
 
-const getSideColor = (
-  sideIndex: number,
-  colors: Record<SquareOneFace, HexColor>,
-): HexColor => colors[SQUARE_ONE_FACES[sideIndex] ?? 'L'];
+const getSideColor = (sideIndex: number, colors: Record<SquareOneFace, HexColor>): HexColor =>
+  colors[SQUARE_ONE_FACES[sideIndex] ?? 'L'];
 
 const getPieceColors = (
   pieceValue: number,
@@ -187,11 +179,7 @@ const drawPiece = (
     : wedgePolygons(centerX, centerY, radius);
   const nodes: SvgNode[] = [];
 
-  for (
-    let colorIndex = pieceColors.length - 1;
-    colorIndex >= 0;
-    colorIndex -= 1
-  ) {
+  for (let colorIndex = pieceColors.length - 1; colorIndex >= 0; colorIndex -= 1) {
     nodes.push(
       path({
         d: polygonPath(polygons[colorIndex]),
@@ -217,9 +205,7 @@ const drawFace = (
 ): SvgNode[] => {
   const nodes: SvgNode[] = [];
   const hasWrappedCorner =
-    pieces[0] !== undefined &&
-    pieces[11] === pieces[0] &&
-    isCornerPiece(pieces[0]);
+    pieces[0] !== undefined && pieces[11] === pieces[0] && isCornerPiece(pieces[0]);
   let angleDegrees = initialAngleDegrees + (hasWrappedCorner ? 30 : 0);
   const firstPieceIndex = hasWrappedCorner ? 1 : 0;
 
@@ -231,14 +217,7 @@ const drawFace = (
     const piece = pieces[pieceIndex];
     if (piece === undefined) continue;
 
-    const drawnPiece = drawPiece(
-      piece,
-      centerX,
-      centerY,
-      RADIUS,
-      angleDegrees,
-      colors,
-    );
+    const drawnPiece = drawPiece(piece, centerX, centerY, RADIUS, angleDegrees, colors);
 
     nodes.push(...drawnPiece.nodes);
     angleDegrees += drawnPiece.degrees;
@@ -251,16 +230,13 @@ const drawMiddleSlice = (
   sliceSolved: boolean,
   colors: Record<SquareOneFace, HexColor>,
 ): SvgNode[] => {
-  const halfSquareWidth =
-    (RADIUS * RADIUS_MULTIPLIER * MULTIPLIER) / Math.sqrt(2);
+  const halfSquareWidth = (RADIUS * RADIUS_MULTIPLIER * MULTIPLIER) / Math.sqrt(2);
   const edgeWidth = 2 * RADIUS * MULTIPLIER * Math.sin(degreesToRadians(15));
   const cornerWidth = halfSquareWidth - edgeWidth / 2;
   const sliceX = WIDTH / 2 - halfSquareWidth;
   const sliceY = HEIGHT / 2 - (RADIUS * (MULTIPLIER - 1)) / 2;
   const sliceHeight = RADIUS * (MULTIPLIER - 1);
-  const rightSliceWidth = sliceSolved
-    ? 2 * cornerWidth + edgeWidth
-    : cornerWidth + edgeWidth;
+  const rightSliceWidth = sliceSolved ? 2 * cornerWidth + edgeWidth : cornerWidth + edgeWidth;
 
   return [
     rect({
@@ -310,13 +286,7 @@ export const renderSquareOneState = (
   const nodes = [
     ...drawMiddleSlice(state.sliceSolved, colors),
     ...drawFace(state.pieces, centerX, topCenterY, 90 + 15, colors),
-    ...drawFace(
-      state.pieces.slice(12),
-      centerX,
-      bottomCenterY,
-      -90 - 15,
-      colors,
-    ),
+    ...drawFace(state.pieces.slice(12), centerX, bottomCenterY, -90 - 15, colors),
   ];
 
   return createSvgDocument(WIDTH, HEIGHT, nodes);

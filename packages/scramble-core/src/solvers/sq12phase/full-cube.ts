@@ -1,11 +1,7 @@
 import type { SquareOneState } from '@cubekit/scramble-puzzle';
 import type { RandomSource } from '../../random-source.js';
 import { getShape2Idx, getShapeTables } from './shape.js';
-import {
-  createSquareCoordinate,
-  get8Perm,
-  type SquareCoordinate,
-} from './square.js';
+import { createSquareCoordinate, get8Perm, type SquareCoordinate } from './square.js';
 
 const ERROR_PREFIX = '@cubekit/scramble-core';
 
@@ -19,8 +15,7 @@ const SQUARE_ONE_TO_FULL_CUBE_PIECE = [
   3, 2, 1, 0, 7, 6, 5, 4, 0xa, 0xb, 8, 9, 0xe, 0xf, 0xc, 0xd,
 ] as const;
 const SQUARE_ONE_TO_FULL_CUBE_POSITION = [
-  5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 17, 16, 15, 14, 13, 12, 23, 22, 21,
-  20, 19, 18,
+  5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 17, 16, 15, 14, 13, 12, 23, 22, 21, 20, 19, 18,
 ] as const;
 
 export class FullCube {
@@ -156,11 +151,7 @@ export class FullCube {
     const dlShape = extractShapeBits(this.dl);
 
     return getShape2Idx(
-      (this.getParity() << 24) |
-        (ulShape << 18) |
-        (urShape << 12) |
-        (dlShape << 6) |
-        drShape,
+      (this.getParity() << 24) | (ulShape << 18) | (urShape << 12) | (dlShape << 6) | drShape,
     );
   }
 

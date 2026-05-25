@@ -59,17 +59,14 @@ export const get8Perm = (pieces: readonly number[]): number => {
 };
 
 const createCombinationTable = (): number[][] => {
-  const combinations = Array.from({ length: 12 }, () =>
-    Array.from({ length: 12 }, () => 0),
-  );
+  const combinations = Array.from({ length: 12 }, () => Array.from({ length: 12 }, () => 0));
 
   for (let row = 0; row < 12; row += 1) {
     combinations[row][0] = 1;
     combinations[row][row] = 1;
 
     for (let column = 1; column < row; column += 1) {
-      combinations[row][column] =
-        combinations[row - 1][column - 1] + combinations[row - 1][column];
+      combinations[row][column] = combinations[row - 1][column - 1] + combinations[row - 1][column];
     }
   }
 
@@ -93,10 +90,7 @@ export const get8Comb = (
   return combination;
 };
 
-const createMoveTables = (): Pick<
-  SquareTables,
-  'twistMove' | 'topMove' | 'bottomMove'
-> => {
+const createMoveTables = (): Pick<SquareTables, 'twistMove' | 'topMove' | 'bottomMove'> => {
   const twistMove = new Uint16Array(N_PERMUTATIONS);
   const topMove = new Uint16Array(N_PERMUTATIONS);
   const bottomMove = new Uint16Array(N_PERMUTATIONS);

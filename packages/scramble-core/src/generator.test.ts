@@ -28,7 +28,10 @@ describe('createScrambleGenerator', () => {
       },
     });
 
-    await expect(generator.generate('333')).resolves.toEqual({ eventId: '333', scramble: 'default-9' });
+    await expect(generator.generate('333')).resolves.toEqual({
+      eventId: '333',
+      scramble: 'default-9',
+    });
   });
 
   it('uses per-call random over the default random', async () => {
@@ -62,7 +65,10 @@ describe('createScrambleGenerator', () => {
       },
     });
 
-    await expect(generator.generate('333')).resolves.toEqual({ eventId: '333', scramble: 'async-9' });
+    await expect(generator.generate('333')).resolves.toEqual({
+      eventId: '333',
+      scramble: 'async-9',
+    });
   });
 
   it('returns unique batch scramble strings and retries duplicates', async () => {
@@ -96,7 +102,13 @@ describe('createScrambleGenerator', () => {
       },
     });
 
-    for (const count of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1]) {
+    for (const count of [
+      -1,
+      1.5,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.MAX_SAFE_INTEGER + 1,
+    ]) {
       await expect(generator.generateBatch('333', count)).rejects.toThrow(
         '@cubekit/scramble-core: batch count must be a non-negative safe integer',
       );
@@ -126,7 +138,14 @@ describe('createMathRandomSource', () => {
   it('throws for invalid max values', () => {
     const random = createMathRandomSource();
 
-    for (const maxExclusive of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1]) {
+    for (const maxExclusive of [
+      0,
+      -1,
+      1.5,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.MAX_SAFE_INTEGER + 1,
+    ]) {
       expect(() => random.nextInt(maxExclusive)).toThrow(
         '@cubekit/scramble-core: random maxExclusive must be a positive safe integer',
       );

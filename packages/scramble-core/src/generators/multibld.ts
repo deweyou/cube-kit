@@ -1,4 +1,1 @@
-export {
-  generateMultiBlindScramble,
-  type MultiBlindScrambleOptions,
-} from './three-by-three.js';
+export { generateMultiBlindScramble, type MultiBlindScrambleOptions } from './three-by-three.js';

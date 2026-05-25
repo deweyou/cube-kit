@@ -59,10 +59,7 @@ export class Search {
   private readonly e12 = new Edge3();
   private readonly tempe = Array.from({ length: 20 }, () => new Edge3());
   private readonly search333 = new SearchWCA();
-  private readonly arr2 = Array.from(
-    { length: PHASE2_SOLUTIONS },
-    (): FullCube | null => null,
-  );
+  private readonly arr2 = Array.from({ length: PHASE2_SOLUTIONS }, (): FullCube | null => null);
 
   private cube = new FullCube();
   private length1 = 0;
@@ -98,18 +95,11 @@ export class Search {
     this.arr2idx = 0;
     this.p1sols.length = 0;
 
-    for (
-      this.length1 = Math.min(udprun, fbprun, rlprun);
-      this.length1 < 100;
-      this.length1 += 1
-    ) {
+    for (this.length1 = Math.min(udprun, fbprun, rlprun); this.length1 < 100; this.length1 += 1) {
       if (
-        (rlprun <= this.length1 &&
-          this.search1(rl >>> 6, rl & 0x3f, this.length1, -1, 0)) ||
-        (udprun <= this.length1 &&
-          this.search1(ud >>> 6, ud & 0x3f, this.length1, -1, 0)) ||
-        (fbprun <= this.length1 &&
-          this.search1(fb >>> 6, fb & 0x3f, this.length1, -1, 0))
+        (rlprun <= this.length1 && this.search1(rl >>> 6, rl & 0x3f, this.length1, -1, 0)) ||
+        (udprun <= this.length1 && this.search1(ud >>> 6, ud & 0x3f, this.length1, -1, 0)) ||
+        (fbprun <= this.length1 && this.search1(fb >>> 6, fb & 0x3f, this.length1, -1, 0))
       ) {
         break;
       }
@@ -194,7 +184,13 @@ export class Search {
     this.solution = solcube.getMoveString(this.inverseSolution, this.withRotation);
   }
 
-  private search1(ct: number, sym: number, maxLength: number, lastMove: number, depth: number): boolean {
+  private search1(
+    ct: number,
+    sym: number,
+    maxLength: number,
+    lastMove: number,
+    depth: number,
+  ): boolean {
     if (ct === 0 && maxLength < 5) return maxLength === 0 && this.init2(sym, lastMove);
 
     for (let axis = 0; axis < 27; axis += 3) {
@@ -258,9 +254,7 @@ export class Search {
       s2rl < 0 ||
       s2rl >= 70
     ) {
-      throw new Error(
-        `@cubekit/scramble-core: invalid phase 2 coordinate ct=${s2ct} rl=${s2rl}`,
-      );
+      throw new Error(`@cubekit/scramble-core: invalid phase 2 coordinate ct=${s2ct} rl=${s2rl}`);
     }
     const ctp = Center2.ctprun[s2ct * 70 + s2rl]!;
 
@@ -289,7 +283,13 @@ export class Search {
     }
   }
 
-  private search2(ct: number, rl: number, maxLength: number, lastMove: number, depth: number): boolean {
+  private search2(
+    ct: number,
+    rl: number,
+    maxLength: number,
+    lastMove: number,
+    depth: number,
+  ): boolean {
     if (ct === 0 && Center2.ctprun[rl] === 0 && maxLength === 0) return this.init3();
 
     for (let move = 0; move < 23; move += 1) {

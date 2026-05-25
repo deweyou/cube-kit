@@ -59,31 +59,21 @@ const swap = (
   if (direction === 1) {
     const firstSticker = image[firstFace][firstRow][firstColumn];
 
-    image[firstFace][firstRow][firstColumn] =
-      image[secondFace][secondRow][secondColumn];
-    image[secondFace][secondRow][secondColumn] =
-      image[thirdFace][thirdRow][thirdColumn];
-    image[thirdFace][thirdRow][thirdColumn] =
-      image[fourthFace][fourthRow][fourthColumn];
+    image[firstFace][firstRow][firstColumn] = image[secondFace][secondRow][secondColumn];
+    image[secondFace][secondRow][secondColumn] = image[thirdFace][thirdRow][thirdColumn];
+    image[thirdFace][thirdRow][thirdColumn] = image[fourthFace][fourthRow][fourthColumn];
     image[fourthFace][fourthRow][fourthColumn] = firstSticker;
   } else {
     const fourthSticker = image[fourthFace][fourthRow][fourthColumn];
 
-    image[fourthFace][fourthRow][fourthColumn] =
-      image[thirdFace][thirdRow][thirdColumn];
-    image[thirdFace][thirdRow][thirdColumn] =
-      image[secondFace][secondRow][secondColumn];
-    image[secondFace][secondRow][secondColumn] =
-      image[firstFace][firstRow][firstColumn];
+    image[fourthFace][fourthRow][fourthColumn] = image[thirdFace][thirdRow][thirdColumn];
+    image[thirdFace][thirdRow][thirdColumn] = image[secondFace][secondRow][secondColumn];
+    image[secondFace][secondRow][secondColumn] = image[firstFace][firstRow][firstColumn];
     image[firstFace][firstRow][firstColumn] = fourthSticker;
   }
 };
 
-const rotateFace = (
-  image: MutableCubeImage,
-  face: CubeFace,
-  direction: 1 | 3,
-): void => {
+const rotateFace = (image: MutableCubeImage, face: CubeFace, direction: 1 | 3): void => {
   const size = image[0].length;
   const facePosition = faceIndex(face);
   const rowLimit = Math.floor((size + 1) / 2);
@@ -107,11 +97,7 @@ const rotateFace = (
   }
 };
 
-const slice = (
-  face: CubeFace,
-  sliceIndex: number,
-  image: MutableCubeImage,
-): void => {
+const slice = (face: CubeFace, sliceIndex: number, image: MutableCubeImage): void => {
   const size = image[0].length;
   let sliceFace = face;
   let stateSliceIndex = sliceIndex;

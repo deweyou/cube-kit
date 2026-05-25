@@ -1,16 +1,4 @@
-import {
-  Cnk,
-  bx3,
-  dx2,
-  dx3,
-  fx1,
-  lx3,
-  move2std,
-  rx1,
-  swap,
-  ux1,
-  ux2,
-} from './tables.js';
+import { Cnk, bx3, dx2, dx3, fx1, lx3, move2std, rx1, swap, ux1, ux2 } from './tables.js';
 
 interface CenterLike {
   ct: number[];
@@ -91,9 +79,7 @@ export class Center1 {
   private static ensureTables(): void {
     if (Center1.ctsmv.length !== 0) return;
 
-    Center1.ctsmv = Array.from({ length: 15_582 }, () =>
-      Array.from({ length: 36 }, () => 0),
-    );
+    Center1.ctsmv = Array.from({ length: 15_582 }, () => Array.from({ length: 36 }, () => 0));
     Center1.sym2raw = Array.from({ length: 15_582 }, () => 0);
     Center1.csprun = Array.from({ length: 15_582 }, () => -1);
     Center1.symmult = Array.from({ length: 48 }, () => Array.from({ length: 48 }, () => 0));
@@ -426,8 +412,8 @@ export class Center2 {
   static ctprun: number[] = [];
 
   private static readonly pmv = [
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0,
-    0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0,
+    1, 0, 0, 0,
   ] as const;
 
   readonly rl = Array.from({ length: 8 }, () => 0);
@@ -702,9 +688,8 @@ export class Center3 {
 
   set(center: CenterLike, edgeCornerParity: number): void {
     const parity =
-      (center.ct[0]! % 3 > center.ct[8]! % 3) !==
-      (center.ct[8]! % 3 > center.ct[16]! % 3) !==
-      (center.ct[0]! % 3 > center.ct[16]! % 3)
+      (center.ct[0]! % 3 > center.ct[8]! % 3 !== center.ct[8]! % 3 > center.ct[16]! % 3) !==
+      center.ct[0]! % 3 > center.ct[16]! % 3
         ? 0
         : 1;
     for (let i = 0; i < 8; i += 1) {
@@ -849,6 +834,6 @@ export class Center3 {
 }
 
 const CENTER_FACELET = [
-  0x5, 0x6, 0xa, 0x9, 0x35, 0x36, 0x3a, 0x39, 0x25, 0x26, 0x2a, 0x29, 0x55,
-  0x56, 0x5a, 0x59, 0x15, 0x16, 0x1a, 0x19, 0x45, 0x46, 0x4a, 0x49,
+  0x5, 0x6, 0xa, 0x9, 0x35, 0x36, 0x3a, 0x39, 0x25, 0x26, 0x2a, 0x29, 0x55, 0x56, 0x5a, 0x59, 0x15,
+  0x16, 0x1a, 0x19, 0x45, 0x46, 0x4a, 0x49,
 ] as const;

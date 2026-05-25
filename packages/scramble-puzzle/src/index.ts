@@ -32,11 +32,7 @@ export {
   parseSquareOneAlgorithm,
   parseSquareOneMove,
 } from './square1/square1-parser.js';
-export {
-  applyCubeMove,
-  areCubeStatesEqual,
-  createSolvedCubeState,
-} from './cube/cube-state.js';
+export { applyCubeMove, areCubeStatesEqual, createSolvedCubeState } from './cube/cube-state.js';
 export {
   applyClockMove,
   areClockStatesEqual,
@@ -94,11 +90,7 @@ export type {
   PyraminxTipMove,
   PyraminxTurnMove,
 } from './pyraminx/pyraminx-parser.js';
-export type {
-  SkewbAxis,
-  SkewbMove,
-  SkewbMoveAmount,
-} from './skewb/skewb-parser.js';
+export type { SkewbAxis, SkewbMove, SkewbMoveAmount } from './skewb/skewb-parser.js';
 export type {
   SquareOneMove,
   SquareOneSlashMove,
@@ -125,18 +117,8 @@ export type {
   SquareOneState,
   SquareOneSuccessor,
 } from './square1/square1-state.js';
-export type {
-  CubeFace,
-  CubeLayerMove,
-  CubeMove,
-  CubeRotationMove,
-} from './cube/cube-move.js';
-export type {
-  CubeFacelet,
-  CubeFaceState,
-  CubeImage,
-  CubeState,
-} from './cube/cube-state.js';
+export type { CubeFace, CubeLayerMove, CubeMove, CubeRotationMove } from './cube/cube-move.js';
+export type { CubeFacelet, CubeFaceState, CubeImage, CubeState } from './cube/cube-state.js';
 export { createPuzzleRegistry } from './registry.js';
 export type { AnyPuzzleDefinition, PuzzleRegistry } from './registry.js';
 export type { AppliedPuzzleState, PuzzleDefinition } from './puzzle-definition.js';

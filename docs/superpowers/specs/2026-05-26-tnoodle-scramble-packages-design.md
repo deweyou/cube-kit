@@ -166,23 +166,23 @@ pretend they share one move grammar.
 
 Core maps public WCA events to puzzle generators:
 
-| Event | Generator family |
-| --- | --- |
-| `333`, `333oh` | 3x3 random state, min2phase-compatible |
-| `333bld` | 3x3 no-inspection orientation variant |
-| `333mbld` | composite 3x3 no-inspection scrambles with explicit cube count |
-| `333fm` | 3x3 FMC padded random-state variant |
-| `222` | 2x2 random state with exact minimum length |
-| `444` | 4x4 random state, threephase-compatible |
-| `444bld` | 4x4 no-inspection orientation variant |
-| `555` | 5x5 random-turn cube |
-| `555bld` | 5x5 no-inspection orientation variant |
-| `666`, `777` | random-turn cube |
-| `clock` | fixed Clock random-turn grammar |
-| `minx` | fixed Megaminx `R/D/U` line grammar |
-| `pyram` | Pyraminx random state with tips |
-| `skewb` | Skewb random state |
-| `sq1` | Square-1 random state, slashability-aware |
+| Event          | Generator family                                               |
+| -------------- | -------------------------------------------------------------- |
+| `333`, `333oh` | 3x3 random state, min2phase-compatible                         |
+| `333bld`       | 3x3 no-inspection orientation variant                          |
+| `333mbld`      | composite 3x3 no-inspection scrambles with explicit cube count |
+| `333fm`        | 3x3 FMC padded random-state variant                            |
+| `222`          | 2x2 random state with exact minimum length                     |
+| `444`          | 4x4 random state, threephase-compatible                        |
+| `444bld`       | 4x4 no-inspection orientation variant                          |
+| `555`          | 5x5 random-turn cube                                           |
+| `555bld`       | 5x5 no-inspection orientation variant                          |
+| `666`, `777`   | random-turn cube                                               |
+| `clock`        | fixed Clock random-turn grammar                                |
+| `minx`         | fixed Megaminx `R/D/U` line grammar                            |
+| `pyram`        | Pyraminx random state with tips                                |
+| `skewb`        | Skewb random state                                             |
+| `sq1`          | Square-1 random state, slashability-aware                      |
 
 ### Random source
 
@@ -206,7 +206,11 @@ Heavy solvers are isolated behind an async facade:
 ```ts
 export interface ScrambleGenerator {
   generate(eventId: WcaEventId, options?: GenerateOptions): Promise<ScrambleResult>;
-  generateBatch(eventId: WcaEventId, count: number, options?: GenerateOptions): Promise<readonly ScrambleResult[]>;
+  generateBatch(
+    eventId: WcaEventId,
+    count: number,
+    options?: GenerateOptions,
+  ): Promise<readonly ScrambleResult[]>;
 }
 ```
 

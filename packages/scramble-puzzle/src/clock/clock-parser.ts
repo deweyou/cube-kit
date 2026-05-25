@@ -1,17 +1,7 @@
 import { splitAlgorithm } from '../algorithm.js';
 import { InvalidMoveError } from '../errors.js';
 
-export const CLOCK_TURN_NAMES = [
-  'UR',
-  'DR',
-  'DL',
-  'UL',
-  'U',
-  'R',
-  'D',
-  'L',
-  'ALL',
-] as const;
+export const CLOCK_TURN_NAMES = ['UR', 'DR', 'DL', 'UL', 'U', 'R', 'D', 'L', 'ALL'] as const;
 
 export type ClockTurnName = (typeof CLOCK_TURN_NAMES)[number];
 export type ClockDirection = '+' | '-';
@@ -32,8 +22,7 @@ export type ClockMove = ClockTurnMove | ClockRotationMove;
 const CLOCK_MOVE_PATTERN = /^(UR|DR|DL|UL|ALL|U|R|D|L)(\d)([+-])$/;
 const CLOCK_TURN_NAME_SET = new Set<string>(CLOCK_TURN_NAMES);
 
-const isClockTurnName = (name: string): name is ClockTurnName =>
-  CLOCK_TURN_NAME_SET.has(name);
+const isClockTurnName = (name: string): name is ClockTurnName => CLOCK_TURN_NAME_SET.has(name);
 
 export const parseClockMove = (token: string): ClockMove => {
   if (token === 'y2') return { type: 'rotation' };
@@ -59,6 +48,5 @@ export const parseClockMove = (token: string): ClockMove => {
   return { type: 'turn', name, amount, direction };
 };
 
-export const parseClockAlgorithm = (
-  algorithm: string,
-): readonly ClockMove[] => splitAlgorithm(algorithm).map(parseClockMove);
+export const parseClockAlgorithm = (algorithm: string): readonly ClockMove[] =>
+  splitAlgorithm(algorithm).map(parseClockMove);

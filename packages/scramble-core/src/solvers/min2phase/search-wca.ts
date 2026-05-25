@@ -1,9 +1,5 @@
 import { Search, INVERSE_SOLUTION } from './search.js';
-import {
-  axisForRestriction,
-  isAxisRestriction,
-  splitAlgorithm,
-} from './util.js';
+import { axisForRestriction, isAxisRestriction, splitAlgorithm } from './util.js';
 
 export { INVERSE_SOLUTION };
 
@@ -20,13 +16,7 @@ export class SearchWCA extends Search {
     if (!isValidRestriction(firstAxisRestriction)) return 'Error 9';
     if (!isValidRestriction(lastAxisRestriction)) return 'Error 9';
 
-    const solution = super.solution(
-      facelets,
-      maxDepth,
-      probeMax,
-      probeMin,
-      verbose,
-    );
+    const solution = super.solution(facelets, maxDepth, probeMax, probeMin, verbose);
 
     if (solution.startsWith('Error')) return solution;
 
@@ -43,19 +33,13 @@ export class SearchWCA extends Search {
 }
 
 const isValidRestriction = (restriction: string | null | undefined): boolean =>
-  restriction === null ||
-  restriction === undefined ||
-  isAxisRestriction(restriction);
+  restriction === null || restriction === undefined || isAxisRestriction(restriction);
 
 const violatesAxisRestriction = (
   move: string | undefined,
   restriction: string | null | undefined,
 ): boolean => {
-  if (
-    move === undefined ||
-    restriction === null ||
-    restriction === undefined
-  ) {
+  if (move === undefined || restriction === null || restriction === undefined) {
     return false;
   }
 

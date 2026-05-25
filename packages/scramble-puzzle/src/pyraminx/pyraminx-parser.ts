@@ -25,8 +25,7 @@ export type PyraminxMove = PyraminxTurnMove | PyraminxTipMove;
 const PYRAMINX_MOVE_PATTERN = /^([ULRBulrb])('?)$/;
 const PYRAMINX_AXIS_SET = new Set<string>(PYRAMINX_AXES);
 
-const isPyraminxAxis = (face: string): face is PyraminxAxis =>
-  PYRAMINX_AXIS_SET.has(face);
+const isPyraminxAxis = (face: string): face is PyraminxAxis => PYRAMINX_AXIS_SET.has(face);
 
 export const parsePyraminxMove = (token: string): PyraminxMove => {
   const match = token.match(PYRAMINX_MOVE_PATTERN);
@@ -45,7 +44,5 @@ export const parsePyraminxMove = (token: string): PyraminxMove => {
   };
 };
 
-export const parsePyraminxAlgorithm = (
-  algorithm: string,
-): readonly PyraminxMove[] =>
+export const parsePyraminxAlgorithm = (algorithm: string): readonly PyraminxMove[] =>
   splitAlgorithm(algorithm).map(parsePyraminxMove);

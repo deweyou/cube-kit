@@ -20,8 +20,7 @@ export const createCubeDefinition = (
     createSolvedState: () => createSolvedCubeState(size),
     parseAlgorithm: parseCubeAlgorithm,
     applyMove: applyCubeMove,
-    applyAlgorithm: (state, algorithm) =>
-      applyAlgorithm(definition, state, algorithm),
+    applyAlgorithm: (state, algorithm) => applyAlgorithm(definition, state, algorithm),
     isSolved: (state) => areCubeStatesEqual(state, createSolvedCubeState(size)),
   };
 

@@ -20,13 +20,7 @@ export const WCA_EVENT_IDS = [
 
 export type WcaEventId = (typeof WCA_EVENT_IDS)[number];
 
-export type PuzzleId =
-  | 'cube'
-  | 'clock'
-  | 'megaminx'
-  | 'pyraminx'
-  | 'skewb'
-  | 'square1';
+export type PuzzleId = 'cube' | 'clock' | 'megaminx' | 'pyraminx' | 'skewb' | 'square1';
 
 export interface WcaEventInfo {
   readonly id: WcaEventId;

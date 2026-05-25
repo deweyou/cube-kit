@@ -16,9 +16,7 @@ export interface CubeRandomTurnOptions {
 
 const validateOptions = ({ size, length }: CubeRandomTurnOptions): void => {
   if (!Number.isSafeInteger(size) || !SUPPORTED_SIZES.has(size)) {
-    throw new Error(
-      '@cubekit/scramble-core: cube random-turn size must be 5, 6, or 7',
-    );
+    throw new Error('@cubekit/scramble-core: cube random-turn size must be 5, 6, or 7');
   }
 
   if (!Number.isSafeInteger(length) || length < 0) {
@@ -41,11 +39,7 @@ const chooseFace = (
   return allowedFaces[faceIndex] as (typeof FACE_CHOICES)[number];
 };
 
-const chooseWideFace = (
-  face: string,
-  size: number,
-  random: RandomSource,
-): string => {
+const chooseWideFace = (face: string, size: number, random: RandomSource): string => {
   const maxWidth = Math.floor(size / 2);
   const width = random.nextInt(maxWidth) + 1;
   if (width === 1) return face;

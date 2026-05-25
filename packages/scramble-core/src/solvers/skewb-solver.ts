@@ -190,10 +190,7 @@ const getTwistMove = (index: number, move: number): number => {
 
 const createMoveTables = (): Pick<Tables, 'movePerm' | 'moveTwist'> => {
   const movePerm = Array.from({ length: N_PERM }, () => new Uint16Array(N_MOVES));
-  const moveTwist = Array.from(
-    { length: N_TWIST },
-    () => new Uint16Array(N_MOVES),
-  );
+  const moveTwist = Array.from({ length: N_TWIST }, () => new Uint16Array(N_MOVES));
 
   for (let permutation = 0; permutation < N_PERM; permutation += 1) {
     for (let move = 0; move < N_MOVES; move += 1) {
@@ -210,9 +207,7 @@ const createMoveTables = (): Pick<Tables, 'movePerm' | 'moveTwist'> => {
   return { movePerm, moveTwist };
 };
 
-const createPermutationPruningTable = (
-  movePerm: readonly Uint16Array[],
-): Int8Array => {
+const createPermutationPruningTable = (movePerm: readonly Uint16Array[]): Int8Array => {
   const pruning = new Int8Array(N_PERM);
   pruning.fill(-1);
   pruning[0] = 0;
@@ -236,9 +231,7 @@ const createPermutationPruningTable = (
   return pruning;
 };
 
-const createTwistPruningTable = (
-  moveTwist: readonly Uint16Array[],
-): Int8Array => {
+const createTwistPruningTable = (moveTwist: readonly Uint16Array[]): Int8Array => {
   const pruning = new Int8Array(N_TWIST);
   pruning.fill(-1);
   pruning[0] = 0;
@@ -283,11 +276,7 @@ const validateCoordinate = (
   coordinate: number,
   maxExclusive: number,
 ): void => {
-  if (
-    !Number.isSafeInteger(coordinate) ||
-    coordinate < 0 ||
-    coordinate >= maxExclusive
-  ) {
+  if (!Number.isSafeInteger(coordinate) || coordinate < 0 || coordinate >= maxExclusive) {
     throw new RangeError(
       `${ERROR_PREFIX}: Skewb ${coordinateName} must be an integer from 0 to ${maxExclusive - 1}`,
     );
@@ -300,11 +289,7 @@ const validateState = (state: SkewbSolverState): void => {
 };
 
 const validateLength = (length: number): void => {
-  if (
-    !Number.isSafeInteger(length) ||
-    length < 0 ||
-    length > MAX_SOLUTION_LENGTH
-  ) {
+  if (!Number.isSafeInteger(length) || length < 0 || length > MAX_SOLUTION_LENGTH) {
     throw new RangeError(
       `${ERROR_PREFIX}: Skewb solve length must be an integer from 0 to ${MAX_SOLUTION_LENGTH}`,
     );
@@ -386,10 +371,7 @@ const swapMoveNames = (moveNames: string[]): void => {
   moveNames[3] = savedMove;
 };
 
-const formatSolution = (
-  solution: readonly number[],
-  solutionLength: number,
-): string => {
+const formatSolution = (solution: readonly number[], solutionLength: number): string => {
   const moves: string[] = [];
   const moveNames = [...SOLUTION_MOVES];
 
@@ -429,19 +411,11 @@ export class SkewbSolver {
     );
   }
 
-  solveIn(
-    state: SkewbSolverState,
-    length: number,
-    random: RandomSource,
-  ): string | null {
+  solveIn(state: SkewbSolverState, length: number, random: RandomSource): string | null {
     return this.solve(state, length, false, random);
   }
 
-  generateExactly(
-    state: SkewbSolverState,
-    length: number,
-    random: RandomSource,
-  ): string {
+  generateExactly(state: SkewbSolverState, length: number, random: RandomSource): string {
     const scramble = this.solve(state, length, true, random);
     if (scramble === null) {
       throw new Error(

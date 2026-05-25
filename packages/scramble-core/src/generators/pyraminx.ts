@@ -10,16 +10,13 @@ export interface PyraminxScrambleOptions {
   random: RandomSource;
 }
 
-export const generatePyraminxScramble = ({
-  random,
-}: PyraminxScrambleOptions): string => {
+export const generatePyraminxScramble = ({ random }: PyraminxScrambleOptions): string => {
   const solver = new PyraminxSolver();
 
   for (let attempt = 0; attempt < MAX_WCA_ATTEMPTS; attempt += 1) {
     const state = solver.randomState(random);
     const isTooCloseToSolved =
-      solver.solveIn(state, WCA_MIN_SCRAMBLE_DISTANCE - 1, true, random) !==
-      null;
+      solver.solveIn(state, WCA_MIN_SCRAMBLE_DISTANCE - 1, true, random) !== null;
 
     if (isTooCloseToSolved) continue;
 

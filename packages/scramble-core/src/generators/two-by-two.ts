@@ -7,9 +7,7 @@ export interface TwoByTwoScrambleOptions {
   random: RandomSource;
 }
 
-export const generateTwoByTwoScramble = ({
-  random,
-}: TwoByTwoScrambleOptions): string => {
+export const generateTwoByTwoScramble = ({ random }: TwoByTwoScrambleOptions): string => {
   const solver = new TwoByTwoSolver();
   return solver.generateExactly(solver.randomState(random), SCRAMBLE_LENGTH);
 };

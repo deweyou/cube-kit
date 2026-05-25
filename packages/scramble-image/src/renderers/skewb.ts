@@ -1,8 +1,4 @@
-import type {
-  SkewbFace,
-  SkewbFacelet,
-  SkewbState,
-} from '@cubekit/scramble-puzzle';
+import type { SkewbFace, SkewbFacelet, SkewbState } from '@cubekit/scramble-puzzle';
 import type { HexColor } from '../color.js';
 import { createSvgDocument } from '../svg/svg-document.js';
 import { path, type SvgNode } from '../svg/svg-elements.js';
@@ -139,10 +135,8 @@ const polygonPath = (points: Polygon): string => {
   ].join(' ');
 };
 
-const colorForSticker = (
-  facelet: SkewbFacelet,
-  colors: Record<SkewbFace, HexColor>,
-): HexColor => colors[SKEWB_RENDER_FACES[facelet] ?? 'U'];
+const colorForSticker = (facelet: SkewbFacelet, colors: Record<SkewbFace, HexColor>): HexColor =>
+  colors[SKEWB_RENDER_FACES[facelet] ?? 'U'];
 
 const drawFace = (
   state: SkewbState,
@@ -155,9 +149,7 @@ const drawFace = (
 
   return FACE_STICKERS.map((polygon, stickerIndex) =>
     path({
-      d: polygonPath(
-        polygon.map((pointValue) => transformPoint(pointValue, transform)),
-      ),
+      d: polygonPath(polygon.map((pointValue) => transformPoint(pointValue, transform))),
       fill: colorForSticker(stickers[stickerIndex], colors),
       stroke: STROKE,
       'stroke-width': STROKE_WIDTH,
@@ -165,17 +157,12 @@ const drawFace = (
   );
 };
 
-export const renderSkewbState = (
-  state: SkewbState,
-  colorScheme: SkewbColorScheme = {},
-): string => {
+export const renderSkewbState = (state: SkewbState, colorScheme: SkewbColorScheme = {}): string => {
   const colors: Record<SkewbFace, HexColor> = {
     ...DEFAULT_SKEWB_COLORS,
     ...colorScheme,
   };
-  const nodes = SKEWB_RENDER_FACES.flatMap((face) =>
-    drawFace(state, face, colors),
-  );
+  const nodes = SKEWB_RENDER_FACES.flatMap((face) => drawFace(state, face, colors));
 
   return createSvgDocument(WIDTH, HEIGHT, nodes);
 };

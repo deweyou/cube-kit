@@ -3,11 +3,7 @@ import { applyAlgorithm } from '../algorithm.js';
 import { InvalidMoveError, InvalidScrambleError } from '../errors.js';
 import { createSkewbDefinition } from './skewb-definition.js';
 import { parseSkewbAlgorithm } from './skewb-parser.js';
-import {
-  applySkewbMove,
-  areSkewbStatesEqual,
-  createSolvedSkewbState,
-} from './skewb-state.js';
+import { applySkewbMove, areSkewbStatesEqual, createSolvedSkewbState } from './skewb-state.js';
 
 const MOVE_INVERSES = [
   ['R', "R'"],
@@ -23,9 +19,7 @@ describe('parseSkewbAlgorithm', () => {
 
   it('rejects malformed Skewb moves', () => {
     expect(() => parseSkewbAlgorithm('R2')).toThrow(InvalidMoveError);
-    expect(() => parseSkewbAlgorithm('F')).toThrow(
-      "move 'F' is invalid for puzzle 'skewb'",
-    );
+    expect(() => parseSkewbAlgorithm('F')).toThrow("move 'F' is invalid for puzzle 'skewb'");
     expect(() => parseSkewbAlgorithm('r')).toThrow(InvalidMoveError);
   });
 
@@ -54,10 +48,7 @@ describe('Skewb state transitions', () => {
   it.each(MOVE_INVERSES)('restores solved after %s and %s', (move, inverse) => {
     const definition = createSkewbDefinition();
 
-    const moved = definition.applyAlgorithm(
-      definition.createSolvedState(),
-      `${move} ${inverse}`,
-    );
+    const moved = definition.applyAlgorithm(definition.createSolvedState(), `${move} ${inverse}`);
 
     expect(definition.isSolved(moved)).toBe(true);
   });
@@ -79,9 +70,9 @@ describe('Skewb state transitions', () => {
   it('wraps invalid algorithms through the shared applyAlgorithm helper', () => {
     const definition = createSkewbDefinition();
 
-    expect(() =>
-      applyAlgorithm(definition, definition.createSolvedState(), 'R2'),
-    ).toThrow(InvalidScrambleError);
+    expect(() => applyAlgorithm(definition, definition.createSolvedState(), 'R2')).toThrow(
+      InvalidScrambleError,
+    );
   });
 
   it('rejects malformed move API inputs', () => {
@@ -96,14 +87,9 @@ describe('Skewb state transitions', () => {
   it('compares Skewb states by sticker image', () => {
     const [move] = parseSkewbAlgorithm('B');
 
+    expect(areSkewbStatesEqual(createSolvedSkewbState(), createSolvedSkewbState())).toBe(true);
     expect(
-      areSkewbStatesEqual(createSolvedSkewbState(), createSolvedSkewbState()),
-    ).toBe(true);
-    expect(
-      areSkewbStatesEqual(
-        createSolvedSkewbState(),
-        applySkewbMove(createSolvedSkewbState(), move),
-      ),
+      areSkewbStatesEqual(createSolvedSkewbState(), applySkewbMove(createSolvedSkewbState(), move)),
     ).toBe(false);
   });
 });

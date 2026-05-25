@@ -171,18 +171,9 @@ const createMoveTables = (): Pick<
   Tables,
   'moveEdgePerm' | 'moveEdgeOrient' | 'moveCornerOrient'
 > => {
-  const moveEdgePerm = Array.from(
-    { length: N_EDGE_PERM },
-    () => new Uint16Array(N_MOVES),
-  );
-  const moveEdgeOrient = Array.from(
-    { length: N_EDGE_ORIENT },
-    () => new Uint8Array(N_MOVES),
-  );
-  const moveCornerOrient = Array.from(
-    { length: N_CORNER_ORIENT },
-    () => new Uint8Array(N_MOVES),
-  );
+  const moveEdgePerm = Array.from({ length: N_EDGE_PERM }, () => new Uint16Array(N_MOVES));
+  const moveEdgeOrient = Array.from({ length: N_EDGE_ORIENT }, () => new Uint8Array(N_MOVES));
+  const moveCornerOrient = Array.from({ length: N_CORNER_ORIENT }, () => new Uint8Array(N_MOVES));
   const edges = Array.from({ length: 6 }, () => 0);
   const movedEdges = Array.from({ length: 6 }, () => 0);
   const corners = Array.from({ length: 4 }, () => 0);
@@ -218,9 +209,7 @@ const createMoveTables = (): Pick<
   return { moveEdgePerm, moveEdgeOrient, moveCornerOrient };
 };
 
-const createPermutationPruningTable = (
-  moveEdgePerm: readonly Uint16Array[],
-): Int8Array => {
+const createPermutationPruningTable = (moveEdgePerm: readonly Uint16Array[]): Int8Array => {
   const pruning = new Int8Array(N_EDGE_PERM);
   pruning.fill(-1);
   pruning[0] = 0;
@@ -257,10 +246,8 @@ const createOrientationPruningTable = (
       if (pruning[orientation] !== length) continue;
 
       for (let move = 0; move < N_MOVES; move += 1) {
-        const nextEdgeOrient =
-          moveEdgeOrient[orientation % N_EDGE_ORIENT][move];
-        const nextCornerOrient =
-          moveCornerOrient[Math.floor(orientation / N_EDGE_ORIENT)][move];
+        const nextEdgeOrient = moveEdgeOrient[orientation % N_EDGE_ORIENT][move];
+        const nextCornerOrient = moveCornerOrient[Math.floor(orientation / N_EDGE_ORIENT)][move];
         const nextOrientation = nextCornerOrient * N_EDGE_ORIENT + nextEdgeOrient;
         if (pruning[nextOrientation] !== -1) continue;
 
@@ -281,10 +268,7 @@ const createTables = (): Tables => {
     moveEdgeOrient,
     moveCornerOrient,
     prunPerm: createPermutationPruningTable(moveEdgePerm),
-    prunOrient: createOrientationPruningTable(
-      moveEdgeOrient,
-      moveCornerOrient,
-    ),
+    prunOrient: createOrientationPruningTable(moveEdgeOrient, moveCornerOrient),
   };
 };
 
@@ -298,11 +282,7 @@ const validateCoordinate = (
   coordinate: number,
   maxExclusive: number,
 ): void => {
-  if (
-    !Number.isSafeInteger(coordinate) ||
-    coordinate < 0 ||
-    coordinate >= maxExclusive
-  ) {
+  if (!Number.isSafeInteger(coordinate) || coordinate < 0 || coordinate >= maxExclusive) {
     throw new RangeError(
       `${ERROR_PREFIX}: Pyraminx ${coordinateName} must be an integer from 0 to ${maxExclusive - 1}`,
     );
@@ -420,9 +400,7 @@ const formatSolution = (
     if (direction === 0) continue;
 
     const tipMove = tip * 2 + direction - 1;
-    moves.push(
-      inverse ? TIP_TO_STRING[tipMove] : INVERSE_TIP_TO_STRING[tipMove],
-    );
+    moves.push(inverse ? TIP_TO_STRING[tipMove] : INVERSE_TIP_TO_STRING[tipMove]);
   }
 
   return moves.join(' ');

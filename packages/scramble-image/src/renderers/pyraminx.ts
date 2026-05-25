@@ -48,30 +48,14 @@ const lineIntersection = (
   );
 
   return {
-    x: det(
-      firstDet,
-      firstStart.x - firstEnd.x,
-      secondDet,
-      secondStart.x - secondEnd.x,
-    ) / divisor,
-    y: det(
-      firstDet,
-      firstStart.y - firstEnd.y,
-      secondDet,
-      secondStart.y - secondEnd.y,
-    ) / divisor,
+    x: det(firstDet, firstStart.x - firstEnd.x, secondDet, secondStart.x - secondEnd.x) / divisor,
+    y: det(firstDet, firstStart.y - firstEnd.y, secondDet, secondStart.y - secondEnd.y) / divisor,
   };
 };
 
-const triangleBoundary = (
-  x: number,
-  y: number,
-  pointsUp: boolean,
-): Polygon => {
+const triangleBoundary = (x: number, y: number, pointsUp: boolean): Polygon => {
   const radius = Math.trunc(Math.sqrt(3) * PIECE_SIZE);
-  const angles = [7 / 6, 11 / 6, 0.5].map((angle) =>
-    (pointsUp ? angle + 1 / 3 : angle) * Math.PI,
-  );
+  const angles = [7 / 6, 11 / 6, 0.5].map((angle) => (pointsUp ? angle + 1 / 3 : angle) * Math.PI);
 
   return angles.map((angle) => ({
     x: x + radius * Math.cos(angle),
@@ -107,25 +91,12 @@ const createStickerPolygons = (boundary: Polygon): readonly Polygon[] => {
     };
   }
 
-  const center = lineIntersection(
-    edgePoints[0],
-    edgePoints[4],
-    edgePoints[2],
-    edgePoints[3],
-  );
+  const center = lineIntersection(edgePoints[0], edgePoints[4], edgePoints[2], edgePoints[3]);
   const stickers: Polygon[] = [];
 
   for (let index = 0; index < 3; index += 1) {
-    stickers[3 * index] = [
-      boundary[index],
-      edgePoints[index],
-      edgePoints[3 + ((2 + index) % 3)],
-    ];
-    stickers[3 * index + 1] = [
-      edgePoints[index],
-      edgePoints[3 + ((index + 2) % 3)],
-      center,
-    ];
+    stickers[3 * index] = [boundary[index], edgePoints[index], edgePoints[3 + ((2 + index) % 3)]];
+    stickers[3 * index + 1] = [edgePoints[index], edgePoints[3 + ((index + 2) % 3)], center];
     stickers[3 * index + 2] = [edgePoints[index], edgePoints[index + 3], center];
   }
 
@@ -135,11 +106,7 @@ const createStickerPolygons = (boundary: Polygon): readonly Polygon[] => {
 const faceBoundary = (face: PyraminxFace): Polygon => {
   switch (face) {
     case 'F':
-      return triangleBoundary(
-        2 * GAP + 3 * PIECE_SIZE,
-        GAP + Math.sqrt(3) * PIECE_SIZE,
-        true,
-      );
+      return triangleBoundary(2 * GAP + 3 * PIECE_SIZE, GAP + Math.sqrt(3) * PIECE_SIZE, true);
     case 'D':
       return triangleBoundary(
         2 * GAP + 3 * PIECE_SIZE,
@@ -147,11 +114,7 @@ const faceBoundary = (face: PyraminxFace): Polygon => {
         false,
       );
     case 'L':
-      return triangleBoundary(
-        GAP + 1.5 * PIECE_SIZE,
-        GAP + (Math.sqrt(3) / 2) * PIECE_SIZE,
-        false,
-      );
+      return triangleBoundary(GAP + 1.5 * PIECE_SIZE, GAP + (Math.sqrt(3) / 2) * PIECE_SIZE, false);
     case 'R':
       return triangleBoundary(
         3 * GAP + 4.5 * PIECE_SIZE,

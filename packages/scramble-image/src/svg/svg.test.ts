@@ -39,7 +39,9 @@ describe('SVG serialization', () => {
           circle({ cx: 3, cy: 4, r: 5 }),
         ]),
       ),
-    ).toBe('<g id="layer-1"><rect x="0" y="0" width="1" height="2"></rect><circle cx="3" cy="4" r="5"></circle></g>');
+    ).toBe(
+      '<g id="layer-1"><rect x="0" y="0" width="1" height="2"></rect><circle cx="3" cy="4" r="5"></circle></g>',
+    );
   });
 
   it('preserves real data-text attributes separately from text content', () => {
@@ -61,7 +63,7 @@ describe('SVG serialization', () => {
       "@cubekit/scramble-image: invalid SVG attribute name 'stroke width'",
     );
     expect(() => serializeSvgNode(rect({ 'fill"': '#fff' }))).toThrow(
-      '@cubekit/scramble-image: invalid SVG attribute name \'fill"\'',
+      "@cubekit/scramble-image: invalid SVG attribute name 'fill\"'",
     );
   });
 });

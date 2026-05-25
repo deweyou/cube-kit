@@ -10,9 +10,7 @@ export interface SkewbScrambleOptions {
   random: RandomSource;
 }
 
-export const generateSkewbScramble = ({
-  random,
-}: SkewbScrambleOptions): string => {
+export const generateSkewbScramble = ({ random }: SkewbScrambleOptions): string => {
   const solver = new SkewbSolver();
 
   for (let attempt = 0; attempt < MAX_WCA_ATTEMPTS; attempt += 1) {

@@ -1,8 +1,6 @@
 const ERROR_PREFIX = '@cubekit/scramble-puzzle';
 
-function withPrefix(message: string): string {
-  return `${ERROR_PREFIX}: ${message}`;
-}
+const withPrefix = (message: string): string => `${ERROR_PREFIX}: ${message}`;
 
 export class ScramblePuzzleError extends Error {
   constructor(message: string, options?: ErrorOptions) {

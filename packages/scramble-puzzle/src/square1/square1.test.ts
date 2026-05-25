@@ -26,10 +26,7 @@ describe('Square-1 parser and state', () => {
     const sq1 = createSquareOneDefinition();
     const state = sq1
       .parseAlgorithm('(3,0) /')
-      .reduce(
-        (next, move) => sq1.applyMove(next, move),
-        sq1.createSolvedState(),
-      );
+      .reduce((next, move) => sq1.applyMove(next, move), sq1.createSolvedState());
 
     expect(sq1.isSolved(state)).toBe(false);
   });
@@ -48,8 +45,7 @@ describe('Square-1 parser and state', () => {
 
     expect(state.sliceSolved).toBe(true);
     expect(state.pieces).toEqual([
-      0, 0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 9, 10, 11, 11, 12, 13, 13,
-      14, 15, 15,
+      0, 0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 9, 10, 11, 11, 12, 13, 13, 14, 15, 15,
     ]);
     expect(canSquareOneSlash(state)).toBe(true);
     expect(Object.isFrozen(state)).toBe(true);
@@ -76,12 +72,10 @@ describe('Square-1 parser and state', () => {
     const [bottomTurn] = parseSquareOneAlgorithm('(0,-2)');
 
     expect(applySquareOneMove(solved, topTurn).pieces).toEqual([
-      6, 6, 7, 0, 0, 1, 2, 2, 3, 4, 4, 5, 8, 9, 9, 10, 11, 11, 12, 13, 13,
-      14, 15, 15,
+      6, 6, 7, 0, 0, 1, 2, 2, 3, 4, 4, 5, 8, 9, 9, 10, 11, 11, 12, 13, 13, 14, 15, 15,
     ]);
     expect(applySquareOneMove(solved, bottomTurn).pieces).toEqual([
-      0, 0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 9, 10, 11, 11, 12, 13, 13, 14, 15,
-      15, 8, 9,
+      0, 0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 9, 10, 11, 11, 12, 13, 13, 14, 15, 15, 8, 9,
     ]);
   });
 
@@ -102,17 +96,15 @@ describe('Square-1 parser and state', () => {
     const unslashable = applySquareOneMove(createSolvedSquareOneState(), move);
 
     expect(canSquareOneSlash(unslashable)).toBe(false);
-    expect(() => applySquareOneMove(unslashable, slash)).toThrow(
-      InvalidMoveError,
-    );
+    expect(() => applySquareOneMove(unslashable, slash)).toThrow(InvalidMoveError);
   });
 
   it('wraps invalid slash application through shared applyAlgorithm', () => {
     const definition = createSquareOneDefinition();
 
-    expect(() =>
-      applyAlgorithm(definition, definition.createSolvedState(), '(-1,0) /'),
-    ).toThrow(InvalidScrambleError);
+    expect(() => applyAlgorithm(definition, definition.createSolvedState(), '(-1,0) /')).toThrow(
+      InvalidScrambleError,
+    );
   });
 
   it('reports TNoodle successor and scramble-successor sets', () => {
@@ -122,28 +114,18 @@ describe('Square-1 parser and state', () => {
     const successors = getSquareOneSuccessors(solved);
     const scrambleSuccessors = getSquareOneScrambleSuccessors(solved);
     const unslashableSuccessors = getSquareOneSuccessors(unslashable);
-    const unslashableScrambleSuccessors =
-      getSquareOneScrambleSuccessors(unslashable);
+    const unslashableScrambleSuccessors = getSquareOneScrambleSuccessors(unslashable);
 
     expect(successors).toHaveLength(144);
-    expect(successors.filter((successor) => successor.move.type === 'slash'))
-      .toHaveLength(1);
+    expect(successors.filter((successor) => successor.move.type === 'slash')).toHaveLength(1);
     expect(scrambleSuccessors).toHaveLength(64);
-    expect(
-      scrambleSuccessors.some((successor) => successor.move.type === 'slash'),
-    ).toBe(true);
-    expect(
-      scrambleSuccessors.every((successor) =>
-        canSquareOneSlash(successor.state),
-      ),
-    ).toBe(true);
+    expect(scrambleSuccessors.some((successor) => successor.move.type === 'slash')).toBe(true);
+    expect(scrambleSuccessors.every((successor) => canSquareOneSlash(successor.state))).toBe(true);
     expect(unslashableSuccessors).toHaveLength(143);
     expect(unslashableScrambleSuccessors).toHaveLength(64);
-    expect(
-      unslashableScrambleSuccessors.some(
-        (successor) => successor.move.type === 'slash',
-      ),
-    ).toBe(false);
+    expect(unslashableScrambleSuccessors.some((successor) => successor.move.type === 'slash')).toBe(
+      false,
+    );
   });
 
   it('reports WCA and slashability move costs', () => {
@@ -166,12 +148,12 @@ describe('Square-1 parser and state', () => {
     ];
 
     for (const move of malformedMoves) {
-      expect(() =>
-        getSquareOneMoveCost(move as unknown as SquareOneMove),
-      ).toThrow(InvalidMoveError);
-      expect(() =>
-        getSquareOneSlashabilityMoveCost(move as unknown as SquareOneMove),
-      ).toThrow(InvalidMoveError);
+      expect(() => getSquareOneMoveCost(move as unknown as SquareOneMove)).toThrow(
+        InvalidMoveError,
+      );
+      expect(() => getSquareOneSlashabilityMoveCost(move as unknown as SquareOneMove)).toThrow(
+        InvalidMoveError,
+      );
     }
   });
 
@@ -188,8 +170,6 @@ describe('Square-1 parser and state', () => {
   it('does not treat malformed Square-1 states as solved', () => {
     const definition = createSquareOneDefinition();
 
-    expect(
-      definition.isSolved({ sliceSolved: true, pieces: [] } as never),
-    ).toBe(false);
+    expect(definition.isSolved({ sliceSolved: true, pieces: [] } as never)).toBe(false);
   });
 });

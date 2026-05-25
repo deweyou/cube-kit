@@ -24,9 +24,7 @@ describe('applyAlgorithm', () => {
       },
     };
 
-    expect(() => applyAlgorithm(definition, { value: 0 }, 'bad')).toThrow(
-      InvalidScrambleError,
-    );
+    expect(() => applyAlgorithm(definition, { value: 0 }, 'bad')).toThrow(InvalidScrambleError);
 
     try {
       applyAlgorithm(definition, { value: 0 }, 'bad');

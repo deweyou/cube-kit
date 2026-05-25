@@ -25,10 +25,7 @@ describe('renderClockState', () => {
   });
 
   it('renders moved hand rotations', () => {
-    const moved = applyClockMove(
-      createSolvedClockState(),
-      parseClockAlgorithm('UR3+')[0],
-    );
+    const moved = applyClockMove(createSolvedClockState(), parseClockAlgorithm('UR3+')[0]);
     const svg = renderClockState(moved);
 
     expect(svg).toContain('rotate(90 ');

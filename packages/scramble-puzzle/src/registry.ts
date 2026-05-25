@@ -2,20 +2,15 @@ import { UnregisteredPuzzleError } from './errors.js';
 import type { WcaEventId } from './events.js';
 import type { PuzzleDefinition } from './puzzle-definition.js';
 
-export type AnyPuzzleDefinition<
-  State = unknown,
-  Move = unknown,
-> = PuzzleDefinition<State, Move>;
+export type AnyPuzzleDefinition<State = unknown, Move = unknown> = PuzzleDefinition<State, Move>;
 
-export interface PuzzleRegistry<
-  Definition extends AnyPuzzleDefinition = never,
-> {
+export interface PuzzleRegistry<Definition extends AnyPuzzleDefinition = never> {
   getByEventId(eventId: WcaEventId): Definition;
 }
 
-export function createPuzzleRegistry<Definition extends AnyPuzzleDefinition>(
+export const createPuzzleRegistry = <Definition extends AnyPuzzleDefinition>(
   definitions: readonly Definition[],
-): PuzzleRegistry<Definition> {
+): PuzzleRegistry<Definition> => {
   const definitionsByEventId = new Map<WcaEventId, Definition>();
 
   for (const definition of definitions) {
@@ -35,4 +30,4 @@ export function createPuzzleRegistry<Definition extends AnyPuzzleDefinition>(
       return definition;
     },
   };
-}
+};

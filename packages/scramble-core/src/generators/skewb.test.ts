@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseSkewbAlgorithm } from '@cubekit/scramble-puzzle';
 import { generateSkewbScramble } from './skewb.js';
-import {
-  SkewbSolver,
-  type SkewbSolverState,
-} from '../solvers/skewb-solver.js';
+import { SkewbSolver, type SkewbSolverState } from '../solvers/skewb-solver.js';
 import type { RandomSource } from '../random-source.js';
 
 const zeroRandom: RandomSource = { nextInt: () => 0 };
@@ -92,15 +89,11 @@ describe('SkewbSolver', () => {
     ['perm', createState({ perm: 4320 })],
     ['twst', createState({ twst: 2187 })],
   ] as const)('rejects out-of-range %s coordinates', (_, state) => {
-    expect(() => new SkewbSolver().solveIn(state, 11, zeroRandom)).toThrow(
-      RangeError,
-    );
+    expect(() => new SkewbSolver().solveIn(state, 11, zeroRandom)).toThrow(RangeError);
   });
 
   it.each([-1, 13] as const)('rejects invalid solve length %s', (length) => {
-    expect(() =>
-      new SkewbSolver().solveIn(createState(), length, zeroRandom),
-    ).toThrow(RangeError);
+    expect(() => new SkewbSolver().solveIn(createState(), length, zeroRandom)).toThrow(RangeError);
   });
 
   it('rejects invalid random source coordinates', () => {
@@ -110,9 +103,7 @@ describe('SkewbSolver', () => {
   });
 });
 
-const createState = (
-  overrides: Partial<SkewbSolverState> = {},
-): SkewbSolverState => ({
+const createState = (overrides: Partial<SkewbSolverState> = {}): SkewbSolverState => ({
   perm: 0,
   twst: 0,
   ...overrides,

@@ -176,10 +176,7 @@ const createMoveTables = (): Pick<Tables, 'movePerm' | 'moveOrient'> => {
   return { movePerm, moveOrient };
 };
 
-const createPruningTable = (
-  size: number,
-  moves: readonly Uint16Array[],
-): Int8Array => {
+const createPruningTable = (size: number, moves: readonly Uint16Array[]): Int8Array => {
   const pruning = new Int8Array(size);
   pruning.fill(-1);
   pruning[0] = 0;
@@ -223,11 +220,7 @@ const validateCoordinate = (
   coordinate: number,
   maxExclusive: number,
 ): void => {
-  if (
-    !Number.isSafeInteger(coordinate) ||
-    coordinate < 0 ||
-    coordinate >= maxExclusive
-  ) {
+  if (!Number.isSafeInteger(coordinate) || coordinate < 0 || coordinate >= maxExclusive) {
     throw new RangeError(
       `${ERROR_PREFIX}: 2x2 ${coordinateName} must be an integer from 0 to ${maxExclusive - 1}`,
     );
@@ -346,10 +339,7 @@ const search = ({
     return true;
   }
 
-  if (
-    tables.prunPerm[permutation] > length ||
-    tables.prunOrient[orientation] > length
-  ) {
+  if (tables.prunPerm[permutation] > length || tables.prunOrient[orientation] > length) {
     return false;
   }
 
@@ -375,11 +365,7 @@ const search = ({
   return solutionFound;
 };
 
-const formatSolution = (
-  solution: readonly number[],
-  length: number,
-  inverse: boolean,
-): string => {
+const formatSolution = (solution: readonly number[], length: number, inverse: boolean): string => {
   if (length === 0) return '';
 
   const moves: string[] = [];

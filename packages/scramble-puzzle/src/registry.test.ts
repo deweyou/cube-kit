@@ -32,9 +32,7 @@ describe('createPuzzleRegistry', () => {
     const registry = createPuzzleRegistry([counterDefinition]);
     const definition = registry.getByEventId('333');
 
-    expectTypeOf(definition).toEqualTypeOf<
-      PuzzleDefinition<CounterState, CounterMove>
-    >();
+    expectTypeOf(definition).toEqualTypeOf<PuzzleDefinition<CounterState, CounterMove>>();
     expect(definition.applyMove({ value: 1 }, { delta: 2 })).toEqual({
       value: 3,
     });

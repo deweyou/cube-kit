@@ -30,15 +30,12 @@ const isMoveAmount = (amount: unknown): amount is MegaminxMoveAmount =>
 const isMegaminxFace = (face: unknown): face is MegaminxFace =>
   typeof face === 'string' && MEGAMINX_FACES.includes(face as MegaminxFace);
 
-const isBigTurnName = (name: unknown): name is MegaminxBigTurnName =>
-  name === 'R' || name === 'D';
+const isBigTurnName = (name: unknown): name is MegaminxBigTurnName => name === 'R' || name === 'D';
 
 const cloneMegaminxImage = (image: MegaminxImage): MutableMegaminxImage =>
   image.map((face) => [...face]);
 
-const freezeMegaminxImage = (
-  image: MutableMegaminxImage,
-): MegaminxImage => {
+const freezeMegaminxImage = (image: MutableMegaminxImage): MegaminxImage => {
   const frozenFaces = image.map((face) => Object.freeze([...face]));
 
   return Object.freeze(frozenFaces);
@@ -114,30 +111,17 @@ const swapOnFace = (
   fourth: number,
   fifth: number,
 ): void => {
-  cycleStickers(
-    image,
-    [face, first],
-    [face, second],
-    [face, third],
-    [face, fourth],
-    [face, fifth],
-  );
+  cycleStickers(image, [face, first], [face, second], [face, third], [face, fourth], [face, fifth]);
 };
 
-const rotateFaceOnce = (
-  image: MutableMegaminxImage,
-  face: MegaminxFace,
-): void => {
+const rotateFaceOnce = (image: MutableMegaminxImage, face: MegaminxFace): void => {
   const position = faceIndex(face);
 
   swapOnFace(image, position, 0, 8, 6, 4, 2);
   swapOnFace(image, position, 1, 9, 7, 5, 3);
 };
 
-const turnFaceOnce = (
-  image: MutableMegaminxImage,
-  face: MegaminxFace,
-): void => {
+const turnFaceOnce = (image: MutableMegaminxImage, face: MegaminxFace): void => {
   const position = faceIndex(face);
   const base: 0 | 6 = position >= 6 ? 6 : 0;
 
@@ -220,10 +204,7 @@ const swapWholeFace = (
   cycleCenters(image, firstFace, secondFace, thirdFace, fourthFace, fifthFace);
 };
 
-const bigTurnOnce = (
-  image: MutableMegaminxImage,
-  face: 'D' | 'DBR',
-): void => {
+const bigTurnOnce = (image: MutableMegaminxImage, face: 'D' | 'DBR'): void => {
   if (face === 'DBR') {
     for (let index = 0; index < 7; index += 1) {
       cycleStickers(
@@ -258,8 +239,7 @@ const bigTurnOnce = (
   rotateFaceOnce(image, 'D');
 };
 
-const bigTurnFace = (name: MegaminxBigTurnName): 'D' | 'DBR' =>
-  name === 'R' ? 'DBR' : 'D';
+const bigTurnFace = (name: MegaminxBigTurnName): 'D' | 'DBR' => (name === 'R' ? 'DBR' : 'D');
 
 const validateMove = (move: MegaminxMove): MegaminxMove => {
   if (typeof move !== 'object' || move === null) {
@@ -274,11 +254,7 @@ const validateMove = (move: MegaminxMove): MegaminxMove => {
     return move;
   }
 
-  if (
-    move.type === 'big-turn' &&
-    isBigTurnName(move.name) &&
-    isMoveAmount(move.amount)
-  ) {
+  if (move.type === 'big-turn' && isBigTurnName(move.name) && isMoveAmount(move.amount)) {
     return move;
   }
 
@@ -287,22 +263,15 @@ const validateMove = (move: MegaminxMove): MegaminxMove => {
 
 export const createSolvedMegaminxState = (): MegaminxState =>
   createMegaminxState(
-    MEGAMINX_FACES.map((_, face) =>
-      Array<MegaminxFacelet>(STICKERS_PER_FACE).fill(face),
-    ),
+    MEGAMINX_FACES.map((_, face) => Array<MegaminxFacelet>(STICKERS_PER_FACE).fill(face)),
   );
 
-export const applyMegaminxMove = (
-  state: MegaminxState,
-  move: MegaminxMove,
-): MegaminxState => {
+export const applyMegaminxMove = (state: MegaminxState, move: MegaminxMove): MegaminxState => {
   const validMove = validateMove(move);
   const nextImage = cloneMegaminxImage(state.image);
 
   if (validMove.type === 'face') {
-    applyRepeatedTurns(nextImage, validMove.amount, () =>
-      turnFaceOnce(nextImage, validMove.face),
-    );
+    applyRepeatedTurns(nextImage, validMove.amount, () => turnFaceOnce(nextImage, validMove.face));
   } else {
     applyRepeatedTurns(nextImage, validMove.amount, () =>
       bigTurnOnce(nextImage, bigTurnFace(validMove.name)),
@@ -312,13 +281,7 @@ export const applyMegaminxMove = (
   return createMegaminxState(nextImage);
 };
 
-export const areMegaminxStatesEqual = (
-  a: MegaminxState,
-  b: MegaminxState,
-): boolean =>
+export const areMegaminxStatesEqual = (a: MegaminxState, b: MegaminxState): boolean =>
   a.image.every((face, faceIndexValue) =>
-    face.every(
-      (sticker, stickerIndex) =>
-        sticker === b.image[faceIndexValue]?.[stickerIndex],
-    ),
+    face.every((sticker, stickerIndex) => sticker === b.image[faceIndexValue]?.[stickerIndex]),
   );

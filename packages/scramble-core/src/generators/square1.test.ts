@@ -55,7 +55,7 @@ describe('FullCube.randomCube', () => {
 
     expect(calls[0]).toBe(3678);
     expect(calls.at(-1)).toBe(2);
-    expect([...calls.slice(1, -1)].sort((a, b) => b - a)).toEqual([
+    expect(calls.slice(1, -1).sort((a, b) => b - a)).toEqual([
       8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1,
     ]);
   });
@@ -82,16 +82,10 @@ const applyAlgorithm = (algorithm: string): SquareOneState => {
 
   return squareOne
     .parseAlgorithm(algorithm)
-    .reduce(
-      (state, move) => applySquareOneMove(state, move),
-      createSolvedSquareOneState(),
-    );
+    .reduce((state, move) => applySquareOneMove(state, move), createSolvedSquareOneState());
 };
 
-const createSeededRandom = (
-  seed: number,
-  calls: number[] = [],
-): RandomSource => {
+const createSeededRandom = (seed: number, calls: number[] = []): RandomSource => {
   let state = seed >>> 0;
 
   return {
@@ -104,9 +98,7 @@ const createSeededRandom = (
   };
 };
 
-const createRepeatingSequenceRandom = (
-  sequence: readonly number[],
-): RandomSource => {
+const createRepeatingSequenceRandom = (sequence: readonly number[]): RandomSource => {
   let index = 0;
 
   return {
@@ -115,9 +107,7 @@ const createRepeatingSequenceRandom = (
       index += 1;
 
       if (value >= maxExclusive) {
-        throw new RangeError(
-          `test sequence value ${value} is outside max ${maxExclusive}`,
-        );
+        throw new RangeError(`test sequence value ${value} is outside max ${maxExclusive}`);
       }
 
       return value;

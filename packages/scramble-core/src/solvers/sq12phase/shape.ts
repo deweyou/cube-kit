@@ -6,8 +6,7 @@ const WCA_TURN_METRIC = 1;
 const SEARCH_METRIC = WCA_TURN_METRIC;
 
 const HALF_LAYER = [
-  0x00, 0x03, 0x06, 0x0c, 0x0f, 0x18, 0x1b, 0x1e, 0x30, 0x33, 0x36, 0x3c,
-  0x3f,
+  0x00, 0x03, 0x06, 0x0c, 0x0f, 0x18, 0x1b, 0x1e, 0x30, 0x33, 0x36, 0x3c, 0x3f,
 ] as const;
 
 const SOLVED_SHAPE_WITH_PARITY = 0x06dbdb6;
@@ -31,10 +30,7 @@ class ShapeCoordinate {
   constructor(private readonly shapeIdx: Int32Array) {}
 
   getIdx(): number {
-    return getShape2IdxFrom(
-      this.shapeIdx,
-      (this.parity << 24) | (this.top << 12) | this.bottom,
-    );
+    return getShape2IdxFrom(this.shapeIdx, (this.parity << 24) | (this.top << 12) | this.bottom);
   }
 
   setIdx(index: number): void {
@@ -244,15 +240,10 @@ const initPruning = (
   }
 };
 
-const getShape2IdxFrom = (
-  shapeIdx: Int32Array,
-  shapeWithParity: number,
-): number => {
+const getShape2IdxFrom = (shapeIdx: Int32Array, shapeWithParity: number): number => {
   const index = binarySearch(shapeIdx, shapeWithParity & 0xffffff);
   if (index < 0) {
-    throw new RangeError(
-      '@cubekit/scramble-core: invalid Square-1 shape coordinate',
-    );
+    throw new RangeError('@cubekit/scramble-core: invalid Square-1 shape coordinate');
   }
 
   return (index << 1) | ((shapeWithParity >> 24) & 1);

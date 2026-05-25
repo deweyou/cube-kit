@@ -5,8 +5,7 @@ export const INVERSE_SOLUTION = 0x2;
 export const APPEND_LENGTH = 0x4;
 export const OPTIMAL_SOLUTION = 0x8;
 
-export const SOLVED_FACE_CUBE =
-  'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB';
+export const SOLVED_FACE_CUBE = 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB';
 
 export const MOVE_TOKENS = [
   'U',
@@ -40,9 +39,7 @@ const FACE_AXIS = {
 
 export type AxisRestriction = keyof typeof FACE_AXIS;
 
-export const axisForRestriction = (
-  restriction: string | undefined,
-): number | undefined => {
+export const axisForRestriction = (restriction: string | undefined): number | undefined => {
   if (restriction === undefined) return undefined;
 
   return FACE_AXIS[restriction as AxisRestriction];
@@ -59,10 +56,7 @@ export const splitAlgorithm = (algorithm: string): string[] =>
 export const invertAlgorithm = (algorithm: string): string =>
   splitAlgorithm(algorithm).reverse().map(invertMove).join(' ');
 
-export const drawRandomInt = (
-  random: RandomSource,
-  maxExclusive: number,
-): number => {
+export const drawRandomInt = (random: RandomSource, maxExclusive: number): number => {
   if (!Number.isSafeInteger(maxExclusive) || maxExclusive <= 0) {
     throw new RangeError(
       '@cubekit/scramble-core: random maxExclusive must be a positive safe integer',

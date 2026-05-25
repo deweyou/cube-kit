@@ -101,8 +101,9 @@ export class EdgeCube {
 
   fill333Facelet(facelet: string[]): void {
     for (let i = 0; i < 24; i += 1) {
-      facelet[EdgeCube.edgeMap[i]!] =
-        'URFDLB'[EdgeCube.edgeColor[this.ep[i]! % 12]![Math.floor(this.ep[i]! / 12)]!]!;
+      facelet[EdgeCube.edgeMap[i]!] = 'URFDLB'[
+        EdgeCube.edgeColor[this.ep[i]! % 12]![Math.floor(this.ep[i]! / 12)]!
+      ]!;
     }
   }
 
@@ -185,8 +186,8 @@ export class Edge3 {
   static readonly N_EPRUN = Edge3.N_SYM * Edge3.N_RAW;
   static readonly MAX_DEPTH = 10;
   static readonly prunValues = [
-    1, 4, 16, 55, 324, 1922, 12_275, 77_640, 485_359, 2_778_197, 11_742_425,
-    27_492_416, 31_002_941, 31_006_080,
+    1, 4, 16, 55, 324, 1922, 12_275, 77_640, 485_359, 2_778_197, 11_742_425, 27_492_416, 31_002_941,
+    31_006_080,
   ] as const;
   static eprun: number[] = [];
   static sym2raw: number[] = [];
@@ -196,19 +197,7 @@ export class Edge3 {
   static mvrot: number[][] = [];
   static mvroto: number[][] = [];
   static readonly factX = [
-    1,
-    1,
-    1,
-    3,
-    12,
-    60,
-    360,
-    2520,
-    20_160,
-    181_440,
-    1_814_400,
-    19_958_400,
-    239_500_800,
+    1, 1, 1, 3, 12, 60, 360, 2520, 20_160, 181_440, 1_814_400, 19_958_400, 239_500_800,
   ] as const;
   static done = 0;
   private static readonly fullEdgeMap = [0, 2, 4, 6, 1, 3, 7, 5, 8, 9, 10, 11] as const;

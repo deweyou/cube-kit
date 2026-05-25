@@ -1,16 +1,6 @@
 import type { RandomSource } from '../random-source.js';
 
-const CLOCK_FIRST_SIDE_MOVES = [
-  'UR',
-  'DR',
-  'DL',
-  'UL',
-  'U',
-  'R',
-  'D',
-  'L',
-  'ALL',
-] as const;
+const CLOCK_FIRST_SIDE_MOVES = ['UR', 'DR', 'DL', 'UL', 'U', 'R', 'D', 'L', 'ALL'] as const;
 const CLOCK_SECOND_SIDE_MOVES = ['U', 'R', 'D', 'L', 'ALL'] as const;
 
 export interface ClockScrambleOptions {
@@ -24,9 +14,7 @@ const nextClockTurn = (move: string, random: RandomSource): string => {
   return `${move}${Math.abs(turn)}${isClockwise ? '+' : '-'}`;
 };
 
-export const generateClockScramble = ({
-  random,
-}: ClockScrambleOptions): string => {
+export const generateClockScramble = ({ random }: ClockScrambleOptions): string => {
   const moves = [
     ...CLOCK_FIRST_SIDE_MOVES.map((move) => nextClockTurn(move, random)),
     'y2',

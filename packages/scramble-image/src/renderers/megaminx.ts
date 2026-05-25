@@ -42,8 +42,8 @@ interface Point {
 type Polygon = readonly Point[];
 
 const pentagon = (centerX: number, centerY: number, pointUp: boolean): Polygon => {
-  const angles = [1.3, 1.7, 0.1, 0.5, 0.9].map((angle) =>
-    (pointUp ? angle - 0.2 : angle) * Math.PI,
+  const angles = [1.3, 1.7, 0.1, 0.5, 0.9].map(
+    (angle) => (pointUp ? angle - 0.2 : angle) * Math.PI,
   );
 
   return angles.map((angle) => ({
@@ -61,9 +61,7 @@ const edgeSin54 = edgeLength * Math.sin(0.3 * Math.PI);
 const leftCenterX = GAP + radiusCos18 + edgeCos18 + edgeSin18 / 2;
 const leftCenterY = GAP + edgeLength + MINX_RADIUS - edgeSin18;
 const shift =
-  leftCenterX +
-  edgeSin18 * 0.6 +
-  MINX_RADIUS * (Math.cos(0.1 * Math.PI) + Math.cos(0.2 * Math.PI));
+  leftCenterX + edgeSin18 * 0.6 + MINX_RADIUS * (Math.cos(0.1 * Math.PI) + Math.cos(0.2 * Math.PI));
 
 const faceBoundary = (face: MegaminxFace): Polygon => {
   switch (face) {
@@ -82,15 +80,27 @@ const faceBoundary = (face: MegaminxFace): Polygon => {
     case 'D':
       return pentagon(shift + GAP + radiusCos18 + edgeCos18, GAP + edgeLength + MINX_RADIUS, false);
     case 'DR':
-      return pentagon(shift + GAP + radiusCos18 + edgeCos18 - edgeCos54, GAP + edgeLength + edgeSin54 + MINX_RADIUS, true);
+      return pentagon(
+        shift + GAP + radiusCos18 + edgeCos18 - edgeCos54,
+        GAP + edgeLength + edgeSin54 + MINX_RADIUS,
+        true,
+      );
     case 'DBR':
       return pentagon(shift + GAP + radiusCos18, GAP + edgeLength - edgeSin18 + MINX_RADIUS, true);
     case 'B':
       return pentagon(shift + GAP + radiusCos18 + edgeCos18, GAP + MINX_RADIUS, true);
     case 'DBL':
-      return pentagon(shift + GAP + radiusCos18 + 2 * edgeCos18, GAP + edgeLength - edgeSin18 + MINX_RADIUS, true);
+      return pentagon(
+        shift + GAP + radiusCos18 + 2 * edgeCos18,
+        GAP + edgeLength - edgeSin18 + MINX_RADIUS,
+        true,
+      );
     case 'DL':
-      return pentagon(shift + GAP + radiusCos18 + edgeCos18 + edgeCos54, GAP + edgeLength + edgeSin54 + MINX_RADIUS, true);
+      return pentagon(
+        shift + GAP + radiusCos18 + edgeCos18 + edgeCos54,
+        GAP + edgeLength + edgeSin54 + MINX_RADIUS,
+        true,
+      );
   }
 };
 
@@ -112,18 +122,8 @@ const lineIntersection = (
   );
 
   return {
-    x: det(
-      firstDet,
-      firstStart.x - firstEnd.x,
-      secondDet,
-      secondStart.x - secondEnd.x,
-    ) / divisor,
-    y: det(
-      firstDet,
-      firstStart.y - firstEnd.y,
-      secondDet,
-      secondStart.y - secondEnd.y,
-    ) / divisor,
+    x: det(firstDet, firstStart.x - firstEnd.x, secondDet, secondStart.x - secondEnd.x) / divisor,
+    y: det(firstDet, firstStart.y - firstEnd.y, secondDet, secondStart.y - secondEnd.y) / divisor,
   };
 };
 
@@ -186,13 +186,8 @@ const createStickerPolygons = (boundary: Polygon): readonly Polygon[] => {
   return stickers;
 };
 
-const stickerIndexForOrientation = (
-  stickerIndex: number,
-  rotateCounterClockwise: number,
-): number =>
-  stickerIndex < 10
-    ? (stickerIndex + 2 * rotateCounterClockwise) % 10
-    : stickerIndex;
+const stickerIndexForOrientation = (stickerIndex: number, rotateCounterClockwise: number): number =>
+  stickerIndex < 10 ? (stickerIndex + 2 * rotateCounterClockwise) % 10 : stickerIndex;
 
 const faceRotation = (face: MegaminxFace): number => {
   if (face === 'U') return 0;
@@ -216,10 +211,7 @@ const drawFace = (
   const stickerPolygons = createStickerPolygons(faceBoundary(face));
 
   return stickerPolygons.map((polygon, stickerIndex) => {
-    const stateStickerIndex = stickerIndexForOrientation(
-      stickerIndex,
-      rotateCounterClockwise,
-    );
+    const stateStickerIndex = stickerIndexForOrientation(stickerIndex, rotateCounterClockwise);
 
     return path({
       d: polygonPath(polygon),

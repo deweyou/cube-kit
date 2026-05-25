@@ -32,9 +32,7 @@ const axisIndex = (face: PyraminxAxis): number => PYRAMINX_AXES.indexOf(face);
 const clonePyraminxImage = (image: PyraminxImage): MutablePyraminxImage =>
   image.map((face) => [...face]);
 
-const freezePyraminxImage = (
-  image: MutablePyraminxImage,
-): PyraminxImage => {
+const freezePyraminxImage = (image: MutablePyraminxImage): PyraminxImage => {
   const frozenFaces = image.map((face) => Object.freeze([...face]));
 
   return Object.freeze(frozenFaces);
@@ -50,14 +48,8 @@ const createPyraminxState = (image: MutablePyraminxImage): PyraminxState => {
 
   for (const face of image) {
     for (const sticker of face) {
-      if (
-        !Number.isSafeInteger(sticker) ||
-        sticker < 0 ||
-        sticker >= PYRAMINX_FACES.length
-      ) {
-        throw new RangeError(
-          'pyraminx stickers must be integer face indexes from 0 to 3',
-        );
+      if (!Number.isSafeInteger(sticker) || sticker < 0 || sticker >= PYRAMINX_FACES.length) {
+        throw new RangeError('pyraminx stickers must be integer face indexes from 0 to 3');
       }
     }
   }
@@ -154,15 +146,10 @@ const validateMove = (move: PyraminxMove): PyraminxMove => {
 
 export const createSolvedPyraminxState = (): PyraminxState =>
   createPyraminxState(
-    PYRAMINX_FACES.map((_, face) =>
-      Array<PyraminxFacelet>(STICKERS_PER_FACE).fill(face),
-    ),
+    PYRAMINX_FACES.map((_, face) => Array<PyraminxFacelet>(STICKERS_PER_FACE).fill(face)),
   );
 
-export const applyPyraminxMove = (
-  state: PyraminxState,
-  move: PyraminxMove,
-): PyraminxState => {
+export const applyPyraminxMove = (state: PyraminxState, move: PyraminxMove): PyraminxState => {
   const validMove = validateMove(move);
   const nextImage = clonePyraminxImage(state.image);
   const side = axisIndex(validMove.face);
@@ -179,15 +166,9 @@ export const applyPyraminxMove = (
   return createPyraminxState(nextImage);
 };
 
-export const arePyraminxStatesEqual = (
-  a: PyraminxState,
-  b: PyraminxState,
-): boolean =>
+export const arePyraminxStatesEqual = (a: PyraminxState, b: PyraminxState): boolean =>
   a.image.every((face, faceIndexValue) =>
-    face.every(
-      (sticker, stickerIndex) =>
-        sticker === b.image[faceIndexValue]?.[stickerIndex],
-    ),
+    face.every((sticker, stickerIndex) => sticker === b.image[faceIndexValue]?.[stickerIndex]),
   );
 
 export type { PyraminxFace };

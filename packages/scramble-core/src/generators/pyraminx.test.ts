@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parsePyraminxAlgorithm } from '@cubekit/scramble-puzzle';
 import { generatePyraminxScramble } from './pyraminx.js';
-import {
-  PyraminxSolver,
-  type PyraminxSolverState,
-} from '../solvers/pyraminx-solver.js';
+import { PyraminxSolver, type PyraminxSolverState } from '../solvers/pyraminx-solver.js';
 import type { RandomSource } from '../random-source.js';
 
 const zeroRandom: RandomSource = { nextInt: () => 0 };
@@ -102,9 +99,9 @@ describe('PyraminxSolver', () => {
   });
 
   it.each([-1, 21] as const)('rejects invalid solve length %s', (length) => {
-    expect(() =>
-      new PyraminxSolver().solveIn(createState(), length, true, zeroRandom),
-    ).toThrow(RangeError);
+    expect(() => new PyraminxSolver().solveIn(createState(), length, true, zeroRandom)).toThrow(
+      RangeError,
+    );
   });
 
   it('rejects invalid random source coordinates', () => {
@@ -114,9 +111,7 @@ describe('PyraminxSolver', () => {
   });
 });
 
-const createState = (
-  overrides: Partial<PyraminxSolverState> = {},
-): PyraminxSolverState => ({
+const createState = (overrides: Partial<PyraminxSolverState> = {}): PyraminxSolverState => ({
   edgePerm: 0,
   edgeOrient: 0,
   cornerOrient: 0,

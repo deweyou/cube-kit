@@ -225,10 +225,7 @@ export class CenterCube {
 }
 
 export class CornerCube {
-  private static readonly moveCube = Array.from(
-    { length: 18 },
-    (): CornerCube | null => null,
-  );
+  private static readonly moveCube = Array.from({ length: 18 }, (): CornerCube | null => null);
   private static readonly cornerFacelet = [
     [U9, R1, F3],
     [U7, F1, L3],
@@ -278,7 +275,7 @@ export class CornerCube {
       let ori = oriA;
       ori += oriA < 3 ? oriB : 6 - oriB;
       ori %= 3;
-      if ((oriA >= 3) !== (oriB >= 3)) ori += 3;
+      if (oriA >= 3 !== oriB >= 3) ori += 3;
       product.co[corner] = ori;
     }
   }
@@ -299,8 +296,9 @@ export class CornerCube {
       const cubie = this.cp[corner]!;
       const orientation = this.co[corner]!;
       for (let n = 0; n < 3; n += 1) {
-        facelet[CornerCube.cornerFacelet[corner]![(n + orientation) % 3]!] =
-          'URFDLB'[Math.floor(CornerCube.cornerFacelet[cubie]![n]! / 9)]!;
+        facelet[CornerCube.cornerFacelet[corner]![(n + orientation) % 3]!] = 'URFDLB'[
+          Math.floor(CornerCube.cornerFacelet[cubie]![n]! / 9)
+        ]!;
       }
     }
   }
@@ -471,7 +469,8 @@ export class FullCube {
         fixedMoves[idx++] = moved;
       }
     }
-    const finishSym = Center1.symmult[Center1.syminv[sym]!]![Center1.getSolvedSym(this.getCenter())]!;
+    const finishSym =
+      Center1.symmult[Center1.syminv[sym]!]![Center1.getSolvedSym(this.getCenter())]!;
     const tokens: string[] = [];
     sym = finishSym;
 

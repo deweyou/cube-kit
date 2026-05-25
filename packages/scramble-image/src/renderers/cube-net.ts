@@ -30,7 +30,10 @@ export const renderCubeNet = (state: CubeState, colorScheme: CubeColorScheme = {
   const faceOrigins = createFaceOrigins(unit);
   const nodes: SvgNode[] = [];
 
-  for (const [face, [originX, originY]] of Object.entries(faceOrigins) as [CubeFace, readonly [number, number]][]) {
+  for (const [face, [originX, originY]] of Object.entries(faceOrigins) as [
+    CubeFace,
+    readonly [number, number],
+  ][]) {
     const faceIndex = FACE_ORDER.indexOf(face);
     const stickers = state.image[faceIndex];
 

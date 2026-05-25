@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createCubeDefinition } from './cube-definition.js';
 import type { CubeMove } from './cube-move.js';
-import {
-  applyCubeMove,
-  areCubeStatesEqual,
-  createSolvedCubeState,
-} from './cube-state.js';
+import { applyCubeMove, areCubeStatesEqual, createSolvedCubeState } from './cube-state.js';
 
 const asCubeMove = (move: unknown): CubeMove => move as CubeMove;
 
@@ -32,18 +28,12 @@ describe('cube state transitions', () => {
     const cube = createCubeDefinition(3, ['333']);
     const halfTurnRestored = cube
       .parseAlgorithm('R2 R2')
-      .reduce(
-        (state, move) => cube.applyMove(state, move),
-        cube.createSolvedState(),
-      );
+      .reduce((state, move) => cube.applyMove(state, move), cube.createSolvedState());
     expect(cube.isSolved(halfTurnRestored)).toBe(true);
 
     const quarterTurnRestored = cube
       .parseAlgorithm('R R R R')
-      .reduce(
-        (state, move) => cube.applyMove(state, move),
-        cube.createSolvedState(),
-      );
+      .reduce((state, move) => cube.applyMove(state, move), cube.createSolvedState());
     expect(cube.isSolved(quarterTurnRestored)).toBe(true);
   });
 
@@ -51,10 +41,7 @@ describe('cube state transitions', () => {
     const cube = createCubeDefinition(3, ['333']);
     const rotated = cube
       .parseAlgorithm("x y z z' y' x'")
-      .reduce(
-        (state, move) => cube.applyMove(state, move),
-        cube.createSolvedState(),
-      );
+      .reduce((state, move) => cube.applyMove(state, move), cube.createSolvedState());
     expect(cube.isSolved(rotated)).toBe(true);
   });
 
@@ -62,10 +49,7 @@ describe('cube state transitions', () => {
     const cube = createCubeDefinition(3, ['333']);
     const moved = cube
       .parseAlgorithm('R U')
-      .reduce(
-        (state, move) => cube.applyMove(state, move),
-        cube.createSolvedState(),
-      );
+      .reduce((state, move) => cube.applyMove(state, move), cube.createSolvedState());
 
     expect(faceRows(moved.image[1])).toEqual(['UUU', 'UUU', 'FFF']);
   });
@@ -74,10 +58,7 @@ describe('cube state transitions', () => {
     const cube = createCubeDefinition(4, ['444']);
     const moved = cube
       .parseAlgorithm("Rw U Rw' U'")
-      .reduce(
-        (state, move) => cube.applyMove(state, move),
-        cube.createSolvedState(),
-      );
+      .reduce((state, move) => cube.applyMove(state, move), cube.createSolvedState());
     expect(cube.isSolved(moved)).toBe(false);
     const restored = cube
       .parseAlgorithm("U Rw U' Rw'")

@@ -49,22 +49,15 @@ describe('generateTwoByTwoScramble', () => {
 
 describe('TwoByTwoSolver', () => {
   it('returns an empty solve for the solved state', () => {
-    expect(
-      new TwoByTwoSolver().solveIn({ permutation: 0, orientation: 0 }, 0),
-    ).toBe('');
+    expect(new TwoByTwoSolver().solveIn({ permutation: 0, orientation: 0 }, 0)).toBe('');
   });
 
   it('returns null when the requested solve depth is too short', () => {
-    expect(
-      new TwoByTwoSolver().solveIn({ permutation: 1, orientation: 1 }, 0),
-    ).toBeNull();
+    expect(new TwoByTwoSolver().solveIn({ permutation: 1, orientation: 1 }, 0)).toBeNull();
   });
 
   it('generates exactly the requested length', () => {
-    const scramble = new TwoByTwoSolver().generateExactly(
-      { permutation: 0, orientation: 0 },
-      6,
-    );
+    const scramble = new TwoByTwoSolver().generateExactly({ permutation: 0, orientation: 0 }, 6);
 
     expect(scramble.split(/\s+/)).toHaveLength(6);
   });
@@ -87,9 +80,9 @@ describe('TwoByTwoSolver', () => {
   });
 
   it.each([-1, 21] as const)('rejects invalid solve length %s', (length) => {
-    expect(() =>
-      new TwoByTwoSolver().solveIn({ permutation: 0, orientation: 0 }, length),
-    ).toThrow(RangeError);
+    expect(() => new TwoByTwoSolver().solveIn({ permutation: 0, orientation: 0 }, length)).toThrow(
+      RangeError,
+    );
   });
 
   it('rejects invalid random source coordinates', () => {

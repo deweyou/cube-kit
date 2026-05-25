@@ -16,8 +16,7 @@ export interface SkewbMove {
 const SKEWB_MOVE_PATTERN = /^([RULB])('?)$/;
 const SKEWB_AXIS_SET = new Set<string>(SKEWB_AXES);
 
-const isSkewbAxis = (face: string): face is SkewbAxis =>
-  SKEWB_AXIS_SET.has(face);
+const isSkewbAxis = (face: string): face is SkewbAxis => SKEWB_AXIS_SET.has(face);
 
 export const parseSkewbMove = (token: string): SkewbMove => {
   const match = token.match(SKEWB_MOVE_PATTERN);
@@ -34,6 +33,5 @@ export const parseSkewbMove = (token: string): SkewbMove => {
   };
 };
 
-export const parseSkewbAlgorithm = (
-  algorithm: string,
-): readonly SkewbMove[] => splitAlgorithm(algorithm).map(parseSkewbMove);
+export const parseSkewbAlgorithm = (algorithm: string): readonly SkewbMove[] =>
+  splitAlgorithm(algorithm).map(parseSkewbMove);

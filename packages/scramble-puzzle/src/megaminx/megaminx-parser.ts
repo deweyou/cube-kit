@@ -35,11 +35,10 @@ export interface MegaminxBigTurnMove {
 export type MegaminxMove = MegaminxFaceMove | MegaminxBigTurnMove;
 
 const FACE_MOVE_PATTERN = /^(U|BL|BR|R|F|L|D|DR|DBR|B|DBL|DL)(2'?|')?$/;
-const BIG_TURN_PATTERN = /^([RD])(\+\+?|\-\-?)$/;
+const BIG_TURN_PATTERN = /^([RD])(\+\+?|--?)$/;
 const MEGAMINX_FACE_SET = new Set<string>(MEGAMINX_FACES);
 
-const isMegaminxFace = (face: string): face is MegaminxFace =>
-  MEGAMINX_FACE_SET.has(face);
+const isMegaminxFace = (face: string): face is MegaminxFace => MEGAMINX_FACE_SET.has(face);
 
 const parseFaceAmount = (suffix: string | undefined): MegaminxMoveAmount => {
   if (suffix === '2') return 2;
@@ -87,6 +86,5 @@ export const parseMegaminxMove = (token: string): MegaminxMove => {
   };
 };
 
-export const parseMegaminxAlgorithm = (
-  algorithm: string,
-): readonly MegaminxMove[] => splitAlgorithm(algorithm).map(parseMegaminxMove);
+export const parseMegaminxAlgorithm = (algorithm: string): readonly MegaminxMove[] =>
+  splitAlgorithm(algorithm).map(parseMegaminxMove);

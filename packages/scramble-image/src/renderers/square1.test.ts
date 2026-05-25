@@ -8,17 +8,13 @@ import {
 import { renderScrambleImage } from '../render.js';
 import { renderSquareOneState } from './square1.js';
 
-const applySquareOneAlgorithm = (
-  state: SquareOneState,
-  algorithm: string,
-): SquareOneState =>
+const applySquareOneAlgorithm = (state: SquareOneState, algorithm: string): SquareOneState =>
   parseSquareOneAlgorithm(algorithm).reduce(
     (currentState, move) => applySquareOneMove(currentState, move),
     state,
   );
 
-const countPathElements = (svg: string): number =>
-  svg.match(/<path\b/g)?.length ?? 0;
+const countPathElements = (svg: string): number => svg.match(/<path\b/g)?.length ?? 0;
 
 describe('renderSquareOneState', () => {
   it('renders solved Square-1 state SVG', () => {
@@ -63,9 +59,7 @@ describe('renderSquareOneState', () => {
   });
 
   it('renders Square-1 scrambles through the public image renderer', () => {
-    expect(renderScrambleImage('sq1', '(3,0) /')).toContain(
-      'viewBox="0 0 122 244"',
-    );
+    expect(renderScrambleImage('sq1', '(3,0) /')).toContain('viewBox="0 0 122 244"');
   });
 
   it('coalesces Square-1 corners split across the face boundary', () => {

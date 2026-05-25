@@ -18,9 +18,7 @@ describe('generateClockScramble', () => {
   it('generates TNoodle-shaped Clock scrambles', () => {
     const random = cyclingRandom();
 
-    expect(generateClockScramble({ random })).toMatch(
-      /^UR\d[+-] DR\d[+-] DL\d[+-] UL\d[+-]/,
-    );
+    expect(generateClockScramble({ random })).toMatch(/^UR\d[+-] DR\d[+-] DL\d[+-] UL\d[+-]/);
   });
 
   it('emits 9 moves, y2, and 5 moves', () => {
@@ -34,8 +32,6 @@ describe('generateClockScramble', () => {
   it('maps TNoodle random turn values to signed absolute notation', () => {
     const scramble = generateClockScramble({ random: cyclingRandom() });
 
-    expect(scramble).toBe(
-      'UR5- DR4- DL3- UL2- U1- R0+ D1+ L2+ ALL3+ y2 U4+ R5+ D6+ L5- ALL4-',
-    );
+    expect(scramble).toBe('UR5- DR4- DL3- UL2- U1- R0+ D1+ L2+ ALL3+ y2 U4+ R5+ D6+ L5- ALL4-');
   });
 });

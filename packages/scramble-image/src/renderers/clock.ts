@@ -56,15 +56,11 @@ const backColors: SideColors = {
 
 const translate = (x: number, y: number): string => `translate(${x} ${y})`;
 
-const clockCenter = (
-  sideIndex: 0 | 1,
-  clockIndex: number,
-): readonly [number, number] => {
+const clockCenter = (sideIndex: 0 | 1, clockIndex: number): readonly [number, number] => {
   const sideCenterX = (sideIndex * 2 + 1) * (RADIUS + GAP);
   const sideCenterY = RADIUS + GAP;
   const x = sideCenterX + 2 * ((clockIndex % 3) - 1) * CLOCK_OUTER_RADIUS;
-  const y =
-    sideCenterY + 2 * (Math.floor(clockIndex / 3) - 1) * CLOCK_OUTER_RADIUS;
+  const y = sideCenterY + 2 * (Math.floor(clockIndex / 3) - 1) * CLOCK_OUTER_RADIUS;
 
   return [x, y];
 };
@@ -76,27 +72,18 @@ const handPath = (): string => {
   return `M 0 0 L ${x} ${y} L 0 ${-ARROW_HEIGHT} L ${-x} ${y} Z`;
 };
 
-const sideColorFor = (
-  sideIndex: 0 | 1,
-  rightSideUp: boolean,
-): SideColors => {
+const sideColorFor = (sideIndex: 0 | 1, rightSideUp: boolean): SideColors => {
   if (sideIndex === 0) return rightSideUp ? frontColors : backColors;
   return rightSideUp ? backColors : frontColors;
 };
 
-const handColorForClock = (
-  clockIndex: number,
-  rightSideUp: boolean,
-): SideColors => {
-  const isBackSide = (clockIndex < 9) !== rightSideUp;
+const handColorForClock = (clockIndex: number, rightSideUp: boolean): SideColors => {
+  const isBackSide = clockIndex < 9 !== rightSideUp;
 
   return isBackSide ? backColors : frontColors;
 };
 
-const drawSideBackground = (
-  sideIndex: 0 | 1,
-  colors: SideColors,
-): SvgNode[] => {
+const drawSideBackground = (sideIndex: 0 | 1, colors: SideColors): SvgNode[] => {
   const centerX = (sideIndex * 2 + 1) * (RADIUS + GAP);
   const centerY = RADIUS + GAP;
   const nodes: SvgNode[] = [];
@@ -161,35 +148,28 @@ const drawSideBackground = (
   return nodes;
 };
 
-const drawHand = (
-  clockIndex: number,
-  position: number,
-  rightSideUp: boolean,
-): SvgNode => {
+const drawHand = (clockIndex: number, position: number, rightSideUp: boolean): SvgNode => {
   const sideIndex = clockIndex < 9 ? 0 : 1;
   const [x, y] = clockCenter(sideIndex, clockIndex % 9);
   const colors = handColorForClock(clockIndex, rightSideUp);
 
-  return group(
-    { transform: `${translate(x, y)} rotate(${position * 30} 0 0)` },
-    [
-      path({
-        d: handPath(),
-        fill: colors.hand,
-        stroke: colors.hand,
-        'stroke-width': 2,
-        'stroke-linejoin': 'round',
-      }),
-      circle({
-        cx: 0,
-        cy: 0,
-        r: ARROW_RADIUS,
-        fill: colors.hand,
-        stroke: colors.hand,
-        'stroke-width': 2,
-      }),
-    ],
-  );
+  return group({ transform: `${translate(x, y)} rotate(${position * 30} 0 0)` }, [
+    path({
+      d: handPath(),
+      fill: colors.hand,
+      stroke: colors.hand,
+      'stroke-width': 2,
+      'stroke-linejoin': 'round',
+    }),
+    circle({
+      cx: 0,
+      cy: 0,
+      r: ARROW_RADIUS,
+      fill: colors.hand,
+      stroke: colors.hand,
+      'stroke-width': 2,
+    }),
+  ]);
 };
 
 const drawPins = (rightSideUp: boolean): SvgNode[] => {
@@ -228,9 +208,7 @@ export const renderClockState = (state: ClockState): string => {
   const nodes: SvgNode[] = [
     ...drawSideBackground(0, sideColorFor(0, state.rightSideUp)),
     ...drawSideBackground(1, sideColorFor(1, state.rightSideUp)),
-    ...state.positions.map((position, index) =>
-      drawHand(index, position, state.rightSideUp),
-    ),
+    ...state.positions.map((position, index) => drawHand(index, position, state.rightSideUp)),
     ...drawPins(state.rightSideUp),
   ];
 

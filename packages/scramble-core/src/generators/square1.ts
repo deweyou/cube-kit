@@ -6,11 +6,7 @@ import {
 } from '@cubekit/scramble-puzzle';
 import type { RandomSource } from '../random-source.js';
 import { FullCube } from '../solvers/sq12phase/full-cube.js';
-import {
-  INVERSE_SOLUTION,
-  Search,
-  solveSquareOneStateIn,
-} from '../solvers/sq12phase/search.js';
+import { INVERSE_SOLUTION, Search, solveSquareOneStateIn } from '../solvers/sq12phase/search.js';
 
 const ERROR_PREFIX = '@cubekit/scramble-core';
 const WCA_MIN_SCRAMBLE_DISTANCE = 11;
@@ -20,9 +16,7 @@ export interface SquareOneScrambleOptions {
   random: RandomSource;
 }
 
-export const generateSquareOneScramble = ({
-  random,
-}: SquareOneScrambleOptions): string => {
+export const generateSquareOneScramble = ({ random }: SquareOneScrambleOptions): string => {
   const search = new Search();
 
   for (let attempt = 0; attempt < MAX_WCA_ATTEMPTS; attempt += 1) {
@@ -32,8 +26,7 @@ export const generateSquareOneScramble = ({
 
     const scramble = solution.trim();
     const state = applyScrambleToSolvedState(scramble);
-    const isTooCloseToSolved =
-      solveSquareOneStateIn(state, WCA_MIN_SCRAMBLE_DISTANCE - 1) !== null;
+    const isTooCloseToSolved = solveSquareOneStateIn(state, WCA_MIN_SCRAMBLE_DISTANCE - 1) !== null;
 
     if (isTooCloseToSolved) continue;
 

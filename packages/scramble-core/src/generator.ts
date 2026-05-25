@@ -46,10 +46,17 @@ export interface DefaultScrambleGeneratorOptions {
 
 export interface ScrambleGenerator {
   generate(eventId: WcaEventId, options?: GenerateOptions): Promise<ScrambleResult>;
-  generateBatch(eventId: WcaEventId, count: number, options?: GenerateOptions): Promise<readonly ScrambleResult[]>;
+  generateBatch(
+    eventId: WcaEventId,
+    count: number,
+    options?: GenerateOptions,
+  ): Promise<readonly ScrambleResult[]>;
 }
 
-export const createScrambleGenerator = ({ random, generators }: ScrambleGeneratorOptions): ScrambleGenerator => {
+export const createScrambleGenerator = ({
+  random,
+  generators,
+}: ScrambleGeneratorOptions): ScrambleGenerator => {
   const api: ScrambleGenerator = {
     async generate(eventId, options = {}) {
       const generator = generators[eventId];
@@ -79,18 +86,15 @@ const DEFAULT_GENERATORS = {
     result('666', generateCubeRandomTurnScramble({ random, size: 6, length: 80 })),
   777: ({ random }) =>
     result('777', generateCubeRandomTurnScramble({ random, size: 7, length: 100 })),
-  '333bld': ({ random }) =>
-    result('333bld', generateThreeByThreeNoInspectionScramble({ random })),
-  '333fm': ({ random }) =>
-    result('333fm', generateThreeByThreeFewestMovesScramble({ random })),
+  '333bld': ({ random }) => result('333bld', generateThreeByThreeNoInspectionScramble({ random })),
+  '333fm': ({ random }) => result('333fm', generateThreeByThreeFewestMovesScramble({ random })),
   '333oh': ({ random }) => result('333oh', generateThreeByThreeScramble({ random })),
   clock: ({ random }) => result('clock', generateClockScramble({ random })),
   minx: ({ random }) => result('minx', generateMegaminxScramble({ random })),
   pyram: ({ random }) => result('pyram', generatePyraminxScramble({ random })),
   skewb: ({ random }) => result('skewb', generateSkewbScramble({ random })),
   sq1: ({ random }) => result('sq1', generateSquareOneScramble({ random })),
-  '444bld': ({ random }) =>
-    result('444bld', generateFourByFourNoInspectionScramble({ random })),
+  '444bld': ({ random }) => result('444bld', generateFourByFourNoInspectionScramble({ random })),
   '555bld': ({ random }) => result('555bld', generateFiveByFiveNoInspectionScramble(random)),
   '333mbld': ({ random, multiBlindCubeCount }) => {
     if (multiBlindCubeCount === undefined) {
@@ -151,11 +155,19 @@ const chooseFiveByFiveOrientation = (random: RandomSource): readonly string[] =>
   return orientation;
 };
 
-const trimRedundantTail = (scramble: string, firstOrientationMove: string | undefined): string[] => {
+const trimRedundantTail = (
+  scramble: string,
+  firstOrientationMove: string | undefined,
+): string[] => {
   const moves = scramble.trim().length === 0 ? [] : scramble.trim().split(/\s+/);
-  const orientationAxis = firstOrientationMove === undefined ? undefined : axisForMove(firstOrientationMove);
+  const orientationAxis =
+    firstOrientationMove === undefined ? undefined : axisForMove(firstOrientationMove);
 
-  while (moves.length > 0 && orientationAxis !== undefined && axisForMove(moves.at(-1)!) === orientationAxis) {
+  while (
+    moves.length > 0 &&
+    orientationAxis !== undefined &&
+    axisForMove(moves.at(-1)!) === orientationAxis
+  ) {
     moves.pop();
   }
 

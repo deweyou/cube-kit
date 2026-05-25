@@ -88,9 +88,7 @@ describe('generateCubeRandomTurnScramble', () => {
     const moves = parseCubeAlgorithm(scramble);
 
     for (let index = 1; index < moves.length; index += 1) {
-      expect(axisByFace.get(moves[index]?.face)).not.toBe(
-        axisByFace.get(moves[index - 1]?.face),
-      );
+      expect(axisByFace.get(moves[index]?.face)).not.toBe(axisByFace.get(moves[index - 1]?.face));
     }
   });
 
@@ -123,20 +121,15 @@ describe('generateCubeRandomTurnScramble', () => {
     expect(sevenBySeven).toMatch(/\b3[RUFLDB]w/);
   });
 
-  it.each([4, 8, 5.5, Number.MAX_SAFE_INTEGER + 1])(
-    'rejects invalid cube size %s',
-    (size) => {
-      expect(() =>
-        generateCubeRandomTurnScramble({
-          size,
-          length: 60,
-          random: cyclingRandom(),
-        }),
-      ).toThrow(
-        '@cubekit/scramble-core: cube random-turn size must be 5, 6, or 7',
-      );
-    },
-  );
+  it.each([4, 8, 5.5, Number.MAX_SAFE_INTEGER + 1])('rejects invalid cube size %s', (size) => {
+    expect(() =>
+      generateCubeRandomTurnScramble({
+        size,
+        length: 60,
+        random: cyclingRandom(),
+      }),
+    ).toThrow('@cubekit/scramble-core: cube random-turn size must be 5, 6, or 7');
+  });
 
   it.each([-1, 1.5, Number.MAX_SAFE_INTEGER + 1])(
     'rejects invalid scramble length %s',

@@ -6,11 +6,7 @@
   },
   "cacheRoot": "/Users/bytedance/.deweyou/agents/assets",
   "assets": {
-    "skills": [
-      "git-delivery",
-      "repo-memory",
-      "spec-driven-coding"
-    ],
+    "skills": ["git-delivery", "repo-memory", "spec-driven-coding"],
     "rules": []
   },
   "assetSnapshot": {
@@ -31,10 +27,7 @@
     "rules": {}
   },
   "scope": "project",
-  "tools": [
-    "codex",
-    "claude"
-  ],
+  "tools": ["codex", "claude"],
   "ruleWiring": "reference",
   "initializedAt": "2026-05-25T15:25:36.067Z"
 }

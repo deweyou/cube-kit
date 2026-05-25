@@ -6,7 +6,7 @@ type AlgorithmApplier<State, Move> = Pick<
   'applyMove' | 'parseAlgorithm'
 >;
 
-export function splitAlgorithm(algorithm: string): readonly string[] {
+export const splitAlgorithm = (algorithm: string): readonly string[] => {
   const trimmedAlgorithm = algorithm.trim();
 
   if (trimmedAlgorithm.length === 0) {
@@ -14,21 +14,18 @@ export function splitAlgorithm(algorithm: string): readonly string[] {
   }
 
   return trimmedAlgorithm.split(/\s+/u);
-}
+};
 
-export function applyAlgorithm<State, Move>(
+export const applyAlgorithm = <State, Move>(
   definition: AlgorithmApplier<State, Move>,
   state: State,
   algorithm: string,
-): State {
+): State => {
   try {
     const moves = definition.parseAlgorithm(algorithm);
 
-    return moves.reduce(
-      (nextState, move) => definition.applyMove(nextState, move),
-      state,
-    );
+    return moves.reduce((nextState, move) => definition.applyMove(nextState, move), state);
   } catch (err) {
     throw new InvalidScrambleError(algorithm, err);
   }
-}
+};
