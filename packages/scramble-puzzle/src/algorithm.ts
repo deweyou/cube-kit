@@ -28,11 +28,7 @@ export function applyAlgorithm<State, Move>(
       (nextState, move) => definition.applyMove(nextState, move),
       state,
     );
-  } catch (error) {
-    if (error instanceof InvalidScrambleError) {
-      throw error;
-    }
-
-    throw new InvalidScrambleError(algorithm, error);
+  } catch (err) {
+    throw new InvalidScrambleError(algorithm, err);
   }
 }
