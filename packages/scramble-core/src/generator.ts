@@ -14,7 +14,9 @@ export interface ScrambleResult {
   scramble: string;
 }
 
-export type EventScrambleGenerator = (options: GenerateOptions & { random: RandomSource }) => ScrambleResult;
+export type EventScrambleGenerator = (
+  options: GenerateOptions & { random: RandomSource },
+) => ScrambleResult | Promise<ScrambleResult>;
 
 export interface ScrambleGeneratorOptions {
   random: RandomSource;
@@ -31,7 +33,7 @@ export const createScrambleGenerator = ({ random, generators }: ScrambleGenerato
     async generate(eventId, options = {}) {
       const generator = generators[eventId];
       if (!generator) throw new Error(`${ERROR_PREFIX}: event '${eventId}' has no generator`);
-      return generator({ ...options, random: options.random ?? random });
+      return await generator({ ...options, random: options.random ?? random });
     },
     async generateBatch(eventId, count, options = {}) {
       return generateUniqueScrambleBatch(count, () => api.generate(eventId, options));
