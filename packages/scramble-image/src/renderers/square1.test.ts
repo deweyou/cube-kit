@@ -17,6 +17,9 @@ const applySquareOneAlgorithm = (
     state,
   );
 
+const countPathElements = (svg: string): number =>
+  svg.match(/<path\b/g)?.length ?? 0;
+
 describe('renderSquareOneState', () => {
   it('renders solved Square-1 state SVG', () => {
     expect(renderSquareOneState(createSolvedSquareOneState())).toContain('<svg');
@@ -63,5 +66,14 @@ describe('renderSquareOneState', () => {
     expect(renderScrambleImage('sq1', '(3,0) /')).toContain(
       'viewBox="0 0 122 244"',
     );
+  });
+
+  it('coalesces Square-1 corners split across the face boundary', () => {
+    const solved = renderScrambleImage('sq1', '');
+    const wrapCorner = renderScrambleImage('sq1', '(-1,0)');
+
+    expect(countPathElements(solved)).toBe(40);
+    expect(countPathElements(wrapCorner)).toBe(countPathElements(solved));
+    expect(wrapCorner).not.toBe(solved);
   });
 });

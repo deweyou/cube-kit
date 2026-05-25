@@ -216,9 +216,14 @@ const drawFace = (
   colors: Record<SquareOneFace, HexColor>,
 ): SvgNode[] => {
   const nodes: SvgNode[] = [];
-  let angleDegrees = initialAngleDegrees;
+  const hasWrappedCorner =
+    pieces[0] !== undefined &&
+    pieces[11] === pieces[0] &&
+    isCornerPiece(pieces[0]);
+  let angleDegrees = initialAngleDegrees + (hasWrappedCorner ? 30 : 0);
+  const firstPieceIndex = hasWrappedCorner ? 1 : 0;
 
-  for (let pieceIndex = 0; pieceIndex < 12; pieceIndex += 1) {
+  for (let pieceIndex = firstPieceIndex; pieceIndex < 12; pieceIndex += 1) {
     if (pieceIndex < 11 && pieces[pieceIndex] === pieces[pieceIndex + 1]) {
       pieceIndex += 1;
     }
