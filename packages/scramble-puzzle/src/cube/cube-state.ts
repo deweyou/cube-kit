@@ -16,11 +16,33 @@ export interface CubeState {
 
 const faceIndex = (face: CubeFace): number => CUBE_FACES.indexOf(face);
 
+const isCubeFace = (face: unknown): face is CubeFace =>
+  typeof face === 'string' && CUBE_FACES.includes(face as CubeFace);
+
+const isMoveAmount = (amount: unknown): amount is CubeMove['amount'] =>
+  amount === 1 || amount === 2 || amount === 3;
+
 const oppositeFace = (face: CubeFace): CubeFace =>
   CUBE_FACES[(faceIndex(face) + 3) % CUBE_FACES.length];
 
 const cloneCubeImage = (image: CubeImage): MutableCubeImage =>
   image.map((face) => face.map((row) => [...row]));
+
+const freezeCubeImage = (image: MutableCubeImage): CubeImage => {
+  const frozenFaces = image.map((face) => {
+    const frozenRows = face.map((row) => Object.freeze([...row]));
+
+    return Object.freeze(frozenRows);
+  });
+
+  return Object.freeze(frozenFaces);
+};
+
+const createCubeState = (size: number, image: MutableCubeImage): CubeState =>
+  Object.freeze({
+    size,
+    image: freezeCubeImage(image),
+  });
 
 const swap = (
   image: MutableCubeImage,
@@ -143,6 +165,8 @@ const moveSuffix = (amount: CubeMove['amount']): string => {
   return '';
 };
 
+const MALFORMED_MOVE = '<malformed>';
+
 const rotationName = (face: CubeFace): string => {
   if (face === 'R') return 'x';
   if (face === 'U') return 'y';
@@ -155,27 +179,40 @@ const moveToString = (move: CubeMove): string => {
     return `${rotationName(move.face)}${moveSuffix(move.amount)}`;
   }
   if (move.width === 1) return `${move.face}${moveSuffix(move.amount)}`;
+  if (move.width === 2) return `${move.face}w${moveSuffix(move.amount)}`;
   return `${move.width}${move.face}w${moveSuffix(move.amount)}`;
 };
 
-const validateMove = (state: CubeState, move: CubeMove): void => {
+const validateMove = (state: CubeState, move: CubeMove): CubeMove => {
+  if (
+    typeof move !== 'object' ||
+    move === null ||
+    !isCubeFace((move as Partial<CubeMove>).face) ||
+    !isMoveAmount((move as Partial<CubeMove>).amount) ||
+    typeof (move as Partial<CubeMove>).isRotation !== 'boolean'
+  ) {
+    throw new InvalidMoveError(MALFORMED_MOVE, 'cube');
+  }
+
   if (move.isRotation) {
     if (
       move.width !== Number.POSITIVE_INFINITY ||
       (move.face !== 'R' && move.face !== 'U' && move.face !== 'F')
     ) {
-      throw new InvalidMoveError(moveToString(move), 'cube');
+      throw new InvalidMoveError(MALFORMED_MOVE, 'cube');
     }
-    return;
+    return move;
   }
 
-  if (
-    !Number.isSafeInteger(move.width) ||
-    move.width < 1 ||
-    move.width > state.size
-  ) {
+  if (!Number.isSafeInteger(move.width)) {
+    throw new InvalidMoveError(MALFORMED_MOVE, 'cube');
+  }
+
+  if (move.width < 1 || move.width > state.size) {
     throw new InvalidMoveError(moveToString(move), 'cube');
   }
+
+  return move;
 };
 
 export const createSolvedCubeState = (size: number): CubeState => {
@@ -183,30 +220,27 @@ export const createSolvedCubeState = (size: number): CubeState => {
     throw new RangeError(`cube size must be a positive integer: ${size}`);
   }
 
-  return {
+  return createCubeState(
     size,
-    image: CUBE_FACES.map((face) =>
+    CUBE_FACES.map((face) =>
       Array.from({ length: size }, () => Array<CubeFacelet>(size).fill(face)),
     ),
-  };
+  );
 };
 
 export const applyCubeMove = (state: CubeState, move: CubeMove): CubeState => {
-  validateMove(state, move);
+  const validMove = validateMove(state, move);
 
   const nextImage = cloneCubeImage(state.image);
-  const width = move.isRotation ? state.size : move.width;
+  const width = validMove.isRotation ? state.size : validMove.width;
 
-  for (let turn = 0; turn < move.amount; turn += 1) {
+  for (let turn = 0; turn < validMove.amount; turn += 1) {
     for (let sliceIndex = 0; sliceIndex < width; sliceIndex += 1) {
-      slice(move.face, sliceIndex, nextImage);
+      slice(validMove.face, sliceIndex, nextImage);
     }
   }
 
-  return {
-    size: state.size,
-    image: nextImage,
-  };
+  return createCubeState(state.size, nextImage);
 };
 
 export const areCubeStatesEqual = (a: CubeState, b: CubeState): boolean => {
