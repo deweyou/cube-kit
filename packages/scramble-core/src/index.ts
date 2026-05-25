@@ -5,6 +5,10 @@ export { generateCubeRandomTurnScramble } from './generators/cube-random-turns.j
 export type { CubeRandomTurnOptions } from './generators/cube-random-turns.js';
 export { generateMegaminxScramble } from './generators/megaminx.js';
 export type { MegaminxScrambleOptions } from './generators/megaminx.js';
+export { generateTwoByTwoScramble } from './generators/two-by-two.js';
+export type { TwoByTwoScrambleOptions } from './generators/two-by-two.js';
+export { TwoByTwoSolver } from './solvers/two-by-two-solver.js';
+export type { TwoByTwoState } from './solvers/two-by-two-solver.js';
 export type {
   EventScrambleGenerator,
   GenerateOptions,
