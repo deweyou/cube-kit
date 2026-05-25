@@ -1,5 +1,10 @@
-import { createCubeDefinition, type WcaEventId } from '@cubekit/scramble-puzzle';
+import {
+  createCubeDefinition,
+  createSquareOneDefinition,
+  type WcaEventId,
+} from '@cubekit/scramble-puzzle';
 import { renderCubeNet } from './renderers/cube-net.js';
+import { renderSquareOneState } from './renderers/square1.js';
 
 const CUBE_SIZE_BY_EVENT = {
   '222': 2,
@@ -17,6 +22,13 @@ const CUBE_SIZE_BY_EVENT = {
 } as Partial<Record<WcaEventId, number>>;
 
 export const renderScrambleImage = (eventId: WcaEventId, scramble: string): string => {
+  if (eventId === 'sq1') {
+    const squareOne = createSquareOneDefinition();
+    const state = squareOne.applyAlgorithm(squareOne.createSolvedState(), scramble);
+
+    return renderSquareOneState(state);
+  }
+
   const size = CUBE_SIZE_BY_EVENT[eventId];
 
   if (!size) throw new Error(`@cubekit/scramble-image: event '${eventId}' is not renderable yet`);
