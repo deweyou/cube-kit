@@ -5,6 +5,12 @@ export { createCubeDefinition } from './cube/cube-definition.js';
 export { parseCubeAlgorithm, parseCubeMove } from './cube/cube-parser.js';
 export { createClockDefinition } from './clock/clock-definition.js';
 export { parseClockAlgorithm, parseClockMove } from './clock/clock-parser.js';
+export { createMegaminxDefinition } from './megaminx/megaminx-definition.js';
+export {
+  MEGAMINX_FACES,
+  parseMegaminxAlgorithm,
+  parseMegaminxMove,
+} from './megaminx/megaminx-parser.js';
 export {
   applyCubeMove,
   areCubeStatesEqual,
@@ -15,6 +21,11 @@ export {
   areClockStatesEqual,
   createSolvedClockState,
 } from './clock/clock-state.js';
+export {
+  applyMegaminxMove,
+  areMegaminxStatesEqual,
+  createSolvedMegaminxState,
+} from './megaminx/megaminx-state.js';
 export type {
   ClockDirection,
   ClockMove,
@@ -23,6 +34,20 @@ export type {
   ClockTurnName,
 } from './clock/clock-parser.js';
 export type { ClockPositions, ClockState } from './clock/clock-state.js';
+export type {
+  MegaminxBigTurnMove,
+  MegaminxBigTurnName,
+  MegaminxFace,
+  MegaminxFaceMove,
+  MegaminxMove,
+  MegaminxMoveAmount,
+} from './megaminx/megaminx-parser.js';
+export type {
+  MegaminxFacelet,
+  MegaminxFaceState,
+  MegaminxImage,
+  MegaminxState,
+} from './megaminx/megaminx-state.js';
 export type {
   CubeFace,
   CubeLayerMove,

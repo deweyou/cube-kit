@@ -3,6 +3,8 @@ export { DEFAULT_CUBE_COLORS } from './color.js';
 export { renderScrambleImage } from './render.js';
 export { renderClockState } from './renderers/clock.js';
 export { renderCubeNet } from './renderers/cube-net.js';
+export { renderMegaminxState } from './renderers/megaminx.js';
+export type { MegaminxColorScheme } from './renderers/megaminx.js';
 export { createSvgDocument } from './svg/svg-document.js';
 export { circle, group, path, rect, text } from './svg/svg-elements.js';
 export type { SvgNode } from './svg/svg-elements.js';
