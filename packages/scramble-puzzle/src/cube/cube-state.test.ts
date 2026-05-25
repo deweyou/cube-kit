@@ -9,6 +9,9 @@ import {
 
 const asCubeMove = (move: unknown): CubeMove => move as CubeMove;
 
+const faceRows = (face: readonly (readonly string[])[]): readonly string[] =>
+  face.map((row) => row.join(''));
+
 describe('cube state transitions', () => {
   it('creates solved states for NxN cubes', () => {
     const cube = createCubeDefinition(3, ['333']);
@@ -53,6 +56,18 @@ describe('cube state transitions', () => {
         cube.createSolvedState(),
       );
     expect(cube.isSolved(rotated)).toBe(true);
+  });
+
+  it('rotates odd-sized faces with TNoodle integer loop bounds', () => {
+    const cube = createCubeDefinition(3, ['333']);
+    const moved = cube
+      .parseAlgorithm('R U')
+      .reduce(
+        (state, move) => cube.applyMove(state, move),
+        cube.createSolvedState(),
+      );
+
+    expect(faceRows(moved.image[1])).toEqual(['UUU', 'UUU', 'FFF']);
   });
 
   it('wide moves change a 4x4 state and inverse back to solved', () => {

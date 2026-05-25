@@ -86,9 +86,11 @@ const rotateFace = (
 ): void => {
   const size = image[0].length;
   const facePosition = faceIndex(face);
+  const rowLimit = Math.floor((size + 1) / 2);
+  const columnLimit = Math.floor(size / 2);
 
-  for (let row = 0; row < (size + 1) / 2; row += 1) {
-    for (let column = 0; column < size / 2; column += 1) {
+  for (let row = 0; row < rowLimit; row += 1) {
+    for (let column = 0; column < columnLimit; column += 1) {
       const cycle = [
         [facePosition, row, column],
         [facePosition, column, size - 1 - row],
