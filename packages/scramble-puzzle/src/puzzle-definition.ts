@@ -12,5 +12,6 @@ export interface PuzzleDefinition<State, Move> {
 }
 
 export interface AppliedPuzzleState<State> {
+  readonly puzzleId: string;
   readonly state: State;
 }
