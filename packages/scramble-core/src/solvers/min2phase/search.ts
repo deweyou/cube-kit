@@ -1,18 +1,9 @@
 import { solve } from './engine.js';
 import { initCoordCube } from './coord-cube.js';
 import { CubieCube } from './cubie-cube.js';
-import {
-  INVERSE_SOLUTION,
-  OPTIMAL_SOLUTION,
-  invertAlgorithm,
-} from './util.js';
+import { INVERSE_SOLUTION, OPTIMAL_SOLUTION, invertAlgorithm } from './util.js';
 
-export {
-  APPEND_LENGTH,
-  INVERSE_SOLUTION,
-  OPTIMAL_SOLUTION,
-  USE_SEPARATOR,
-} from './util.js';
+export { APPEND_LENGTH, INVERSE_SOLUTION, OPTIMAL_SOLUTION, USE_SEPARATOR } from './util.js';
 
 export class Search {
   static init(): void {
@@ -48,8 +39,6 @@ export class Search {
       return 'Error 7';
     }
 
-    return (verbose & INVERSE_SOLUTION) === 0
-      ? invertAlgorithm(solution)
-      : solution;
+    return (verbose & INVERSE_SOLUTION) === 0 ? invertAlgorithm(solution) : solution;
   }
 }

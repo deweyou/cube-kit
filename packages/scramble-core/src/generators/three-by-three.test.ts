@@ -27,26 +27,19 @@ describe('3x3 WCA generators', () => {
     expect(scramble).toMatch(/[xyz]|Rw|Fw|Uw/);
   });
 
-  it(
-    'does not collide between no-inspection scramble and orientation axes',
-    () => {
-      for (let seed = 0; seed < 40; seed += 1) {
-        const scramble = generateThreeByThreeNoInspectionScramble({
-          random: createSeededRandom(0x333b1d + seed),
-        });
-        const tokens = splitMoves(scramble);
-        const orientationStart = tokens.findIndex((move) => move.includes('w'));
-        const lastScrambleMove = tokens[orientationStart - 1];
-        const firstOrientationMove = tokens[orientationStart];
+  it('does not collide between no-inspection scramble and orientation axes', () => {
+    for (let seed = 0; seed < 40; seed += 1) {
+      const scramble = generateThreeByThreeNoInspectionScramble({
+        random: createSeededRandom(0x333b1d + seed),
+      });
+      const tokens = splitMoves(scramble);
+      const orientationStart = tokens.findIndex((move) => move.includes('w'));
+      const lastScrambleMove = tokens[orientationStart - 1];
+      const firstOrientationMove = tokens[orientationStart];
 
-        expect(
-          hasSameAxis(lastScrambleMove, firstOrientationMove),
-          scramble,
-        ).toBe(false);
-      }
-    },
-    10_000,
-  );
+      expect(hasSameAxis(lastScrambleMove, firstOrientationMove), scramble).toBe(false);
+    }
+  }, 10_000);
 
   it('generates an FMC scramble with the TNoodle prefix', () => {
     const scramble = generateThreeByThreeFewestMovesScramble({
@@ -56,22 +49,18 @@ describe('3x3 WCA generators', () => {
     expect(scramble.startsWith("R' U' F ")).toBe(true);
   });
 
-  it(
-    'does not collide between FMC padding and inner scramble axes',
-    () => {
-      for (let seed = 0; seed < 40; seed += 1) {
-        const scramble = generateThreeByThreeFewestMovesScramble({
-          random: createSeededRandom(0x333f + seed),
-        });
-        const tokens = splitMoves(scramble);
-        const innerMoves = tokens.slice(3, -3);
+  it('does not collide between FMC padding and inner scramble axes', () => {
+    for (let seed = 0; seed < 40; seed += 1) {
+      const scramble = generateThreeByThreeFewestMovesScramble({
+        random: createSeededRandom(0x333f + seed),
+      });
+      const tokens = splitMoves(scramble);
+      const innerMoves = tokens.slice(3, -3);
 
-        expect(hasSameAxis('F', innerMoves[0]), scramble).toBe(false);
-        expect(hasSameAxis(innerMoves.at(-1), "R'"), scramble).toBe(false);
-      }
-    },
-    10_000,
-  );
+      expect(hasSameAxis('F', innerMoves[0]), scramble).toBe(false);
+      expect(hasSameAxis(innerMoves.at(-1), "R'"), scramble).toBe(false);
+    }
+  }, 10_000);
 
   it('generates one no-inspection-style line per multi-blind cube', () => {
     const scramble = generateMultiBlindScramble({
@@ -103,9 +92,7 @@ describe('3x3 WCA generators', () => {
     const scramble = generate();
 
     expect(() => cube.parseAlgorithm(scramble)).not.toThrow();
-    expect(() =>
-      cube.applyAlgorithm(cube.createSolvedState(), scramble),
-    ).not.toThrow();
+    expect(() => cube.applyAlgorithm(cube.createSolvedState(), scramble)).not.toThrow();
   });
 
   it('is deterministic for deterministic random sources', () => {
@@ -136,13 +123,7 @@ describe('3x3 WCA generators', () => {
 
   it('randomCube resolves repeated random edge-parity mismatches without retrying forever', () => {
     const facelets = randomCube(createParityMismatchRandom());
-    const solution = new SearchWCA().solution(
-      facelets,
-      21,
-      100_000,
-      0,
-      INVERSE_SOLUTION,
-    );
+    const solution = new SearchWCA().solution(facelets, 21, 100_000, 0, INVERSE_SOLUTION);
 
     expect(facelets).toHaveLength(54);
     expect(solution).not.toMatch(/^Error/);
@@ -164,13 +145,7 @@ describe('3x3 WCA generators', () => {
       null,
       createCornerParityMismatchRandom(),
     );
-    const solution = new SearchWCA().solution(
-      facelets,
-      21,
-      100_000,
-      0,
-      INVERSE_SOLUTION,
-    );
+    const solution = new SearchWCA().solution(facelets, 21, 100_000, 0, INVERSE_SOLUTION);
 
     expect(facelets).toHaveLength(54);
     expect(solution).not.toMatch(/^Error/);
@@ -186,37 +161,23 @@ describe('3x3 WCA generators', () => {
 
   it('SearchWCA solves a real randomCube facelet string', () => {
     const facelets = randomCube(createSeededRandom(0x333_2));
-    const solution = new SearchWCA().solution(
-      facelets,
-      21,
-      100_000,
-      0,
-      INVERSE_SOLUTION,
-    );
+    const solution = new SearchWCA().solution(facelets, 21, 100_000, 0, INVERSE_SOLUTION);
 
     expect(solution).not.toMatch(/^Error/);
-    expect(() =>
-      createCubeDefinition(3, ['333']).parseAlgorithm(solution.trim()),
-    ).not.toThrow();
+    expect(() => createCubeDefinition(3, ['333']).parseAlgorithm(solution.trim())).not.toThrow();
   });
 
-  it.each([
-    0,
-    -1,
-    1.5,
-    Number.NaN,
-    Number.POSITIVE_INFINITY,
-    Number.MAX_SAFE_INTEGER + 1,
-  ])('rejects invalid multi-blind cubeCount %s', (cubeCount) => {
-    expect(() =>
-      generateMultiBlindScramble({
-        random: createSeededRandom(0x333),
-        cubeCount,
-      }),
-    ).toThrow(
-      '@cubekit/scramble-core: multi-blind cubeCount must be a positive safe integer',
-    );
-  });
+  it.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1])(
+    'rejects invalid multi-blind cubeCount %s',
+    (cubeCount) => {
+      expect(() =>
+        generateMultiBlindScramble({
+          random: createSeededRandom(0x333),
+          cubeCount,
+        }),
+      ).toThrow('@cubekit/scramble-core: multi-blind cubeCount must be a positive safe integer');
+    },
+  );
 });
 
 const countFacelets = (facelets: string): Record<string, number> => {
@@ -231,10 +192,7 @@ const countFacelets = (facelets: string): Record<string, number> => {
 
 const splitMoves = (scramble: string): string[] => scramble.trim().split(/\s+/);
 
-const hasSameAxis = (
-  firstMove: string | undefined,
-  secondMove: string | undefined,
-): boolean => {
+const hasSameAxis = (firstMove: string | undefined, secondMove: string | undefined): boolean => {
   if (firstMove === undefined || secondMove === undefined) return false;
 
   return axisForMove(firstMove) === axisForMove(secondMove);

@@ -1,11 +1,7 @@
 import type { RandomSource } from '../random-source.js';
 import { SearchWCA } from '../solvers/min2phase/search-wca.js';
 import { randomCube } from '../solvers/min2phase/tools.js';
-import {
-  axisForRestriction,
-  INVERSE_SOLUTION,
-  splitAlgorithm,
-} from '../solvers/min2phase/util.js';
+import { axisForRestriction, INVERSE_SOLUTION, splitAlgorithm } from '../solvers/min2phase/util.js';
 
 const THREE_BY_THREE_MAX_SCRAMBLE_LENGTH = 21;
 const THREE_BY_THREE_PROBE_MAX = 100_000;
@@ -46,9 +42,7 @@ export interface MultiBlindScrambleOptions {
   cubeCount: number;
 }
 
-export const generateThreeByThreeScramble = ({
-  random,
-}: ThreeByThreeScrambleOptions): string =>
+export const generateThreeByThreeScramble = ({ random }: ThreeByThreeScrambleOptions): string =>
   generateInverseSolution({
     random,
   });
@@ -116,13 +110,7 @@ const generateInverseSolution = ({
       .trim();
 
     if (!solution.startsWith('Error')) {
-      if (
-        satisfiesAxisRestrictions(
-          solution,
-          firstAxisRestriction,
-          lastAxisRestriction,
-        )
-      ) {
+      if (satisfiesAxisRestrictions(solution, firstAxisRestriction, lastAxisRestriction)) {
         return solution;
       }
 
@@ -155,11 +143,7 @@ const violatesAxisRestriction = (
   move: string | undefined,
   restriction: string | null | undefined,
 ): boolean => {
-  if (
-    move === undefined ||
-    restriction === null ||
-    restriction === undefined
-  ) {
+  if (move === undefined || restriction === null || restriction === undefined) {
     return false;
   }
 

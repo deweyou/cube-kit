@@ -12,11 +12,13 @@ export const randomCube = (random: RandomSource): string =>
 
 export const fromScramble = (scramble: string): string =>
   parseMoveIndices(scramble)
-    .reduce((cube, move) => multiply(cube, MOVE_CUBES[move] ?? CubieCube.solved()), CubieCube.solved())
+    .reduce(
+      (cube, move) => multiply(cube, MOVE_CUBES[move] ?? CubieCube.solved()),
+      CubieCube.solved(),
+    )
     .toFaceCube();
 
-export const isSolvedFaceCube = (facelets: string): boolean =>
-  facelets === SOLVED_FACE_CUBE;
+export const isSolvedFaceCube = (facelets: string): boolean => facelets === SOLVED_FACE_CUBE;
 
 export const randomState = (
   cornerPermutation: RandomStatePart,
@@ -25,10 +27,8 @@ export const randomState = (
   edgeOrientation: RandomStatePart,
   random: RandomSource,
 ): string => {
-  const epUnknownCount =
-    edgePermutation === STATE_RANDOM ? 12 : countUnknown(edgePermutation);
-  const cpUnknownCount =
-    cornerPermutation === STATE_RANDOM ? 8 : countUnknown(cornerPermutation);
+  const epUnknownCount = edgePermutation === STATE_RANDOM ? 12 : countUnknown(edgePermutation);
+  const cpUnknownCount = cornerPermutation === STATE_RANDOM ? 8 : countUnknown(cornerPermutation);
 
   let parity: number;
   let cpValue: number;
@@ -69,12 +69,7 @@ export const randomState = (
     }
 
     if (edgePermutation === STATE_RANDOM) {
-      epValue = drawRandomPermutationWithParity(
-        random,
-        479_001_600,
-        12,
-        parity,
-      );
+      epValue = drawRandomPermutationWithParity(random, 479_001_600, 12, parity);
     } else {
       const resolvedEp = materializeState(edgePermutation, 12);
       resolvePerm(resolvedEp, epUnknownCount, parity, random);
@@ -111,10 +106,7 @@ const drawRandomPermutationWithParity = (
     : flipPermutationParity(permutationValue, pieceCount);
 };
 
-const flipPermutationParity = (
-  permutationValue: number,
-  pieceCount: number,
-): number => {
+const flipPermutationParity = (permutationValue: number, pieceCount: number): number => {
   const permutation = permutationFromIndex(permutationValue, pieceCount);
   const first = permutation[0] ?? 0;
   permutation[0] = permutation[1] ?? 0;
@@ -123,10 +115,7 @@ const flipPermutationParity = (
   return getNPerm(permutation, pieceCount);
 };
 
-const permutationFromIndex = (
-  permutationValue: number,
-  pieceCount: number,
-): number[] => {
+const permutationFromIndex = (permutationValue: number, pieceCount: number): number[] => {
   const permutation = Array<number>(pieceCount);
   let index = permutationValue;
 
@@ -144,11 +133,7 @@ const permutationFromIndex = (
   return permutation;
 };
 
-const resolveOri = (
-  orientations: number[],
-  base: number,
-  random: RandomSource,
-): number => {
+const resolveOri = (orientations: number[], base: number, random: RandomSource): number => {
   let sum = 0;
   let index = 0;
   let lastUnknown = -1;
@@ -162,8 +147,7 @@ const resolveOri = (
   }
 
   if (sum % base !== 0 && lastUnknown !== -1) {
-    orientations[lastUnknown] =
-      (30 + (orientations[lastUnknown] ?? 0) - sum) % base;
+    orientations[lastUnknown] = (30 + (orientations[lastUnknown] ?? 0) - sum) % base;
   }
 
   for (let i = 0; i < orientations.length - 1; i += 1) {
@@ -223,10 +207,7 @@ const resolvePerm = (
   return resolvedParity;
 };
 
-const materializeState = (
-  state: Exclude<RandomStatePart, null>,
-  length: number,
-): number[] => {
+const materializeState = (state: Exclude<RandomStatePart, null>, length: number): number[] => {
   if (state === STATE_SOLVED) return Array.from({ length }, (_, index) => index);
 
   return [...state];
@@ -302,6 +283,7 @@ const parseMoveIndices = (scramble: string): number[] => {
   return moves;
 };
 
+// eslint-disable-next-line func-style
 function multiply(left: CubieCube, right: CubieCube): CubieCube {
   const cp = Array<number>(8);
   const co = Array<number>(8);
