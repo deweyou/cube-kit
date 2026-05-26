@@ -5,6 +5,7 @@ flowchart TD
     Root["cubekit workspace"] --> Apps["apps/* entry applications"]
     Root --> Packages["packages/* reusable libraries"]
     Root --> Docs["docs/ repository memory"]
+    Root --> Ci[".github/workflows package CI"]
     Apps --> Web["apps/web React timer"]
     Apps --> Playground["apps/playground scramble test workbench"]
     Apps --> Wx["apps/wx-app Taro shell"]
@@ -22,6 +23,10 @@ flowchart TD
     Playground --> PuzzlePkg
     CorePkg -. "production apps not migrated" .-> Apps
     ImagePkg -. "production apps not migrated" .-> Apps
+    Ci --> PackageBuild["packages build job"]
+    Ci --> PackageTest["packages test job"]
+    PackageBuild --> Packages
+    PackageTest --> Packages
 ```
 
 CubeKit is organized as a pnpm workspace where apps compose reusable packages.
@@ -43,6 +48,7 @@ docs/                  repository memory and Superpowers specs/plans
 docs/packages/         package-scoped knowledge for new scramble packages
 docs/apps/             app-scoped knowledge such as playground diagnostics
 scripts/               lightweight repository checks
+.github/workflows/     GitHub Actions workflows
 ```
 
 ## Startup Path
@@ -68,6 +74,8 @@ scripts/               lightweight repository checks
   docs guard, and check.
 - [pnpm-workspace.yaml#L1](../pnpm-workspace.yaml#L1) - workspace packages and
   dependency catalog.
+- [.github/workflows/packages.yml#L1](../.github/workflows/packages.yml#L1) -
+  package-only CI build and test jobs.
 - [vite.config.ts#L3](../vite.config.ts#L3) - root vite-plus lint and formatting
   policy.
 - [apps/web/vite.config.ts#L9](../apps/web/vite.config.ts#L9) - React plugin,
@@ -87,4 +95,4 @@ scripts/               lightweight repository checks
 
 ---
 
-_Last updated: 2026-05-26 | Reason: add package/app scoped knowledge layout_
+_Last updated: 2026-05-26 | Reason: document package CI workflow_
