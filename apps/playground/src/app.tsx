@@ -1,8 +1,40 @@
+import { useState } from 'react';
 import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubekit/scramble-puzzle';
+import { writeScramblesToClipboard } from './playground/copy';
+import { createSvgDownloadName } from './playground/download';
 import { usePlayground } from './playground/use-playground';
 
 export const App = () => {
   const playground = usePlayground();
+  const [actionMessage, setActionMessage] = useState<string>();
+
+  const copyScrambles = async () => {
+    try {
+      await writeScramblesToClipboard(playground.scrambles);
+      setActionMessage('Scrambles copied.');
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : String(error));
+    }
+  };
+
+  const downloadSelectedSvg = () => {
+    if (!playground.selectedScramble || playground.svg.length === 0) return;
+
+    const objectUrl = URL.createObjectURL(
+      new Blob([playground.svg], { type: 'image/svg+xml;charset=utf-8' }),
+    );
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = createSvgDownloadName({
+      eventId: playground.selectedScramble.eventId,
+      index: playground.selectedScrambleIndex,
+    });
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(objectUrl);
+    setActionMessage('SVG download prepared.');
+  };
 
   return (
     <main className="page-shell">
@@ -68,6 +100,27 @@ export const App = () => {
           <button className="primary-action" type="button" onClick={() => void playground.generate()}>
             Generate
           </button>
+
+          <div className="action-stack">
+            <button
+              className="secondary-action"
+              disabled={playground.scrambles.length === 0}
+              type="button"
+              onClick={() => void copyScrambles()}
+            >
+              Copy scrambles
+            </button>
+            <button
+              className="secondary-action"
+              disabled={!playground.selectedScramble || playground.svg.length === 0}
+              type="button"
+              onClick={downloadSelectedSvg}
+            >
+              Download selected SVG
+            </button>
+          </div>
+
+          {actionMessage ? <p className="action-message">{actionMessage}</p> : null}
         </aside>
 
         <section className="panel core-panel">

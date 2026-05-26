@@ -36,4 +36,28 @@ describe('App', () => {
 
     expect(screen.getByTestId('manual-svg-preview').querySelector('svg')).toBeTruthy();
   });
+
+  it('enables copy and SVG download actions after generation', async () => {
+    render(<App />);
+
+    expect(screen.getByRole('button', { name: 'Copy scrambles' })).toHaveProperty(
+      'disabled',
+      true,
+    );
+    expect(screen.getByRole('button', { name: 'Download selected SVG' })).toHaveProperty(
+      'disabled',
+      true,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Generate' }));
+
+    expect(screen.getByRole('button', { name: 'Copy scrambles' })).toHaveProperty(
+      'disabled',
+      false,
+    );
+    expect(screen.getByRole('button', { name: 'Download selected SVG' })).toHaveProperty(
+      'disabled',
+      false,
+    );
+  });
 });

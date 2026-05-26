@@ -160,14 +160,34 @@ button {
 }
 
 .secondary-action {
-  margin-bottom: 12px;
   background: #26343b;
   color: #ffffff;
 }
 
 .primary-action:hover,
-.secondary-action:hover {
+.secondary-action:hover:not(:disabled) {
   filter: brightness(0.94);
+}
+
+.secondary-action:disabled {
+  cursor: not-allowed;
+  background: #c8d2d7;
+  color: #62737b;
+}
+
+.action-stack {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.action-message {
+  margin: 10px 0 0;
+  border-radius: 6px;
+  background: #edf7f4;
+  color: #235e55;
+  padding: 9px;
+  font-size: 13px;
 }
 
 .scramble-list {
