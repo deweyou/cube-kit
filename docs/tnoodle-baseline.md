@@ -22,9 +22,14 @@ Last verified: 2026-05-26.
 | ------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | WCA Scrambles page             | `TNoodle-WCA-1.2.3`; last official change January 1, 2026        | <https://www.worldcubeassociation.org/regulations/scrambles/>             |
 | `thewca/tnoodle`               | tag `v1.2.3`; commit `2ed70d4c94e2b94ff2d2177b06a02708bcb881ac`  | <https://github.com/thewca/tnoodle/tree/v1.2.3>                           |
+| `thewca/tnoodle` license       | AGPL-3.0                                                         | <https://github.com/thewca/tnoodle/blob/v1.2.3/LICENSE>                   |
 | `thewca/tnoodle` build version | `version = "1.2.3"`                                              | <https://github.com/thewca/tnoodle/blob/v1.2.3/build.gradle.kts>          |
 | `lib-scrambles` dependency     | `org.worldcubeassociation.tnoodle:lib-scrambles:0.19.2`          | <https://github.com/thewca/tnoodle/blob/v1.2.3/gradle/libs.versions.toml> |
 | `thewca/tnoodle-lib`           | tag `v0.19.2`; commit `9397fb605d8d593868dc75dbaf84c54c808ee9dc` | <https://github.com/thewca/tnoodle-lib/tree/v0.19.2>                      |
+| `thewca/tnoodle-lib` license   | GPL-v3.0                                                         | <https://github.com/thewca/tnoodle-lib/blob/v0.19.2/LICENSE>              |
+
+CubeKit ports the library behavior from `thewca/tnoodle-lib` / Maven
+`lib-scrambles`, not the AGPL-licensed TNoodle server or UI code.
 
 ## Upgrade Check
 
@@ -66,4 +71,4 @@ implementation task with its own fixtures and tests.
 
 ---
 
-_Last updated: 2026-05-26 | Reason: record TNoodle baseline for future diff-based updates_
+_Last updated: 2026-05-26 | Reason: record TNoodle baseline and license provenance_
