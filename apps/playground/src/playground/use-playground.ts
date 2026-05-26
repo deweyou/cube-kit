@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import { getBrowserSeed } from './browser-seed';
 import { createPlaygroundService } from './playground-service';
 import type {
   PlaygroundGenerateResult,
@@ -14,7 +15,10 @@ export interface UsePlaygroundOptions {
 }
 
 export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
-  const packageService = useMemo(() => service ?? createPlaygroundService(), [service]);
+  const packageService = useMemo(
+    () => service ?? createPlaygroundService({ seed: getBrowserSeed() }),
+    [service],
+  );
   const [eventId, setEventId] = useState<WcaEventId>('333');
   const [count, setCount] = useState(5);
   const [multiBlindCubeCount, setMultiBlindCubeCount] = useState(3);
