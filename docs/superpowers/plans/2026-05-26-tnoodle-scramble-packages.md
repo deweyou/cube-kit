@@ -164,8 +164,8 @@ Use this manifest for `packages/scramble-puzzle/package.json`:
   "name": "@cubekit/scramble-puzzle",
   "version": "0.0.0",
   "description": "Puzzle notation, state transitions, and shared WCA puzzle definitions for CubeKit.",
-  "license": "GPL-3.0",
-  "files": ["dist"],
+  "license": "GPL-3.0-only",
+  "files": ["dist", "LICENSE", "NOTICE", "README.md"],
   "type": "module",
   "exports": {
     ".": "./dist/index.mjs",
@@ -194,8 +194,8 @@ Use this manifest for `packages/scramble-core/package.json`:
   "name": "@cubekit/scramble-core",
   "version": "0.0.0",
   "description": "TNoodle-compatible WCA scramble generation for CubeKit.",
-  "license": "GPL-3.0",
-  "files": ["dist"],
+  "license": "GPL-3.0-only",
+  "files": ["dist", "LICENSE", "NOTICE", "README.md"],
   "type": "module",
   "exports": {
     ".": "./dist/index.mjs",
@@ -227,8 +227,8 @@ Use this manifest for `packages/scramble-image/package.json`:
   "name": "@cubekit/scramble-image",
   "version": "0.0.0",
   "description": "DOM-free SVG rendering for TNoodle-compatible scramble states.",
-  "license": "GPL-3.0",
-  "files": ["dist"],
+  "license": "GPL-3.0-only",
+  "files": ["dist", "LICENSE", "NOTICE", "README.md"],
   "type": "module",
   "exports": {
     ".": "./dist/index.mjs",

@@ -339,7 +339,7 @@ renderers to a single subagent.
 
 ## 9. Licensing Notes
 
-The current repository is GPL-3.0. Directly porting logic from
+The current repository is GPL-3.0-only. Directly porting logic from
 `thewca/tnoodle-lib` keeps the new implementation in GPL-compatible territory.
 The `thewca/tnoodle` server repository is AGPL-3.0; implementation should avoid
 copying server, WCIF, PDF, and deployment code into these packages.

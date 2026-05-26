@@ -16,7 +16,7 @@ generation, scramble visualization, and a WeChat miniprogram shell.
 | [docs/packages/scramble-core/index.md](docs/packages/scramble-core/index.md) | WCA generation rules and solver package boundary          |
 | [docs/packages/scramble-image/index.md](docs/packages/scramble-image/index.md) | SVG renderer contracts and package boundary               |
 | [docs/apps/playground/index.md](docs/apps/playground/index.md)               | Scramble playground diagnostics and E2E role              |
-| [docs/dependency-licensing.md](docs/dependency-licensing.md)                 | GPL boundary created by bundled cstimer_module            |
+| [docs/dependency-licensing.md](docs/dependency-licensing.md)                 | GPL boundaries for cstimer_module and TNoodle packages    |
 | [docs/.state.md](docs/.state.md)                                             | Last memory pass and covered areas                        |
 | [docs/.todo.md](docs/.todo.md)                                               | Follow-up memory and repo hygiene tasks                   |
 
@@ -28,8 +28,9 @@ generation, scramble visualization, and a WeChat miniprogram shell.
   `packages/*`.
 - Keep package `src/` directories platform-agnostic: no direct DOM, Taro, or
   platform globals in reusable package code.
-- `@cubekit/scramble` bundles GPL-3.0 `cstimer_module`; distribution licensing
-  and any new bundled dependency must be reviewed before merging.
+- `@cubekit/scramble` bundles GPL-3.0 `cstimer_module`; the new TNoodle-compatible
+  packages port GPL `tnoodle-lib` behavior. Distribution licensing and any new
+  bundled dependency must be reviewed before merging.
 - Do not restore the old generic text-scramble API in `packages/scramble`; that
   package is now the WCA scramble and SVG wrapper.
 
