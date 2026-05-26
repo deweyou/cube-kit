@@ -38,6 +38,22 @@ export default defineConfig({
       light: 'github-light',
       dark: 'github-dark',
     },
+    config(md) {
+      const defaultFence = md.renderer.rules.fence;
+
+      md.renderer.rules.fence = (tokens, index, options, env, self) => {
+        const token = tokens[index];
+        const language = token?.info.trim().split(/\s+/)[0];
+
+        if (language === 'mermaid') {
+          return `<MermaidDiagram code="${encodeURIComponent(token.content)}" />`;
+        }
+
+        return defaultFence
+          ? defaultFence(tokens, index, options, env, self)
+          : self.renderToken(tokens, index, options);
+      };
+    },
   },
   themeConfig: {
     socialLinks: [{ icon: 'github', link: 'https://github.com/deweyou/cubekit' }],
