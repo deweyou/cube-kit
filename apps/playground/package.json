@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
-    "build": "tsc && vp build",
+    "build": "pnpm run prepare:deps && tsc && vp build",
+    "prepare:deps": "pnpm --filter @cubekit/scramble-puzzle build && pnpm --filter @cubekit/scramble-core build && pnpm --filter @cubekit/scramble-image build",
     "preview": "vp preview",
     "test": "vp test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "pnpm run prepare:deps && tsc --noEmit"
   },
   "dependencies": {
     "@cubekit/scramble-core": "workspace:*",
