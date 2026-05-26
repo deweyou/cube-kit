@@ -56,6 +56,10 @@ still use the legacy `@cubekit/scramble` wrapper.
   stay fresh.
 - Playground supports deterministic browser smoke tests with `?seed=<integer>`,
   parsed in [apps/playground/src/playground/browser-seed.ts#L1](../apps/playground/src/playground/browser-seed.ts#L1).
+- `@cubekit/scramble-core` returns `333mbld` as one multi-line attempt containing
+  one 3x3 no-inspection scramble per cube. The playground adapter splits those
+  lines into individual display/render rows so each listed scramble stays the same
+  shape as `333bld`.
 
 ## Runtime Matrix
 
@@ -87,4 +91,4 @@ still use the legacy `@cubekit/scramble` wrapper.
 
 ---
 
-_Last updated: 2026-05-26 | Reason: add scramble playground runtime boundary_
+_Last updated: 2026-05-26 | Reason: document playground 333mbld display normalization_

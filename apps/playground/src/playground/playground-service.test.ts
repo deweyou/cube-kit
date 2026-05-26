@@ -15,6 +15,18 @@ describe('createPlaygroundService', () => {
     expect(result.render.svgBytes).toBeGreaterThan(100);
   });
 
+  it('splits 333mbld attempts into one displayed scramble per cube', async () => {
+    const service = createPlaygroundService({ seed: 42, now: fixedClock([10, 22, 25, 30]) });
+
+    const result = await service.generate({ eventId: '333mbld', count: 2, multiBlindCubeCount: 3 });
+
+    expect(result.scrambles).toHaveLength(6);
+    expect(result.generation.count).toBe(6);
+    expect(result.selectedScramble?.id).toBe('333mbld-1-1');
+    expect(result.scrambles.every((scramble) => !scramble.scramble.includes('\n'))).toBe(true);
+    expect(result.render.scrambleLength).toBe(result.scrambles[0]?.scramble.length);
+  });
+
   it('renders manual scramble text without generating a batch', () => {
     const service = createPlaygroundService({ seed: 42, now: fixedClock([1, 4]) });
 

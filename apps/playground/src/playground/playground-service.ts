@@ -7,6 +7,7 @@ import type {
   PlaygroundManualRenderInput,
   PlaygroundManualRenderResult,
   PlaygroundRenderDiagnostics,
+  PlaygroundScramble,
 } from './types';
 
 export interface PlaygroundServiceOptions {
@@ -31,11 +32,13 @@ export const createPlaygroundService = ({
       });
       const generationEnd = now();
 
-      const scrambles = results.map((result, index) => ({
-        id: `${result.eventId}-${index + 1}`,
-        eventId: result.eventId,
-        scramble: result.scramble,
-      }));
+      const scrambles = results.flatMap((result, index) =>
+        toPlaygroundScrambles({
+          eventId: result.eventId,
+          scramble: result.scramble,
+          index,
+        }),
+      );
       const selectedScramble = scrambles[0];
       const renderStart = now();
       const svg = selectedScramble
@@ -104,3 +107,33 @@ const createRenderDiagnostics = ({
   scrambleLength: scramble.length,
   svgBytes: new TextEncoder().encode(svg).length,
 });
+
+const toPlaygroundScrambles = ({
+  eventId,
+  scramble,
+  index,
+}: {
+  readonly eventId: PlaygroundScramble['eventId'];
+  readonly scramble: string;
+  readonly index: number;
+}): PlaygroundScramble[] => {
+  if (eventId !== '333mbld') {
+    return [
+      {
+        id: `${eventId}-${index + 1}`,
+        eventId,
+        scramble,
+      },
+    ];
+  }
+
+  return scramble
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line, cubeIndex) => ({
+      id: `${eventId}-${index + 1}-${cubeIndex + 1}`,
+      eventId,
+      scramble: line,
+    }));
+};
