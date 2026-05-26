@@ -59,5 +59,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Build packages for test imports
+        run: pnpm --filter './packages/*' build
+
       - name: Test packages
         run: pnpm --filter './packages/*' test
