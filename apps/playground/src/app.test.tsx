@@ -40,10 +40,7 @@ describe('App', () => {
   it('enables copy and SVG download actions after generation', async () => {
     render(<App />);
 
-    expect(screen.getByRole('button', { name: 'Copy scrambles' })).toHaveProperty(
-      'disabled',
-      true,
-    );
+    expect(screen.getByRole('button', { name: 'Copy scrambles' })).toHaveProperty('disabled', true);
     expect(screen.getByRole('button', { name: 'Download selected SVG' })).toHaveProperty(
       'disabled',
       true,

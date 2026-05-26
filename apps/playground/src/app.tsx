@@ -97,7 +97,11 @@ export const App = () => {
             </label>
           ) : null}
 
-          <button className="primary-action" type="button" onClick={() => void playground.generate()}>
+          <button
+            className="primary-action"
+            type="button"
+            onClick={() => void playground.generate()}
+          >
             Generate
           </button>
 

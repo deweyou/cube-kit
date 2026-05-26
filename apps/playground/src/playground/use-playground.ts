@@ -52,7 +52,12 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     });
 
     setSelectedScramble(scramble);
-    setSelectedScrambleIndex(Math.max(scrambles.findIndex((entry) => entry.id === scramble.id), 0));
+    setSelectedScrambleIndex(
+      Math.max(
+        scrambles.findIndex((entry) => entry.id === scramble.id),
+        0,
+      ),
+    );
     setSvg(result.svg);
     setManualScramble(scramble.scramble);
     setManualSvg(result.svg);
