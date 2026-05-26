@@ -7,9 +7,11 @@
   "scripts": {
     "dev:web": "vp run web#dev",
     "dev:playground": "vp run playground#dev",
+    "dev:scramble-docs": "vp run scramble-docs#dev",
     "dev:wx": "vp run wx-app#dev",
     "build:web": "vp run web#build",
     "build:playground": "vp run playground#build",
+    "build:scramble-docs": "vp run scramble-docs#build",
     "build:wx": "vp run wx-app#build",
     "build": "vp run build -r",
     "test": "pnpm test:docs && vp run test -r",
