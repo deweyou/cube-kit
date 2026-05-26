@@ -17,9 +17,9 @@ The package used to host a generic text-scramble animation utility; that code wa
 5. **Sync API only.** Callers assume `getScramble('333')` returns a string synchronously. Do not introduce top-level await, dynamic imports, or Promise-returning signatures on the core API.
 6. **Zero runtime dependencies beyond `cstimer_module`.** And `cstimer_module` is a `devDependency` that gets bundled into `dist/` via `deps.alwaysBundle`. Never move it to `dependencies` and never add a new runtime dep without explicit approval.
 
-## License — GPL-3.0 ⚠️
+## License - GPL-3.0-only
 
-This package is **GPL-3.0** (see [`LICENSE`](./LICENSE) and [`NOTICE`](./NOTICE)). The license is fixed by an upstream constraint and cannot be relaxed without restructuring the package:
+This package is **GPL-3.0-only** (see [`LICENSE`](./LICENSE) and [`NOTICE`](./NOTICE)). The license is fixed by an upstream constraint and cannot be relaxed without restructuring the package:
 
 - `cstimer_module` (the upstream we wrap) is **GPL-3.0**.
 - We bundle it directly — see `vite.config.ts` → `deps.alwaysBundle: ['cstimer_module']`. The published `dist/cstimer-*.mjs` contains cstimer's GPL-covered source verbatim.
@@ -27,11 +27,11 @@ This package is **GPL-3.0** (see [`LICENSE`](./LICENSE) and [`NOTICE`](./NOTICE)
 
 **Invariants Claude MUST preserve**:
 
-1. `package.json` `license` field stays `"GPL-3.0"`. Do not "fix" it to MIT — that was the scaffolding default and is incorrect for the current content.
+1. `package.json` `license` field stays `"GPL-3.0-only"`. Do not "fix" it to MIT — that was the scaffolding default and is incorrect for the current content.
 2. `packages/scramble/LICENSE` must exist and must contain the full GPL-3.0 text. If it's ever missing, restore it from <https://www.gnu.org/licenses/gpl-3.0.txt>.
 3. `packages/scramble/NOTICE` must exist and must attribute cstimer_module + its upstream repo.
 4. Both files must be listed in `package.json` `files` so they ship to npm.
-5. **Downstream implication** — every app in this monorepo that imports `@cubekit/scramble` inherits GPL-3.0 on distribution. If the user later wants a permissive-licensed app, the fix is at THIS package (not the app): either load `cstimer_module` out-of-process (Web Worker so it's "mere aggregation"), or swap it for a differently-licensed scrambler. Flag this in your response if the user brings it up; do not silently paper over it.
+5. **Downstream implication** — every app in this monorepo that imports `@cubekit/scramble` inherits GPL-3.0-only obligations on distribution. If the user later wants a permissive-licensed app, the fix is at THIS package (not the app): either load `cstimer_module` out-of-process (Web Worker so it's "mere aggregation"), or swap it for a differently-licensed scrambler. Flag this in your response if the user brings it up; do not silently paper over it.
 
 ## Environment quirks you will hit
 

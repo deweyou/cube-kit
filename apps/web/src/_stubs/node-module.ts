@@ -3,6 +3,6 @@
 // bundled into the scramble dist so require() is never actually called at runtime.
 export function createRequire(_url: string) {
   return (_id: string): never => {
-    throw new Error(`require('${_id}') is not available in browser`)
-  }
+    throw new Error(`require('${_id}') is not available in browser`);
+  };
 }

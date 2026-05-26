@@ -106,8 +106,8 @@ code or asset change, even if the request arrives after a long design discussion
    - create a new task branch from `origin/<primary>` for new implementation work;
    - or rebase the current task branch onto `origin/<primary>` before editing when
      it is already a task branch.
-   In routing or planning output, explicitly say
-   `prework_decision=start_from_fetched_baseline`.
+     In routing or planning output, explicitly say
+     `prework_decision=start_from_fetched_baseline`.
 6. If the current branch is behind `origin/<primary>` and the worktree is clean,
    rebase before editing. If the branch has local commits and the rebase would be
    risky, stop and report the blocker.
@@ -221,10 +221,10 @@ report exact blockers only when a step cannot be completed safely.
    before pushing. Always say `verification_after_rebase`: commands run, not needed,
    or blocked with reason.
 10. Push the branch. Use `--force-with-lease` only after a rebase rewrote the branch
-   and only for the task branch.
+    and only for the task branch.
 11. Open a pull request using the repository's normal tool or hosting CLI. If a PR
-   cannot be created, report the exact blocker, such as missing auth, missing remote,
-   detached HEAD, no GitHub CLI, or no network.
+    cannot be created, report the exact blocker, such as missing auth, missing remote,
+    detached HEAD, no GitHub CLI, or no network.
 12. Only after push succeeds and a PR or pushed branch head exists, start CI
     follow-up: wait about 10 seconds for the first CI check, inspect visible
     workflow/job/step status, then use lightweight in-session polling when

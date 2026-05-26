@@ -1,0 +1,32 @@
+{
+  "name": "playground",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "pnpm run prepare:deps && tsc && vp build",
+    "prepare:deps": "pnpm --filter @cubekit/scramble-puzzle build && pnpm --filter @cubekit/scramble-core build && pnpm --filter @cubekit/scramble-image build",
+    "preview": "vp preview",
+    "test": "vp test",
+    "typecheck": "pnpm run prepare:deps && tsc --noEmit"
+  },
+  "dependencies": {
+    "@cubekit/scramble-core": "workspace:*",
+    "@cubekit/scramble-image": "workspace:*",
+    "@cubekit/scramble-puzzle": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16",
+    "@testing-library/user-event": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  }
+}

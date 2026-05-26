@@ -6,16 +6,16 @@ A platform-agnostic TypeScript wrapper that exposes four sync functions — `get
 
 ---
 
-## License — GPL-3.0
+## License - GPL-3.0-only
 
-This package is licensed under the **GNU General Public License version 3**. See [`LICENSE`](./LICENSE) for the full text and [`NOTICE`](./NOTICE) for the attribution of the bundled `cstimer_module`.
+This package is licensed under **GPL-3.0-only**. See [`LICENSE`](./LICENSE) for the full text and [`NOTICE`](./NOTICE) for the attribution of the bundled `cstimer_module`.
 
-**Why GPL-3.0 and not MIT**: `cstimer_module` (the upstream we wrap) is GPL-3.0, and this package bundles its source directly into `dist/cstimer-*.mjs` via the build config. Under GPL-3.0's copyleft clause, the combined work **must** be distributed under GPL-3.0 or a compatible license — MIT is not compatible. We've aligned with upstream.
+**Why GPL-3.0-only and not MIT**: `cstimer_module` (the upstream we wrap) is GPL-3.0, and this package bundles its source directly into `dist/cstimer-*.mjs` via the build config. Under GPL-3.0's copyleft clause, the combined work **must** be distributed under GPL-3.0 or a compatible license. MIT is not compatible. We've aligned with upstream.
 
 **Implications for downstream consumers**:
 
-- Any application that imports `@cubekit/scramble` and is then distributed (published, shipped, or deployed to end users) inherits GPL-3.0 obligations on the combined work. This means you must make source available, cannot add further restrictions, and any derivative must also be GPL-3.0.
-- If you need an MIT- / Apache- / proprietary-compatible path, you cannot link against this package as-is. Alternatives: (a) replace the upstream with a differently-licensed scrambler, or (b) load `cstimer_module` out-of-process (dedicated Web Worker communicating over `postMessage`) so the boundary is "mere aggregation" rather than linkage. Both are non-trivial and have legal gray areas — consult your own counsel.
+- Any application that imports `@cubekit/scramble` and is then distributed (published, shipped, or deployed to end users) inherits GPL-3.0-only obligations on the combined work. This means you must make source available, cannot add further restrictions, and any derivative must also be GPL-compatible.
+- If you need an MIT- / Apache- / proprietary-compatible path, you cannot link against this package as-is. Alternatives: (a) replace the upstream with a differently-licensed scrambler, or (b) load `cstimer_module` out-of-process (dedicated Web Worker communicating over `postMessage`) so the boundary is "mere aggregation" rather than linkage. Both are non-trivial and have legal gray areas. Consult your own counsel.
 - Upstream cstimer: <https://github.com/cs0x7f/cstimer>. The upstream npm tarball does not ship a LICENSE file; we redistribute the canonical GPL-3.0 text in this package's LICENSE file.
 
 ---

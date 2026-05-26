@@ -2,7 +2,7 @@
   "name": "@cubekit/scramble",
   "version": "0.0.0",
   "description": "WCA scramble generation and scramble-image rendering, backed by cstimer_module.",
-  "license": "GPL-3.0",
+  "license": "GPL-3.0-only",
   "files": [
     "dist",
     "LICENSE",
