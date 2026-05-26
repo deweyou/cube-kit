@@ -13,15 +13,19 @@ flowchart TD
     Image --> ViewBox["ensure SVG viewBox"]
     NewPuzzle["@cubekit/scramble-puzzle"] --> NewCore["@cubekit/scramble-core"]
     NewPuzzle --> NewImage["@cubekit/scramble-image"]
-    NewCore -. "future worker/app migration" .-> UI
-    NewImage -. "future app migration" .-> UI
+    Playground["apps/playground"] --> NewCore
+    Playground --> NewImage
+    Playground --> NewPuzzle
+    NewCore -. "future production app migration" .-> UI
+    NewImage -. "future production app migration" .-> UI
 ```
 
 `@cubekit/scramble` is a typed, synchronous wrapper around `cstimer_module`.
 Its public API uses WCA event ids while hiding cstimer's internal type ids.
 The new TNoodle-compatible `@cubekit/scramble-puzzle`,
 `@cubekit/scramble-core`, and `@cubekit/scramble-image` packages are available
-for package-level verification, but apps are not wired to them yet.
+for package-level verification and the standalone playground. Production apps
+still use the legacy `@cubekit/scramble` wrapper.
 
 ## Key Rules
 
@@ -46,6 +50,12 @@ for package-level verification, but apps are not wired to them yet.
   WCA events. The facade is async-shaped and can move behind a Web Worker later.
 - `@cubekit/scramble-image` exposes `renderScrambleImage(eventId, scramble)` and
   uses `scramble-puzzle` to apply moves before rendering SVG.
+- `apps/playground` is a test workbench, not a production app migration. It
+  imports the new packages directly, aliases Vite runtime resolution to package
+  source, and runs `prepare:deps` before typecheck/build so package dist types
+  stay fresh.
+- Playground supports deterministic browser smoke tests with `?seed=<integer>`,
+  parsed in [apps/playground/src/playground/browser-seed.ts#L1](../apps/playground/src/playground/browser-seed.ts#L1).
 
 ## Runtime Matrix
 
@@ -58,6 +68,9 @@ for package-level verification, but apps are not wired to them yet.
 - The new TNoodle-compatible packages avoid the cstimer browser shim, but heavy
   generators such as 4x4 threephase should still be run behind a worker before
   app integration.
+- `apps/playground` runs generators on the main thread because it is a developer
+  test workbench. Production UI should still move heavy generation behind a
+  worker boundary.
 
 ## Key Files
 
@@ -68,8 +81,10 @@ for package-level verification, but apps are not wired to them yet.
 - [packages/scramble-puzzle/src/events.ts#L1](../packages/scramble-puzzle/src/events.ts#L1) - canonical 17-event WCA list for the new packages.
 - [packages/scramble-core/src/generator.ts#L1](../packages/scramble-core/src/generator.ts#L1) - async generator facade and default WCA event dispatch.
 - [packages/scramble-image/src/render.ts#L1](../packages/scramble-image/src/render.ts#L1) - WCA event dispatch for SVG rendering.
+- [apps/playground/src/playground/playground-service.ts#L1](../apps/playground/src/playground/playground-service.ts#L1) - browser-facing adapter around `createDefaultScrambleGenerator` and `renderScrambleImage`.
+- [apps/playground/src/playground/use-playground.ts#L1](../apps/playground/src/playground/use-playground.ts#L1) - React state boundary for event, batch, selection, manual render, and diagnostics.
 - [docs/tnoodle-implementation-notes.md#L1](tnoodle-implementation-notes.md#L1) - package implementation notes and upgrade flow.
 
 ---
 
-_Last updated: 2026-05-26 | Reason: document TNoodle-compatible runtime boundary_
+_Last updated: 2026-05-26 | Reason: add scramble playground runtime boundary_
