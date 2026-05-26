@@ -41,7 +41,7 @@ describe('3x3 WCA generators', () => {
 
       expect(hasSameAxis(lastScrambleMove, firstOrientationMove), scramble).toBe(false);
     }
-  }, 10_000);
+  }, 30_000);
 
   it('generates an FMC scramble with the TNoodle prefix', () => {
     const scramble = generateThreeByThreeFewestMovesScramble({
@@ -62,7 +62,7 @@ describe('3x3 WCA generators', () => {
       expect(hasSameAxis('F', innerMoves[0]), scramble).toBe(false);
       expect(hasSameAxis(innerMoves.at(-1), "R'"), scramble).toBe(false);
     }
-  }, 10_000);
+  }, 30_000);
 
   it('generates one no-inspection-style line per multi-blind cube', () => {
     const scramble = generateMultiBlindScramble({

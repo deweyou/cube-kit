@@ -15,12 +15,14 @@
     "build": "vp pack",
     "dev": "vp pack --watch",
     "test": "vp test",
+    "test:coverage": "vp test --coverage",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@cubekit/scramble-puzzle": "workspace:*"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "catalog:",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
