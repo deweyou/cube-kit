@@ -18,11 +18,14 @@ existing `@cubekit/scramble` package in this implementation.
 ## Implemented Packages
 
 - `packages/scramble-puzzle` owns WCA event metadata, puzzle registries,
-  notation parsers, state transitions, and shared fixture helpers.
+  notation parsers, state transitions, and shared fixture helpers. See
+  [docs/packages/scramble-puzzle/index.md](packages/scramble-puzzle/index.md).
 - `packages/scramble-core` owns random sources, batch uniqueness, WCA event
-  generator dispatch, and the solver/random-turn implementations.
+  generator dispatch, and the solver/random-turn implementations. See
+  [docs/packages/scramble-core/index.md](packages/scramble-core/index.md).
 - `packages/scramble-image` owns DOM-free SVG serialization and WCA event
-  renderer dispatch.
+  renderer dispatch. See
+  [docs/packages/scramble-image/index.md](packages/scramble-image/index.md).
 
 ## Baseline
 
@@ -37,6 +40,9 @@ Core package verification commands used during the implementation:
 - `pnpm --filter @cubekit/scramble-puzzle test`
 - `pnpm --filter @cubekit/scramble-core test`
 - `pnpm --filter @cubekit/scramble-image test`
+- `pnpm --filter @cubekit/scramble-puzzle test:coverage`
+- `pnpm --filter @cubekit/scramble-core test:coverage`
+- `pnpm --filter @cubekit/scramble-image test:coverage`
 - `pnpm --filter @cubekit/scramble-puzzle typecheck`
 - `pnpm --filter @cubekit/scramble-core typecheck`
 - `pnpm --filter @cubekit/scramble-image typecheck`
@@ -72,4 +78,4 @@ which puzzle family changed.
 
 ---
 
-_Last updated: 2026-05-26 | Reason: document TNoodle-compatible package implementation_
+_Last updated: 2026-05-26 | Reason: link package-scoped knowledge and coverage commands_

@@ -40,6 +40,8 @@ packages/scramble-puzzle/  TNoodle-compatible event ids, parsers, and states
 packages/scramble-core/    TNoodle-compatible WCA scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
 docs/                  repository memory and Superpowers specs/plans
+docs/packages/         package-scoped knowledge for new scramble packages
+docs/apps/             app-scoped knowledge such as playground diagnostics
 scripts/               lightweight repository checks
 ```
 
@@ -77,8 +79,12 @@ scripts/               lightweight repository checks
 - [packages/scramble-puzzle/src/index.ts#L1](../packages/scramble-puzzle/src/index.ts#L1) - TNoodle-compatible puzzle domain barrel.
 - [packages/scramble-core/src/index.ts#L1](../packages/scramble-core/src/index.ts#L1) - TNoodle-compatible generator barrel.
 - [packages/scramble-image/src/index.ts#L1](../packages/scramble-image/src/index.ts#L1) - TNoodle-compatible SVG renderer barrel.
+- [docs/packages/scramble-puzzle/index.md#L1](packages/scramble-puzzle/index.md#L1) - puzzle package ownership and verification.
+- [docs/packages/scramble-core/index.md#L1](packages/scramble-core/index.md#L1) - core generator ownership and verification.
+- [docs/packages/scramble-image/index.md#L1](packages/scramble-image/index.md#L1) - image renderer ownership and verification.
+- [docs/apps/playground/index.md#L1](apps/playground/index.md#L1) - playground ownership and diagnostics role.
 - [docs/tnoodle-implementation-notes.md#L1](tnoodle-implementation-notes.md#L1) - implementation notes and upgrade routing for the new packages.
 
 ---
 
-_Last updated: 2026-05-26 | Reason: add scramble playground app boundary_
+_Last updated: 2026-05-26 | Reason: add package/app scoped knowledge layout_

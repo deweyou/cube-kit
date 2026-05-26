@@ -46,6 +46,8 @@ still use the legacy `@cubekit/scramble` wrapper.
   `@cubekit/scramble-puzzle` for parsers/states,
   `@cubekit/scramble-core` for generators and solvers, and
   `@cubekit/scramble-image` for SVG renderers.
+- Package-specific maintenance knowledge lives under `docs/packages/*`, while
+  local package `AGENTS.md` files only route maintainers to those docs.
 - `@cubekit/scramble-core` exposes `createDefaultScrambleGenerator` for all 17
   WCA events. The facade is async-shaped and can move behind a Web Worker later.
 - `@cubekit/scramble-image` exposes `renderScrambleImage(eventId, scramble)` and
@@ -85,10 +87,13 @@ still use the legacy `@cubekit/scramble` wrapper.
 - [packages/scramble-puzzle/src/events.ts#L1](../packages/scramble-puzzle/src/events.ts#L1) - canonical 17-event WCA list for the new packages.
 - [packages/scramble-core/src/generator.ts#L1](../packages/scramble-core/src/generator.ts#L1) - async generator facade and default WCA event dispatch.
 - [packages/scramble-image/src/render.ts#L1](../packages/scramble-image/src/render.ts#L1) - WCA event dispatch for SVG rendering.
+- [docs/packages/scramble-puzzle/index.md#L1](packages/scramble-puzzle/index.md#L1) - puzzle package knowledge.
+- [docs/packages/scramble-core/wca-generation-rules.md#L1](packages/scramble-core/wca-generation-rules.md#L1) - WCA generation rule mapping.
+- [docs/packages/scramble-image/renderer-contracts.md#L1](packages/scramble-image/renderer-contracts.md#L1) - renderer contracts.
 - [apps/playground/src/playground/playground-service.ts#L1](../apps/playground/src/playground/playground-service.ts#L1) - browser-facing adapter around `createDefaultScrambleGenerator` and `renderScrambleImage`.
 - [apps/playground/src/playground/use-playground.ts#L1](../apps/playground/src/playground/use-playground.ts#L1) - React state boundary for event, batch, selection, manual render, and diagnostics.
 - [docs/tnoodle-implementation-notes.md#L1](tnoodle-implementation-notes.md#L1) - package implementation notes and upgrade flow.
 
 ---
 
-_Last updated: 2026-05-26 | Reason: document playground 333mbld display normalization_
+_Last updated: 2026-05-26 | Reason: link package-scoped scramble knowledge_

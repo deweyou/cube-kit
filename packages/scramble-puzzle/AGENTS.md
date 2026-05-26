@@ -1,0 +1,24 @@
+# @cubekit/scramble-puzzle
+
+This package owns TNoodle-compatible WCA event metadata, notation parsers, puzzle
+state transitions, and registry helpers.
+
+## Read First
+
+- [../../docs/packages/scramble-puzzle/index.md](../../docs/packages/scramble-puzzle/index.md)
+- [../../docs/packages/scramble-puzzle/wca-notation-and-state.md](../../docs/packages/scramble-puzzle/wca-notation-and-state.md)
+- [../../docs/tnoodle-baseline.md](../../docs/tnoodle-baseline.md)
+
+## Verify
+
+```bash
+pnpm --filter @cubekit/scramble-puzzle test
+pnpm --filter @cubekit/scramble-puzzle test:coverage
+pnpm --filter @cubekit/scramble-puzzle typecheck
+```
+
+## Constraints
+
+- Keep `src/` platform-agnostic.
+- Do not change WCA event ids or notation semantics without updating the
+  package docs and coverage notes.
