@@ -92,8 +92,8 @@ manual render, SVG download, and lightweight diagnostics.
 ### [`apps/scramble-docs`](./apps/scramble-docs) - Learning site
 
 VitePress site for studying WCA scramble generation and scramble image rendering
-principles in Chinese and English. It is content-only and points readers to WCA,
-TNoodle, and CubeKit package boundaries.
+principles in English and Chinese. It is content-only and focuses on rules,
+event-specific generation strategies, state transition, and SVG rendering.
 
 ### [`@cubekit/scramble`](./packages/scramble) - Legacy cstimer wrapper
 

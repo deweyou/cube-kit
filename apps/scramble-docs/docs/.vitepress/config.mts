@@ -5,25 +5,29 @@ const zhSidebar: DefaultTheme.SidebarItem[] = [
     text: '学习路径',
     items: [
       { text: '总览', link: '/zh/' },
-      { text: 'WCA 打乱规则', link: '/zh/wca-rules' },
-      { text: '打乱生成原理', link: '/zh/generation' },
-      { text: 'Move Parser 与状态转换', link: '/zh/state-transition' },
+      { text: '规则与公平性', link: '/zh/wca-rules' },
+      { text: '生成模型', link: '/zh/generation' },
+      { text: '状态空间与坐标编码', link: '/zh/state-space' },
+      { text: '搜索与剪枝', link: '/zh/search-pruning' },
+      { text: '各项目打乱策略', link: '/zh/event-families' },
+      { text: '状态转换', link: '/zh/state-transition' },
       { text: '打乱图生成原理', link: '/zh/image-rendering' },
-      { text: 'CubeKit 包边界', link: '/zh/cubekit-packages' },
     ],
   },
 ];
 
-const enSidebar: DefaultTheme.SidebarItem[] = [
+const rootSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: 'Learning Path',
     items: [
-      { text: 'Overview', link: '/en/' },
-      { text: 'WCA Scramble Rules', link: '/en/wca-rules' },
-      { text: 'Generation Pipeline', link: '/en/generation' },
-      { text: 'Move Parser And State Transition', link: '/en/state-transition' },
-      { text: 'Image Rendering Pipeline', link: '/en/image-rendering' },
-      { text: 'CubeKit Package Boundaries', link: '/en/cubekit-packages' },
+      { text: 'Overview', link: '/' },
+      { text: 'Rules And Fairness', link: '/wca-rules' },
+      { text: 'Generation Model', link: '/generation' },
+      { text: 'State Space And Coordinates', link: '/state-space' },
+      { text: 'Search And Pruning', link: '/search-pruning' },
+      { text: 'Event Strategies', link: '/event-families' },
+      { text: 'State Transition', link: '/state-transition' },
+      { text: 'Scramble Image Rendering', link: '/image-rendering' },
     ],
   },
 ];
@@ -60,15 +64,17 @@ export default defineConfig({
   },
   locales: {
     root: {
-      label: 'Languages',
-      lang: 'zh-CN',
+      label: 'English',
+      lang: 'en-US',
       title: 'CubeKit Scramble Docs',
       description: 'WCA scramble generation and scramble image rendering explained.',
       themeConfig: {
         nav: [
-          { text: '中文', link: '/zh/' },
-          { text: 'English', link: '/en/' },
+          { text: 'Overview', link: '/' },
+          { text: 'Event Strategies', link: '/event-families' },
+          { text: 'Images', link: '/image-rendering' },
         ],
+        sidebar: rootSidebar,
       },
     },
     zh: {
@@ -79,8 +85,8 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: '总览', link: '/zh/' },
-          { text: '包文档', link: '/zh/cubekit-packages' },
-          { text: 'English', link: '/en/' },
+          { text: '各项目策略', link: '/zh/event-families' },
+          { text: '打乱图', link: '/zh/image-rendering' },
         ],
         sidebar: zhSidebar,
         outline: {
@@ -93,20 +99,6 @@ export default defineConfig({
         lastUpdated: {
           text: '最后更新',
         },
-      },
-    },
-    en: {
-      label: 'English',
-      lang: 'en-US',
-      title: 'CubeKit Scramble Docs',
-      description: 'WCA scramble generation and scramble image rendering explained.',
-      themeConfig: {
-        nav: [
-          { text: 'Overview', link: '/en/' },
-          { text: 'Packages', link: '/en/cubekit-packages' },
-          { text: '中文', link: '/zh/' },
-        ],
-        sidebar: enSidebar,
       },
     },
   },

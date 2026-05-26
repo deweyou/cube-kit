@@ -1,40 +1,41 @@
-# WCA 打乱生成与打乱图总览
+# WCA 打乱生成与打乱图
 
 ::: warning 官方比赛提示
-CubeKit 不是官方 WCA 打乱程序。正式比赛必须使用 WCA 网站发布的当前官方打乱程序。
+CubeKit 是学习与开发实现，不是 WCA 官方打乱程序。正式比赛必须使用 WCA 发布的当前官方打乱程序。
 :::
 
 ```mermaid
 flowchart TD
-    WCA["WCA 规则"] --> TNoodle["TNoodle / lib-scrambles"]
-    TNoodle --> Puzzle["scramble-puzzle<br/>规则和状态"]
-    Puzzle --> Core["scramble-core<br/>生成打乱"]
-    Puzzle --> Image["scramble-image<br/>生成 SVG"]
-    Core --> Playground["playground 验证"]
-    Image --> Playground
-    Core -. "未来接入" .-> Apps["生产 app"]
-    Image -. "未来接入" .-> Apps
+    Rules["WCA 规则"] --> Fairness["公平的目标状态"]
+    Fairness --> Generator["打乱生成器"]
+    Generator --> Text["打乱文本"]
+    Text --> Parser["move parser"]
+    Parser --> State["状态转换"]
+    State --> Image["打乱图渲染"]
 ```
 
-这个站点解释 CubeKit 中 WCA 魔方打乱生成和打乱图生成的工程原理。它不是 API 文档，也不是比赛用工具；它的目标是让你理解三件事：
-
-- WCA 规则为什么强调「随机状态」而不是随便打一串随机转动。
-- TNoodle 风格的生成器如何把事件、随机源、求解器和特殊规则串起来。
-- 打乱图为什么依赖 move parser 和 state transition，而不是直接画打乱字符串。
-
-CubeKit 当前记录的兼容基线是 TNoodle-WCA `1.2.3`、`thewca/tnoodle-lib v0.19.2`。版本和升级流程见仓库内的 [TNoodle baseline](https://github.com/deweyou/cubekit/blob/main/docs/tnoodle-baseline.md)。
+这份文档只讲打乱和打乱图的原理，不讲包怎么使用。你可以把「打乱字符串」看成最后露出来的一层：它背后先要决定目标状态，再按规则避开太简单的状态，然后用求解器或随机转动策略生成文本；打乱图又会把这段文本重新解析、应用到 solved state，最后画出结果。
 
 ## 学习路径
 
-1. 从 [WCA 打乱规则](./wca-rules) 开始，理解随机状态和各事件例外。
-2. 阅读 [打乱生成原理](./generation)，看生成管线如何落到代码。
-3. 阅读 [Move Parser 与状态转换](./state-transition)，理解通用 puzzle 能力。
-4. 阅读 [打乱图生成原理](./image-rendering)，把状态转换和 SVG 渲染串起来。
-5. 最后看 [CubeKit 包边界](./cubekit-packages)，了解三包拆分和测试策略。
+1. 先看 [规则与公平性](./wca-rules)，理解为什么「随机 move」不等于公平打乱。
+2. 再看 [生成模型](./generation)，理解 random-state 和 random-turn 两条主线。
+3. 进入 [状态空间与坐标编码](./state-space)，理解 puzzle state 为什么能变成数字。
+4. 继续看 [搜索与剪枝](./search-pruning)，理解求解器为什么能高效过滤和求解。
+5. 然后看 [各项目打乱策略](./event-families)，逐个理解每类魔方/项目为什么这样生成。
+6. 接着看 [状态转换](./state-transition)，理解 move parser 到 puzzle state 的桥。
+7. 最后看 [打乱图生成原理](./image-rendering)，理解为什么图是从状态画出来的。
 
-## 关键来源
+## 先记住三件事
+
+- 打乱是否公平，看的是最终 puzzle state，不是字符串看起来乱不乱。
+- 小型项目通常可以「随机抽状态 -> 求解 -> 反过来作为打乱」。
+- 大型项目常用有约束的 random-turn，因为完整等概率状态采样成本太高。
+- 打乱图不是把字符串画出来，而是把字符串应用到状态以后，再画最终状态。
+
+## 资料来源
 
 - [WCA Regulations, Article 4](https://www.worldcubeassociation.org/regulations/#article-4-scrambling)
 - [WCA official scrambles page](https://www.worldcubeassociation.org/regulations/scrambles/)
 - [thewca/tnoodle-lib](https://github.com/thewca/tnoodle-lib)
-- [CubeKit scramble package notes](https://github.com/deweyou/cubekit/blob/main/docs/tnoodle-implementation-notes.md)
+- [CubeKit TNoodle notes](https://github.com/deweyou/cubekit/blob/main/docs/tnoodle-implementation-notes.md)
