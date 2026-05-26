@@ -2,9 +2,12 @@
   "name": "@cubekit/scramble-image",
   "version": "0.0.0",
   "description": "DOM-free SVG rendering for TNoodle-compatible scramble states.",
-  "license": "GPL-3.0",
+  "license": "GPL-3.0-only",
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
   ],
   "type": "module",
   "exports": {

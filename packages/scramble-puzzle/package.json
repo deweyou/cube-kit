@@ -2,9 +2,12 @@
   "name": "@cubekit/scramble-puzzle",
   "version": "0.0.0",
   "description": "Puzzle notation, state transitions, and shared WCA puzzle definitions for CubeKit.",
-  "license": "GPL-3.0",
+  "license": "GPL-3.0-only",
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
   ],
   "type": "module",
   "exports": {

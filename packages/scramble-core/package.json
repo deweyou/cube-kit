@@ -2,9 +2,12 @@
   "name": "@cubekit/scramble-core",
   "version": "0.0.0",
   "description": "TNoodle-compatible WCA scramble generation for CubeKit.",
-  "license": "GPL-3.0",
+  "license": "GPL-3.0-only",
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
   ],
   "type": "module",
   "exports": {

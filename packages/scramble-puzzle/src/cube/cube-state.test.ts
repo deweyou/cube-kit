@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createCubeDefinition } from './cube-definition.js';
 import type { CubeMove } from './cube-move.js';
+import { normalizeCubeState } from './cube-normalize.js';
 import { applyCubeMove, areCubeStatesEqual, createSolvedCubeState } from './cube-state.js';
 
 const asCubeMove = (move: unknown): CubeMove => move as CubeMove;
@@ -15,6 +16,18 @@ describe('cube state transitions', () => {
     expect(cube.isSolved(state)).toBe(true);
   });
 
+  it('rejects non-positive and fractional cube sizes', () => {
+    for (const size of [0, -1, 1.5, Number.NaN]) {
+      expect(() => createSolvedCubeState(size)).toThrow(RangeError);
+    }
+  });
+
+  it('normalizes cube states without changing state ownership', () => {
+    const state = createSolvedCubeState(3);
+
+    expect(normalizeCubeState(state)).toBe(state);
+  });
+
   it('R followed by R prime returns to solved', () => {
     const cube = createCubeDefinition(3, ['333']);
     const state = cube.applyMove(
@@ -22,6 +35,16 @@ describe('cube state transitions', () => {
       cube.parseAlgorithm("R'")[0],
     );
     expect(cube.isSolved(state)).toBe(true);
+  });
+
+  it('applies algorithms through the Cube definition wrapper', () => {
+    const cube = createCubeDefinition(3, ['333']);
+    const solved = cube.createSolvedState();
+    const moved = cube.applyAlgorithm(solved, "R U R' U'");
+    const restored = cube.applyAlgorithm(moved, "U R U' R'");
+
+    expect(cube.isSolved(moved)).toBe(false);
+    expect(cube.isSolved(restored)).toBe(true);
   });
 
   it('applies half turns and repeated quarter turns', () => {
@@ -79,16 +102,29 @@ describe('cube state transitions', () => {
         asCubeMove({ face: 'R', amount: 1, width: 3, isRotation: false }),
       ),
     ).toThrow("move '3Rw' is invalid for puzzle 'cube'");
+    expect(() =>
+      applyCubeMove(
+        createSolvedCubeState(3),
+        asCubeMove({ face: 'R', amount: 1, width: 0, isRotation: false }),
+      ),
+    ).toThrow("move '0Rw' is invalid for puzzle 'cube'");
   });
 
   it('rejects malformed move objects at apply time', () => {
     const state = createSolvedCubeState(3);
 
     for (const move of [
+      null,
       { face: 'Q', amount: 1, width: 1, isRotation: false },
       { face: 'R', amount: 0, width: 1, isRotation: false },
       { face: 'R', amount: 4, width: 1, isRotation: false },
       { face: 'R', amount: 1, width: 1, isRotation: 'false' },
+      {
+        face: 'R',
+        amount: 1,
+        width: Number.NaN,
+        isRotation: false,
+      },
       {
         face: 'R',
         amount: 1,

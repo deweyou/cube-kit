@@ -76,12 +76,16 @@ describe('Skewb state transitions', () => {
   });
 
   it('rejects malformed move API inputs', () => {
-    expect(() =>
-      applySkewbMove(createSolvedSkewbState(), {
-        face: 'R',
-        amount: 3,
-      } as never),
-    ).toThrow(InvalidMoveError);
+    const state = createSolvedSkewbState();
+
+    for (const move of [
+      null,
+      { face: 'R', amount: 3 },
+      { face: 'F', amount: 1 },
+      { face: 'R', amount: '1' },
+    ]) {
+      expect(() => applySkewbMove(state, move as never)).toThrow(InvalidMoveError);
+    }
   });
 
   it('compares Skewb states by sticker image', () => {
@@ -91,5 +95,39 @@ describe('Skewb state transitions', () => {
     expect(
       areSkewbStatesEqual(createSolvedSkewbState(), applySkewbMove(createSolvedSkewbState(), move)),
     ).toBe(false);
+  });
+
+  it('rejects malformed Skewb states when applying moves', () => {
+    const [move] = parseSkewbAlgorithm('R');
+
+    expect(() =>
+      applySkewbMove(
+        {
+          image: [[], [], [], [], [], []],
+        },
+        move,
+      ),
+    ).toThrow(RangeError);
+    expect(() =>
+      applySkewbMove(
+        {
+          image: [
+            Array(5).fill(99),
+            Array(5).fill(1),
+            Array(5).fill(2),
+            Array(5).fill(3),
+            Array(5).fill(4),
+            Array(5).fill(5),
+          ],
+        },
+        move,
+      ),
+    ).toThrow(RangeError);
+  });
+
+  it('does not treat partial malformed Skewb states as solved', () => {
+    const definition = createSkewbDefinition();
+
+    expect(definition.isSolved({ image: [[1]] })).toBe(false);
   });
 });

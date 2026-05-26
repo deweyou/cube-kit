@@ -33,6 +33,9 @@ describe('parseCubeAlgorithm', () => {
   it('rejects malformed cube moves', () => {
     expect(() => parseCubeAlgorithm('R4')).toThrow("move 'R4' is invalid for puzzle 'cube'");
     expect(() => parseCubeAlgorithm('Q')).toThrow("move 'Q' is invalid for puzzle 'cube'");
+    expect(() => parseCubeAlgorithm('r')).toThrow("move 'r' is invalid for puzzle 'cube'");
+    expect(() => parseCubeAlgorithm('M')).toThrow("move 'M' is invalid for puzzle 'cube'");
+    expect(() => parseCubeAlgorithm('X')).toThrow("move 'X' is invalid for puzzle 'cube'");
   });
 
   it('rejects invalid explicit wide move widths', () => {

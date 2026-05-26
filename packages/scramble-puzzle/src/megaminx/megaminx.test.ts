@@ -178,10 +178,46 @@ describe('Megaminx state transitions', () => {
     );
   });
 
+  it('rejects malformed move API inputs', () => {
+    const state = createSolvedMegaminxState();
+
+    for (const move of [
+      null,
+      { type: 'face', face: 'U', amount: 5 },
+      { type: 'face', face: 'bogus', amount: 1 },
+      { type: 'big-turn', name: 'U', amount: 1 },
+      { type: 'unknown', face: 'U', amount: 1 },
+    ]) {
+      expect(() => applyMegaminxMove(state, move as never)).toThrow(InvalidMoveError);
+    }
+  });
+
+  it('rejects malformed Megaminx states when applying moves', () => {
+    const [move] = parseMegaminxAlgorithm('U');
+
+    expect(() =>
+      applyMegaminxMove(
+        {
+          image: [
+            Array(10).fill(0),
+            ...Array.from({ length: 11 }, (_, face) => Array(11).fill(face + 1)),
+          ],
+        },
+        move,
+      ),
+    ).toThrow(RangeError);
+  });
+
   it('compares non-equal Megaminx states', () => {
     const solved = createSolvedMegaminxState();
     const moved = applyMegaminxMove(solved, parseMegaminxAlgorithm('U')[0]);
 
     expect(areMegaminxStatesEqual(solved, moved)).toBe(false);
+  });
+
+  it('does not treat partial malformed Megaminx states as solved', () => {
+    const definition = createMegaminxDefinition();
+
+    expect(definition.isSolved({ image: [[1]] })).toBe(false);
   });
 });

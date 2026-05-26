@@ -15,6 +15,8 @@ const applySquareOneAlgorithm = (state: SquareOneState, algorithm: string): Squa
   );
 
 const countPathElements = (svg: string): number => svg.match(/<path\b/g)?.length ?? 0;
+const countFill = (svg: string, color: string): number =>
+  svg.match(new RegExp(`fill="${color}"`, 'g'))?.length ?? 0;
 
 describe('renderSquareOneState', () => {
   it('renders solved Square-1 state SVG', () => {
@@ -69,5 +71,31 @@ describe('renderSquareOneState', () => {
     expect(countPathElements(solved)).toBe(40);
     expect(countPathElements(wrapCorner)).toBe(countPathElements(solved));
     expect(wrapCorner).not.toBe(solved);
+  });
+
+  it('uses the L color when a piece references an unknown Square-1 side', () => {
+    const pieces = Array.from({ length: 24 }, () => 3);
+    pieces[0] = 16;
+    const svg = renderSquareOneState(
+      { sliceSolved: true, pieces } as SquareOneState,
+      { L: '#123456', B: '#654321', D: '#abcdef', U: '#fedcba' },
+    );
+
+    expect(countFill(svg, '#123456')).toBe(1);
+  });
+
+  it('skips missing Square-1 piece positions without emitting unsafe fills', () => {
+    const completePieces = Array.from({ length: 24 }, (_, index) => (index % 2 === 0 ? 1 : 3));
+    const sparsePieces = [...completePieces] as (number | undefined)[];
+    sparsePieces[0] = undefined;
+
+    const complete = renderSquareOneState({ sliceSolved: true, pieces: completePieces });
+    const sparse = renderSquareOneState({
+      sliceSolved: true,
+      pieces: sparsePieces as readonly number[],
+    });
+
+    expect(countPathElements(sparse)).toBe(countPathElements(complete) - 2);
+    expect(sparse).not.toContain('fill="undefined"');
   });
 });

@@ -36,6 +36,15 @@ describe('renderCubeNet', () => {
 
     expect(svg).toContain('fill="#123456"');
   });
+
+  it('escapes color attributes provided through renderer options', () => {
+    const cube = createCubeDefinition(3, ['333']);
+    const unsafeColor = '#fff" onload="alert(1)<&' as '#ffffff';
+    const svg = renderCubeNet(cube.createSolvedState(), { R: unsafeColor });
+
+    expect(svg).toContain('fill="#fff&quot; onload=&quot;alert(1)&lt;&amp;"');
+    expect(svg).not.toContain('onload="alert');
+  });
 });
 
 describe('renderScrambleImage', () => {

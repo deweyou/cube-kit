@@ -31,6 +31,16 @@ describe('Square-1 parser and state', () => {
     expect(sq1.isSolved(state)).toBe(false);
   });
 
+  it('applies algorithms through the Square-1 definition wrapper', () => {
+    const sq1 = createSquareOneDefinition();
+    const solved = sq1.createSolvedState();
+    const moved = sq1.applyAlgorithm(solved, '(3,0) /');
+    const restored = sq1.applyAlgorithm(moved, '/ (-3,0)');
+
+    expect(sq1.isSolved(moved)).toBe(false);
+    expect(sq1.isSolved(restored)).toBe(true);
+  });
+
   it('rejects malformed and out-of-bounds tuple moves', () => {
     expect(() => parseSquareOneAlgorithm('(0,0)')).toThrow(InvalidMoveError);
     expect(() => parseSquareOneAlgorithm('(7,0)')).toThrow(InvalidMoveError);
@@ -165,6 +175,38 @@ describe('Square-1 parser and state', () => {
         bottom: 0,
       } as SquareOneMove),
     ).toThrow(InvalidMoveError);
+  });
+
+  it('rejects malformed Square-1 states when applying moves', () => {
+    const [move] = parseSquareOneAlgorithm('(1,0)');
+
+    expect(() =>
+      applySquareOneMove(
+        {
+          sliceSolved: true,
+          pieces: [],
+        },
+        move,
+      ),
+    ).toThrow(RangeError);
+    expect(() =>
+      applySquareOneMove(
+        {
+          sliceSolved: true,
+          pieces: Array(24).fill(99),
+        },
+        move,
+      ),
+    ).toThrow(RangeError);
+    expect(() =>
+      applySquareOneMove(
+        {
+          sliceSolved: true,
+          pieces: Array(25).fill(0),
+        },
+        move,
+      ),
+    ).toThrow(RangeError);
   });
 
   it('does not treat malformed Square-1 states as solved', () => {

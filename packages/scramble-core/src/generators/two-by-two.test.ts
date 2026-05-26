@@ -26,7 +26,7 @@ const TNoodleFixtureStates = [
 
 describe('generateTwoByTwoScramble', () => {
   it('generates an exact 11-move parseable scramble', () => {
-    const scramble = generateTwoByTwoScramble({ random: zeroRandom });
+    const scramble = generateTwoByTwoScramble({ random: createSequenceRandom([42, 42], []) });
     expect(scramble.split(/\s+/)).toHaveLength(11);
     const cube = createCubeDefinition(2, ['222']);
     expect(() => cube.parseAlgorithm(scramble)).not.toThrow();
@@ -44,6 +44,22 @@ describe('generateTwoByTwoScramble', () => {
     new TwoByTwoSolver().randomState(random);
 
     expect(calls).toEqual([5040, 729]);
+  });
+
+  it('rejects states below the WCA 4-move minimum before accepting a scramble', () => {
+    const calls: number[] = [];
+    const random = createSequenceRandom([0, 0, 42, 42], calls);
+
+    const scramble = generateTwoByTwoScramble({ random });
+
+    expect(calls).toEqual([5040, 729, 5040, 729]);
+    expect(scramble.split(/\s+/)).toHaveLength(11);
+  });
+
+  it('throws clearly when no sampled state reaches the WCA 4-move minimum', () => {
+    expect(() => generateTwoByTwoScramble({ random: zeroRandom })).toThrow(
+      '@cubekit/scramble-core: could not generate a 2x2 WCA scramble after 100 attempts',
+    );
   });
 });
 
@@ -90,4 +106,12 @@ describe('TwoByTwoSolver', () => {
 
     expect(() => new TwoByTwoSolver().randomState(random)).toThrow(RangeError);
   });
+});
+
+const createSequenceRandom = (values: number[], calls: number[]): RandomSource => ({
+  nextInt(maxExclusive) {
+    calls.push(maxExclusive);
+
+    return values.shift() ?? 0;
+  },
 });

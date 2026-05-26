@@ -98,12 +98,47 @@ describe('Pyraminx state transitions', () => {
   });
 
   it('rejects malformed move API inputs', () => {
+    const state = createSolvedPyraminxState();
+
+    for (const move of [
+      null,
+      { type: 'turn', face: 'U', amount: 3 },
+      { type: 'tip', face: 'F', amount: 1 },
+      { type: 'unknown', face: 'U', amount: 1 },
+    ]) {
+      expect(() => applyPyraminxMove(state, move as never)).toThrow(InvalidMoveError);
+    }
+  });
+
+  it('rejects malformed Pyraminx states when applying moves', () => {
+    const [move] = parsePyraminxAlgorithm('u');
+
     expect(() =>
-      applyPyraminxMove(createSolvedPyraminxState(), {
-        type: 'turn',
-        face: 'U',
-        amount: 3,
-      } as never),
-    ).toThrow(InvalidMoveError);
+      applyPyraminxMove(
+        {
+          image: [[], [], [], []],
+        },
+        move,
+      ),
+    ).toThrow(RangeError);
+    expect(() =>
+      applyPyraminxMove(
+        {
+          image: [
+            Array(9).fill(99),
+            Array(9).fill(1),
+            Array(9).fill(2),
+            Array(9).fill(3),
+          ],
+        },
+        move,
+      ),
+    ).toThrow(RangeError);
+  });
+
+  it('does not treat partial malformed Pyraminx states as solved', () => {
+    const definition = createPyraminxDefinition();
+
+    expect(definition.isSolved({ image: [[1]] })).toBe(false);
   });
 });
