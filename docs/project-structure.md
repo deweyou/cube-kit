@@ -8,6 +8,7 @@ flowchart TD
     Root --> Ci[".github/workflows package CI"]
     Apps --> Web["apps/web React timer"]
     Apps --> Playground["apps/playground scramble test workbench"]
+    Apps --> ScrambleDocs["apps/scramble-docs VitePress learning site"]
     Apps --> Wx["apps/wx-app Taro shell"]
     Web --> TimerPage["TimerPage"]
     TimerPage --> TimerPkg["@cubekit/timer"]
@@ -21,6 +22,9 @@ flowchart TD
     Playground --> CorePkg
     Playground --> ImagePkg
     Playground --> PuzzlePkg
+    ScrambleDocs --> CorePkg
+    ScrambleDocs --> ImagePkg
+    ScrambleDocs --> Docs
     CorePkg -. "production apps not migrated" .-> Apps
     ImagePkg -. "production apps not migrated" .-> Apps
     Ci --> PackageBuild["packages build job"]
@@ -38,6 +42,7 @@ miniprogram is a Taro shell waiting for feature parity.
 ```text
 apps/web/              React 18 web/H5 app and timer UI
 apps/playground/       React scramble generator/image testing workbench
+apps/scramble-docs/    VitePress bilingual scramble learning site
 apps/wx-app/           Taro WeChat miniprogram shell
 packages/timer/        platform-agnostic timer state and formatting
 packages/scramble/     WCA scramble and SVG wrapper around cstimer_module
@@ -46,7 +51,7 @@ packages/scramble-core/    TNoodle-compatible WCA scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
 docs/                  repository memory and Superpowers specs/plans
 docs/packages/         package-scoped knowledge for new scramble packages
-docs/apps/             app-scoped knowledge such as playground diagnostics
+docs/apps/             app-scoped knowledge for playground and docs apps
 scripts/               lightweight repository checks
 .github/workflows/     GitHub Actions workflows
 ```
@@ -64,6 +69,10 @@ scripts/               lightweight repository checks
   [App](../apps/playground/src/app.tsx#L1) calls the new `scramble-core` and
   `scramble-image` packages through
   [usePlayground](../apps/playground/src/playground/use-playground.ts#L1).
+- Scramble Docs starts with `pnpm dev:scramble-docs` at
+  [apps/scramble-docs/docs/index.md#L1](../apps/scramble-docs/docs/index.md#L1).
+  Its [VitePress config](../apps/scramble-docs/docs/.vitepress/config.mts#L1)
+  owns bilingual routing and Mermaid diagram rendering.
 - WeChat starts from [apps/wx-app/src/app.ts#L1](../apps/wx-app/src/app.ts#L1)
   and currently renders the placeholder index page at
   [apps/wx-app/src/pages/index/index.tsx#L1](../apps/wx-app/src/pages/index/index.tsx#L1).
@@ -82,6 +91,8 @@ scripts/               lightweight repository checks
   browser aliases, and jsdom test environment.
 - [apps/playground/vite.config.ts#L1](../apps/playground/vite.config.ts#L1) - React plugin and source aliases for testing the new scramble packages.
 - [apps/playground/src/playground/playground-service.ts#L1](../apps/playground/src/playground/playground-service.ts#L1) - adapter boundary around generator and renderer package calls.
+- [apps/scramble-docs/docs/.vitepress/config.mts#L1](../apps/scramble-docs/docs/.vitepress/config.mts#L1) - VitePress locale routing and Mermaid fence conversion.
+- [docs/apps/scramble-docs/index.md#L1](apps/scramble-docs/index.md#L1) - scramble docs app ownership and verification.
 - [apps/wx-app/config/index.ts#L3](../apps/wx-app/config/index.ts#L3) - Taro
   build configuration.
 - [packages/scramble-puzzle/src/index.ts#L1](../packages/scramble-puzzle/src/index.ts#L1) - TNoodle-compatible puzzle domain barrel.
@@ -95,4 +106,4 @@ scripts/               lightweight repository checks
 
 ---
 
-_Last updated: 2026-05-26 | Reason: document package CI workflow_
+_Last updated: 2026-05-26 | Reason: add scramble docs app routing_
