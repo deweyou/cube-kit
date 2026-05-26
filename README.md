@@ -21,6 +21,7 @@ Full reasoning and alternatives: [`packages/scramble/README.md`](./packages/scra
 cubekit/
 ├── apps/
 │   ├── playground/       # scramble package testing workbench
+│   ├── scramble-docs/    # bilingual VitePress learning site
 │   ├── web/              # React 18 web + H5 app
 │   └── wx-app/           # Taro WeChat miniprogram
 ├── packages/
@@ -44,6 +45,7 @@ pnpm install
 
 # Dev servers
 pnpm dev:playground       # scramble-core/image testing workbench
+pnpm dev:scramble-docs    # bilingual scramble learning site
 pnpm dev:web              # React 18 web dev server
 pnpm dev:wx               # WeChat miniprogram (Taro) dev server
 
@@ -58,6 +60,7 @@ pnpm --filter @cubekit/scramble-puzzle test:coverage
 pnpm --filter @cubekit/scramble-core test:coverage
 pnpm --filter @cubekit/scramble-image test:coverage
 pnpm --filter playground test
+pnpm build:scramble-docs
 ```
 
 All build / test / lint commands go through [vite-plus](https://github.com/voidzero-dev/vite-plus) (`vp`) — do not invoke `vite` / `vitest` / `tsc` directly unless a package-local script does so explicitly.
@@ -85,6 +88,12 @@ applies the scramble to a solved state, and returns standalone SVG strings.
 React playground for exercising `scramble-core` and `scramble-image` before they
 are wired into production apps. It includes seeded runs, batch generation,
 manual render, SVG download, and lightweight diagnostics.
+
+### [`apps/scramble-docs`](./apps/scramble-docs) - Learning site
+
+VitePress site for studying WCA scramble generation and scramble image rendering
+principles in English and Chinese. It is content-only and focuses on rules,
+event-specific generation strategies, state transition, and SVG rendering.
 
 ### [`@cubekit/scramble`](./packages/scramble) - Legacy cstimer wrapper
 
