@@ -161,14 +161,14 @@ export function solveThreeByThreeAssist(
 Targets use stable string ids. The initial target ids map directly to DCTimer's
 visible target families:
 
-| Method    | Target family                                      |
-| --------- | -------------------------------------------------- |
-| Cross     | six face colors: `D`, `U`, `L`, `R`, `F`, `B`      |
+| Method    | Target family                                       |
+| --------- | --------------------------------------------------- |
+| Cross     | six face colors: `D`, `U`, `L`, `R`, `F`, `B`       |
 | XCross    | six face colors, with first-slot selection internal |
-| EOline    | twelve edge-line targets such as `DF DB`           |
-| EOFC      | twelve cross plus EO targets such as `D(FB)`       |
-| Roux S1   | eight block targets such as `LU`, `LD`, `FU`       |
-| Petrus S1 | eight 2x2x2 block targets such as `ULF`, `DRB`     |
+| EOline    | twelve edge-line targets such as `DF DB`            |
+| EOFC      | twelve cross plus EO targets such as `D(FB)`        |
+| Roux S1   | eight block targets such as `LU`, `LD`, `FU`        |
+| Petrus S1 | eight 2x2x2 block targets such as `ULF`, `DRB`      |
 
 If `targets` is omitted, each function searches all targets for that method.
 Invalid scrambles or unknown targets throw typed errors exported by the package.

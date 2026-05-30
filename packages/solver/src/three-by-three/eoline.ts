@@ -19,11 +19,7 @@ import {
   indexToPermutation,
   permutationToIndex,
 } from './coordinate-utils.js';
-import {
-  EO_LINE_MOVE_STRINGS,
-  EO_LINE_ROTATIONS,
-  moveEdge,
-} from './cross.js';
+import { EO_LINE_MOVE_STRINGS, EO_LINE_ROTATIONS, moveEdge } from './cross.js';
 import { countFaceTurnMetric, countQuarterTurnMetric } from './metrics.js';
 import { parseThreeByThreeSolverAlgorithm } from './move-utils.js';
 
@@ -93,7 +89,11 @@ const moveIndex = (moveMap: string, turn: FaceTurn): number => {
   return index;
 };
 
-const getLineEdgeMove = (combinationIndex: number, permutationIndex: number, move: number): number => {
+const getLineEdgeMove = (
+  combinationIndex: number,
+  permutationIndex: number,
+  move: number,
+): number => {
   const combination = indexToCombination(combinationIndex, 2, 12);
   const permutation = indexToPermutation(permutationIndex, 2, false);
   const selectedEdges = [8, 10] as const;
@@ -124,7 +124,9 @@ const getLineEdgeMove = (combinationIndex: number, permutationIndex: number, mov
     }
   }
 
-  return combinationToIndex(nextCombination, 2, 12) * 2 + permutationToIndex(nextPermutation, 2, false);
+  return (
+    combinationToIndex(nextCombination, 2, 12) * 2 + permutationToIndex(nextPermutation, 2, false)
+  );
 };
 
 const createFilledTable = (rows: number, columns: number): number[][] =>
@@ -147,11 +149,7 @@ const initializeEOLineTables = (): EOLineTables => {
   for (let combination = 0; combination < 66; combination += 1) {
     for (let permutation = 0; permutation < 2; permutation += 1) {
       for (let move = 0; move < 6; move += 1) {
-        epm[combination * 2 + permutation][move] = getLineEdgeMove(
-          combination,
-          permutation,
-          move,
-        );
+        epm[combination * 2 + permutation][move] = getLineEdgeMove(combination, permutation, move);
       }
     }
   }
@@ -183,11 +181,7 @@ const applyScramble = (scramble: string, target: number, tables: EOLineTables): 
   return { eo, ep };
 };
 
-const applySolution = (
-  state: EOLineState,
-  solution: string,
-  tables: EOLineTables,
-): EOLineState => {
+const applySolution = (state: EOLineState, solution: string, tables: EOLineTables): EOLineState => {
   let { eo, ep } = state;
 
   for (const turn of parseFaceTurns(solution)) {

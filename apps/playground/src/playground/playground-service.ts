@@ -152,9 +152,8 @@ const createSolverDiagnostics = ({
   resultCount,
 });
 
-const countSolutions = (
-  results: readonly { readonly solutions: readonly unknown[] }[],
-): number => results.reduce((total, result) => total + result.solutions.length, 0);
+const countSolutions = (results: readonly { readonly solutions: readonly unknown[] }[]): number =>
+  results.reduce((total, result) => total + result.solutions.length, 0);
 
 const toPlaygroundScrambles = ({
   eventId,

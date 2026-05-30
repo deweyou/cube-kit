@@ -45,6 +45,7 @@
 ### Task 1: Package Scaffold
 
 **Files:**
+
 - Create: `packages/solver/package.json`
 - Create: `packages/solver/tsconfig.json`
 - Create: `packages/solver/vite.config.ts`
@@ -128,6 +129,7 @@ git commit -m "feat: add solver package scaffold"
 ### Task 2: Shared 3x3 Utilities
 
 **Files:**
+
 - Create: `packages/solver/src/three-by-three/coordinate-utils.ts`
 - Create: `packages/solver/src/three-by-three/move-utils.ts`
 - Create: `packages/solver/src/three-by-three/metrics.ts`
@@ -170,11 +172,7 @@ describe('coordinate utilities', () => {
   });
 
   it('builds pruning tables by repeated face turns', () => {
-    const moveTable = [
-      [1],
-      [2],
-      [0],
-    ] as const;
+    const moveTable = [[1], [2], [0]] as const;
 
     expect(createPruningTable(3, [0], 2, moveTable, 1)).toEqual([0, 1, 2]);
   });
@@ -262,6 +260,7 @@ git commit -m "feat: add solver coordinate utilities"
 ### Task 3: Cross, XCross, And EOFC
 
 **Files:**
+
 - Create: `packages/solver/src/three-by-three/cross.ts`
 - Create: `packages/solver/src/three-by-three/target-validation.ts`
 - Test: `packages/solver/src/three-by-three/cross.test.ts`
@@ -349,6 +348,7 @@ git commit -m "feat: add cross family solvers"
 ### Task 4: EOline
 
 **Files:**
+
 - Create: `packages/solver/src/three-by-three/eoline.ts`
 - Test: `packages/solver/src/three-by-three/eoline.test.ts`
 - Modify: `packages/solver/src/three-by-three/target-validation.ts`
@@ -415,6 +415,7 @@ git commit -m "feat: add eoline solver"
 ### Task 5: Petrus S1 And Roux S1
 
 **Files:**
+
 - Create: `packages/solver/src/three-by-three/petrus.ts`
 - Create: `packages/solver/src/three-by-three/roux.ts`
 - Test: `packages/solver/src/three-by-three/petrus.test.ts`
@@ -501,6 +502,7 @@ git commit -m "feat: add petrus and roux s1 solvers"
 ### Task 6: Aggregate Facade And Error Coverage
 
 **Files:**
+
 - Create: `packages/solver/src/three-by-three/facade.ts`
 - Test: `packages/solver/src/three-by-three/facade.test.ts`
 - Modify: `packages/solver/src/index.ts`
@@ -534,9 +536,9 @@ describe('3x3 assist facade', () => {
   });
 
   it('rejects unknown methods at runtime boundaries', () => {
-    expect(() =>
-      solveThreeByThreeAssist('', ['cross', 'bad' as never]),
-    ).toThrow(UnknownSolverMethodError);
+    expect(() => solveThreeByThreeAssist('', ['cross', 'bad' as never])).toThrow(
+      UnknownSolverMethodError,
+    );
   });
 });
 ```
@@ -584,6 +586,7 @@ git commit -m "feat: add solver aggregate facade"
 ### Task 7: Playground Solver Page
 
 **Files:**
+
 - Modify: `apps/playground/package.json`
 - Modify: `apps/playground/vite.config.ts`
 - Modify: `apps/playground/src/playground/types.ts`
@@ -676,6 +679,7 @@ git commit -m "feat: add solver playground page"
 ### Task 8: Package Documentation And Final Verification
 
 **Files:**
+
 - Create: `docs/packages/solver/index.md`
 - Modify: `AGENTS.md`
 - Modify: `docs/project-structure.md`

@@ -1,8 +1,5 @@
 import type { WcaEventId } from '@cubekit/scramble-puzzle';
-import type {
-  ThreeByThreeAssistMethod,
-  ThreeByThreeAssistResult,
-} from '@cubekit/solver';
+import type { ThreeByThreeAssistMethod, ThreeByThreeAssistResult } from '@cubekit/solver';
 
 export interface PlaygroundScramble {
   readonly id: string;

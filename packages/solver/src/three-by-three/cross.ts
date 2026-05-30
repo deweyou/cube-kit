@@ -179,7 +179,9 @@ const getCrossMove = (combination: number, permutationIndex: number, move: numbe
     }
   }
 
-  return ((24 * nextCombination + permutationToIndex(permutation, 4, false)) << 4) | nextOrientation;
+  return (
+    ((24 * nextCombination + permutationToIndex(permutation, 4, false)) << 4) | nextOrientation
+  );
 };
 
 const createFilledTable = (rows: number, columns: number): number[][] =>
@@ -198,8 +200,7 @@ const initializeCrossTables = (): CrossTables => {
         epm[24 * combination + permutation][move] = next >> 4;
 
         if (permutation < 16) {
-          eom[16 * combination + permutation][move] =
-            (Math.floor(next / 384) << 4) | (next & 15);
+          eom[16 * combination + permutation][move] = (Math.floor(next / 384) << 4) | (next & 15);
         }
       }
     }
@@ -404,7 +405,11 @@ const applyEOFCScramble = (scramble: string, side: number, tables: CrossTables):
   return { ep, eo, eof };
 };
 
-const applyCrossSolution = (state: CrossState, solution: string, tables: CrossTables): CrossState => {
+const applyCrossSolution = (
+  state: CrossState,
+  solution: string,
+  tables: CrossTables,
+): CrossState => {
   let { ep, eo } = state;
 
   for (const turn of parseFaceTurns(solution)) {
@@ -445,11 +450,7 @@ const applyXCrossSolution = (
   return { ep, eo, co, feo };
 };
 
-const applyEOFCSolution = (
-  state: EOFCState,
-  solution: string,
-  tables: CrossTables,
-): EOFCState => {
+const applyEOFCSolution = (state: EOFCState, solution: string, tables: CrossTables): EOFCState => {
   let { ep, eo, eof } = state;
 
   for (const turn of parseFaceTurns(solution)) {
@@ -730,7 +731,11 @@ export const isCrossSolutionSolved = (
   if (face < 0) return false;
 
   const tables = initializeCrossTables();
-  const state = applyCrossSolution(applyCrossScramble(scramble, face, tables), solution.solution, tables);
+  const state = applyCrossSolution(
+    applyCrossScramble(scramble, face, tables),
+    solution.solution,
+    tables,
+  );
 
   return state.ep === CROSS_SOLVED_EP && state.eo === CROSS_SOLVED_EO;
 };

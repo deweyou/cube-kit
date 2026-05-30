@@ -168,11 +168,7 @@ const ScramblePage = ({
           </label>
         ) : null}
 
-        <button
-          className="primary-action"
-          type="button"
-          onClick={() => void playground.generate()}
-        >
+        <button className="primary-action" type="button" onClick={() => void playground.generate()}>
           Generate
         </button>
 
@@ -408,7 +404,9 @@ const SolverPage = ({ playground }: { readonly playground: PlaygroundState }) =>
                   <td>
                     <ol className="solution-list">
                       {result.solutions.map((solution) => (
-                        <li key={`${solution.target}-${solution.setupRotation}-${solution.solution}`}>
+                        <li
+                          key={`${solution.target}-${solution.setupRotation}-${solution.solution}`}
+                        >
                           <span>{solution.targetLabel}</span>
                           <code>{solution.setupRotation || '-'}</code>
                           <strong>{solution.solution || '-'}</strong>

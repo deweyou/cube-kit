@@ -112,11 +112,7 @@ export const orientationToIndex = (
   return index;
 };
 
-export const indexToOrientation = (
-  index: number,
-  length: number,
-  zeroSum: boolean,
-): number[] => {
+export const indexToOrientation = (index: number, length: number, zeroSum: boolean): number[] => {
   const orientation = Array<number>(length).fill(0);
   let sum = 0;
   const start = zeroSum ? length - 2 : length - 1;

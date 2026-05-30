@@ -9,11 +9,7 @@ import type {
   ThreeByThreeAssistResult,
   ThreeByThreeAssistSolution,
 } from '../types.js';
-import {
-  binomial,
-  cycleFour,
-  cycleFourWithOrientation,
-} from './coordinate-utils.js';
+import { binomial, cycleFour, cycleFourWithOrientation } from './coordinate-utils.js';
 import { countFaceTurnMetric, countQuarterTurnMetric } from './metrics.js';
 import { getPetrusTables } from './petrus.js';
 import { parseThreeByThreeSolverAlgorithm } from './move-utils.js';
@@ -113,7 +109,11 @@ const getCorner = (combination: number, permutationAndOrientation: number): numb
   return corners;
 };
 
-const cornerMove = (combination: number, permutationAndOrientation: number, move: number): number => {
+const cornerMove = (
+  combination: number,
+  permutationAndOrientation: number,
+  move: number,
+): number => {
   const corners = getCorner(combination, permutationAndOrientation);
 
   if (move === 0) cycleFour(corners, 0, 3, 2, 1);
@@ -155,8 +155,7 @@ const initializeRouxTables = (): RouxTables => {
         const next = cornerMove(combination, orientation, move);
 
         if (orientation < 2) cpm[(combination << 1) | orientation][move] = Math.floor(next / 9);
-        com[combination * 9 + orientation][move] =
-          Math.floor(next / 18) * 9 + (next % 9);
+        com[combination * 9 + orientation][move] = Math.floor(next / 18) * 9 + (next % 9);
       }
     }
   }
@@ -175,8 +174,7 @@ const initializeRouxTables = (): RouxTables => {
 
           for (let turn = 0; turn < 3; turn += 1) {
             nextOrientation =
-              petrus.eom[(Math.floor(nextPermutation / 6) << 3) | (nextOrientation & 7)][move] &
-              7;
+              petrus.eom[(Math.floor(nextPermutation / 6) << 3) | (nextOrientation & 7)][move] & 7;
             nextPermutation = petrus.epm[nextPermutation][move];
 
             const index = (nextPermutation << 3) | nextOrientation;

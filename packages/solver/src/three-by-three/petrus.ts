@@ -159,8 +159,7 @@ const createCornerMoveTable = (): number[][] => {
     for (let orientation = 0; orientation < 3; orientation += 1) {
       for (let move = 0; move < 6; move += 1) {
         table[corner * 3 + orientation][move] =
-          permutationMoves[corner][move] * 3 +
-          ((orientationMoves[corner][move] + orientation) % 3);
+          permutationMoves[corner][move] * 3 + ((orientationMoves[corner][move] + orientation) % 3);
       }
     }
   }
@@ -180,8 +179,7 @@ export const getPetrusTables = (): PetrusTables => {
         const next = edgeMove(combination, orientation, 3, move);
 
         if (orientation < 6) epm[combination * 6 + orientation][move] = next >> 3;
-        eom[combination * 8 + orientation][move] =
-          (Math.floor(next / 48) << 3) | (next & 7);
+        eom[combination * 8 + orientation][move] = (Math.floor(next / 48) << 3) | (next & 7);
       }
     }
   }
@@ -343,11 +341,14 @@ export const isPetrusS1SolutionSolved = (
   if (block < 0) return false;
 
   const tables = getPetrusTables();
-  const state = applySolution(applyScramble(scramble, block, tables), solution.solution, block, tables);
+  const state = applySolution(
+    applyScramble(scramble, block, tables),
+    solution.solution,
+    block,
+    tables,
+  );
 
   return (
-    state.co === PETRUS_SOLVED_CO &&
-    state.ep === PETRUS_SOLVED_EP &&
-    state.eo === PETRUS_SOLVED_EO
+    state.co === PETRUS_SOLVED_CO && state.ep === PETRUS_SOLVED_EP && state.eo === PETRUS_SOLVED_EO
   );
 };
