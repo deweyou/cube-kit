@@ -1,5 +1,6 @@
 import { createDefaultScrambleGenerator, type RandomSource } from '@cubekit/scramble-core';
 import { renderScrambleImage } from '@cubekit/scramble-image';
+import { solveThreeByThreeAssist } from '@cubekit/solver';
 import { createSeededRandomSource } from './seeded-random';
 import type {
   PlaygroundGenerateInput,
@@ -8,6 +9,8 @@ import type {
   PlaygroundManualRenderResult,
   PlaygroundRenderDiagnostics,
   PlaygroundScramble,
+  PlaygroundSolverInput,
+  PlaygroundSolverResult,
 } from './types';
 
 export interface PlaygroundServiceOptions {
@@ -91,6 +94,36 @@ export const createPlaygroundService = ({
         };
       }
     },
+    solveThreeByThree(input: PlaygroundSolverInput): PlaygroundSolverResult {
+      const solveStart = now();
+
+      try {
+        const results = solveThreeByThreeAssist(input.scramble, input.methods, {
+          targets: input.targets && input.targets.length > 0 ? input.targets : undefined,
+        });
+        const solveEnd = now();
+
+        return {
+          results,
+          diagnostics: createSolverDiagnostics({
+            durationMs: solveEnd - solveStart,
+            resultCount: countSolutions(results),
+          }),
+          error: undefined,
+        };
+      } catch (error) {
+        const solveEnd = now();
+
+        return {
+          results: [],
+          diagnostics: createSolverDiagnostics({
+            durationMs: solveEnd - solveStart,
+            resultCount: 0,
+          }),
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
   };
 };
 
@@ -107,6 +140,21 @@ const createRenderDiagnostics = ({
   scrambleLength: scramble.length,
   svgBytes: new TextEncoder().encode(svg).length,
 });
+
+const createSolverDiagnostics = ({
+  durationMs,
+  resultCount,
+}: {
+  readonly durationMs: number;
+  readonly resultCount: number;
+}) => ({
+  durationMs,
+  resultCount,
+});
+
+const countSolutions = (
+  results: readonly { readonly solutions: readonly unknown[] }[],
+): number => results.reduce((total, result) => total + result.solutions.length, 0);
 
 const toPlaygroundScrambles = ({
   eventId,

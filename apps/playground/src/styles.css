@@ -81,6 +81,29 @@ button {
   white-space: nowrap;
 }
 
+.page-tabs {
+  display: flex;
+  gap: 8px;
+  max-width: 1440px;
+  margin: 0 auto 16px;
+  border-bottom: 1px solid #d7dee2;
+}
+
+.tab-button {
+  min-height: 38px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #465861;
+  padding: 0 12px;
+  font-weight: 750;
+}
+
+.tab-button[aria-selected='true'] {
+  border-bottom-color: #257b6e;
+  color: #172026;
+}
+
 .workbench {
   display: grid;
   grid-template-columns: minmax(220px, 280px) minmax(360px, 1fr) minmax(360px, 1fr);
@@ -331,15 +354,151 @@ button {
   align-items: start;
 }
 
+.solver-workbench {
+  display: grid;
+  grid-template-columns: minmax(420px, 0.8fr) minmax(480px, 1.2fr);
+  gap: 16px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.solver-controls-panel,
+.solver-results-panel {
+  min-height: 520px;
+  padding: 18px;
+}
+
+.solver-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(240px, 320px);
+  gap: 16px;
+  align-items: start;
+}
+
+.solver-scramble-field textarea {
+  min-height: 214px;
+}
+
+.solver-options {
+  display: grid;
+  gap: 14px;
+}
+
+.method-fieldset {
+  margin: 0;
+  border: 1px solid #d7dee2;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.method-fieldset legend {
+  color: #26343b;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.method-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  border-radius: 6px;
+  background: #edf2f4;
+  padding: 6px 8px;
+  color: #26343b;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.method-option input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #257b6e;
+}
+
+.method-option span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.solver-results {
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid #d9e1e5;
+  border-radius: 6px;
+}
+
+.solver-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.solver-table th,
+.solver-table td {
+  border-bottom: 1px solid #d9e1e5;
+  padding: 9px 10px;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.solver-table th {
+  position: sticky;
+  top: 0;
+  background: #edf2f4;
+  color: #26343b;
+  font-weight: 750;
+}
+
+.solver-table td {
+  color: #172026;
+}
+
+.solution-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.solution-list li {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.8fr) minmax(42px, 0.4fr) minmax(86px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  border-radius: 6px;
+  background: #f8fafb;
+  padding: 7px 8px;
+}
+
+.solution-list code,
+.solution-list strong {
+  color: #172026;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 1080px) {
   .workbench,
-  .manual-grid {
+  .manual-grid,
+  .solver-workbench,
+  .solver-grid {
     grid-template-columns: 1fr;
   }
 
   .controls-panel,
   .core-panel,
-  .image-panel {
+  .image-panel,
+  .solver-controls-panel,
+  .solver-results-panel {
     min-height: auto;
   }
 }
@@ -359,6 +518,18 @@ button {
   }
 
   .diagnostics {
+    grid-template-columns: 1fr;
+  }
+
+  .page-tabs {
+    overflow-x: auto;
+  }
+
+  .method-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .solution-list li {
     grid-template-columns: 1fr;
   }
 }

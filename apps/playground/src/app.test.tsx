@@ -57,4 +57,27 @@ describe('App', () => {
       false,
     );
   });
+
+  it('opens the solver page and shows auxiliary solutions', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
+    await userEvent.clear(screen.getByLabelText('Solver scramble'));
+    await userEvent.type(screen.getByLabelText('Solver scramble'), 'R U');
+    await userEvent.click(screen.getByRole('button', { name: 'Solve' }));
+
+    expect(await screen.findByText('cross')).toBeTruthy();
+    expect(screen.getByText(/Result count/i)).toBeTruthy();
+  });
+
+  it('shows solver errors without leaving the solver page', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
+    await userEvent.clear(screen.getByLabelText('Solver scramble'));
+    await userEvent.type(screen.getByLabelText('Solver scramble'), 'Rw');
+    await userEvent.click(screen.getByRole('button', { name: 'Solve' }));
+
+    expect((await screen.findByRole('alert')).textContent).toContain('Rw');
+  });
 });

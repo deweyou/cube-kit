@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react';
 import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type { ThreeByThreeAssistMethod } from '@cubekit/solver';
 import { getBrowserSeed } from './browser-seed';
 import { createPlaygroundService } from './playground-service';
 import type {
   PlaygroundGenerateResult,
   PlaygroundManualRenderResult,
   PlaygroundScramble,
+  PlaygroundSolverResult,
 } from './types';
 
+export type PlaygroundPage = 'scrambles' | 'solvers';
 export type PlaygroundService = ReturnType<typeof createPlaygroundService>;
 
 export interface UsePlaygroundOptions {
@@ -31,6 +34,13 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   const [generationResult, setGenerationResult] = useState<PlaygroundGenerateResult>();
   const [manualResult, setManualResult] = useState<PlaygroundManualRenderResult>();
   const [generationError, setGenerationError] = useState<string>();
+  const [activePage, setActivePage] = useState<PlaygroundPage>('scrambles');
+  const [solverScramble, setSolverScramble] = useState("R U R' U'");
+  const [solverTargetText, setSolverTargetText] = useState('');
+  const [solverMethods, setSolverMethods] = useState<readonly ThreeByThreeAssistMethod[]>([
+    'cross',
+  ]);
+  const [solverResult, setSolverResult] = useState<PlaygroundSolverResult>();
 
   const generate = async () => {
     setGenerationError(undefined);
@@ -75,7 +85,30 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     setManualSvg(result.svg);
   };
 
+  const setSolverMethod = (method: ThreeByThreeAssistMethod, checked: boolean) => {
+    setSolverMethods((currentMethods) => {
+      const nextMethods = checked
+        ? [...currentMethods, method]
+        : currentMethods.filter((currentMethod) => currentMethod !== method);
+      const uniqueMethods = [...new Set(nextMethods)];
+
+      return uniqueMethods.length > 0 ? uniqueMethods : currentMethods;
+    });
+  };
+
+  const solveThreeByThree = () => {
+    const result = packageService.solveThreeByThree({
+      scramble: solverScramble,
+      methods: solverMethods,
+      targets: parseTargetText(solverTargetText),
+    });
+
+    setSolverResult(result);
+  };
+
   return {
+    activePage,
+    setActivePage,
     eventId,
     setEventId,
     count,
@@ -95,5 +128,22 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     generationError,
     generate,
     renderManual,
+    solverScramble,
+    setSolverScramble,
+    solverTargetText,
+    setSolverTargetText,
+    solverMethods,
+    setSolverMethod,
+    solverResult,
+    solveThreeByThree,
   };
+};
+
+const parseTargetText = (value: string): readonly string[] | undefined => {
+  const targets = value
+    .split(',')
+    .map((target) => target.trim())
+    .filter((target) => target.length > 0);
+
+  return targets.length > 0 ? targets : undefined;
 };

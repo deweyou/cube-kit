@@ -1,4 +1,8 @@
 import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type {
+  ThreeByThreeAssistMethod,
+  ThreeByThreeAssistResult,
+} from '@cubekit/solver';
 
 export interface PlaygroundScramble {
   readonly id: string;
@@ -39,5 +43,22 @@ export interface PlaygroundGenerateResult {
 export interface PlaygroundManualRenderResult {
   readonly svg: string;
   readonly render: PlaygroundRenderDiagnostics;
+  readonly error: string | undefined;
+}
+
+export interface PlaygroundSolverDiagnostics {
+  readonly durationMs: number;
+  readonly resultCount: number;
+}
+
+export interface PlaygroundSolverInput {
+  readonly scramble: string;
+  readonly methods: readonly ThreeByThreeAssistMethod[];
+  readonly targets?: readonly string[];
+}
+
+export interface PlaygroundSolverResult {
+  readonly results: readonly ThreeByThreeAssistResult[];
+  readonly diagnostics: PlaygroundSolverDiagnostics;
   readonly error: string | undefined;
 }

@@ -60,6 +60,9 @@ importers:
       '@cubekit/scramble-puzzle':
         specifier: workspace:*
         version: link:../../packages/scramble-puzzle
+      '@cubekit/solver':
+        specifier: workspace:*
+        version: link:../../packages/solver
       react:
         specifier: 'catalog:'
         version: 19.2.5

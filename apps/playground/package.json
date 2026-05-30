@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vp dev",
     "build": "pnpm run prepare:deps && tsc && vp build",
-    "prepare:deps": "pnpm --filter @cubekit/scramble-puzzle build && pnpm --filter @cubekit/scramble-core build && pnpm --filter @cubekit/scramble-image build",
+    "prepare:deps": "pnpm --filter @cubekit/scramble-puzzle build && pnpm --filter @cubekit/solver build && pnpm --filter @cubekit/scramble-core build && pnpm --filter @cubekit/scramble-image build",
     "preview": "vp preview",
     "test": "vp test",
     "typecheck": "pnpm run prepare:deps && tsc --noEmit"
@@ -15,6 +15,7 @@
     "@cubekit/scramble-core": "workspace:*",
     "@cubekit/scramble-image": "workspace:*",
     "@cubekit/scramble-puzzle": "workspace:*",
+    "@cubekit/solver": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
