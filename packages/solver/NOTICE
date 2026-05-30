@@ -1,0 +1,14 @@
+@cubekit/solver
+Copyright (C) 2026 The CubeKit authors
+
+This package is licensed under the GNU General Public License version 3 only.
+See the LICENSE file in this directory for the full text.
+
+This package ports auxiliary solve-hint behavior from DCTimer:
+
+    Name:       DCTimer
+    Source:     https://github.com/MeigenChou/DCTimer-Android
+    License:    GNU General Public License v3.0
+
+CubeKit is not an official WCA scramble program. Official competitions must use
+the current official WCA scramble program from the WCA website.

@@ -267,6 +267,31 @@ importers:
         specifier: npm:@voidzero-dev/vite-plus-test@latest
         version: '@voidzero-dev/vite-plus-test@0.1.19(@types/node@24.12.2)(@vitest/coverage-v8@4.1.4)(@voidzero-dev/vite-plus-core@0.1.19(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)'
 
+  packages/solver:
+    dependencies:
+      '@cubekit/scramble-puzzle':
+        specifier: workspace:*
+        version: link:../scramble-puzzle
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.12.2
+      '@vitest/coverage-v8':
+        specifier: 'catalog:'
+        version: 4.1.4(@voidzero-dev/vite-plus-test@0.1.19)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vite:
+        specifier: npm:@voidzero-dev/vite-plus-core@latest
+        version: '@voidzero-dev/vite-plus-core@0.1.19(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)'
+      vite-plus:
+        specifier: 0.1.19
+        version: 0.1.19(@types/node@24.12.2)(@vitest/coverage-v8@4.1.4)(@voidzero-dev/vite-plus-core@0.1.19(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)
+      vitest:
+        specifier: npm:@voidzero-dev/vite-plus-test@latest
+        version: '@voidzero-dev/vite-plus-test@0.1.19(@types/node@24.12.2)(@vitest/coverage-v8@4.1.4)(@voidzero-dev/vite-plus-core@0.1.19(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)'
+
   packages/timer:
     devDependencies:
       '@types/node':
