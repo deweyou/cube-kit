@@ -1,23 +1,14 @@
-import { parseCubeAlgorithm, type CubeMove } from '@cubekit/scramble-puzzle';
+import { parseCubeMove, splitAlgorithm, type CubeMove } from '@cubekit/scramble-puzzle';
 import { InvalidSolverScrambleError, UnsupportedSolverMoveError } from '../errors.js';
-
-const moveToToken = (move: CubeMove): string => {
-  if (move.isRotation) {
-    if (move.face === 'R') return 'x';
-    if (move.face === 'U') return 'y';
-    return 'z';
-  }
-
-  return move.face;
-};
 
 export const parseThreeByThreeSolverAlgorithm = (algorithm: string): readonly CubeMove[] => {
   try {
-    const moves = parseCubeAlgorithm(algorithm);
+    const tokens = splitAlgorithm(algorithm);
+    const moves = tokens.map(parseCubeMove);
 
-    for (const move of moves) {
+    for (const [index, move] of moves.entries()) {
       if (!move.isRotation && move.width !== 1) {
-        throw new UnsupportedSolverMoveError(moveToToken(move));
+        throw new UnsupportedSolverMoveError(tokens[index]);
       }
     }
 
