@@ -20,6 +20,8 @@ import {
   solveXCross as solveXCrossImpl,
 } from './three-by-three/cross.js';
 import { solveEOLine as solveEOLineImpl } from './three-by-three/eoline.js';
+import { solvePetrusS1 as solvePetrusS1Impl } from './three-by-three/petrus.js';
+import { solveRouxS1 as solveRouxS1Impl } from './three-by-three/roux.js';
 import type {
   ThreeByThreeAssistMethod,
   ThreeByThreeAssistOptions,
@@ -51,14 +53,14 @@ export const solveEOFC = (
 ): ThreeByThreeAssistResult => solveEOFCImpl(scramble, options);
 
 export const solveRouxS1 = (
-  _scramble: string,
-  _options: ThreeByThreeAssistOptions = {},
-): ThreeByThreeAssistResult => notImplemented();
+  scramble: string,
+  options: ThreeByThreeAssistOptions = {},
+): ThreeByThreeAssistResult => solveRouxS1Impl(scramble, options);
 
 export const solvePetrusS1 = (
-  _scramble: string,
-  _options: ThreeByThreeAssistOptions = {},
-): ThreeByThreeAssistResult => notImplemented();
+  scramble: string,
+  options: ThreeByThreeAssistOptions = {},
+): ThreeByThreeAssistResult => solvePetrusS1Impl(scramble, options);
 
 export const solveThreeByThreeAssist = (
   _scramble: string,
