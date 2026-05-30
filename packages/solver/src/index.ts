@@ -14,6 +14,11 @@ export type {
   ThreeByThreeAssistSolution,
 } from './types.js';
 import { SolverError } from './errors.js';
+import {
+  solveCross as solveCrossImpl,
+  solveEOFC as solveEOFCImpl,
+  solveXCross as solveXCrossImpl,
+} from './three-by-three/cross.js';
 import type {
   ThreeByThreeAssistMethod,
   ThreeByThreeAssistOptions,
@@ -25,14 +30,14 @@ const notImplemented = (): never => {
 };
 
 export const solveCross = (
-  _scramble: string,
-  _options: ThreeByThreeAssistOptions = {},
-): ThreeByThreeAssistResult => notImplemented();
+  scramble: string,
+  options: ThreeByThreeAssistOptions = {},
+): ThreeByThreeAssistResult => solveCrossImpl(scramble, options);
 
 export const solveXCross = (
-  _scramble: string,
-  _options: ThreeByThreeAssistOptions = {},
-): ThreeByThreeAssistResult => notImplemented();
+  scramble: string,
+  options: ThreeByThreeAssistOptions = {},
+): ThreeByThreeAssistResult => solveXCrossImpl(scramble, options);
 
 export const solveEOLine = (
   _scramble: string,
@@ -40,9 +45,9 @@ export const solveEOLine = (
 ): ThreeByThreeAssistResult => notImplemented();
 
 export const solveEOFC = (
-  _scramble: string,
-  _options: ThreeByThreeAssistOptions = {},
-): ThreeByThreeAssistResult => notImplemented();
+  scramble: string,
+  options: ThreeByThreeAssistOptions = {},
+): ThreeByThreeAssistResult => solveEOFCImpl(scramble, options);
 
 export const solveRouxS1 = (
   _scramble: string,
