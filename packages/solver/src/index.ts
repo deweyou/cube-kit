@@ -19,6 +19,7 @@ import {
   solveEOFC as solveEOFCImpl,
   solveXCross as solveXCrossImpl,
 } from './three-by-three/cross.js';
+import { solveEOLine as solveEOLineImpl } from './three-by-three/eoline.js';
 import type {
   ThreeByThreeAssistMethod,
   ThreeByThreeAssistOptions,
@@ -40,9 +41,9 @@ export const solveXCross = (
 ): ThreeByThreeAssistResult => solveXCrossImpl(scramble, options);
 
 export const solveEOLine = (
-  _scramble: string,
-  _options: ThreeByThreeAssistOptions = {},
-): ThreeByThreeAssistResult => notImplemented();
+  scramble: string,
+  options: ThreeByThreeAssistOptions = {},
+): ThreeByThreeAssistResult => solveEOLineImpl(scramble, options);
 
 export const solveEOFC = (
   scramble: string,
