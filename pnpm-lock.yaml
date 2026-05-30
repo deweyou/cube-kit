@@ -106,9 +106,15 @@ importers:
 
   apps/web:
     dependencies:
-      '@cubekit/scramble':
+      '@cubekit/scramble-core':
         specifier: workspace:*
-        version: link:../../packages/scramble
+        version: link:../../packages/scramble-core
+      '@cubekit/scramble-image':
+        specifier: workspace:*
+        version: link:../../packages/scramble-image
+      '@cubekit/scramble-puzzle':
+        specifier: workspace:*
+        version: link:../../packages/scramble-puzzle
       '@cubekit/timer':
         specifier: workspace:*
         version: link:../../packages/timer
@@ -189,27 +195,6 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.1.16(@types/node@25.5.2)(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(vite@8.0.7(@types/node@25.5.2)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3))(yaml@2.8.3)
-
-  packages/scramble:
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 24.12.2
-      cstimer_module:
-        specifier: ^0.1.5
-        version: 0.1.5
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vite:
-        specifier: npm:@voidzero-dev/vite-plus-core@latest
-        version: '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)'
-      vite-plus:
-        specifier: 'catalog:'
-        version: 0.1.16(@types/node@24.12.2)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)
-      vitest:
-        specifier: npm:@voidzero-dev/vite-plus-test@latest
-        version: '@voidzero-dev/vite-plus-test@0.1.16(@types/node@24.12.2)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)'
 
   packages/scramble-core:
     dependencies:
@@ -4004,9 +3989,6 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
-
-  cstimer_module@0.1.5:
-    resolution: {integrity: sha512-5vAYZEnMOjk6iExR9b8eY6XzDpJoKP4HKCD0FhBKpNIzQoxj3foGEVjmQCZsgFU3nuAewTlP6ULcZxvqFyCDJg==}
 
   cytoscape-cose-bilkent@4.1.0:
     resolution: {integrity: sha512-wgQlVIUJF13Quxiv5e1gstZ08rnZj2XaLHGoFMYXz7SkNfCDOOteKBE6SYRfA9WxxI/iBc3ajfDoc6hb/MRAHQ==}
@@ -8996,20 +8978,6 @@ snapshots:
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
 
-  '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)':
-    dependencies:
-      '@oxc-project/runtime': 0.123.0
-      '@oxc-project/types': 0.123.0
-      lightningcss: 1.32.0
-      postcss: 8.5.9
-    optionalDependencies:
-      '@types/node': 24.12.2
-      fsevents: 2.3.3
-      sass: 1.99.0
-      terser: 5.46.1
-      typescript: 5.9.3
-      yaml: 2.8.3
-
   '@voidzero-dev/vite-plus-core@0.1.16(@types/node@25.5.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)':
     dependencies:
       '@oxc-project/runtime': 0.123.0
@@ -9105,46 +9073,6 @@ snapshots:
 
   '@voidzero-dev/vite-plus-linux-x64-musl@0.1.22':
     optional: true
-
-  '@voidzero-dev/vite-plus-test@0.1.16(@types/node@24.12.2)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)':
-    dependencies:
-      '@standard-schema/spec': 1.1.0
-      '@types/chai': 5.2.3
-      '@voidzero-dev/vite-plus-core': 0.1.16(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)
-      es-module-lexer: 1.7.0
-      obug: 2.1.1
-      pixelmatch: 7.1.0
-      pngjs: 7.0.0
-      sirv: 3.0.2
-      std-env: 4.0.0
-      tinybench: 2.9.0
-      tinyexec: 1.1.1
-      tinyglobby: 0.2.16
-      vite: '@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)'
-      ws: 8.20.0
-    optionalDependencies:
-      '@types/node': 24.12.2
-      jsdom: 29.0.2
-    transitivePeerDependencies:
-      - '@arethetypeswrong/core'
-      - '@tsdown/css'
-      - '@tsdown/exe'
-      - '@vitejs/devtools'
-      - bufferutil
-      - esbuild
-      - jiti
-      - less
-      - publint
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - terser
-      - tsx
-      - typescript
-      - unplugin-unused
-      - utf-8-validate
-      - yaml
 
   '@voidzero-dev/vite-plus-test@0.1.16(@types/node@25.5.2)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@25.5.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)':
     dependencies:
@@ -9863,8 +9791,6 @@ snapshots:
   cssesc@3.0.0: {}
 
   csstype@3.2.3: {}
-
-  cstimer_module@0.1.5: {}
 
   cytoscape-cose-bilkent@4.1.0(cytoscape@3.33.4):
     dependencies:
@@ -12359,51 +12285,6 @@ snapshots:
       fs-extra: 11.3.4
       picocolors: 1.1.1
       vite: 8.0.7(@types/node@25.5.2)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3)
-
-  vite-plus@0.1.16(@types/node@24.12.2)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3):
-    dependencies:
-      '@oxc-project/types': 0.123.0
-      '@voidzero-dev/vite-plus-core': 0.1.16(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)
-      '@voidzero-dev/vite-plus-test': 0.1.16(@types/node@24.12.2)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)
-      oxfmt: 0.43.0
-      oxlint: 1.58.0(oxlint-tsgolint@0.20.0)
-      oxlint-tsgolint: 0.20.0
-    optionalDependencies:
-      '@voidzero-dev/vite-plus-darwin-arm64': 0.1.16
-      '@voidzero-dev/vite-plus-darwin-x64': 0.1.16
-      '@voidzero-dev/vite-plus-linux-arm64-gnu': 0.1.16
-      '@voidzero-dev/vite-plus-linux-arm64-musl': 0.1.16
-      '@voidzero-dev/vite-plus-linux-x64-gnu': 0.1.16
-      '@voidzero-dev/vite-plus-linux-x64-musl': 0.1.16
-      '@voidzero-dev/vite-plus-win32-arm64-msvc': 0.1.16
-      '@voidzero-dev/vite-plus-win32-x64-msvc': 0.1.16
-    transitivePeerDependencies:
-      - '@arethetypeswrong/core'
-      - '@edge-runtime/vm'
-      - '@opentelemetry/api'
-      - '@tsdown/css'
-      - '@tsdown/exe'
-      - '@types/node'
-      - '@vitejs/devtools'
-      - '@vitest/ui'
-      - bufferutil
-      - esbuild
-      - happy-dom
-      - jiti
-      - jsdom
-      - less
-      - publint
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - terser
-      - tsx
-      - typescript
-      - unplugin-unused
-      - utf-8-validate
-      - vite
-      - yaml
 
   vite-plus@0.1.16(@types/node@25.5.2)(@voidzero-dev/vite-plus-core@0.1.16(@types/node@25.5.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3):
     dependencies:

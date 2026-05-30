@@ -7,13 +7,17 @@ flowchart TD
     Baseline["TNoodle baseline"] --> Puzzle
     Baseline --> Core
     Baseline --> Image
-    Core -. "not app-wired yet" .-> Apps["apps/*"]
-    Image -. "not app-wired yet" .-> Apps
+    Core --> Web["apps/web"]
+    Image --> Web
+    Puzzle --> Web
+    Core -. "not wired yet" .-> Wx["apps/wx-app"]
+    Image -. "not wired yet" .-> Wx
 ```
 
 CubeKit now has standalone TypeScript packages for TNoodle-compatible puzzle
-notation/state, scramble generation, and SVG rendering. Apps still import the
-existing `@cubekit/scramble` package in this implementation.
+notation/state, scramble generation, and SVG rendering. `apps/web` imports
+these packages directly; the removed legacy `@cubekit/scramble` package should
+not be restored.
 
 ## Implemented Packages
 
@@ -59,9 +63,10 @@ browser shim. Expensive scramble generation is exposed through
 `createDefaultScrambleGenerator`, which is async-shaped so it can move behind a
 Web Worker later without changing the high-level contract.
 
-`@cubekit/scramble` remains the app-facing runtime today. Do not replace app
-imports with the new packages until a separate migration task verifies worker,
-browser, and WeChat runtime behavior.
+`apps/web` uses the new packages directly and builds their package exports
+through `prepare:deps` before dev, build, test, and typecheck. WeChat
+miniprogram support remains unverified; do not wire `apps/wx-app` to these
+packages without a separate runtime check.
 
 ## Upgrade Flow
 
@@ -78,4 +83,4 @@ which puzzle family changed.
 
 ---
 
-_Last updated: 2026-05-26 | Reason: link package-scoped knowledge and coverage commands_
+_Last updated: 2026-05-31 | Reason: web app migrated to TNoodle-compatible packages_

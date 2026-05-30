@@ -1,5 +1,4 @@
-import { getWcaEvents } from '@cubekit/scramble';
-import type { WcaEventId } from '@cubekit/scramble';
+import { WCA_EVENT_IDS, type WcaEventId } from '@cubekit/scramble-puzzle';
 
 // Short display labels
 const DISPLAY_LABELS: Record<WcaEventId, string> = {
@@ -28,7 +27,6 @@ interface EventSelectorProps {
 }
 
 export const EventSelector = ({ value, onChange }: EventSelectorProps) => {
-  const events = getWcaEvents();
   return (
     <select
       value={value}
@@ -43,9 +41,9 @@ export const EventSelector = ({ value, onChange }: EventSelectorProps) => {
         cursor: 'pointer',
       }}
     >
-      {events.map((event) => (
-        <option key={event.id} value={event.id}>
-          {DISPLAY_LABELS[event.id]}
+      {WCA_EVENT_IDS.map((eventId) => (
+        <option key={eventId} value={eventId}>
+          {DISPLAY_LABELS[eventId]}
         </option>
       ))}
     </select>

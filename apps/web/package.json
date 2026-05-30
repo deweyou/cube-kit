@@ -4,14 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vp dev",
-    "build": "tsc && vp build",
+    "dev": "pnpm run prepare:deps && vp dev",
+    "build": "pnpm run prepare:deps && tsc && vp build",
+    "prepare:deps": "pnpm --filter @cubekit/timer build && pnpm --filter @cubekit/scramble-puzzle build && pnpm --filter @cubekit/scramble-core build && pnpm --filter @cubekit/scramble-image build",
     "preview": "vp preview",
-    "test": "vp test",
-    "typecheck": "tsc --noEmit"
+    "test": "pnpm run prepare:deps && vp test",
+    "typecheck": "pnpm run prepare:deps && tsc --noEmit"
   },
   "dependencies": {
-    "@cubekit/scramble": "workspace:*",
+    "@cubekit/scramble-core": "workspace:*",
+    "@cubekit/scramble-image": "workspace:*",
+    "@cubekit/scramble-puzzle": "workspace:*",
     "@cubekit/timer": "workspace:*",
     "@deweyou-design/react": "^0.0.5",
     "@deweyou-design/styles": "^0.0.5",

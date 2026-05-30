@@ -25,12 +25,21 @@ if (typeof Touch === 'undefined') {
 }
 
 describe('useTimerGesture — desktop (Space key)', () => {
-  it('Space keydown when not running calls onStart', () => {
+  it('Space keydown when not running marks ready, then keyup calls onStart', () => {
     const onStart = vi.fn();
-    renderHook(() => useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }));
+    const { result } = renderHook(() =>
+      useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }),
+    );
     act(() => {
       document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', bubbles: true }));
     });
+    expect(result.current.isReady).toBe(true);
+    expect(onStart).not.toHaveBeenCalled();
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', bubbles: true }));
+    });
+    expect(result.current.isReady).toBe(false);
     expect(onStart).toHaveBeenCalledOnce();
   });
 
@@ -45,11 +54,11 @@ describe('useTimerGesture — desktop (Space key)', () => {
     expect(onStart).not.toHaveBeenCalled();
   });
 
-  it('Space keyup when running calls onStop', () => {
+  it('Space keydown when running calls onStop', () => {
     const onStop = vi.fn();
     renderHook(() => useTimerGesture(true, { onStart: vi.fn(), onStop, onCancel: vi.fn() }));
     act(() => {
-      document.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', bubbles: true }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', bubbles: true }));
     });
     expect(onStop).toHaveBeenCalledOnce();
   });

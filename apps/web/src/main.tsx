@@ -1,4 +1,3 @@
-import './_stubs/cstimer-browser-shim';
 import '@deweyou-design/styles/reset.css';
 import '@deweyou-design/styles/color.css';
 import '@deweyou-design/styles/theme.css';

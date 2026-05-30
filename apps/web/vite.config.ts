@@ -13,9 +13,6 @@ export default defineConfig({
     // files. @deweyou-design packages expose CSS via paths not listed in exports, so we
     // alias each logical specifier to its physical path inside node_modules.
     alias: {
-      // Stub out node:module for browser — @cubekit/scramble's rolldown CJS runtime
-      // imports createRequire but never calls it (cstimer_module is fully bundled).
-      'node:module': path.resolve(__dirname, 'src/_stubs/node-module.ts'),
       '@deweyou-design/styles/reset.css': nm('@deweyou-design/styles/css/reset.css'),
       '@deweyou-design/styles/color.css': nm('@deweyou-design/styles/css/color.css'),
       '@deweyou-design/styles/theme.css': nm('@deweyou-design/styles/css/theme.css'),
