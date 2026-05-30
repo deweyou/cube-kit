@@ -12,21 +12,20 @@ flowchart TD
     Apps --> Wx["apps/wx-app Taro shell"]
     Web --> TimerPage["TimerPage"]
     TimerPage --> TimerPkg["@cubekit/timer"]
-    TimerPage --> ScramblePkg["@cubekit/scramble"]
-    ScramblePkg --> Cstimer["cstimer_module"]
     Packages --> PuzzlePkg["@cubekit/scramble-puzzle"]
     Packages --> CorePkg["@cubekit/scramble-core"]
     Packages --> ImagePkg["@cubekit/scramble-image"]
     CorePkg --> PuzzlePkg
     ImagePkg --> PuzzlePkg
+    TimerPage --> CorePkg
+    TimerPage --> ImagePkg
+    TimerPage --> PuzzlePkg
     Playground --> CorePkg
     Playground --> ImagePkg
     Playground --> PuzzlePkg
     ScrambleDocs --> CorePkg
     ScrambleDocs --> ImagePkg
     ScrambleDocs --> Docs
-    CorePkg -. "production apps not migrated" .-> Apps
-    ImagePkg -. "production apps not migrated" .-> Apps
     Ci --> PackageBuild["packages build job"]
     Ci --> PackageTest["packages test job"]
     PackageBuild --> Packages
@@ -45,7 +44,6 @@ apps/playground/       React scramble generator/image testing workbench
 apps/scramble-docs/    VitePress bilingual scramble learning site
 apps/wx-app/           Taro WeChat miniprogram shell
 packages/timer/        platform-agnostic timer state and formatting
-packages/scramble/     WCA scramble and SVG wrapper around cstimer_module
 packages/scramble-puzzle/  TNoodle-compatible event ids, parsers, and states
 packages/scramble-core/    TNoodle-compatible WCA scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
@@ -59,11 +57,11 @@ scripts/               lightweight repository checks
 ## Startup Path
 
 - Web starts at [apps/web/src/main.tsx#L1](../apps/web/src/main.tsx#L1), which
-  imports the cstimer browser shim before rendering React.
+  renders React without the removed cstimer browser shim.
 - [apps/web/src/app.tsx#L1](../apps/web/src/app.tsx#L1) wraps
   [TimerPage](../apps/web/src/timer/timer-page.tsx#L14) in the app shell.
 - `TimerPage` owns the page-level `scramble -> timing -> result` state and calls
-  `@cubekit/timer` and `@cubekit/scramble`.
+  `@cubekit/timer`, `@cubekit/scramble-core`, and `@cubekit/scramble-image`.
 - Playground starts with `pnpm dev:playground` at
   [apps/playground/src/main.tsx#L1](../apps/playground/src/main.tsx#L1). Its
   [App](../apps/playground/src/app.tsx#L1) calls the new `scramble-core` and
@@ -95,6 +93,7 @@ scripts/               lightweight repository checks
 - [docs/apps/scramble-docs/index.md#L1](apps/scramble-docs/index.md#L1) - scramble docs app ownership and verification.
 - [apps/wx-app/config/index.ts#L3](../apps/wx-app/config/index.ts#L3) - Taro
   build configuration.
+- [apps/web/package.json#L7](../apps/web/package.json#L7) - web scripts build workspace dependencies before dev, test, typecheck, and build.
 - [packages/scramble-puzzle/src/index.ts#L1](../packages/scramble-puzzle/src/index.ts#L1) - TNoodle-compatible puzzle domain barrel.
 - [packages/scramble-core/src/index.ts#L1](../packages/scramble-core/src/index.ts#L1) - TNoodle-compatible generator barrel.
 - [packages/scramble-image/src/index.ts#L1](../packages/scramble-image/src/index.ts#L1) - TNoodle-compatible SVG renderer barrel.
@@ -106,4 +105,4 @@ scripts/               lightweight repository checks
 
 ---
 
-_Last updated: 2026-05-26 | Reason: add scramble docs app routing_
+_Last updated: 2026-05-31 | Reason: web app migrated off removed legacy scramble package_

@@ -2,47 +2,27 @@
 
 ```mermaid
 flowchart TD
-    UI["Timer UI"] --> PublicAPI["packages/scramble src/index.ts"]
-    PublicAPI --> Scramble["getScramble"]
-    PublicAPI --> Image["getImage"]
-    Scramble --> Events["WCA_EVENT_BY_ID"]
-    Image --> Events
-    Scramble --> CstimerAdapter["src/cstimer.ts"]
-    Image --> CstimerAdapter
-    CstimerAdapter --> Upstream["cstimer_module"]
-    Image --> ViewBox["ensure SVG viewBox"]
-    NewPuzzle["@cubekit/scramble-puzzle"] --> NewCore["@cubekit/scramble-core"]
-    NewPuzzle --> NewImage["@cubekit/scramble-image"]
-    Playground["apps/playground"] --> NewCore
-    Playground --> NewImage
-    Playground --> NewPuzzle
-    NewCore -. "future production app migration" .-> UI
-    NewImage -. "future production app migration" .-> UI
+    UI["apps/web Timer UI"] --> Core["@cubekit/scramble-core"]
+    UI --> Image["@cubekit/scramble-image"]
+    UI --> Puzzle["@cubekit/scramble-puzzle"]
+    Playground["apps/playground"] --> Core
+    Playground --> Image
+    Playground --> Puzzle
+    Core --> Puzzle
+    Image --> Puzzle
+    Core --> Generators["WCA generator dispatch"]
+    Image --> Renderers["SVG renderer dispatch"]
 ```
 
-`@cubekit/scramble` is a typed, synchronous wrapper around `cstimer_module`.
-Its public API uses WCA event ids while hiding cstimer's internal type ids.
-The new TNoodle-compatible `@cubekit/scramble-puzzle`,
-`@cubekit/scramble-core`, and `@cubekit/scramble-image` packages are available
-for package-level verification and the standalone playground. Production apps
-still use the legacy `@cubekit/scramble` wrapper.
+The web timer now consumes the TNoodle-compatible scramble packages directly.
+`@cubekit/scramble-puzzle` owns WCA event ids and puzzle parsing,
+`@cubekit/scramble-core` owns async-shaped WCA scramble generation, and
+`@cubekit/scramble-image` owns DOM-free SVG rendering. The removed
+`packages/scramble` cstimer wrapper and browser shim must not be restored.
 
 ## Key Rules
 
-- Only [packages/scramble/src/cstimer.ts#L1](../packages/scramble/src/cstimer.ts#L1)
-  imports `cstimer_module`. All wrapper features should go through this adapter.
-- WCA public ids, cstimer ids, labels, and fixed scramble lengths live together in
-  [packages/scramble/src/wca-events.ts#L52](../packages/scramble/src/wca-events.ts#L52).
-- `getScramble` applies WCA lengths for known events and forwards arbitrary
-  strings as the non-WCA training escape hatch. See
-  [packages/scramble/src/scramble.ts#L19](../packages/scramble/src/scramble.ts#L19).
-- `getImage` returns SVG strings and injects a missing `viewBox` so CSS resizing
-  does not clip large cube nets. See [packages/scramble/src/image.ts#L32](../packages/scramble/src/image.ts#L32).
-- Browser main-thread consumers must load a shim before `cstimer_module`
-  evaluates, or move scramble work into a Web Worker. The web app shim is the
-  first import in [apps/web/src/main.tsx#L1](../apps/web/src/main.tsx#L1) and is
-  implemented at [apps/web/src/\_stubs/cstimer-browser-shim.ts#L1](../apps/web/src/_stubs/cstimer-browser-shim.ts#L1).
-- TNoodle-compatible source now lives in three packages:
+- TNoodle-compatible source lives in three packages:
   `@cubekit/scramble-puzzle` for parsers/states,
   `@cubekit/scramble-core` for generators and solvers, and
   `@cubekit/scramble-image` for SVG renderers.
@@ -52,6 +32,8 @@ still use the legacy `@cubekit/scramble` wrapper.
   WCA events. The facade is async-shaped and can move behind a Web Worker later.
 - `@cubekit/scramble-image` exposes `renderScrambleImage(eventId, scramble)` and
   uses `scramble-puzzle` to apply moves before rendering SVG.
+- `apps/web` builds `@cubekit/timer` and the three scramble packages before dev,
+  build, test, and typecheck so package `dist` exports are available.
 - `apps/playground` is a test workbench, not a production app migration. It
   imports the new packages directly, aliases Vite runtime resolution to package
   source, and runs `prepare:deps` before typecheck/build so package dist types
@@ -65,25 +47,22 @@ still use the legacy `@cubekit/scramble` wrapper.
 
 ## Runtime Matrix
 
-- Node, vitest, and build-time usage work without a shim.
-- Browser main thread needs the `process` / `require` / `global` shim before any
-  scramble import.
-- Browser Web Worker is the cleaner long-term runtime boundary for cstimer.
+- Node, vitest, build-time usage, and browser main-thread usage work without the
+  removed cstimer shim.
 - WeChat miniprogram support should be verified before wiring the package into
   `apps/wx-app`.
-- The new TNoodle-compatible packages avoid the cstimer browser shim, but heavy
-  generators such as 4x4 threephase should still be run behind a worker before
-  app integration.
+- Heavy generators such as 4x4 threephase should still move behind a worker
+  boundary before the timer UI depends on them for latency-sensitive flows.
 - `apps/playground` runs generators on the main thread because it is a developer
   test workbench. Production UI should still move heavy generation behind a
   worker boundary.
 
 ## Key Files
 
-- [packages/scramble/src/index.ts#L1](../packages/scramble/src/index.ts#L1) - public barrel.
-- [packages/scramble/package.json#L32](../packages/scramble/package.json#L32) - inlined cstimer dependency metadata.
-- [packages/scramble/vite.config.ts#L5](../packages/scramble/vite.config.ts#L5) - package build config that bundles and splits cstimer.
-- [apps/web/vite.config.ts#L16](../apps/web/vite.config.ts#L16) - browser `node:module` stub for bundled cstimer runtime.
+- [apps/web/src/timer/timer-page.tsx#L1](../apps/web/src/timer/timer-page.tsx#L1) - timer state and async scramble generation.
+- [apps/web/src/timer/views/scramble-view.tsx#L1](../apps/web/src/timer/views/scramble-view.tsx#L1) - web SVG rendering through `@cubekit/scramble-image`.
+- [apps/web/src/timer/components/event-selector.tsx#L1](../apps/web/src/timer/components/event-selector.tsx#L1) - WCA event list from `@cubekit/scramble-puzzle`.
+- [apps/web/package.json#L7](../apps/web/package.json#L7) - `prepare:deps` for workspace package exports.
 - [packages/scramble-puzzle/src/events.ts#L1](../packages/scramble-puzzle/src/events.ts#L1) - canonical 17-event WCA list for the new packages.
 - [packages/scramble-core/src/generator.ts#L1](../packages/scramble-core/src/generator.ts#L1) - async generator facade and default WCA event dispatch.
 - [packages/scramble-image/src/render.ts#L1](../packages/scramble-image/src/render.ts#L1) - WCA event dispatch for SVG rendering.
@@ -96,4 +75,4 @@ still use the legacy `@cubekit/scramble` wrapper.
 
 ---
 
-_Last updated: 2026-05-26 | Reason: link package-scoped scramble knowledge_
+_Last updated: 2026-05-31 | Reason: web runtime migrated to TNoodle-compatible packages_

@@ -2,10 +2,11 @@ import { Button } from '@deweyou-design/react/button';
 
 interface ScrambleTextProps {
   scramble: string;
+  isLoading?: boolean;
   onRefresh: () => void;
 }
 
-export const ScrambleText = ({ scramble, onRefresh }: ScrambleTextProps) => (
+export const ScrambleText = ({ scramble, isLoading = false, onRefresh }: ScrambleTextProps) => (
   <div
     style={{
       display: 'flex',
@@ -33,6 +34,7 @@ export const ScrambleText = ({ scramble, onRefresh }: ScrambleTextProps) => (
       variant="ghost"
       size="sm"
       onClick={onRefresh}
+      disabled={isLoading}
       aria-label="换一个打乱"
       style={{ flexShrink: 0, marginTop: 2 }}
     >

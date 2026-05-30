@@ -10,7 +10,7 @@ export interface TimerGestureOptions {
 export const useTimerGesture = (
   isRunning: boolean,
   { onStart, onStop, onCancel, cancelZoneHeight = 80 }: TimerGestureOptions,
-): { isInCancelZone: boolean } => {
+): { isInCancelZone: boolean; isReady: boolean } => {
   const [isInCancelZone, setIsInCancelZone] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

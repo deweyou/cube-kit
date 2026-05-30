@@ -7,13 +7,11 @@ A Rubik's cube tooling monorepo — timer, scramble generator, scramble visualiz
 This repository is licensed under **GPL-3.0-only**. See [`LICENSE`](./LICENSE)
 for the full text.
 
-**Why GPL-3.0-only**: the legacy [`@cubekit/scramble`](./packages/scramble)
-package bundles [`cstimer_module`](https://github.com/cs0x7f/cstimer)
-(GPL-3.0) directly into its published output. The new TNoodle-compatible
-packages port behavior from `thewca/tnoodle-lib` / `lib-scrambles` v0.19.2,
-which is GPL-v3.0. We align the repo and published packages with that boundary.
+**Why GPL-3.0-only**: the TNoodle-compatible scramble packages port behavior
+from `thewca/tnoodle-lib` / `lib-scrambles` v0.19.2, which is GPL-v3.0. We
+align the repo and published packages with that boundary.
 
-Full reasoning and alternatives: [`packages/scramble/README.md`](./packages/scramble/README.md#license---gpl-30-only) and [`docs/dependency-licensing.md`](./docs/dependency-licensing.md).
+Full reasoning and alternatives: [`docs/dependency-licensing.md`](./docs/dependency-licensing.md).
 
 ## Workspace layout
 
@@ -25,7 +23,6 @@ cubekit/
 │   ├── web/              # React 18 web + H5 app
 │   └── wx-app/           # Taro WeChat miniprogram
 ├── packages/
-│   ├── scramble/         # legacy cstimer-backed WCA scramble + SVG wrapper
 │   ├── scramble-puzzle/  # shared WCA notation, parser, and state contracts
 │   ├── scramble-core/    # TNoodle-compatible WCA scramble generation
 │   └── scramble-image/   # DOM-free SVG rendering for scramble states
@@ -83,6 +80,11 @@ Fewest Moves padding, and multiline `333mbld` output.
 DOM-free SVG rendering for scramble states. It uses `scramble-puzzle` parsers,
 applies the scramble to a solved state, and returns standalone SVG strings.
 
+### [`apps/web`](./apps/web) - Timer app
+
+React web/H5 timer UI. It consumes `@cubekit/timer`, `@cubekit/scramble-core`,
+`@cubekit/scramble-puzzle`, and `@cubekit/scramble-image` directly.
+
 ### [`apps/playground`](./apps/playground) - Testing workbench
 
 React playground for exercising `scramble-core` and `scramble-image` before they
@@ -94,15 +96,6 @@ manual render, SVG download, and lightweight diagnostics.
 VitePress site for studying WCA scramble generation and scramble image rendering
 principles in English and Chinese. It is content-only and focuses on rules,
 event-specific generation strategies, state transition, and SVG rendering.
-
-### [`@cubekit/scramble`](./packages/scramble) - Legacy cstimer wrapper
-
-Platform-agnostic wrapper around `cstimer_module`. Exposes `getScramble`, `getImage`, `setSeed`, `getWcaEvents` across all 17 WCA events with full type safety and an escape hatch for non-WCA training scrambles.
-
-- Runtime environments: Node / vitest / Web Worker work out of the box; browser main thread needs a small shim (see package README)
-- Kept as the existing cstimer-backed wrapper while the native TNoodle-compatible packages mature
-
-See [`packages/scramble/README.md`](./packages/scramble/README.md) for API docs and integration notes.
 
 ## Agent memory
 

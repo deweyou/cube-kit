@@ -1,5 +1,5 @@
-import { getImage } from '@cubekit/scramble';
-import type { WcaEventId } from '@cubekit/scramble';
+import { renderScrambleImage } from '@cubekit/scramble-image';
+import type { WcaEventId } from '@cubekit/scramble-puzzle';
 import { EventSelector } from '../components/event-selector';
 import { ScrambleText } from '../components/scramble-text';
 import { ScrambleImage } from '../components/scramble-image';
@@ -7,6 +7,8 @@ import { ScrambleImage } from '../components/scramble-image';
 interface ScrambleViewProps {
   eventId: WcaEventId;
   scramble: string;
+  error?: string;
+  isLoading?: boolean;
   isReady?: boolean;
   onEventChange: (id: WcaEventId) => void;
   onRefresh: () => void;
@@ -15,11 +17,14 @@ interface ScrambleViewProps {
 export const ScrambleView = ({
   eventId,
   scramble,
+  error,
+  isLoading = false,
   isReady = false,
   onEventChange,
   onRefresh,
 }: ScrambleViewProps) => {
-  const svg = getImage(scramble, eventId);
+  const svg = scramble.length > 0 ? renderScrambleImage(eventId, scramble) : '';
+  const scrambleText = error ?? (isLoading ? '生成打乱中...' : scramble);
 
   return (
     <div
@@ -34,7 +39,7 @@ export const ScrambleView = ({
       }}
     >
       <EventSelector value={eventId} onChange={onEventChange} />
-      <ScrambleText scramble={scramble} onRefresh={onRefresh} />
+      <ScrambleText scramble={scrambleText} isLoading={isLoading} onRefresh={onRefresh} />
       <ScrambleImage svg={svg} />
       <p
         style={{
