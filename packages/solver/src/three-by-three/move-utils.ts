@@ -7,7 +7,7 @@ export const parseThreeByThreeSolverAlgorithm = (algorithm: string): readonly Cu
     const moves = tokens.map(parseCubeMove);
 
     for (const [index, move] of moves.entries()) {
-      if (!move.isRotation && move.width !== 1) {
+      if (move.isRotation || move.width !== 1) {
         throw new UnsupportedSolverMoveError(tokens[index]);
       }
     }

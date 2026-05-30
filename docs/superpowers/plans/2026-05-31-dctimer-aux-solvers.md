@@ -190,11 +190,12 @@ import { parseThreeByThreeSolverAlgorithm } from './move-utils.js';
 import { countFaceTurnMetric, countQuarterTurnMetric } from './metrics.js';
 
 describe('3x3 solver move utilities', () => {
-  it('accepts face turns and rotations', () => {
-    expect(parseThreeByThreeSolverAlgorithm("R U R' U2 x y' z")).toHaveLength(7);
+  it('accepts face turns', () => {
+    expect(parseThreeByThreeSolverAlgorithm("R U R' U2")).toHaveLength(4);
   });
 
-  it('rejects wide moves for the first solver scope', () => {
+  it('rejects rotations and wide moves for the first solver scope', () => {
+    expect(() => parseThreeByThreeSolverAlgorithm('x')).toThrow(UnsupportedSolverMoveError);
     expect(() => parseThreeByThreeSolverAlgorithm('Rw')).toThrow(UnsupportedSolverMoveError);
   });
 });
@@ -236,7 +237,7 @@ Port DCTimer `Utils.java` helpers into typed TypeScript:
 - `cycleFourWithOrientation`
 - `createPruningTable`
 
-Implement move parsing through `parseCubeAlgorithm`; reject any parsed move with `width !== 1 && !isRotation`.
+Implement move parsing through `parseCubeAlgorithm`; reject rotations and any parsed move with `width !== 1`.
 
 - [ ] **Step 5: Run utility tests**
 

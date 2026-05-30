@@ -197,9 +197,9 @@ Implementation notes:
   import stays cheap enough for browser apps.
 - Parse scramble text through `@cubekit/scramble-puzzle` for validation, then
   translate parsed 3x3 face turns into each solver's coordinate move indices.
-- Accept standard 3x3 face turns and cube rotations supported by
-  `scramble-puzzle`. Wide moves are rejected for this first auxiliary-solver
-  scope unless a method-specific test is added before implementation.
+- Accept standard 3x3 face turns supported by `scramble-puzzle`. Cube rotations
+  and wide moves are rejected for this first auxiliary-solver scope unless a
+  method-specific test is added before implementation.
 - Results contain solutions in user-facing notation. Any target-specific
   rotation is returned separately as `setupRotation` so callers can decide how to
   display it.
