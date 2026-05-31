@@ -1,4 +1,5 @@
 import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleAssistResult } from '@cubekit/solver';
 
 export interface PlaygroundScramble {
   readonly id: string;
@@ -39,5 +40,29 @@ export interface PlaygroundGenerateResult {
 export interface PlaygroundManualRenderResult {
   readonly svg: string;
   readonly render: PlaygroundRenderDiagnostics;
+  readonly error: string | undefined;
+}
+
+export interface PlaygroundSolverDiagnostics {
+  readonly durationMs: number;
+  readonly resultCount: number;
+}
+
+export interface PlaygroundSolverInput {
+  readonly eventId: PuzzleAssistEventId;
+  readonly scramble: string;
+  readonly methods: readonly PuzzleAssistMethod[];
+  readonly targets?: readonly string[];
+}
+
+export interface PlaygroundSolverResult {
+  readonly results: readonly PuzzleAssistResult[];
+  readonly diagnostics: PlaygroundSolverDiagnostics;
+  readonly error: string | undefined;
+}
+
+export interface PlaygroundSolverScrambleResult {
+  readonly eventId: PuzzleAssistEventId;
+  readonly scramble: string;
   readonly error: string | undefined;
 }

@@ -14,6 +14,7 @@ export default defineConfig({
       '@cubekit/scramble-core': workspacePackage('scramble-core'),
       '@cubekit/scramble-image': workspacePackage('scramble-image'),
       '@cubekit/scramble-puzzle': workspacePackage('scramble-puzzle'),
+      '@cubekit/solver': workspacePackage('solver'),
     },
   },
   test: {

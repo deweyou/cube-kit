@@ -1,14 +1,31 @@
 import { useMemo, useState } from 'react';
 import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type { PuzzleAssistEventId, PuzzleAssistMethod } from '@cubekit/solver';
 import { getBrowserSeed } from './browser-seed';
 import { createPlaygroundService } from './playground-service';
 import type {
   PlaygroundGenerateResult,
   PlaygroundManualRenderResult,
   PlaygroundScramble,
+  PlaygroundSolverResult,
 } from './types';
 
+export type PlaygroundPage = 'scrambles' | 'solvers';
 export type PlaygroundService = ReturnType<typeof createPlaygroundService>;
+
+const DEFAULT_SOLVER_METHODS = {
+  '333': ['cross'],
+  '222': ['222-face'],
+  sq1: ['sq1-shape-ftm'],
+  pyram: ['pyraminx-v'],
+} satisfies Record<PuzzleAssistEventId, readonly PuzzleAssistMethod[]>;
+
+const DEFAULT_SOLVER_TARGET_TEXT = {
+  '333': '',
+  '222': 'D',
+  sq1: 'shape',
+  pyram: 'D',
+} satisfies Record<PuzzleAssistEventId, string>;
 
 export interface UsePlaygroundOptions {
   readonly service?: PlaygroundService;
@@ -31,6 +48,15 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   const [generationResult, setGenerationResult] = useState<PlaygroundGenerateResult>();
   const [manualResult, setManualResult] = useState<PlaygroundManualRenderResult>();
   const [generationError, setGenerationError] = useState<string>();
+  const [activePage, setActivePage] = useState<PlaygroundPage>('scrambles');
+  const [solverEventId, setSolverEventIdState] = useState<PuzzleAssistEventId>('333');
+  const [solverScramble, setSolverScramble] = useState("R U R' U'");
+  const [solverTargetText, setSolverTargetText] = useState(DEFAULT_SOLVER_TARGET_TEXT['333']);
+  const [solverMethods, setSolverMethods] = useState<readonly PuzzleAssistMethod[]>(
+    DEFAULT_SOLVER_METHODS['333'],
+  );
+  const [solverResult, setSolverResult] = useState<PlaygroundSolverResult>();
+  const [solverGenerationError, setSolverGenerationError] = useState<string>();
 
   const generate = async () => {
     setGenerationError(undefined);
@@ -75,7 +101,56 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     setManualSvg(result.svg);
   };
 
+  const applyGeneratedSolverScramble = async (nextEventId: PuzzleAssistEventId) => {
+    const result = await packageService.generateSolverScramble(nextEventId);
+
+    setSolverGenerationError(result.error);
+    if (!result.error) {
+      setSolverScramble(result.scramble);
+      setSolverResult(undefined);
+    }
+  };
+
+  const setSolverEventId = async (nextEventId: PuzzleAssistEventId) => {
+    setSolverEventIdState(nextEventId);
+    setSolverMethods(DEFAULT_SOLVER_METHODS[nextEventId]);
+    setSolverTargetText(DEFAULT_SOLVER_TARGET_TEXT[nextEventId]);
+    setSolverResult(undefined);
+    setSolverGenerationError(undefined);
+    setSolverScramble('');
+
+    await applyGeneratedSolverScramble(nextEventId);
+  };
+
+  const generateSolverScramble = async () => {
+    await applyGeneratedSolverScramble(solverEventId);
+  };
+
+  const setSolverMethod = (method: PuzzleAssistMethod, checked: boolean) => {
+    setSolverMethods((currentMethods) => {
+      const nextMethods = checked
+        ? [...currentMethods, method]
+        : currentMethods.filter((currentMethod) => currentMethod !== method);
+      const uniqueMethods = [...new Set(nextMethods)];
+
+      return uniqueMethods.length > 0 ? uniqueMethods : currentMethods;
+    });
+  };
+
+  const solvePuzzleAssist = () => {
+    const result = packageService.solvePuzzleAssist({
+      eventId: solverEventId,
+      scramble: solverScramble,
+      methods: solverMethods,
+      targets: parseTargetText(solverTargetText),
+    });
+
+    setSolverResult(result);
+  };
+
   return {
+    activePage,
+    setActivePage,
     eventId,
     setEventId,
     count,
@@ -95,5 +170,26 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     generationError,
     generate,
     renderManual,
+    solverEventId,
+    setSolverEventId,
+    solverScramble,
+    setSolverScramble,
+    solverTargetText,
+    setSolverTargetText,
+    solverMethods,
+    setSolverMethod,
+    solverResult,
+    solverGenerationError,
+    generateSolverScramble,
+    solvePuzzleAssist,
   };
+};
+
+const parseTargetText = (value: string): readonly string[] | undefined => {
+  const targets = value
+    .split(',')
+    .map((target) => target.trim())
+    .filter((target) => target.length > 0);
+
+  return targets.length > 0 ? targets : undefined;
 };

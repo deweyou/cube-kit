@@ -1,0 +1,23 @@
+import { describe, expect, it } from 'vitest';
+import { UnknownSolverMethodError, solvePuzzleAssist } from '../index.js';
+
+describe('puzzle assist facade', () => {
+  it('routes 2x2 helper methods through the generic facade', () => {
+    const [result] = solvePuzzleAssist('222', ['222-face'], 'R U', { targets: ['D'] });
+
+    expect(result.method).toBe('222-face');
+    expect(result.solutions[0]?.target).toBe('D');
+  });
+
+  it('routes Square-1 and Pyraminx helper methods through the generic facade', () => {
+    const [sq1] = solvePuzzleAssist('sq1', ['sq1-shape-ftm'], '(3,0) /');
+    const [pyram] = solvePuzzleAssist('pyram', ['pyraminx-v'], 'U R', { targets: ['D'] });
+
+    expect(sq1.method).toBe('sq1-shape-ftm');
+    expect(pyram.method).toBe('pyraminx-v');
+  });
+
+  it('rejects methods that do not belong to the selected event', () => {
+    expect(() => solvePuzzleAssist('222', ['cross'], 'R U')).toThrow(UnknownSolverMethodError);
+  });
+});

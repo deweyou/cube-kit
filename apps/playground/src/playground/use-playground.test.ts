@@ -32,6 +32,19 @@ describe('usePlayground', () => {
     expect(result.current.scrambles).toHaveLength(2);
     expect(result.current.manualSvg).toBe('<svg>manual</svg>');
   });
+
+  it('auto-generates a solver scramble when changing solver event', async () => {
+    const { result } = renderHook(() => usePlayground({ service: fakeService() }));
+
+    await act(async () => {
+      await result.current.setSolverEventId('222');
+    });
+
+    expect(result.current.solverEventId).toBe('222');
+    expect(result.current.solverScramble).toBe('222-scramble');
+    expect(result.current.solverMethods).toEqual(['222-face']);
+    expect(result.current.solverTargetText).toBe('D');
+  });
 });
 
 const fakeService = () => ({
@@ -51,6 +64,20 @@ const fakeService = () => ({
     return {
       svg: '<svg>manual</svg>',
       render: { durationMs: 3, scrambleLength: 9, svgBytes: 17 },
+      error: undefined,
+    };
+  },
+  async generateSolverScramble(eventId: '333' | '222' | 'sq1' | 'pyram') {
+    return {
+      eventId,
+      scramble: `${eventId}-scramble`,
+      error: undefined,
+    };
+  },
+  solvePuzzleAssist() {
+    return {
+      results: [],
+      diagnostics: { durationMs: 1, resultCount: 0 },
       error: undefined,
     };
   },
