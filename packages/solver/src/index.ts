@@ -7,12 +7,27 @@ export {
   UnsupportedSolverMoveError,
 } from './errors.js';
 export type {
+  PuzzleAssistEventId,
+  PuzzleAssistMethod,
+  PuzzleAssistMetric,
+  PuzzleAssistOptions,
+  PuzzleAssistResult,
+  PuzzleAssistSolution,
+  PyraminxAssistMethod,
+  SquareOneAssistMethod,
   ThreeByThreeAssistMethod,
   ThreeByThreeAssistMetric,
   ThreeByThreeAssistOptions,
   ThreeByThreeAssistResult,
   ThreeByThreeAssistSolution,
+  TwoByTwoAssistMethod,
 } from './types.js';
+import { solvePuzzleAssist as solvePuzzleAssistImpl } from './facade.js';
+import { solvePyraminxV as solvePyraminxVImpl } from './pyraminx/pyraminx-v.js';
+import {
+  solveSquareOneShapeFaceTurnMetric as solveSquareOneShapeFaceTurnMetricImpl,
+  solveSquareOneShapeTwistMetric as solveSquareOneShapeTwistMetricImpl,
+} from './square-one/square-one-shape.js';
 import {
   solveCross as solveCrossImpl,
   solveEOFC as solveEOFCImpl,
@@ -22,7 +37,15 @@ import { solveEOLine as solveEOLineImpl } from './three-by-three/eoline.js';
 import { solveThreeByThreeAssist as solveThreeByThreeAssistImpl } from './three-by-three/facade.js';
 import { solvePetrusS1 as solvePetrusS1Impl } from './three-by-three/petrus.js';
 import { solveRouxS1 as solveRouxS1Impl } from './three-by-three/roux.js';
+import {
+  solveTwoByTwoFace as solveTwoByTwoFaceImpl,
+  solveTwoByTwoLayer as solveTwoByTwoLayerImpl,
+} from './two-by-two/two-by-two.js';
 import type {
+  PuzzleAssistEventId,
+  PuzzleAssistMethod,
+  PuzzleAssistOptions,
+  PuzzleAssistResult,
   ThreeByThreeAssistMethod,
   ThreeByThreeAssistOptions,
   ThreeByThreeAssistResult,
@@ -63,3 +86,35 @@ export const solveThreeByThreeAssist = (
   methods: readonly ThreeByThreeAssistMethod[],
   options: ThreeByThreeAssistOptions = {},
 ): readonly ThreeByThreeAssistResult[] => solveThreeByThreeAssistImpl(scramble, methods, options);
+
+export const solveTwoByTwoFace = (
+  scramble: string,
+  options: PuzzleAssistOptions = {},
+): PuzzleAssistResult<'222-face'> => solveTwoByTwoFaceImpl(scramble, options);
+
+export const solveTwoByTwoLayer = (
+  scramble: string,
+  options: PuzzleAssistOptions = {},
+): PuzzleAssistResult<'222-layer'> => solveTwoByTwoLayerImpl(scramble, options);
+
+export const solveSquareOneShapeFaceTurnMetric = (
+  scramble: string,
+  options: PuzzleAssistOptions = {},
+): PuzzleAssistResult<'sq1-shape-ftm'> => solveSquareOneShapeFaceTurnMetricImpl(scramble, options);
+
+export const solveSquareOneShapeTwistMetric = (
+  scramble: string,
+  options: PuzzleAssistOptions = {},
+): PuzzleAssistResult<'sq1-shape-twist'> => solveSquareOneShapeTwistMetricImpl(scramble, options);
+
+export const solvePyraminxV = (
+  scramble: string,
+  options: PuzzleAssistOptions = {},
+): PuzzleAssistResult<'pyraminx-v'> => solvePyraminxVImpl(scramble, options);
+
+export const solvePuzzleAssist = (
+  eventId: PuzzleAssistEventId,
+  methods: readonly PuzzleAssistMethod[],
+  scramble: string,
+  options: PuzzleAssistOptions = {},
+): readonly PuzzleAssistResult[] => solvePuzzleAssistImpl(eventId, methods, scramble, options);

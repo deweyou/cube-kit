@@ -19,6 +19,8 @@ auxiliary solver packages without wiring them into production apps.
   production app.
 - The Solvers tab calls `@cubekit/solver` through the playground service boundary
   and is for manual diagnostics, not production timer integration.
+- In the Solvers tab, changing the solver event resets event-specific method and
+  target defaults and auto-generates a scramble for the selected event.
 - `?seed=<integer>` provides deterministic browser smoke and future E2E runs.
 - `333mbld` attempts are split into one displayed row per cube.
 

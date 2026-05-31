@@ -1,5 +1,5 @@
 import type { WcaEventId } from '@cubekit/scramble-puzzle';
-import type { ThreeByThreeAssistMethod, ThreeByThreeAssistResult } from '@cubekit/solver';
+import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleAssistResult } from '@cubekit/solver';
 
 export interface PlaygroundScramble {
   readonly id: string;
@@ -49,13 +49,20 @@ export interface PlaygroundSolverDiagnostics {
 }
 
 export interface PlaygroundSolverInput {
+  readonly eventId: PuzzleAssistEventId;
   readonly scramble: string;
-  readonly methods: readonly ThreeByThreeAssistMethod[];
+  readonly methods: readonly PuzzleAssistMethod[];
   readonly targets?: readonly string[];
 }
 
 export interface PlaygroundSolverResult {
-  readonly results: readonly ThreeByThreeAssistResult[];
+  readonly results: readonly PuzzleAssistResult[];
   readonly diagnostics: PlaygroundSolverDiagnostics;
+  readonly error: string | undefined;
+}
+
+export interface PlaygroundSolverScrambleResult {
+  readonly eventId: PuzzleAssistEventId;
+  readonly scramble: string;
   readonly error: string | undefined;
 }

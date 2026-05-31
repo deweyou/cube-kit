@@ -375,6 +375,11 @@ button {
   align-items: start;
 }
 
+.solver-scramble-stack {
+  display: grid;
+  gap: 10px;
+}
+
 .solver-scramble-field textarea {
   min-height: 214px;
 }

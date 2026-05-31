@@ -6,8 +6,14 @@ import {
   solveEOLine,
   solveEOFC,
   solvePetrusS1,
+  solvePuzzleAssist,
+  solvePyraminxV,
   solveRouxS1,
+  solveSquareOneShapeFaceTurnMetric,
+  solveSquareOneShapeTwistMetric,
   solveThreeByThreeAssist,
+  solveTwoByTwoFace,
+  solveTwoByTwoLayer,
   solveXCross,
 } from './index.js';
 
@@ -20,6 +26,15 @@ describe('@cubekit/solver public API', () => {
     expect(typeof solveRouxS1).toBe('function');
     expect(typeof solvePetrusS1).toBe('function');
     expect(typeof solveThreeByThreeAssist).toBe('function');
+  });
+
+  it('exports auxiliary solver facades for DCTimer non-3x3 helpers', () => {
+    expect(typeof solveTwoByTwoFace).toBe('function');
+    expect(typeof solveTwoByTwoLayer).toBe('function');
+    expect(typeof solveSquareOneShapeFaceTurnMetric).toBe('function');
+    expect(typeof solveSquareOneShapeTwistMetric).toBe('function');
+    expect(typeof solvePyraminxV).toBe('function');
+    expect(typeof solvePuzzleAssist).toBe('function');
   });
 
   it('exports solver-specific errors', () => {

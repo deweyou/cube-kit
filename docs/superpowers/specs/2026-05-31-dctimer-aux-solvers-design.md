@@ -4,17 +4,17 @@
 **Status**: Approved for written spec on 2026-05-31.
 **Scope**: new `packages/solver` package and a solver debugging page in
 `apps/playground`.
-**Out of scope**: production app integration, non-3x3 auxiliary solvers, changing
-WCA scramble generation behavior, and public compatibility with DCTimer's string
-format.
+**Out of scope**: production app integration, 4x4/Skewb random-state-only
+solvers, changing WCA scramble generation behavior, and public compatibility
+with DCTimer's string format.
 
 ---
 
 ## 1. Goals
 
-Build a platform-agnostic TypeScript package for DCTimer-style 3x3 auxiliary
-solve hints. The first scope covers the helper methods discussed during the
-DCTimer research pass:
+Build a platform-agnostic TypeScript package for DCTimer-style auxiliary solve
+hints. The first scope covers the helper methods discussed during the DCTimer
+research pass:
 
 - Cross
 - XCross
@@ -22,14 +22,19 @@ DCTimer research pass:
 - EOFC
 - Roux S1
 - Petrus S1
+- 2x2 Face
+- 2x2 Layer
+- Square-1 shape, in face-turn and twist metrics
+- Pyraminx V, for D/L/R/F targets
 
 The package should expose structured results that CubeKit apps can render in
 their own UI. It should not return DCTimer's raw multi-line strings as the main
 API.
 
 Add a developer-facing page to `apps/playground` so the new solver package can be
-exercised manually with 3x3 scrambles, selected methods, selected targets, and
-visual preview where useful.
+exercised manually with generated or handwritten 3x3, 2x2, Square-1, and
+Pyraminx scrambles, selected methods, selected targets, and visual preview where
+useful.
 
 ---
 
@@ -96,6 +101,18 @@ export type ThreeByThreeAssistMethod =
   | 'roux-s1'
   | 'petrus-s1';
 
+export type TwoByTwoAssistMethod = '222-face' | '222-layer';
+
+export type SquareOneAssistMethod = 'sq1-shape-ftm' | 'sq1-shape-twist';
+
+export type PyraminxAssistMethod = 'pyraminx-v';
+
+export type PuzzleAssistMethod =
+  | ThreeByThreeAssistMethod
+  | TwoByTwoAssistMethod
+  | SquareOneAssistMethod
+  | PyraminxAssistMethod;
+
 export interface ThreeByThreeAssistOptions {
   readonly targets?: readonly string[];
   readonly maxDepth?: number;
@@ -120,6 +137,8 @@ export interface ThreeByThreeAssistResult {
   readonly scramble: string;
   readonly solutions: readonly ThreeByThreeAssistSolution[];
 }
+
+export type PuzzleAssistResult = ThreeByThreeAssistResult /* generic result */;
 
 export function solveCross(
   scramble: string,
@@ -151,6 +170,35 @@ export function solvePetrusS1(
   options?: ThreeByThreeAssistOptions,
 ): ThreeByThreeAssistResult;
 
+export function solveTwoByTwoFace(
+  scramble: string,
+  options?: PuzzleAssistOptions,
+): PuzzleAssistResult;
+
+export function solveTwoByTwoLayer(
+  scramble: string,
+  options?: PuzzleAssistOptions,
+): PuzzleAssistResult;
+
+export function solveSquareOneShapeFaceTurnMetric(
+  scramble: string,
+  options?: PuzzleAssistOptions,
+): PuzzleAssistResult;
+
+export function solveSquareOneShapeTwistMetric(
+  scramble: string,
+  options?: PuzzleAssistOptions,
+): PuzzleAssistResult;
+
+export function solvePyraminxV(scramble: string, options?: PuzzleAssistOptions): PuzzleAssistResult;
+
+export function solvePuzzleAssist(
+  eventId: '333' | '222' | 'sq1' | 'pyram',
+  methods: readonly PuzzleAssistMethod[],
+  scramble: string,
+  options?: PuzzleAssistOptions,
+): readonly PuzzleAssistResult[];
+
 export function solveThreeByThreeAssist(
   scramble: string,
   methods: readonly ThreeByThreeAssistMethod[],
@@ -161,14 +209,18 @@ export function solveThreeByThreeAssist(
 Targets use stable string ids. The initial target ids map directly to DCTimer's
 visible target families:
 
-| Method    | Target family                                       |
-| --------- | --------------------------------------------------- |
-| Cross     | six face colors: `D`, `U`, `L`, `R`, `F`, `B`       |
-| XCross    | six face colors, with first-slot selection internal |
-| EOline    | twelve edge-line targets such as `DF DB`            |
-| EOFC      | twelve cross plus EO targets such as `D(FB)`        |
-| Roux S1   | eight block targets such as `LU`, `LD`, `FU`        |
-| Petrus S1 | eight 2x2x2 block targets such as `ULF`, `DRB`      |
+| Method     | Target family                                         |
+| ---------- | ----------------------------------------------------- |
+| Cross      | six face colors: `D`, `U`, `L`, `R`, `F`, `B`         |
+| XCross     | six face colors, with first-slot selection internal   |
+| EOline     | twelve edge-line targets such as `DF DB`              |
+| EOFC       | twelve cross plus EO targets such as `D(FB)`          |
+| Roux S1    | eight block targets such as `LU`, `LD`, `FU`          |
+| Petrus S1  | eight 2x2x2 block targets such as `ULF`, `DRB`        |
+| 2x2 Face   | six face colors: `D`, `U`, `L`, `R`, `F`, `B`         |
+| 2x2 Layer  | six first-layer targets: `D`, `U`, `L`, `R`, `F`, `B` |
+| SQ1 Shape  | solved Square-1 shape; metric selected by method      |
+| Pyraminx V | four V targets: `D`, `L`, `R`, `F`                    |
 
 If `targets` is omitted, each function searches all targets for that method.
 Invalid scrambles or unknown targets throw typed errors exported by the package.
@@ -187,6 +239,10 @@ Source alignment:
 - `EOline.java`: EOline.
 - `Roux.java`: Roux S1 only; the incomplete Roux S2 path remains out of scope.
 - `Petrus.java`: Petrus S1 only; Petrus S2 remains out of scope.
+- `Cube2Face.java`: 2x2 face helper.
+- `Cube2Layer.java`: 2x2 layer helper.
+- `Sq1Shape.java`: Square-1 shape helper.
+- `PyraminxV.java`: Pyraminx V helper.
 - `Utils.java`: combinatorics, permutation, orientation, and pruning helpers.
 
 Implementation notes:
@@ -196,10 +252,11 @@ Implementation notes:
 - Initialize heavy move and pruning tables lazily at module level so package
   import stays cheap enough for browser apps.
 - Parse scramble text through `@cubekit/scramble-puzzle` for validation, then
-  translate parsed 3x3 face turns into each solver's coordinate move indices.
-- Accept standard 3x3 face turns supported by `scramble-puzzle`. Cube rotations
-  and wide moves are rejected for this first auxiliary-solver scope unless a
-  method-specific test is added before implementation.
+  translate parsed puzzle turns into each solver's coordinate move indices.
+- Accept the move set used by the corresponding DCTimer helper. 3x3 helpers
+  accept ordinary face turns and reject rotations/wide moves; 2x2 helpers accept
+  the DCTimer URF coordinate moves; Pyraminx V ignores tip-only moves; Square-1
+  uses tuple and slash notation.
 - Results contain solutions in user-facing notation. Any target-specific
   rotation is returned separately as `setupRotation` so callers can decide how to
   display it.
@@ -224,6 +281,10 @@ contract:
   orientation.
 - Roux S1: the requested 1x2x3 first block is solved.
 - Petrus S1: the requested 2x2x2 block is solved.
+- 2x2 Face: the target face stickers are solved.
+- 2x2 Layer: the target face and adjacent first-layer stickers are solved.
+- SQ1 Shape: the puzzle shape is restored.
+- Pyraminx V: the selected V target is solved, ignoring tip-only orientation.
 
 The predicates are public test-support or exported diagnostic helpers only if the
 implementation needs them outside package tests. They are not part of the first
@@ -242,9 +303,14 @@ UI shape:
   - `Scrambles`
   - `Solvers`
 - The Solver page includes:
-  - 3x3 scramble textarea
-  - method multi-select or checkbox group
-  - target selector that updates for the chosen method
+  - event selector for 3x3, 2x2, Square-1, and Pyraminx
+  - scramble textarea
+  - button that generates one scramble for the selected solver event
+  - changing the solver event automatically generates one scramble for the new
+    event
+  - event-specific method multi-select or checkbox group
+  - target select that updates for the chosen event and includes an All targets
+    option when the event supports multiple targets
   - Solve button
   - result table grouped by method and target
   - selected solution preview using existing cube SVG rendering where practical
@@ -264,7 +330,7 @@ details directly throughout React components.
 
 `@cubekit/solver` should expose package-specific error classes:
 
-- invalid 3x3 scramble
+- invalid solver scramble
 - unsupported move for auxiliary solver scope
 - unknown method
 - unknown target
@@ -286,7 +352,7 @@ Package tests:
 - API tests for each public solver function.
 - Red-green tests for invalid scrambles, invalid targets, and unsupported wide
   moves.
-- Predicate-based correctness tests for all six methods on the solved state and
+- Predicate-based correctness tests for all methods on the solved state and
   several fixed scrambles.
 - DCTimer alignment tests for representative scrambles where exact target labels
   and solution depths are expected to match.
@@ -297,6 +363,8 @@ Playground tests:
 
 - Existing scramble/image tests continue to pass.
 - Solver tab renders without breaking the scramble tab.
+- Generating a solver scramble fills the solver textarea from `scramble-core`
+  for the selected event.
 - Entering a scramble and solving shows grouped results.
 - Solver errors render in the solver panel.
 - Selecting a solution updates the preview or composed algorithm text.
@@ -338,9 +406,11 @@ the changed packages.
 - Playground may consume solver, core, image, and puzzle together.
 - Cross and XCross are included because they are part of the same DCTimer
   auxiliary 3x3 helper family and share tables with EOFC.
-- 4x4, Skewb, 2x2, Square-1, and Pyraminx auxiliary or random-state solvers are
-  not included in this iteration.
+- 2x2 Face/Layer, Square-1 shape, and Pyraminx V are included because DCTimer
+  exposes them as auxiliary restoration hints.
+- 4x4 and Skewb stay out of scope here because the researched DCTimer logic for
+  them is scramble/random-state generation rather than auxiliary restoration.
 
 ---
 
-_Last updated: 2026-05-31 | Reason: define DCTimer auxiliary solver package and playground debug page_
+_Last updated: 2026-05-31 | Reason: add DCTimer 2x2, Square-1, and Pyraminx auxiliary solver scope_

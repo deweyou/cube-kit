@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build `@cubekit/solver` with DCTimer-style 3x3 auxiliary solvers and add a playground solver debugging page.
+**Goal:** Build `@cubekit/solver` with DCTimer-style auxiliary solvers and add a playground solver debugging page.
 
-**Architecture:** `packages/solver` is a platform-agnostic package that depends only on `@cubekit/scramble-puzzle`. It owns DCTimer-derived coordinate search, pruning tables, target metadata, structured result APIs, and method-specific validation helpers. `apps/playground` imports solver alongside existing scramble packages and keeps solver calls behind a local service boundary.
+**Architecture:** `packages/solver` is a platform-agnostic package that depends only on `@cubekit/scramble-puzzle`. It owns DCTimer-derived coordinate search, pruning tables, target metadata, structured result APIs, and method-specific validation helpers for 3x3, 2x2, Square-1, and Pyraminx auxiliary restoration hints. `apps/playground` imports solver alongside existing scramble packages and keeps solver calls behind a local service boundary.
 
 **Tech Stack:** TypeScript, vite-plus pack/test, Vitest, React 19, `@cubekit/scramble-puzzle`, `@cubekit/scramble-image`, `@cubekit/scramble-core`.
 
@@ -637,23 +637,33 @@ Add `@cubekit/solver` to playground dependencies, add it to `prepare:deps`, and 
 
 - [ ] **Step 4: Add solver service methods**
 
-Extend `createPlaygroundService` with `solveThreeByThree(input)` that calls `solveThreeByThreeAssist`, records duration, result count, and builds composed algorithms for preview.
+Extend `createPlaygroundService` with:
+
+- `solveThreeByThree(input)` that calls `solveThreeByThreeAssist`, records duration, result count, and builds composed algorithms for preview.
+- `generateSolverScramble(eventId)` that uses `scramble-core` to generate one scramble for the selected solver event.
 
 - [ ] **Step 5: Add hook state**
 
 Extend `usePlayground` with:
 
 - `activePage: 'scrambles' | 'solvers'`
+- `solverEventId`
 - `solverScramble`
 - `solverMethods`
 - `solverResults`
 - `solverError`
 - `solverDiagnostics`
+- `generateSolverScramble`
+- `setSolverEventId` that resets event-specific defaults and auto-generates a
+  scramble for the selected solver event.
 - `solveThreeByThree`
 
 - [ ] **Step 6: Add UI and styles**
 
-Add accessible tabs, a solver form, method checkboxes, results table, diagnostics, and error panel. Keep existing scramble UI unchanged inside the Scrambles tab.
+Add accessible tabs, a solver form, an event selector, an event-specific target
+select, a generate-scramble button, event-specific method checkboxes, results
+table, diagnostics, and error panel. Keep existing scramble UI unchanged inside
+the Scrambles tab.
 
 - [ ] **Step 7: Run playground verification**
 
@@ -721,9 +731,82 @@ git commit -m "docs: document solver package boundary"
 
 ---
 
+### Task 9: 2x2, Square-1, And Pyraminx Auxiliary Solvers
+
+**Files:**
+
+- Modify: `packages/solver/src/types.ts`
+- Modify: `packages/solver/src/index.ts`
+- Create: `packages/solver/src/two-by-two/two-by-two.ts`
+- Create: `packages/solver/src/two-by-two/two-by-two.test.ts`
+- Create: `packages/solver/src/square-one/square-one-shape.ts`
+- Create: `packages/solver/src/square-one/square-one-shape.test.ts`
+- Create: `packages/solver/src/pyraminx/pyraminx-v.ts`
+- Create: `packages/solver/src/pyraminx/pyraminx-v.test.ts`
+- Create: `packages/solver/src/facade.ts`
+- Create: `packages/solver/src/facade.test.ts`
+- Modify: `apps/playground/src/playground/types.ts`
+- Modify: `apps/playground/src/playground/playground-service.ts`
+- Modify: `apps/playground/src/playground/use-playground.ts`
+- Modify: `apps/playground/src/app.tsx`
+- Modify: `apps/playground/src/app.test.tsx`
+- Modify: `apps/playground/src/styles.css`
+
+- [ ] **Step 1: Write failing package tests**
+
+Add RED tests that prove public exports, per-puzzle functions, event facade
+routing, invalid-event handling, and representative solved/fixed-scramble
+solutions for:
+
+- 2x2 Face and Layer
+- Square-1 shape in face-turn and twist metrics
+- Pyraminx V for D/L/R/F targets
+
+Run:
+
+```bash
+pnpm --filter @cubekit/solver test -- two-by-two square-one-shape pyraminx-v facade index
+```
+
+Expected: fails because the new APIs and modules do not exist yet.
+
+- [ ] **Step 2: Port DCTimer helpers into solver package**
+
+Port the DCTimer Android coordinate/search helpers with lazy table
+initialization. Reuse `@cubekit/scramble-puzzle` parsers for 2x2 cube,
+Square-1, and Pyraminx notation, and keep scramble generation out of
+`@cubekit/solver`.
+
+- [ ] **Step 3: Add generic puzzle facade**
+
+Add `solvePuzzleAssist(eventId, methods, scramble, options)` for `333`, `222`,
+`sq1`, and `pyram`. Preserve the existing `solveThreeByThreeAssist` API for
+callers that only need 3x3.
+
+- [ ] **Step 4: Extend playground event flow**
+
+Add solver event selection, generate scrambles for the selected event, reset
+event-specific default methods and target select values when changing events,
+auto-generate a fresh scramble after each event change, and render the existing
+result table for all solver result types.
+
+- [ ] **Step 5: Run targeted verification**
+
+```bash
+pnpm --filter @cubekit/solver test
+pnpm --filter @cubekit/solver typecheck
+pnpm --filter @cubekit/solver build
+pnpm --filter playground test
+pnpm --filter playground typecheck
+pnpm --filter playground build
+pnpm test:docs
+```
+
+---
+
 ## Self-Review
 
-- Spec coverage: package split, dependency rules, six 3x3 methods, structured API, playground debug surface, error handling, tests, and verification each map to tasks above.
+- Spec coverage: package split, dependency rules, 3x3/2x2/Square-1/Pyraminx methods, structured API, playground debug surface, error handling, tests, and verification each map to tasks above.
 - Placeholder scan: no task depends on a later undefined module without first creating it in an earlier task.
 - Type consistency: public method names, method ids, option fields, result fields, and error names match the approved spec.
-- Scope check: non-3x3 auxiliary solvers, production app integration, and DCTimer raw string compatibility remain out of scope.
+- Scope check: 4x4/Skewb random-state-only solvers, production app integration, and DCTimer raw string compatibility remain out of scope.

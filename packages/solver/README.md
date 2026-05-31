@@ -2,10 +2,10 @@
 
 Platform-agnostic auxiliary solve helpers for CubeKit.
 
-This package provides structured 3x3 helper solutions such as Cross, XCross,
-EOline, EOFC, Roux S1, and Petrus S1. It depends on
-`@cubekit/scramble-puzzle` for notation parsing and stays independent from
-scramble generation and SVG rendering packages.
+This package provides structured helper solutions such as Cross, XCross, EOline,
+EOFC, Roux S1, Petrus S1, 2x2 Face/Layer, Square-1 shape, and Pyraminx V. It
+depends on `@cubekit/scramble-puzzle` for notation parsing and stays independent
+from scramble generation and SVG rendering packages.
 
 ## Development
 

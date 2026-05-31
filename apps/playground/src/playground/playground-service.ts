@@ -1,6 +1,9 @@
 import { createDefaultScrambleGenerator, type RandomSource } from '@cubekit/scramble-core';
 import { renderScrambleImage } from '@cubekit/scramble-image';
-import { solveThreeByThreeAssist } from '@cubekit/solver';
+import {
+  solvePuzzleAssist as solvePuzzleAssistCore,
+  type PuzzleAssistEventId,
+} from '@cubekit/solver';
 import { createSeededRandomSource } from './seeded-random';
 import type {
   PlaygroundGenerateInput,
@@ -11,6 +14,7 @@ import type {
   PlaygroundScramble,
   PlaygroundSolverInput,
   PlaygroundSolverResult,
+  PlaygroundSolverScrambleResult,
 } from './types';
 
 export interface PlaygroundServiceOptions {
@@ -94,11 +98,30 @@ export const createPlaygroundService = ({
         };
       }
     },
-    solveThreeByThree(input: PlaygroundSolverInput): PlaygroundSolverResult {
+    async generateSolverScramble(
+      eventId: PuzzleAssistEventId,
+    ): Promise<PlaygroundSolverScrambleResult> {
+      try {
+        const [result] = await generator.generateBatch(eventId, 1);
+
+        return {
+          eventId,
+          scramble: result?.scramble ?? '',
+          error: undefined,
+        };
+      } catch (error) {
+        return {
+          eventId,
+          scramble: '',
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
+    solvePuzzleAssist(input: PlaygroundSolverInput): PlaygroundSolverResult {
       const solveStart = now();
 
       try {
-        const results = solveThreeByThreeAssist(input.scramble, input.methods, {
+        const results = solvePuzzleAssistCore(input.eventId, input.methods, input.scramble, {
           targets: input.targets && input.targets.length > 0 ? input.targets : undefined,
         });
         const solveEnd = now();

@@ -9,6 +9,8 @@ describe('App', () => {
   it('generates scrambles and renders an SVG preview', async () => {
     render(<App />);
 
+    await userEvent.clear(screen.getByLabelText('Count'));
+    await userEvent.type(screen.getByLabelText('Count'), '1');
     await userEvent.click(screen.getByRole('button', { name: 'Generate' }));
 
     expect(await screen.findByText(/scramble-core/i)).toBeTruthy();
@@ -68,6 +70,58 @@ describe('App', () => {
 
     expect(await screen.findByText('cross')).toBeTruthy();
     expect(screen.getByText(/Result count/i)).toBeTruthy();
+  });
+
+  it('generates a 3x3 scramble for the solver page', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
+    await userEvent.clear(screen.getByLabelText('Solver scramble'));
+    await userEvent.click(screen.getByRole('button', { name: 'Generate solver scramble' }));
+
+    expect(
+      (screen.getByLabelText('Solver scramble') as HTMLTextAreaElement).value.length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('renders solver targets as an event-aware select', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
+
+    expect(screen.getByLabelText('Solver targets').tagName).toBe('SELECT');
+
+    await userEvent.selectOptions(screen.getByLabelText('Solver event'), '222');
+
+    expect(screen.getByRole('option', { name: 'D face/layer' })).toBeTruthy();
+  });
+
+  it('switches solver events, auto-generates a scramble, and solves 2x2', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
+    await userEvent.clear(screen.getByLabelText('Solver scramble'));
+    await userEvent.selectOptions(screen.getByLabelText('Solver event'), '222');
+
+    expect(
+      ((await screen.findByLabelText('Solver scramble')) as HTMLTextAreaElement).value.length,
+    ).toBeGreaterThan(0);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Solve' }));
+
+    expect(await screen.findByText('222-face')).toBeTruthy();
+    expect(screen.getByText('Face')).toBeTruthy();
+  });
+
+  it('shows Square-1 and Pyraminx helper methods in the solver page', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
+    await userEvent.selectOptions(screen.getByLabelText('Solver event'), 'sq1');
+    expect(screen.getByLabelText('SQ1 shape FTM')).toBeTruthy();
+
+    await userEvent.selectOptions(screen.getByLabelText('Solver event'), 'pyram');
+    expect(screen.getByLabelText('Pyraminx V')).toBeTruthy();
   });
 
   it('shows solver errors without leaving the solver page', async () => {
