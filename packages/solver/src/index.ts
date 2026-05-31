@@ -22,25 +22,25 @@ export type {
   ThreeByThreeAssistSolution,
   TwoByTwoAssistMethod,
 } from './types.js';
-import { solvePuzzleAssist as solvePuzzleAssistImpl } from './facade.js';
-import { solvePyraminxV as solvePyraminxVImpl } from './pyraminx/pyraminx-v.js';
+import { solvePuzzleAssist as solvePuzzleAssistImpl } from './assist/facade.js';
+import { solvePyraminxV as solvePyraminxVImpl } from './assist/pyraminx/v.js';
 import {
   solveSquareOneShapeFaceTurnMetric as solveSquareOneShapeFaceTurnMetricImpl,
   solveSquareOneShapeTwistMetric as solveSquareOneShapeTwistMetricImpl,
-} from './square-one/square-one-shape.js';
+} from './assist/square1/shape.js';
 import {
   solveCross as solveCrossImpl,
   solveEOFC as solveEOFCImpl,
   solveXCross as solveXCrossImpl,
-} from './three-by-three/cross.js';
-import { solveEOLine as solveEOLineImpl } from './three-by-three/eoline.js';
-import { solveThreeByThreeAssist as solveThreeByThreeAssistImpl } from './three-by-three/facade.js';
-import { solvePetrusS1 as solvePetrusS1Impl } from './three-by-three/petrus.js';
-import { solveRouxS1 as solveRouxS1Impl } from './three-by-three/roux.js';
+} from './assist/three-by-three/cross.js';
+import { solveEOLine as solveEOLineImpl } from './assist/three-by-three/eoline.js';
+import { solveThreeByThreeAssist as solveThreeByThreeAssistImpl } from './assist/three-by-three/facade.js';
+import { solvePetrusS1 as solvePetrusS1Impl } from './assist/three-by-three/petrus.js';
+import { solveRouxS1 as solveRouxS1Impl } from './assist/three-by-three/roux.js';
 import {
   solveTwoByTwoFace as solveTwoByTwoFaceImpl,
   solveTwoByTwoLayer as solveTwoByTwoLayerImpl,
-} from './two-by-two/two-by-two.js';
+} from './assist/two-by-two/face-layer.js';
 import type {
   PuzzleAssistEventId,
   PuzzleAssistMethod,

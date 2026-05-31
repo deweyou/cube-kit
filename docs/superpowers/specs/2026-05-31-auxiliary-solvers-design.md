@@ -1,20 +1,19 @@
-# DCTimer Auxiliary Solvers - Design Spec
+# Auxiliary Solvers - Design Spec
 
 **Date**: 2026-05-31
 **Status**: Approved for written spec on 2026-05-31.
 **Scope**: new `packages/solver` package and a solver debugging page in
 `apps/playground`.
 **Out of scope**: production app integration, 4x4/Skewb random-state-only
-solvers, changing WCA scramble generation behavior, and public compatibility
-with DCTimer's string format.
+solvers, changing WCA scramble generation behavior, and compatibility with any
+upstream app's raw string output format.
 
 ---
 
 ## 1. Goals
 
-Build a platform-agnostic TypeScript package for DCTimer-style auxiliary solve
-hints. The first scope covers the helper methods discussed during the DCTimer
-research pass:
+Build a platform-agnostic TypeScript package for auxiliary solve hints. The
+first scope covers the helper methods selected for CubeKit's solver package:
 
 - Cross
 - XCross
@@ -28,7 +27,7 @@ research pass:
 - Pyraminx V, for D/L/R/F targets
 
 The package should expose structured results that CubeKit apps can render in
-their own UI. It should not return DCTimer's raw multi-line strings as the main
+their own UI. It should not return raw multi-line display strings as the main
 API.
 
 Add a developer-facing page to `apps/playground` so the new solver package can be
@@ -206,8 +205,8 @@ export function solveThreeByThreeAssist(
 ): readonly ThreeByThreeAssistResult[];
 ```
 
-Targets use stable string ids. The initial target ids map directly to DCTimer's
-visible target families:
+Targets use stable string ids. The initial target ids map to CubeKit's
+user-facing auxiliary target families:
 
 | Method     | Target family                                         |
 | ---------- | ----------------------------------------------------- |
@@ -229,21 +228,22 @@ Invalid scrambles or unknown targets throw typed errors exported by the package.
 
 ## 5. Solver Behavior
 
-The TypeScript implementation should port the DCTimer Android auxiliary solver
-logic closely enough that search targets, move ordering, and depth caps match the
-source behavior unless tests reveal a clear bug.
+The TypeScript implementation should provide deterministic CubeKit helpers with
+stable search targets, move ordering, and depth caps. The implementation can use
+public puzzle-solving techniques such as coordinate search, pruning tables, IDA
+search, and method-specific target predicates, but the package API and
+documentation are CubeKit-owned.
 
-Source alignment:
+Implementation areas:
 
-- `Cross.java`: Cross, XCross, and EOFC.
-- `EOline.java`: EOline.
-- `Roux.java`: Roux S1 only; the incomplete Roux S2 path remains out of scope.
-- `Petrus.java`: Petrus S1 only; Petrus S2 remains out of scope.
-- `Cube2Face.java`: 2x2 face helper.
-- `Cube2Layer.java`: 2x2 layer helper.
-- `Sq1Shape.java`: Square-1 shape helper.
-- `PyraminxV.java`: Pyraminx V helper.
-- `Utils.java`: combinatorics, permutation, orientation, and pruning helpers.
+- Cross, XCross, and EOFC.
+- EOline.
+- Roux S1 only; Roux S2 remains out of scope.
+- Petrus S1 only; Petrus S2 remains out of scope.
+- 2x2 face and layer helpers.
+- Square-1 shape helper.
+- Pyraminx V helper.
+- Shared combinatorics, permutation, orientation, and pruning helpers.
 
 Implementation notes:
 
@@ -253,10 +253,10 @@ Implementation notes:
   import stays cheap enough for browser apps.
 - Parse scramble text through `@cubekit/scramble-puzzle` for validation, then
   translate parsed puzzle turns into each solver's coordinate move indices.
-- Accept the move set used by the corresponding DCTimer helper. 3x3 helpers
-  accept ordinary face turns and reject rotations/wide moves; 2x2 helpers accept
-  the DCTimer URF coordinate moves; Pyraminx V ignores tip-only moves; Square-1
-  uses tuple and slash notation.
+- Accept the move set used by each CubeKit helper. 3x3 helpers accept ordinary
+  face turns and reject rotations/wide moves; 2x2 helpers accept the URF
+  coordinate move set; Pyraminx V ignores tip-only moves; Square-1 uses tuple
+  and slash notation.
 - Results contain solutions in user-facing notation. Any target-specific
   rotation is returned separately as `setupRotation` so callers can decide how to
   display it.
@@ -354,8 +354,8 @@ Package tests:
   moves.
 - Predicate-based correctness tests for all methods on the solved state and
   several fixed scrambles.
-- DCTimer alignment tests for representative scrambles where exact target labels
-  and solution depths are expected to match.
+- Regression tests for representative scrambles where exact target labels and
+  solution depths are expected to remain stable.
 - Lazy initialization tests to prove repeated calls reuse generated tables and
   do not mutate returned results.
 
@@ -404,13 +404,13 @@ the changed packages.
 - The solver package is separate from `scramble-core`.
 - The solver package depends only on `scramble-puzzle`.
 - Playground may consume solver, core, image, and puzzle together.
-- Cross and XCross are included because they are part of the same DCTimer
-  auxiliary 3x3 helper family and share tables with EOFC.
-- 2x2 Face/Layer, Square-1 shape, and Pyraminx V are included because DCTimer
-  exposes them as auxiliary restoration hints.
-- 4x4 and Skewb stay out of scope here because the researched DCTimer logic for
-  them is scramble/random-state generation rather than auxiliary restoration.
+- Cross and XCross are included because they are part of the same auxiliary 3x3
+  helper family and share tables with EOFC.
+- 2x2 Face/Layer, Square-1 shape, and Pyraminx V are included because they are
+  auxiliary restoration hints rather than scramble generation engines.
+- 4x4 and Skewb stay out of scope here because the available logic for them is
+  scramble/random-state generation rather than auxiliary restoration.
 
 ---
 
-_Last updated: 2026-05-31 | Reason: add DCTimer 2x2, Square-1, and Pyraminx auxiliary solver scope_
+_Last updated: 2026-05-31 | Reason: clarify CubeKit-owned auxiliary solver scope and package structure_

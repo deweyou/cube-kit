@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { solveSquareOneShapeFaceTurnMetric, solveSquareOneShapeTwistMetric } from '../index.js';
-import { isSquareOneShapeSolved } from './square-one-shape.js';
+import { solveSquareOneShapeFaceTurnMetric, solveSquareOneShapeTwistMetric } from '../../index.js';
+import { isSquareOneShapeSolved } from './shape.js';
 
 describe('Square-1 shape solver', () => {
   it('restores shape in face-turn metric', () => {

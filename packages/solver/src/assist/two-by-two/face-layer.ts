@@ -12,13 +12,13 @@ import {
   NoSolverSolutionError,
   UnknownSolverTargetError,
   UnsupportedSolverMoveError,
-} from '../errors.js';
+} from '../../errors.js';
 import type {
   PuzzleAssistOptions,
   PuzzleAssistResult,
   PuzzleAssistSolution,
   TwoByTwoAssistMethod,
-} from '../types.js';
+} from '../../types.js';
 import { countFaceTurnMetric, countQuarterTurnMetric } from '../three-by-three/metrics.js';
 
 const TARGETS = ['D', 'U', 'L', 'R', 'F', 'B'] as const;

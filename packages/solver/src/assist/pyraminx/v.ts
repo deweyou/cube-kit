@@ -3,7 +3,7 @@ import {
   InvalidSolverScrambleError,
   NoSolverSolutionError,
   UnknownSolverTargetError,
-} from '../errors.js';
+} from '../../errors.js';
 import {
   binomial,
   indexToOrientation,
@@ -12,7 +12,7 @@ import {
   permutationToIndex,
 } from '../three-by-three/coordinate-utils.js';
 import { countFaceTurnMetric, countQuarterTurnMetric } from '../three-by-three/metrics.js';
-import type { PuzzleAssistOptions, PuzzleAssistResult, PuzzleAssistSolution } from '../types.js';
+import type { PuzzleAssistOptions, PuzzleAssistResult, PuzzleAssistSolution } from '../../types.js';
 
 const TARGETS = ['D', 'L', 'R', 'F'] as const;
 const TARGET_MOVES = ['LRBU', 'ULBR', 'RUBL', 'LURB'] as const;

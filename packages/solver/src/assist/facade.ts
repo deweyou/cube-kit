@@ -1,11 +1,11 @@
-import { UnknownSolverMethodError } from './errors.js';
-import { solvePyraminxV } from './pyraminx/pyraminx-v.js';
+import { UnknownSolverMethodError } from '../errors.js';
+import { solvePyraminxV } from './pyraminx/v.js';
 import {
   solveSquareOneShapeFaceTurnMetric,
   solveSquareOneShapeTwistMetric,
-} from './square-one/square-one-shape.js';
+} from './square1/shape.js';
 import { solveThreeByThreeAssist } from './three-by-three/facade.js';
-import { solveTwoByTwoFace, solveTwoByTwoLayer } from './two-by-two/two-by-two.js';
+import { solveTwoByTwoFace, solveTwoByTwoLayer } from './two-by-two/face-layer.js';
 import type {
   PuzzleAssistEventId,
   PuzzleAssistMethod,
@@ -14,7 +14,7 @@ import type {
   SquareOneAssistMethod,
   ThreeByThreeAssistMethod,
   TwoByTwoAssistMethod,
-} from './types.js';
+} from '../types.js';
 
 type MethodSolver<Method extends PuzzleAssistMethod> = (
   scramble: string,

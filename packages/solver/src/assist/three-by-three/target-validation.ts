@@ -1,4 +1,4 @@
-import type { ThreeByThreeAssistSolution } from '../types.js';
+import type { ThreeByThreeAssistSolution } from '../../types.js';
 import { isCrossSolutionSolved, isEOFCSolutionSolved, isXCrossSolutionSolved } from './cross.js';
 import { isEOLineSolutionSolved } from './eoline.js';
 import { isPetrusS1SolutionSolved } from './petrus.js';

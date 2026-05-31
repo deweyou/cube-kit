@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { UnsupportedSolverMoveError } from '../errors.js';
+import { UnsupportedSolverMoveError } from '../../errors.js';
 import { parseThreeByThreeSolverAlgorithm } from './move-utils.js';
 
 describe('3x3 solver move utilities', () => {

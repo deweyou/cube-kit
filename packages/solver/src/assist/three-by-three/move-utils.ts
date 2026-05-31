@@ -1,5 +1,5 @@
 import { parseCubeMove, splitAlgorithm, type CubeMove } from '@cubekit/scramble-puzzle';
-import { InvalidSolverScrambleError, UnsupportedSolverMoveError } from '../errors.js';
+import { InvalidSolverScrambleError, UnsupportedSolverMoveError } from '../../errors.js';
 
 export const parseThreeByThreeSolverAlgorithm = (algorithm: string): readonly CubeMove[] => {
   try {

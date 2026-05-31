@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { solvePyraminxV } from '../index.js';
-import { isPyraminxVSolved } from './pyraminx-v.js';
+import { solvePyraminxV } from '../../index.js';
+import { isPyraminxVSolved } from './v.js';
 
 describe('Pyraminx V solver', () => {
   it('solves a D V target while ignoring tip moves', () => {

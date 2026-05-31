@@ -3,12 +3,12 @@ import {
   NoSolverSolutionError,
   UnknownSolverTargetError,
   UnsupportedSolverMoveError,
-} from '../errors.js';
+} from '../../errors.js';
 import type {
   ThreeByThreeAssistOptions,
   ThreeByThreeAssistResult,
   ThreeByThreeAssistSolution,
-} from '../types.js';
+} from '../../types.js';
 import {
   binomial,
   createPruningTable,

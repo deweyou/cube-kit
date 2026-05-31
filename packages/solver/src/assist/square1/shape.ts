@@ -7,13 +7,13 @@ import {
   InvalidSolverScrambleError,
   NoSolverSolutionError,
   UnknownSolverTargetError,
-} from '../errors.js';
+} from '../../errors.js';
 import type {
   PuzzleAssistOptions,
   PuzzleAssistResult,
   PuzzleAssistSolution,
   SquareOneAssistMethod,
-} from '../types.js';
+} from '../../types.js';
 
 const HALF_LAYER = [
   0x15, 0x17, 0x1b, 0x1d, 0x1f, 0x2b, 0x2d, 0x2f, 0x35, 0x37, 0x3b, 0x3d, 0x3f,

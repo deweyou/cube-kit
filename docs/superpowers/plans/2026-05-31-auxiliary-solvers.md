@@ -1,10 +1,10 @@
-# DCTimer Auxiliary Solvers Implementation Plan
+# Auxiliary Solvers Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build `@cubekit/solver` with DCTimer-style auxiliary solvers and add a playground solver debugging page.
+**Goal:** Build `@cubekit/solver` with CubeKit auxiliary solvers and add a playground solver debugging page.
 
-**Architecture:** `packages/solver` is a platform-agnostic package that depends only on `@cubekit/scramble-puzzle`. It owns DCTimer-derived coordinate search, pruning tables, target metadata, structured result APIs, and method-specific validation helpers for 3x3, 2x2, Square-1, and Pyraminx auxiliary restoration hints. `apps/playground` imports solver alongside existing scramble packages and keeps solver calls behind a local service boundary.
+**Architecture:** `packages/solver` is a platform-agnostic package that depends only on `@cubekit/scramble-puzzle`. It owns CubeKit coordinate search, pruning tables, target metadata, structured result APIs, and method-specific validation helpers for 3x3, 2x2, Square-1, and Pyraminx auxiliary restoration hints. `apps/playground` imports solver alongside existing scramble packages and keeps solver calls behind a local service boundary.
 
 **Tech Stack:** TypeScript, vite-plus pack/test, Vitest, React 19, `@cubekit/scramble-puzzle`, `@cubekit/scramble-image`, `@cubekit/scramble-core`.
 
@@ -15,19 +15,19 @@
 - Create `packages/solver/package.json`: package metadata, scripts, dependency on `@cubekit/scramble-puzzle`.
 - Create `packages/solver/tsconfig.json`: package TypeScript config matching existing packages.
 - Create `packages/solver/vite.config.ts`: vite-plus pack/test config.
-- Create `packages/solver/LICENSE`, `packages/solver/NOTICE`, `packages/solver/README.md`, `packages/solver/AGENTS.md`: package boundary and verification notes.
+- Create `packages/solver/README.md`, `packages/solver/AGENTS.md`: package boundary and verification notes.
 - Create `packages/solver/src/index.ts`: public exports.
 - Create `packages/solver/src/errors.ts`: package-specific errors.
 - Create `packages/solver/src/types.ts`: public API and target types.
-- Create `packages/solver/src/three-by-three/coordinate-utils.ts`: DCTimer combinatorics, permutation, orientation, pruning helpers.
-- Create `packages/solver/src/three-by-three/move-utils.ts`: 3x3 algorithm validation and move conversion.
-- Create `packages/solver/src/three-by-three/metrics.ts`: FTM/QTM counting.
-- Create `packages/solver/src/three-by-three/cross.ts`: Cross, XCross, EOFC solver family.
-- Create `packages/solver/src/three-by-three/eoline.ts`: EOline solver.
-- Create `packages/solver/src/three-by-three/petrus.ts`: Petrus S1 solver.
-- Create `packages/solver/src/three-by-three/roux.ts`: Roux S1 solver.
-- Create `packages/solver/src/three-by-three/facade.ts`: aggregate `solveThreeByThreeAssist`.
-- Create `packages/solver/src/three-by-three/target-validation.ts`: exported diagnostic predicates used by tests and playground preview composition.
+- Create `packages/solver/src/assist/three-by-three/coordinate-utils.ts`: combinatorics, permutation, orientation, pruning helpers.
+- Create `packages/solver/src/assist/three-by-three/move-utils.ts`: 3x3 algorithm validation and move conversion.
+- Create `packages/solver/src/assist/three-by-three/metrics.ts`: FTM/QTM counting.
+- Create `packages/solver/src/assist/three-by-three/cross.ts`: Cross, XCross, EOFC solver family.
+- Create `packages/solver/src/assist/three-by-three/eoline.ts`: EOline solver.
+- Create `packages/solver/src/assist/three-by-three/petrus.ts`: Petrus S1 solver.
+- Create `packages/solver/src/assist/three-by-three/roux.ts`: Roux S1 solver.
+- Create `packages/solver/src/assist/three-by-three/facade.ts`: aggregate `solveThreeByThreeAssist`.
+- Create `packages/solver/src/assist/three-by-three/target-validation.ts`: exported diagnostic predicates used by tests and playground preview composition.
 - Create focused `*.test.ts` files next to the implementation files.
 - Modify `apps/playground/package.json`: add `@cubekit/solver` dependency and build prep.
 - Modify `apps/playground/vite.config.ts`: add source alias for `@cubekit/solver`.
@@ -49,8 +49,6 @@
 - Create: `packages/solver/package.json`
 - Create: `packages/solver/tsconfig.json`
 - Create: `packages/solver/vite.config.ts`
-- Create: `packages/solver/LICENSE`
-- Create: `packages/solver/NOTICE`
 - Create: `packages/solver/README.md`
 - Create: `packages/solver/AGENTS.md`
 - Create: `packages/solver/src/index.ts`
@@ -130,12 +128,12 @@ git commit -m "feat: add solver package scaffold"
 
 **Files:**
 
-- Create: `packages/solver/src/three-by-three/coordinate-utils.ts`
-- Create: `packages/solver/src/three-by-three/move-utils.ts`
-- Create: `packages/solver/src/three-by-three/metrics.ts`
-- Test: `packages/solver/src/three-by-three/coordinate-utils.test.ts`
-- Test: `packages/solver/src/three-by-three/move-utils.test.ts`
-- Test: `packages/solver/src/three-by-three/metrics.test.ts`
+- Create: `packages/solver/src/assist/three-by-three/coordinate-utils.ts`
+- Create: `packages/solver/src/assist/three-by-three/move-utils.ts`
+- Create: `packages/solver/src/assist/three-by-three/metrics.ts`
+- Test: `packages/solver/src/assist/three-by-three/coordinate-utils.test.ts`
+- Test: `packages/solver/src/assist/three-by-three/move-utils.test.ts`
+- Test: `packages/solver/src/assist/three-by-three/metrics.test.ts`
 
 - [ ] **Step 1: Write failing coordinate utility tests**
 
@@ -151,7 +149,7 @@ import {
 } from './coordinate-utils.js';
 
 describe('coordinate utilities', () => {
-  it('round-trips DCTimer-style permutations', () => {
+  it('round-trips indexed permutations', () => {
     const permutation = [2, 0, 3, 1];
     const index = permutationToIndex(permutation, 4, false);
     const next = indexToPermutation(index, 4, false);
@@ -166,7 +164,7 @@ describe('coordinate utilities', () => {
     expect(indexToFlip(index, 12, true)).toEqual(flips);
   });
 
-  it('uses DCTimer combination indexing order', () => {
+  it('uses stable combination indexing order', () => {
     expect(indexToCombination(0, 2, 5)).toEqual([0, 0, 0, 1, 1]);
     expect(indexToCombination(9, 2, 5)).toEqual([1, 1, 0, 0, 0]);
   });
@@ -220,7 +218,7 @@ Expected: fails because helper modules do not exist.
 
 - [ ] **Step 4: Implement utilities**
 
-Port DCTimer `Utils.java` helpers into typed TypeScript:
+Implement shared coordinate helpers in typed TypeScript:
 
 - `binomial(n, k)`
 - `permutationToIndex`
@@ -251,7 +249,7 @@ Expected: pass.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add packages/solver/src/three-by-three packages/solver/src/errors.ts packages/solver/src/index.ts
+git add packages/solver/src/assist/three-by-three packages/solver/src/errors.ts packages/solver/src/index.ts
 git commit -m "feat: add solver coordinate utilities"
 ```
 
@@ -261,9 +259,9 @@ git commit -m "feat: add solver coordinate utilities"
 
 **Files:**
 
-- Create: `packages/solver/src/three-by-three/cross.ts`
-- Create: `packages/solver/src/three-by-three/target-validation.ts`
-- Test: `packages/solver/src/three-by-three/cross.test.ts`
+- Create: `packages/solver/src/assist/three-by-three/cross.ts`
+- Create: `packages/solver/src/assist/three-by-three/target-validation.ts`
+- Test: `packages/solver/src/assist/three-by-three/cross.test.ts`
 - Modify: `packages/solver/src/index.ts`
 
 - [ ] **Step 1: Write failing Cross family tests**
@@ -308,7 +306,7 @@ Expected: fails because `cross.ts` and validation helpers are not implemented.
 
 - [ ] **Step 3: Implement Cross family search**
 
-Port DCTimer `Cross.java`:
+Implement the Cross family search:
 
 - edge permutation/orientation move tables
 - cross pruning tables
@@ -319,7 +317,8 @@ Port DCTimer `Cross.java`:
 - `solveXCross`
 - `solveEOFC`
 
-Return one solution per requested target. Default depth caps match DCTimer: Cross `< 9`, XCross `< 11`, EOFC `< 13`.
+Return one solution per requested target. Default depth caps remain stable for
+CubeKit: Cross `< 9`, XCross `< 11`, EOFC `< 13`.
 
 - [ ] **Step 4: Implement Cross validation helpers**
 
@@ -349,9 +348,9 @@ git commit -m "feat: add cross family solvers"
 
 **Files:**
 
-- Create: `packages/solver/src/three-by-three/eoline.ts`
-- Test: `packages/solver/src/three-by-three/eoline.test.ts`
-- Modify: `packages/solver/src/three-by-three/target-validation.ts`
+- Create: `packages/solver/src/assist/three-by-three/eoline.ts`
+- Test: `packages/solver/src/assist/three-by-three/eoline.test.ts`
+- Modify: `packages/solver/src/assist/three-by-three/target-validation.ts`
 - Modify: `packages/solver/src/index.ts`
 
 - [ ] **Step 1: Write failing EOline tests**
@@ -385,12 +384,12 @@ Expected: fails because EOline implementation is missing.
 
 - [ ] **Step 3: Implement EOline**
 
-Port DCTimer `EOline.java`:
+Implement EOline search:
 
 - 2048 EO move/pruning table
 - 132 line-edge permutation table
 - twelve target labels, move maps, and setup rotations
-- one-solution IDA search up to DCTimer depth `< 10`
+- one-solution IDA search up to CubeKit depth `< 10`
 
 - [ ] **Step 4: Run EOline tests**
 
@@ -416,11 +415,11 @@ git commit -m "feat: add eoline solver"
 
 **Files:**
 
-- Create: `packages/solver/src/three-by-three/petrus.ts`
-- Create: `packages/solver/src/three-by-three/roux.ts`
-- Test: `packages/solver/src/three-by-three/petrus.test.ts`
-- Test: `packages/solver/src/three-by-three/roux.test.ts`
-- Modify: `packages/solver/src/three-by-three/target-validation.ts`
+- Create: `packages/solver/src/assist/three-by-three/petrus.ts`
+- Create: `packages/solver/src/assist/three-by-three/roux.ts`
+- Test: `packages/solver/src/assist/three-by-three/petrus.test.ts`
+- Test: `packages/solver/src/assist/three-by-three/roux.test.ts`
+- Modify: `packages/solver/src/assist/three-by-three/target-validation.ts`
 - Modify: `packages/solver/src/index.ts`
 
 - [ ] **Step 1: Write failing Petrus and Roux tests**
@@ -461,22 +460,22 @@ Expected: fails because Petrus and Roux implementations are missing.
 
 - [ ] **Step 3: Implement Petrus S1**
 
-Port the DCTimer `Petrus.java` S1 path only:
+Implement the Petrus S1 path only:
 
 - edge coordinate move tables reused by Roux
 - corner orientation/permutation table for block corner
 - pruning tables for S1
 - eight block target labels
-- one-solution IDA search up to DCTimer depth `< 9`
+- one-solution IDA search up to CubeKit depth `< 9`
 
 - [ ] **Step 4: Implement Roux S1**
 
-Port the DCTimer `Roux.java` S1 path only:
+Implement the Roux S1 path only:
 
 - corner move tables
 - block edge/corner pruning tables
 - target labels and setup rotations
-- one-solution IDA search up to DCTimer depth `< 10`
+- one-solution IDA search up to CubeKit depth `< 10`
 - leave Roux S2 out of scope
 
 - [ ] **Step 5: Run Petrus and Roux tests**
@@ -503,10 +502,10 @@ git commit -m "feat: add petrus and roux s1 solvers"
 
 **Files:**
 
-- Create: `packages/solver/src/three-by-three/facade.ts`
-- Test: `packages/solver/src/three-by-three/facade.test.ts`
+- Create: `packages/solver/src/assist/three-by-three/facade.ts`
+- Test: `packages/solver/src/assist/three-by-three/facade.test.ts`
 - Modify: `packages/solver/src/index.ts`
-- Modify: `packages/solver/src/three-by-three/move-utils.ts`
+- Modify: `packages/solver/src/assist/three-by-three/move-utils.ts`
 
 - [ ] **Step 1: Write failing facade and error tests**
 
@@ -737,14 +736,14 @@ git commit -m "docs: document solver package boundary"
 
 - Modify: `packages/solver/src/types.ts`
 - Modify: `packages/solver/src/index.ts`
-- Create: `packages/solver/src/two-by-two/two-by-two.ts`
-- Create: `packages/solver/src/two-by-two/two-by-two.test.ts`
-- Create: `packages/solver/src/square-one/square-one-shape.ts`
-- Create: `packages/solver/src/square-one/square-one-shape.test.ts`
-- Create: `packages/solver/src/pyraminx/pyraminx-v.ts`
-- Create: `packages/solver/src/pyraminx/pyraminx-v.test.ts`
-- Create: `packages/solver/src/facade.ts`
-- Create: `packages/solver/src/facade.test.ts`
+- Create: `packages/solver/src/assist/two-by-two/face-layer.ts`
+- Create: `packages/solver/src/assist/two-by-two/face-layer.test.ts`
+- Create: `packages/solver/src/assist/square1/shape.ts`
+- Create: `packages/solver/src/assist/square1/shape.test.ts`
+- Create: `packages/solver/src/assist/pyraminx/v.ts`
+- Create: `packages/solver/src/assist/pyraminx/v.test.ts`
+- Create: `packages/solver/src/assist/facade.ts`
+- Create: `packages/solver/src/assist/facade.test.ts`
 - Modify: `apps/playground/src/playground/types.ts`
 - Modify: `apps/playground/src/playground/playground-service.ts`
 - Modify: `apps/playground/src/playground/use-playground.ts`
@@ -765,15 +764,15 @@ solutions for:
 Run:
 
 ```bash
-pnpm --filter @cubekit/solver test -- two-by-two square-one-shape pyraminx-v facade index
+pnpm --filter @cubekit/solver test -- face-layer shape v facade index
 ```
 
 Expected: fails because the new APIs and modules do not exist yet.
 
-- [ ] **Step 2: Port DCTimer helpers into solver package**
+- [ ] **Step 2: Implement auxiliary helpers in solver package**
 
-Port the DCTimer Android coordinate/search helpers with lazy table
-initialization. Reuse `@cubekit/scramble-puzzle` parsers for 2x2 cube,
+Implement the coordinate/search helpers with lazy table initialization. Reuse
+`@cubekit/scramble-puzzle` parsers for 2x2 cube,
 Square-1, and Pyraminx notation, and keep scramble generation out of
 `@cubekit/solver`.
 
@@ -809,4 +808,4 @@ pnpm test:docs
 - Spec coverage: package split, dependency rules, 3x3/2x2/Square-1/Pyraminx methods, structured API, playground debug surface, error handling, tests, and verification each map to tasks above.
 - Placeholder scan: no task depends on a later undefined module without first creating it in an earlier task.
 - Type consistency: public method names, method ids, option fields, result fields, and error names match the approved spec.
-- Scope check: 4x4/Skewb random-state-only solvers, production app integration, and DCTimer raw string compatibility remain out of scope.
+- Scope check: 4x4/Skewb random-state-only solvers, production app integration, and raw string compatibility with external apps remain out of scope.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { solveCross, solveEOFC, solveXCross } from '../index.js';
+import { solveCross, solveEOFC, solveXCross } from '../../index.js';
 import { isCrossSolved, isEOFCAligned, isXCrossSolved } from './target-validation.js';
 
 describe('Cross family solvers', () => {

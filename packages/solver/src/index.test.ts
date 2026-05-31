@@ -28,7 +28,7 @@ describe('@cubekit/solver public API', () => {
     expect(typeof solveThreeByThreeAssist).toBe('function');
   });
 
-  it('exports auxiliary solver facades for DCTimer non-3x3 helpers', () => {
+  it('exports auxiliary solver facades for non-3x3 events', () => {
     expect(typeof solveTwoByTwoFace).toBe('function');
     expect(typeof solveTwoByTwoLayer).toBe('function');
     expect(typeof solveSquareOneShapeFaceTurnMetric).toBe('function');

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { solveRouxS1 } from '../index.js';
+import { solveRouxS1 } from '../../index.js';
 import { isRouxS1Solved } from './target-validation.js';
 
 describe('Roux S1 solver', () => {

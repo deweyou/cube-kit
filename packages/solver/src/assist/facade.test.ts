@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { UnknownSolverMethodError, solvePuzzleAssist } from './index.js';
+import { UnknownSolverMethodError, solvePuzzleAssist } from '../index.js';
 
 describe('puzzle assist facade', () => {
   it('routes 2x2 helper methods through the generic facade', () => {

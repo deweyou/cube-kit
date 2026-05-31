@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { solveEOLine } from '../index.js';
+import { solveEOLine } from '../../index.js';
 import { isEOLineSolved } from './target-validation.js';
 
 describe('EOline solver', () => {

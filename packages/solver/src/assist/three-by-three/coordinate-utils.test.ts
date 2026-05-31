@@ -9,7 +9,7 @@ import {
 } from './coordinate-utils.js';
 
 describe('coordinate utilities', () => {
-  it('round-trips DCTimer-style permutations', () => {
+  it('round-trips indexed permutations', () => {
     const permutation = [2, 0, 3, 1];
     const index = permutationToIndex(permutation, 4, false);
     const next = indexToPermutation(index, 4, false);
@@ -24,7 +24,7 @@ describe('coordinate utilities', () => {
     expect(indexToFlip(index, 12, true)).toEqual(flips);
   });
 
-  it('uses DCTimer combination indexing order', () => {
+  it('uses stable combination indexing order', () => {
     expect(indexToCombination(0, 2, 5)).toEqual([1, 1, 0, 0, 0]);
     expect(indexToCombination(9, 2, 5)).toEqual([0, 0, 0, 1, 1]);
   });

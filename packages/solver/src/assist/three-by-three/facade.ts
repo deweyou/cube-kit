@@ -1,9 +1,9 @@
-import { UnknownSolverMethodError } from '../errors.js';
+import { UnknownSolverMethodError } from '../../errors.js';
 import type {
   ThreeByThreeAssistMethod,
   ThreeByThreeAssistOptions,
   ThreeByThreeAssistResult,
-} from '../types.js';
+} from '../../types.js';
 import { solveCross, solveEOFC, solveXCross } from './cross.js';
 import { solveEOLine } from './eoline.js';
 import { solvePetrusS1 } from './petrus.js';

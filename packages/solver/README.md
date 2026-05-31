@@ -17,4 +17,4 @@ pnpm --filter @cubekit/solver build
 
 ## License
 
-GPL-3.0-only. See [`LICENSE`](./LICENSE) and [`NOTICE`](./NOTICE).
+GPL-3.0-only, inherited from the repository license.

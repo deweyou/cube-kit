@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { solveTwoByTwoFace, solveTwoByTwoLayer } from '../index.js';
-import { isTwoByTwoFaceSolved, isTwoByTwoLayerSolved } from './two-by-two.js';
+import { solveTwoByTwoFace, solveTwoByTwoLayer } from '../../index.js';
+import { isTwoByTwoFaceSolved, isTwoByTwoLayerSolved } from './face-layer.js';
 
 describe('2x2 auxiliary solvers', () => {
   it('solves a D face target', () => {

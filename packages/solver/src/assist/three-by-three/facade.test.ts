@@ -5,7 +5,7 @@ import {
   UnsupportedSolverMoveError,
   solveCross,
   solveThreeByThreeAssist,
-} from '../index.js';
+} from '../../index.js';
 
 describe('3x3 assist facade', () => {
   it('runs multiple methods in one call', () => {
