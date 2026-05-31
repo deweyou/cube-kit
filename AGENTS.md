@@ -15,6 +15,7 @@ generation, scramble visualization, and a WeChat miniprogram shell.
 | [docs/packages/scramble-puzzle/index.md](docs/packages/scramble-puzzle/index.md) | Puzzle notation, state, and parser package boundary       |
 | [docs/packages/scramble-core/index.md](docs/packages/scramble-core/index.md)     | WCA generation rules and solver package boundary          |
 | [docs/packages/scramble-image/index.md](docs/packages/scramble-image/index.md)   | SVG renderer contracts and package boundary               |
+| [docs/packages/solver/index.md](docs/packages/solver/index.md)                   | Auxiliary restore solver API and package boundary         |
 | [docs/apps/playground/index.md](docs/apps/playground/index.md)                   | Scramble playground diagnostics and E2E role              |
 | [docs/apps/scramble-docs/index.md](docs/apps/scramble-docs/index.md)             | VitePress scramble learning site ownership                |
 | [docs/dependency-licensing.md](docs/dependency-licensing.md)                     | GPL boundaries for TNoodle-compatible packages            |
@@ -48,6 +49,9 @@ generation, scramble visualization, and a WeChat miniprogram shell.
   first.
 - If you change a specific new scramble package, read its local `AGENTS.md` and
   owner-scoped docs under `docs/packages/`.
+- If you change `packages/solver`, read
+  [docs/packages/solver/index.md](docs/packages/solver/index.md) and the local
+  [packages/solver/AGENTS.md](packages/solver/AGENTS.md).
 - If you change `apps/playground`, read
   [docs/apps/playground/index.md](docs/apps/playground/index.md) and the local
   [apps/playground/AGENTS.md](apps/playground/AGENTS.md).

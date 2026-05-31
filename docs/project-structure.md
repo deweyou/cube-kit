@@ -15,14 +15,17 @@ flowchart TD
     Packages --> PuzzlePkg["@cubekit/scramble-puzzle"]
     Packages --> CorePkg["@cubekit/scramble-core"]
     Packages --> ImagePkg["@cubekit/scramble-image"]
+    Packages --> SolverPkg["@cubekit/solver"]
     CorePkg --> PuzzlePkg
     ImagePkg --> PuzzlePkg
+    SolverPkg --> PuzzlePkg
     TimerPage --> CorePkg
     TimerPage --> ImagePkg
     TimerPage --> PuzzlePkg
     Playground --> CorePkg
     Playground --> ImagePkg
     Playground --> PuzzlePkg
+    Playground --> SolverPkg
     ScrambleDocs --> CorePkg
     ScrambleDocs --> ImagePkg
     ScrambleDocs --> Docs
@@ -47,6 +50,7 @@ packages/timer/        platform-agnostic timer state and formatting
 packages/scramble-puzzle/  TNoodle-compatible event ids, parsers, and states
 packages/scramble-core/    TNoodle-compatible WCA scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
+packages/solver/           Platform-agnostic 3x3 auxiliary restore helpers
 docs/                  repository memory and Superpowers specs/plans
 docs/packages/         package-scoped knowledge for new scramble packages
 docs/apps/             app-scoped knowledge for playground and docs apps
@@ -64,8 +68,8 @@ scripts/               lightweight repository checks
   `@cubekit/timer`, `@cubekit/scramble-core`, and `@cubekit/scramble-image`.
 - Playground starts with `pnpm dev:playground` at
   [apps/playground/src/main.tsx#L1](../apps/playground/src/main.tsx#L1). Its
-  [App](../apps/playground/src/app.tsx#L1) calls the new `scramble-core` and
-  `scramble-image` packages through
+  [App](../apps/playground/src/app.tsx#L1) calls the new `scramble-core`,
+  `scramble-image`, and `solver` packages through
   [usePlayground](../apps/playground/src/playground/use-playground.ts#L1).
 - Scramble Docs starts with `pnpm dev:scramble-docs` at
   [apps/scramble-docs/docs/index.md#L1](../apps/scramble-docs/docs/index.md#L1).
@@ -97,12 +101,14 @@ scripts/               lightweight repository checks
 - [packages/scramble-puzzle/src/index.ts#L1](../packages/scramble-puzzle/src/index.ts#L1) - TNoodle-compatible puzzle domain barrel.
 - [packages/scramble-core/src/index.ts#L1](../packages/scramble-core/src/index.ts#L1) - TNoodle-compatible generator barrel.
 - [packages/scramble-image/src/index.ts#L1](../packages/scramble-image/src/index.ts#L1) - TNoodle-compatible SVG renderer barrel.
+- [packages/solver/src/index.ts#L1](../packages/solver/src/index.ts#L1) - auxiliary restore solver barrel.
 - [docs/packages/scramble-puzzle/index.md#L1](packages/scramble-puzzle/index.md#L1) - puzzle package ownership and verification.
 - [docs/packages/scramble-core/index.md#L1](packages/scramble-core/index.md#L1) - core generator ownership and verification.
 - [docs/packages/scramble-image/index.md#L1](packages/scramble-image/index.md#L1) - image renderer ownership and verification.
+- [docs/packages/solver/index.md#L1](packages/solver/index.md#L1) - solver package ownership and verification.
 - [docs/apps/playground/index.md#L1](apps/playground/index.md#L1) - playground ownership and diagnostics role.
 - [docs/tnoodle-implementation-notes.md#L1](tnoodle-implementation-notes.md#L1) - implementation notes and upgrade routing for the new packages.
 
 ---
 
-_Last updated: 2026-05-31 | Reason: web app migrated off removed legacy scramble package_
+_Last updated: 2026-05-31 | Reason: add auxiliary solver package to workspace map_
