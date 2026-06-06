@@ -3,7 +3,7 @@ import {
   applyClockMove,
   createSolvedClockState,
   parseClockAlgorithm,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import { renderClockState } from './clock.js';
 
 describe('renderClockState', () => {

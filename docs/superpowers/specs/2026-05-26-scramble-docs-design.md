@@ -4,7 +4,7 @@
 
 Create `apps/scramble-docs`, a VitePress-based bilingual learning website that
 explains WCA scramble generation and scramble image rendering using the current
-TNoodle/CubeKit context.
+TNoodle/Cubegin context.
 
 ## Scope
 
@@ -15,9 +15,9 @@ generation or SVG-preview widgets; interactive validation remains owned by
 The site must include:
 
 - Chinese and English content with matching page structure.
-- A clear disclaimer that CubeKit is not an official WCA scramble program and
+- A clear disclaimer that Cubegin is not an official WCA scramble program and
   competitions must use the current official WCA program.
-- Source links to WCA Regulations, TNoodle baseline records, and CubeKit package
+- Source links to WCA Regulations, TNoodle baseline records, and Cubegin package
   docs.
 - Mermaid diagrams where useful to explain pipelines.
 - A package-boundary explanation for `scramble-puzzle`, `scramble-core`, and
@@ -37,14 +37,14 @@ apps/scramble-docs/
 │   │   ├── generation.md
 │   │   ├── state-transition.md
 │   │   ├── image-rendering.md
-│   │   └── cubekit-packages.md
+│   │   └── cubegin-packages.md
 │   └── en/
 │       ├── index.md
 │       ├── wca-rules.md
 │       ├── generation.md
 │       ├── state-transition.md
 │       ├── image-rendering.md
-│       └── cubekit-packages.md
+│       └── cubegin-packages.md
 └── tsconfig.json
 ```
 
@@ -56,7 +56,7 @@ locale.
 
 Each locale covers the same six pages:
 
-1. Overview: WCA, TNoodle, and CubeKit relationship.
+1. Overview: WCA, TNoodle, and Cubegin relationship.
 2. WCA Rules: Regulation 4b3, random-state expectations, and event-specific
    minimum-distance exceptions.
 3. Generation: event dispatch, random sources, random-state solvers,
@@ -64,7 +64,7 @@ Each locale covers the same six pages:
 4. State Transition: why parsers and state transitions are shared capabilities,
    and how text becomes typed moves and immutable puzzle state.
 5. Image Rendering: parse/apply/render pipeline from scramble text to SVG.
-6. CubeKit Packages: boundaries, tests, coverage, docs, and follow-up migration
+6. Cubegin Packages: boundaries, tests, coverage, docs, and follow-up migration
    notes.
 
 Content should teach principles and map them to local implementation files rather
@@ -73,7 +73,7 @@ than copying large code blocks.
 ## Architecture
 
 `apps/scramble-docs` is a standalone workspace app using VitePress. It should
-not depend on `@cubekit/scramble-*` packages at runtime. Local implementation
+not depend on `@cubegin/scramble-*` packages at runtime. Local implementation
 references are Markdown links to source and docs files.
 
 Root scripts:
@@ -110,7 +110,7 @@ route. Package/test CI does not need to run for this app, because it is under
 ## Sources
 
 - WCA Regulations: <https://www.worldcubeassociation.org/regulations/>
-- WCA Scrambles page and CubeKit baseline:
+- WCA Scrambles page and Cubegin baseline:
   [docs/tnoodle-baseline.md](../../tnoodle-baseline.md)
 - TNoodle implementation notes:
   [docs/tnoodle-implementation-notes.md](../../tnoodle-implementation-notes.md)

@@ -354,7 +354,7 @@ export class Center1 {
       if (j % 16 === 15) this.rot(3);
     }
 
-    throw new Error('@cubekit/scramble-core: invalid center symmetry coordinate');
+    throw new Error('@cubegin/scramble-core: invalid center symmetry coordinate');
   }
 
   copyFrom(center: Center1): void {

@@ -128,9 +128,9 @@ Expected: lockfile updates without running the root `postinstall` skill installe
 Run:
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test:coverage
-pnpm --filter @cubekit/scramble-core test:coverage
-pnpm --filter @cubekit/scramble-image test:coverage
+pnpm --filter @cubegin/scramble-puzzle test:coverage
+pnpm --filter @cubegin/scramble-core test:coverage
+pnpm --filter @cubegin/scramble-image test:coverage
 ```
 
 Expected: tests execute. Threshold failures are acceptable at this step and become
@@ -219,7 +219,7 @@ it('renders every WCA event to a single SVG document root', () => {
 Run the smallest relevant command after each new assertion, for example:
 
 ```bash
-pnpm --filter @cubekit/scramble-core test src/generators/two-by-two.test.ts
+pnpm --filter @cubegin/scramble-core test src/generators/two-by-two.test.ts
 ```
 
 Expected: existing behavior tests pass; any new WCA assertion that exposes a real
@@ -242,7 +242,7 @@ for (let attempt = 0; attempt < MAX_WCA_ATTEMPTS; attempt += 1) {
 ```
 
 Use event-specific solvers and error messages with the existing
-`@cubekit/scramble-core` prefix.
+`@cubegin/scramble-core` prefix.
 
 - [ ] **Step 4: Raise coverage by testing public and boundary behavior**
 
@@ -256,9 +256,9 @@ tables are already public through package behavior.
 Run:
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test:coverage
-pnpm --filter @cubekit/scramble-core test:coverage
-pnpm --filter @cubekit/scramble-image test:coverage
+pnpm --filter @cubegin/scramble-puzzle test:coverage
+pnpm --filter @cubegin/scramble-core test:coverage
+pnpm --filter @cubegin/scramble-image test:coverage
 ```
 
 Expected: thresholds pass or remaining solver defensive gaps are documented and
@@ -297,13 +297,13 @@ Minimum `docs/packages/scramble-core/wca-generation-rules.md` shape:
 
 ```mermaid
 flowchart TD
-    WCA["WCA Regulation 4b3"] --> Core["@cubekit/scramble-core"]
+    WCA["WCA Regulation 4b3"] --> Core["@cubegin/scramble-core"]
     Core --> RandomState["Random-state generators"]
     Core --> RandomTurns["Random-turn generators"]
     Core --> NoInspection["BLD orientation moves"]
 ```
 
-`@cubekit/scramble-core` implements the testable generation rules used by the
+`@cubegin/scramble-core` implements the testable generation rules used by the
 17 WCA event ids.
 
 ## Key Rules
@@ -323,7 +323,7 @@ _Last updated: 2026-05-26 | Reason: document scramble-core closeout rules_
 Each local `AGENTS.md` should be short and route to root docs:
 
 ````markdown
-# @cubekit/scramble-core
+# @cubegin/scramble-core
 
 This package owns TNoodle-compatible WCA scramble generation.
 
@@ -336,9 +336,9 @@ This package owns TNoodle-compatible WCA scramble generation.
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/scramble-core test
-pnpm --filter @cubekit/scramble-core test:coverage
-pnpm --filter @cubekit/scramble-core typecheck
+pnpm --filter @cubegin/scramble-core test
+pnpm --filter @cubegin/scramble-core test:coverage
+pnpm --filter @cubegin/scramble-core typecheck
 ```
 ````
 
@@ -404,8 +404,8 @@ packages/scramble-image/LICENSE
 Use this shape:
 
 ```text
-@cubekit/scramble-core
-Copyright (C) 2026 The CubeKit authors
+@cubegin/scramble-core
+Copyright (C) 2026 The Cubegin authors
 
 This package is licensed under the GNU General Public License version 3 only.
 See the LICENSE file in this directory for the full text.
@@ -417,7 +417,7 @@ This package ports behavior compatible with:
     Source:     https://github.com/thewca/tnoodle-lib/tree/v0.19.2
     License:    GNU General Public License v3.0
 
-CubeKit is not an official WCA scramble program. Official competitions must use
+Cubegin is not an official WCA scramble program. Official competitions must use
 the current official WCA scramble program from the WCA website.
 ```
 
@@ -427,7 +427,7 @@ Record the distinction:
 
 - `thewca/tnoodle` app/server repo is AGPL-3.0.
 - `thewca/tnoodle-lib` / Maven `lib-scrambles` is GPL-v3.0.
-- CubeKit's migrated packages track `tnoodle-lib`, so they use `GPL-3.0-only`.
+- Cubegin's migrated packages track `tnoodle-lib`, so they use `GPL-3.0-only`.
 
 - [ ] **Step 5: Verify package manifests**
 
@@ -471,7 +471,7 @@ Each package README should include:
 Example API block for `scramble-core`:
 
 ```ts
-import { createDefaultScrambleGenerator } from '@cubekit/scramble-core';
+import { createDefaultScrambleGenerator } from '@cubegin/scramble-core';
 
 const generator = createDefaultScrambleGenerator({
   random: { nextInt: (maxExclusive) => Math.floor(Math.random() * maxExclusive) },
@@ -537,9 +537,9 @@ git commit -m "docs(scramble): update package readmes"
 - [ ] **Step 1: Run package tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test
-pnpm --filter @cubekit/scramble-core test
-pnpm --filter @cubekit/scramble-image test
+pnpm --filter @cubegin/scramble-puzzle test
+pnpm --filter @cubegin/scramble-core test
+pnpm --filter @cubegin/scramble-image test
 pnpm --filter playground test
 ```
 
@@ -548,9 +548,9 @@ Expected: all pass.
 - [ ] **Step 2: Run package coverage**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test:coverage
-pnpm --filter @cubekit/scramble-core test:coverage
-pnpm --filter @cubekit/scramble-image test:coverage
+pnpm --filter @cubegin/scramble-puzzle test:coverage
+pnpm --filter @cubegin/scramble-core test:coverage
+pnpm --filter @cubegin/scramble-image test:coverage
 ```
 
 Expected: all pass.
@@ -558,13 +558,13 @@ Expected: all pass.
 - [ ] **Step 3: Run typecheck/build for touched packages and playground**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle typecheck
-pnpm --filter @cubekit/scramble-core typecheck
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-core typecheck
+pnpm --filter @cubegin/scramble-image typecheck
 pnpm --filter playground typecheck
-pnpm --filter @cubekit/scramble-puzzle build
-pnpm --filter @cubekit/scramble-core build
-pnpm --filter @cubekit/scramble-image build
+pnpm --filter @cubegin/scramble-puzzle build
+pnpm --filter @cubegin/scramble-core build
+pnpm --filter @cubegin/scramble-image build
 pnpm --filter playground build
 ```
 

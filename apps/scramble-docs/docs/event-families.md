@@ -97,7 +97,7 @@ competitor.
 
 Big cubes use random-turn generation:
 
-| Event | Typical length in CubeKit | Main idea |
+| Event | Typical length in Cubegin | Main idea |
 | --- | ---: | --- |
 | 5x5 | 60 moves | random outer and wide turns |
 | 6x6 | 80 moves | random outer and wide turns |

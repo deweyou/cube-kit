@@ -3,7 +3,7 @@ import {
   type MegaminxFace,
   type MegaminxFacelet,
   type MegaminxState,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import type { HexColor } from '../color.js';
 import { createSvgDocument } from '../svg/svg-document.js';
 import { path, text, type SvgNode } from '../svg/svg-elements.js';

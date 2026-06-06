@@ -1,8 +1,11 @@
 {
-  "name": "@cubekit/scramble-image",
+  "name": "@cubegin/scramble-image",
   "version": "0.0.0",
   "description": "DOM-free SVG rendering for TNoodle-compatible scramble states.",
   "license": "GPL-3.0-only",
+  "cubegin": {
+    "publicSubpath": "scramble-image"
+  },
   "files": [
     "dist",
     "LICENSE",
@@ -22,7 +25,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cubekit/scramble-puzzle": "workspace:*"
+    "@cubegin/scramble-puzzle": "workspace:*"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "catalog:",

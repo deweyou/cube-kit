@@ -17,7 +17,7 @@ import {
   solveXCross,
 } from './index.js';
 
-describe('@cubekit/solver public API', () => {
+describe('@cubegin/solver public API', () => {
   it('exports the 3x3 auxiliary solver facade', () => {
     expect(typeof solveCross).toBe('function');
     expect(typeof solveXCross).toBe('function');

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { createTimer } from '@cubekit/timer';
-import type { TimerState } from '@cubekit/timer';
+import { createTimer } from '@cubegin/timer';
+import type { TimerState } from '@cubegin/timer';
 
 export const useTimer = () => {
   const timerRef = useRef(createTimer());

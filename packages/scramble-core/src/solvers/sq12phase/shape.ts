@@ -243,7 +243,7 @@ const initPruning = (
 const getShape2IdxFrom = (shapeIdx: Int32Array, shapeWithParity: number): number => {
   const index = binarySearch(shapeIdx, shapeWithParity & 0xffffff);
   if (index < 0) {
-    throw new RangeError('@cubekit/scramble-core: invalid Square-1 shape coordinate');
+    throw new RangeError('@cubegin/scramble-core: invalid Square-1 shape coordinate');
   }
 
   return (index << 1) | ((shapeWithParity >> 24) & 1);

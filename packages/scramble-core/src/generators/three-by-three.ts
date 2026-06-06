@@ -120,12 +120,12 @@ const generateInverseSolution = ({
       continue;
     }
     if (solution !== 'Error 7' && solution !== 'Error 8') {
-      throw new Error(`@cubekit/scramble-core: min2phase returned ${solution}`);
+      throw new Error(`@cubegin/scramble-core: min2phase returned ${solution}`);
     }
   }
 
   throw new Error(
-    '@cubekit/scramble-core: min2phase could not find a 3x3 scramble within retry limit',
+    '@cubegin/scramble-core: min2phase could not find a 3x3 scramble within retry limit',
   );
 };
 
@@ -159,7 +159,7 @@ const chooseOrientation = (random: RandomSource): readonly string[] => {
 
   if (orientation === undefined) {
     throw new RangeError(
-      `@cubekit/scramble-core: random source returned ${index} for max ${ORIENTATION_SEQUENCES.length}`,
+      `@cubegin/scramble-core: random source returned ${index} for max ${ORIENTATION_SEQUENCES.length}`,
     );
   }
 
@@ -169,7 +169,7 @@ const chooseOrientation = (random: RandomSource): readonly string[] => {
 const validateCubeCount = (cubeCount: number): void => {
   if (!Number.isSafeInteger(cubeCount) || cubeCount <= 0) {
     throw new Error(
-      '@cubekit/scramble-core: multi-blind cubeCount must be a positive safe integer',
+      '@cubegin/scramble-core: multi-blind cubeCount must be a positive safe integer',
     );
   }
 };

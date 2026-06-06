@@ -25,5 +25,5 @@ pnpm build:scramble-docs
 - Keep English as the default `/` locale; Chinese pages live under `/zh/`.
 - Keep the content focused on scramble algorithms and image-rendering principles,
   not package usage instructions.
-- Cite WCA and TNoodle/CubeKit boundaries instead of presenting this app as an
+- Cite WCA and TNoodle/Cubegin boundaries instead of presenting this app as an
   official WCA scramble program.

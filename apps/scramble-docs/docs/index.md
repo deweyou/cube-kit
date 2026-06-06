@@ -1,7 +1,7 @@
 # WCA Scramble Generation And Scramble Images
 
 ::: warning Official WCA status
-CubeKit is an educational implementation, not an official WCA scramble program.
+Cubegin is an educational implementation, not an official WCA scramble program.
 Official competitions must use the current official program published by the
 World Cube Association.
 :::
@@ -54,4 +54,4 @@ state model that can later be drawn as an image.
 - [WCA Regulations, Article 4](https://www.worldcubeassociation.org/regulations/#article-4-scrambling)
 - [WCA official scrambles page](https://www.worldcubeassociation.org/regulations/scrambles/)
 - [thewca/tnoodle-lib](https://github.com/thewca/tnoodle-lib)
-- [CubeKit TNoodle notes](https://github.com/deweyou/cubekit/blob/main/docs/tnoodle-implementation-notes.md)
+- [Cubegin TNoodle notes](https://github.com/deweyou/cubegin/blob/main/docs/tnoodle-implementation-notes.md)

@@ -1,4 +1,4 @@
-import type { SkewbFace, SkewbFacelet, SkewbState } from '@cubekit/scramble-puzzle';
+import type { SkewbFace, SkewbFacelet, SkewbState } from '@cubegin/scramble-puzzle';
 import type { HexColor } from '../color.js';
 import { createSvgDocument } from '../svg/svg-document.js';
 import { path, type SvgNode } from '../svg/svg-elements.js';

@@ -1,14 +1,14 @@
-# @cubekit/scramble-core
+# @cubegin/scramble-core
 
-TNoodle-compatible WCA scramble generation for CubeKit.
+TNoodle-compatible WCA scramble generation for Cubegin.
 
 This package generates scramble strings for all supported WCA event ids without
 depending on DOM APIs or production app code. It depends on
-`@cubekit/scramble-puzzle` for event metadata and shared puzzle contracts.
+`@cubegin/scramble-puzzle` for event metadata and shared puzzle contracts.
 
 ## Install
 
-This package is consumed through the CubeKit pnpm workspace:
+This package is consumed through the Cubegin pnpm workspace:
 
 ```bash
 pnpm install
@@ -20,7 +20,7 @@ pnpm install
 import {
   createDefaultScrambleGenerator,
   createMathRandomSource,
-} from '@cubekit/scramble-core';
+} from '@cubegin/scramble-core';
 
 const generator = createDefaultScrambleGenerator({
   random: createMathRandomSource(),
@@ -61,7 +61,7 @@ console.log(multiBlind.scramble.split('\n'));
   families documented in the package tests.
 
 The baseline is TNoodle `lib-scrambles` v0.19.2, recorded in
-[`../../docs/tnoodle-baseline.md`](../../docs/tnoodle-baseline.md). CubeKit is
+[`../../docs/tnoodle-baseline.md`](../../docs/tnoodle-baseline.md). Cubegin is
 not an official WCA scramble program.
 
 Durable notes:
@@ -73,10 +73,10 @@ Durable notes:
 ## Development
 
 ```bash
-pnpm --filter @cubekit/scramble-core test
-pnpm --filter @cubekit/scramble-core test:coverage
-pnpm --filter @cubekit/scramble-core typecheck
-pnpm --filter @cubekit/scramble-core build
+pnpm --filter @cubegin/scramble-core test
+pnpm --filter @cubegin/scramble-core test:coverage
+pnpm --filter @cubegin/scramble-core typecheck
+pnpm --filter @cubegin/scramble-core build
 ```
 
 Coverage thresholds are enforced in `vite.config.ts`. Some large solver ports

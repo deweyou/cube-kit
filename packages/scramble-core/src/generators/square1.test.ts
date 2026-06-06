@@ -4,7 +4,7 @@ import {
   createSolvedSquareOneState,
   createSquareOneDefinition,
   type SquareOneState,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import { generateSquareOneScramble } from './square1.js';
 import { FullCube } from '../solvers/sq12phase/full-cube.js';
 import { solveSquareOneStateIn } from '../solvers/sq12phase/search.js';
@@ -42,7 +42,7 @@ describe('generateSquareOneScramble', () => {
         random: createRepeatingSequenceRandom(solvedFullCubeRandomSequence),
       }),
     ).toThrow(
-      '@cubekit/scramble-core: could not generate a Square-1 WCA scramble after 100 attempts',
+      '@cubegin/scramble-core: could not generate a Square-1 WCA scramble after 100 attempts',
     );
   });
 });

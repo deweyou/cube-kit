@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createCubeDefinition } from '@cubekit/scramble-puzzle';
+import { createCubeDefinition } from '@cubegin/scramble-puzzle';
 import {
   generateFourByFourNoInspectionScramble,
   generateFourByFourScramble,
@@ -62,7 +62,7 @@ describe('4x4 WCA generators', () => {
           },
         },
       }),
-    ).toThrow('@cubekit/scramble-core: random source returned');
+    ).toThrow('@cubegin/scramble-core: random source returned');
   }, 60_000);
 });
 

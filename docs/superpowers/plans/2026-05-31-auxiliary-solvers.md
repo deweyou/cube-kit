@@ -2,17 +2,17 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build `@cubekit/solver` with CubeKit auxiliary solvers and add a playground solver debugging page.
+**Goal:** Build `@cubegin/solver` with Cubegin auxiliary solvers and add a playground solver debugging page.
 
-**Architecture:** `packages/solver` is a platform-agnostic package that depends only on `@cubekit/scramble-puzzle`. It owns CubeKit coordinate search, pruning tables, target metadata, structured result APIs, and method-specific validation helpers for 3x3, 2x2, Square-1, and Pyraminx auxiliary restoration hints. `apps/playground` imports solver alongside existing scramble packages and keeps solver calls behind a local service boundary.
+**Architecture:** `packages/solver` is a platform-agnostic package that depends only on `@cubegin/scramble-puzzle`. It owns Cubegin coordinate search, pruning tables, target metadata, structured result APIs, and method-specific validation helpers for 3x3, 2x2, Square-1, and Pyraminx auxiliary restoration hints. `apps/playground` imports solver alongside existing scramble packages and keeps solver calls behind a local service boundary.
 
-**Tech Stack:** TypeScript, vite-plus pack/test, Vitest, React 19, `@cubekit/scramble-puzzle`, `@cubekit/scramble-image`, `@cubekit/scramble-core`.
+**Tech Stack:** TypeScript, vite-plus pack/test, Vitest, React 19, `@cubegin/scramble-puzzle`, `@cubegin/scramble-image`, `@cubegin/scramble-core`.
 
 ---
 
 ## File Structure
 
-- Create `packages/solver/package.json`: package metadata, scripts, dependency on `@cubekit/scramble-puzzle`.
+- Create `packages/solver/package.json`: package metadata, scripts, dependency on `@cubegin/scramble-puzzle`.
 - Create `packages/solver/tsconfig.json`: package TypeScript config matching existing packages.
 - Create `packages/solver/vite.config.ts`: vite-plus pack/test config.
 - Create `packages/solver/README.md`, `packages/solver/AGENTS.md`: package boundary and verification notes.
@@ -29,8 +29,8 @@
 - Create `packages/solver/src/assist/three-by-three/facade.ts`: aggregate `solveThreeByThreeAssist`.
 - Create `packages/solver/src/assist/three-by-three/target-validation.ts`: exported diagnostic predicates used by tests and playground preview composition.
 - Create focused `*.test.ts` files next to the implementation files.
-- Modify `apps/playground/package.json`: add `@cubekit/solver` dependency and build prep.
-- Modify `apps/playground/vite.config.ts`: add source alias for `@cubekit/solver`.
+- Modify `apps/playground/package.json`: add `@cubegin/solver` dependency and build prep.
+- Modify `apps/playground/vite.config.ts`: add source alias for `@cubegin/solver`.
 - Modify `apps/playground/src/playground/types.ts`: add solver diagnostics and result view types.
 - Modify `apps/playground/src/playground/playground-service.ts`: add solver adapter methods.
 - Modify `apps/playground/src/playground/use-playground.ts`: add tab state and solver state.
@@ -72,7 +72,7 @@ import {
   solveXCross,
 } from './index.js';
 
-describe('@cubekit/solver public API', () => {
+describe('@cubegin/solver public API', () => {
   it('exports the 3x3 auxiliary solver facade', () => {
     expect(typeof solveCross).toBe('function');
     expect(typeof solveXCross).toBe('function');
@@ -94,9 +94,9 @@ describe('@cubekit/solver public API', () => {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `pnpm --filter @cubekit/solver test`
+Run: `pnpm --filter @cubegin/solver test`
 
-Expected: fails because `@cubekit/solver` and `packages/solver/src/index.ts` do not exist yet.
+Expected: fails because `@cubegin/solver` and `packages/solver/src/index.ts` do not exist yet.
 
 - [ ] **Step 3: Add minimal package scaffold and temporary throwing API**
 
@@ -108,9 +108,9 @@ Run:
 
 ```bash
 pnpm install --ignore-scripts
-pnpm --filter @cubekit/solver test
-pnpm --filter @cubekit/solver typecheck
-pnpm --filter @cubekit/solver build
+pnpm --filter @cubegin/solver test
+pnpm --filter @cubegin/solver typecheck
+pnpm --filter @cubegin/solver build
 ```
 
 Expected: all pass with temporary throwing functions and exported errors.
@@ -211,7 +211,7 @@ describe('solver metrics', () => {
 Run:
 
 ```bash
-pnpm --filter @cubekit/solver test -- coordinate-utils move-utils metrics
+pnpm --filter @cubegin/solver test -- coordinate-utils move-utils metrics
 ```
 
 Expected: fails because helper modules do not exist.
@@ -240,8 +240,8 @@ Implement move parsing through `parseCubeAlgorithm`; reject rotations and any pa
 Run:
 
 ```bash
-pnpm --filter @cubekit/solver test -- coordinate-utils move-utils metrics
-pnpm --filter @cubekit/solver typecheck
+pnpm --filter @cubegin/solver test -- coordinate-utils move-utils metrics
+pnpm --filter @cubegin/solver typecheck
 ```
 
 Expected: pass.
@@ -300,7 +300,7 @@ describe('Cross family solvers', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @cubekit/solver test -- cross`
+Run: `pnpm --filter @cubegin/solver test -- cross`
 
 Expected: fails because `cross.ts` and validation helpers are not implemented.
 
@@ -318,7 +318,7 @@ Implement the Cross family search:
 - `solveEOFC`
 
 Return one solution per requested target. Default depth caps remain stable for
-CubeKit: Cross `< 9`, XCross `< 11`, EOFC `< 13`.
+Cubegin: Cross `< 9`, XCross `< 11`, EOFC `< 13`.
 
 - [ ] **Step 4: Implement Cross validation helpers**
 
@@ -329,8 +329,8 @@ CubeKit: Cross `< 9`, XCross `< 11`, EOFC `< 13`.
 Run:
 
 ```bash
-pnpm --filter @cubekit/solver test -- cross
-pnpm --filter @cubekit/solver typecheck
+pnpm --filter @cubegin/solver test -- cross
+pnpm --filter @cubegin/solver typecheck
 ```
 
 Expected: pass.
@@ -378,7 +378,7 @@ describe('EOline solver', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @cubekit/solver test -- eoline`
+Run: `pnpm --filter @cubegin/solver test -- eoline`
 
 Expected: fails because EOline implementation is missing.
 
@@ -389,15 +389,15 @@ Implement EOline search:
 - 2048 EO move/pruning table
 - 132 line-edge permutation table
 - twelve target labels, move maps, and setup rotations
-- one-solution IDA search up to CubeKit depth `< 10`
+- one-solution IDA search up to Cubegin depth `< 10`
 
 - [ ] **Step 4: Run EOline tests**
 
 Run:
 
 ```bash
-pnpm --filter @cubekit/solver test -- eoline
-pnpm --filter @cubekit/solver typecheck
+pnpm --filter @cubegin/solver test -- eoline
+pnpm --filter @cubegin/solver typecheck
 ```
 
 Expected: pass.
@@ -454,7 +454,7 @@ describe('Roux S1 solver', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `pnpm --filter @cubekit/solver test -- petrus roux`
+Run: `pnpm --filter @cubegin/solver test -- petrus roux`
 
 Expected: fails because Petrus and Roux implementations are missing.
 
@@ -466,7 +466,7 @@ Implement the Petrus S1 path only:
 - corner orientation/permutation table for block corner
 - pruning tables for S1
 - eight block target labels
-- one-solution IDA search up to CubeKit depth `< 9`
+- one-solution IDA search up to Cubegin depth `< 9`
 
 - [ ] **Step 4: Implement Roux S1**
 
@@ -475,7 +475,7 @@ Implement the Roux S1 path only:
 - corner move tables
 - block edge/corner pruning tables
 - target labels and setup rotations
-- one-solution IDA search up to CubeKit depth `< 10`
+- one-solution IDA search up to Cubegin depth `< 10`
 - leave Roux S2 out of scope
 
 - [ ] **Step 5: Run Petrus and Roux tests**
@@ -483,8 +483,8 @@ Implement the Roux S1 path only:
 Run:
 
 ```bash
-pnpm --filter @cubekit/solver test -- petrus roux
-pnpm --filter @cubekit/solver typecheck
+pnpm --filter @cubegin/solver test -- petrus roux
+pnpm --filter @cubegin/solver typecheck
 ```
 
 Expected: pass.
@@ -544,7 +544,7 @@ describe('3x3 assist facade', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @cubekit/solver test -- facade`
+Run: `pnpm --filter @cubegin/solver test -- facade`
 
 Expected: fails because facade behavior and target validation are incomplete.
 
@@ -566,9 +566,9 @@ If a target is not valid for a method, throw `UnknownSolverTargetError` before s
 Run:
 
 ```bash
-pnpm --filter @cubekit/solver test
-pnpm --filter @cubekit/solver typecheck
-pnpm --filter @cubekit/solver build
+pnpm --filter @cubegin/solver test
+pnpm --filter @cubegin/solver typecheck
+pnpm --filter @cubegin/solver build
 ```
 
 Expected: pass.
@@ -632,7 +632,7 @@ Expected: fails because solver tab/UI does not exist.
 
 - [ ] **Step 3: Wire playground package dependency and alias**
 
-Add `@cubekit/solver` to playground dependencies, add it to `prepare:deps`, and add a Vite alias pointing at `../../packages/solver/src/index.ts`.
+Add `@cubegin/solver` to playground dependencies, add it to `prepare:deps`, and add a Vite alias pointing at `../../packages/solver/src/index.ts`.
 
 - [ ] **Step 4: Add solver service methods**
 
@@ -707,9 +707,9 @@ Add the solver package to root `AGENTS.md` and `docs/project-structure.md`, keep
 Run:
 
 ```bash
-pnpm --filter @cubekit/solver test
-pnpm --filter @cubekit/solver typecheck
-pnpm --filter @cubekit/solver build
+pnpm --filter @cubegin/solver test
+pnpm --filter @cubegin/solver typecheck
+pnpm --filter @cubegin/solver build
 pnpm --filter playground test
 pnpm --filter playground typecheck
 pnpm --filter playground build
@@ -764,7 +764,7 @@ solutions for:
 Run:
 
 ```bash
-pnpm --filter @cubekit/solver test -- face-layer shape v facade index
+pnpm --filter @cubegin/solver test -- face-layer shape v facade index
 ```
 
 Expected: fails because the new APIs and modules do not exist yet.
@@ -772,9 +772,9 @@ Expected: fails because the new APIs and modules do not exist yet.
 - [ ] **Step 2: Implement auxiliary helpers in solver package**
 
 Implement the coordinate/search helpers with lazy table initialization. Reuse
-`@cubekit/scramble-puzzle` parsers for 2x2 cube,
+`@cubegin/scramble-puzzle` parsers for 2x2 cube,
 Square-1, and Pyraminx notation, and keep scramble generation out of
-`@cubekit/solver`.
+`@cubegin/solver`.
 
 - [ ] **Step 3: Add generic puzzle facade**
 
@@ -792,9 +792,9 @@ result table for all solver result types.
 - [ ] **Step 5: Run targeted verification**
 
 ```bash
-pnpm --filter @cubekit/solver test
-pnpm --filter @cubekit/solver typecheck
-pnpm --filter @cubekit/solver build
+pnpm --filter @cubegin/solver test
+pnpm --filter @cubegin/solver typecheck
+pnpm --filter @cubegin/solver build
 pnpm --filter playground test
 pnpm --filter playground typecheck
 pnpm --filter playground build

@@ -3,7 +3,7 @@ import { View, Text } from '@tarojs/components';
 function Index() {
   return (
     <View>
-      <Text>cubekit wx-app</Text>
+      <Text>cubegin wx-app</Text>
     </View>
   );
 }

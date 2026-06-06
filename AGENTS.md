@@ -1,6 +1,6 @@
-# CubeKit
+# Cubegin
 
-CubeKit is a Rubik's cube tooling monorepo for a web/H5 timer, scramble
+Cubegin is a Rubik's cube tooling monorepo for a web/H5 timer, scramble
 generation, scramble visualization, and a WeChat miniprogram shell.
 
 ## Knowledge Base

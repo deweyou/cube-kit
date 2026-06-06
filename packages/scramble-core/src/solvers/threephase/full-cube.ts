@@ -162,7 +162,7 @@ export class CenterCube {
         this.ct[idx + 1] !== this.ct[idx + 2] ||
         this.ct[idx + 2] !== this.ct[idx + 3]
       ) {
-        throw new Error('@cubekit/scramble-core: unsolved 4x4 centers after reduction');
+        throw new Error('@cubegin/scramble-core: unsolved 4x4 centers after reduction');
       }
       facelet[4 + i * 9] = 'URFDLB'[this.ct[idx]!]!;
     }

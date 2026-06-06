@@ -1,4 +1,4 @@
-# CubeKit Timer — Design Spec
+# Cubegin Timer — Design Spec
 
 **Date**: 2026-04-21
 **Scope**: `packages/timer` (new) + `apps/web` timer feature
@@ -136,7 +136,7 @@ TimerPage
 ├── ScrambleView          # state: scramble
 │   ├── EventSelector     # WCA event dropdown (@deweyou-design Select)
 │   ├── ScrambleText      # scramble formula + ↻ refresh button
-│   └── ScrambleImage     # SVG from @cubekit/scramble getImage()
+│   └── ScrambleImage     # SVG from @cubegin/scramble getImage()
 │
 ├── TimingView            # state: timing
 │   ├── CancelZone        # top strip — activates on H5 swipe-up
@@ -206,7 +206,7 @@ TimerPage
 
 ## 6. Scramble & Image
 
-- Scramble generated via `@cubekit/scramble` `getScramble(eventId)`
+- Scramble generated via `@cubegin/scramble` `getScramble(eventId)`
 - Image rendered via `getImage(scramble, eventId)` → SVG string → `dangerouslySetInnerHTML`
 - New scramble generated when: page loads, user taps ↻, user taps result to continue
 - Cancel does NOT regenerate scramble (user returns to same scramble)
@@ -272,7 +272,7 @@ WeChat miniprogram cannot render raw SVG strings via `innerHTML`. Options to inv
 
 1. Render SVG in a `<web-view>` component (requires a hosted URL)
 2. Convert SVG to Canvas drawing commands at build time
-3. Use an image URL if `@cubekit/scramble` adds a data-URI export
+3. Use an image URL if `@cubegin/scramble` adds a data-URI export
 
 This is the primary technical risk for the wx-app iteration. Resolve before writing the implementation plan.
 

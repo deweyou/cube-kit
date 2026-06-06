@@ -1,6 +1,6 @@
 import type { SvgElementName, SvgNode } from './svg-elements.js';
 
-const ERROR_PREFIX = '@cubekit/scramble-image';
+const ERROR_PREFIX = '@cubegin/scramble-image';
 const SUPPORTED_ELEMENT_NAMES = new Set<SvgElementName>(['rect', 'circle', 'path', 'text', 'g']);
 const SVG_NAME_PATTERN = /^[A-Za-z_:][A-Za-z0-9_.:-]*$/;
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseCubeAlgorithm } from '@cubekit/scramble-puzzle';
+import { parseCubeAlgorithm } from '@cubegin/scramble-puzzle';
 import { generateCubeRandomTurnScramble } from './cube-random-turns.js';
 import type { RandomSource } from '../random-source.js';
 
@@ -128,7 +128,7 @@ describe('generateCubeRandomTurnScramble', () => {
         length: 60,
         random: cyclingRandom(),
       }),
-    ).toThrow('@cubekit/scramble-core: cube random-turn size must be 5, 6, or 7');
+    ).toThrow('@cubegin/scramble-core: cube random-turn size must be 5, 6, or 7');
   });
 
   it.each([-1, 1.5, Number.MAX_SAFE_INTEGER + 1])(
@@ -141,7 +141,7 @@ describe('generateCubeRandomTurnScramble', () => {
           random: cyclingRandom(),
         }),
       ).toThrow(
-        '@cubekit/scramble-core: cube random-turn length must be a non-negative safe integer',
+        '@cubegin/scramble-core: cube random-turn length must be a non-negative safe integer',
       );
     },
   );

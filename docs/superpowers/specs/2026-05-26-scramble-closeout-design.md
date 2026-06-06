@@ -2,13 +2,13 @@
 
 ## Context
 
-CubeKit now contains three TNoodle-compatible packages and a local playground:
+Cubegin now contains three TNoodle-compatible packages and a local playground:
 
-- `@cubekit/scramble-puzzle` owns WCA event metadata, notation parsers, state
+- `@cubegin/scramble-puzzle` owns WCA event metadata, notation parsers, state
   transitions, and puzzle definitions.
-- `@cubekit/scramble-core` owns WCA scramble generation, random sources, batch
+- `@cubegin/scramble-core` owns WCA scramble generation, random sources, batch
   uniqueness, and solver/random-turn integrations.
-- `@cubekit/scramble-image` owns DOM-free SVG rendering from applied puzzle
+- `@cubegin/scramble-image` owns DOM-free SVG rendering from applied puzzle
   states.
 - `apps/playground` is a developer workbench for exercising `scramble-core` and
   `scramble-image`.
@@ -31,7 +31,7 @@ routing, aligned license metadata, and updated READMEs.
 ## Non-Goals
 
 - Do not wire the new packages into production apps.
-- Do not claim CubeKit is an official WCA scramble program.
+- Do not claim Cubegin is an official WCA scramble program.
 - Do not attempt statistical proof of uniform randomness in unit tests.
 - Do not rewrite solver internals only to chase uncovered defensive branches.
 - Do not fix pre-existing root `pnpm check` failures outside the closeout scope.
@@ -107,7 +107,7 @@ Local `AGENTS.md` files should include only:
 
 Use SPDX `GPL-3.0-only` for the TNoodle-compatible packages because
 `thewca/tnoodle-lib` `v0.19.2` and Maven `lib-scrambles` `0.19.2` publish under
-GPL-v3.0. The `thewca/tnoodle` app repository is AGPL-3.0, but CubeKit's migrated
+GPL-v3.0. The `thewca/tnoodle` app repository is AGPL-3.0, but Cubegin's migrated
 logic targets `tnoodle-lib`, not the TNoodle server/UI.
 
 Actions:
@@ -117,7 +117,7 @@ Actions:
 - add package-level `LICENSE` files for the three new packages by copying the GPL
   v3 text already present at the root;
 - add `NOTICE` files attributing the TNoodle/lib-scrambles baseline and stating
-  CubeKit is not an official WCA scramble program;
+  Cubegin is not an official WCA scramble program;
 - update docs and READMEs to name the license boundary clearly.
 
 ## README Updates
@@ -141,13 +141,13 @@ section, playground entry, and license note reflect the new architecture.
 
 Required closeout verification:
 
-- `pnpm --filter @cubekit/scramble-puzzle test`
-- `pnpm --filter @cubekit/scramble-core test`
-- `pnpm --filter @cubekit/scramble-image test`
+- `pnpm --filter @cubegin/scramble-puzzle test`
+- `pnpm --filter @cubegin/scramble-core test`
+- `pnpm --filter @cubegin/scramble-image test`
 - `pnpm --filter playground test`
-- `pnpm --filter @cubekit/scramble-puzzle test:coverage`
-- `pnpm --filter @cubekit/scramble-core test:coverage`
-- `pnpm --filter @cubekit/scramble-image test:coverage`
+- `pnpm --filter @cubegin/scramble-puzzle test:coverage`
+- `pnpm --filter @cubegin/scramble-core test:coverage`
+- `pnpm --filter @cubegin/scramble-image test:coverage`
 - package/app typecheck and build commands touched by the change
 - `pnpm test:docs`
 - scoped `vp check --no-fmt` over changed files

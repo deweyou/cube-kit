@@ -7,8 +7,8 @@ flowchart TD
     Site --> Theme["Mermaid theme component"]
     Zh --> Concepts["WCA generation and SVG principles"]
     En --> Concepts
-    Concepts --> Core["@cubekit/scramble-core"]
-    Concepts --> Image["@cubekit/scramble-image"]
+    Concepts --> Core["@cubegin/scramble-core"]
+    Concepts --> Image["@cubegin/scramble-image"]
     Concepts --> Upstream["WCA rules and TNoodle baseline"]
 ```
 

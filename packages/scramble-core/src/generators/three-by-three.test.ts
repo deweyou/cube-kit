@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createCubeDefinition } from '@cubekit/scramble-puzzle';
+import { createCubeDefinition } from '@cubegin/scramble-puzzle';
 import {
   generateMultiBlindScramble,
   generateThreeByThreeFewestMovesScramble,
@@ -177,7 +177,7 @@ describe('3x3 WCA generators', () => {
           random: createSeededRandom(0x333),
           cubeCount,
         }),
-      ).toThrow('@cubekit/scramble-core: multi-blind cubeCount must be a positive safe integer');
+      ).toThrow('@cubegin/scramble-core: multi-blind cubeCount must be a positive safe integer');
     },
   );
 });

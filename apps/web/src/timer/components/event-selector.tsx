@@ -1,4 +1,4 @@
-import { WCA_EVENT_IDS, type WcaEventId } from '@cubekit/scramble-puzzle';
+import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/scramble-puzzle';
 
 // Short display labels
 const DISPLAY_LABELS: Record<WcaEventId, string> = {

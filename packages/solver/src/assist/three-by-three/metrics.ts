@@ -1,4 +1,4 @@
-import { splitAlgorithm } from '@cubekit/scramble-puzzle';
+import { splitAlgorithm } from '@cubegin/scramble-puzzle';
 
 const moveQuarterTurns = (token: string): number => (token.endsWith('2') ? 2 : 1);
 

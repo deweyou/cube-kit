@@ -1,8 +1,11 @@
 {
-  "name": "@cubekit/scramble-core",
+  "name": "@cubegin/scramble-core",
   "version": "0.0.0",
-  "description": "TNoodle-compatible WCA scramble generation for CubeKit.",
+  "description": "TNoodle-compatible WCA scramble generation for Cubegin.",
   "license": "GPL-3.0-only",
+  "cubegin": {
+    "publicSubpath": "scramble-core"
+  },
   "files": [
     "dist",
     "LICENSE",
@@ -22,7 +25,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cubekit/scramble-puzzle": "workspace:*"
+    "@cubegin/scramble-puzzle": "workspace:*"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "catalog:",

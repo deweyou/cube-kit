@@ -161,9 +161,9 @@ Use this manifest for `packages/scramble-puzzle/package.json`:
 
 ```json
 {
-  "name": "@cubekit/scramble-puzzle",
+  "name": "@cubegin/scramble-puzzle",
   "version": "0.0.0",
-  "description": "Puzzle notation, state transitions, and shared WCA puzzle definitions for CubeKit.",
+  "description": "Puzzle notation, state transitions, and shared WCA puzzle definitions for Cubegin.",
   "license": "GPL-3.0-only",
   "files": ["dist", "LICENSE", "NOTICE", "README.md"],
   "type": "module",
@@ -191,9 +191,9 @@ Use this manifest for `packages/scramble-core/package.json`:
 
 ```json
 {
-  "name": "@cubekit/scramble-core",
+  "name": "@cubegin/scramble-core",
   "version": "0.0.0",
-  "description": "TNoodle-compatible WCA scramble generation for CubeKit.",
+  "description": "TNoodle-compatible WCA scramble generation for Cubegin.",
   "license": "GPL-3.0-only",
   "files": ["dist", "LICENSE", "NOTICE", "README.md"],
   "type": "module",
@@ -208,7 +208,7 @@ Use this manifest for `packages/scramble-core/package.json`:
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cubekit/scramble-puzzle": "workspace:*"
+    "@cubegin/scramble-puzzle": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",
@@ -224,7 +224,7 @@ Use this manifest for `packages/scramble-image/package.json`:
 
 ```json
 {
-  "name": "@cubekit/scramble-image",
+  "name": "@cubegin/scramble-image",
   "version": "0.0.0",
   "description": "DOM-free SVG rendering for TNoodle-compatible scramble states.",
   "license": "GPL-3.0-only",
@@ -241,7 +241,7 @@ Use this manifest for `packages/scramble-image/package.json`:
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cubekit/scramble-puzzle": "workspace:*"
+    "@cubegin/scramble-puzzle": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",
@@ -320,9 +320,9 @@ record the workspace packages.
 Run:
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle typecheck
-pnpm --filter @cubekit/scramble-core typecheck
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-core typecheck
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: all commands pass.
@@ -400,7 +400,7 @@ describe('createPuzzleRegistry', () => {
   it('throws a typed error for unknown events', () => {
     const registry = createPuzzleRegistry([]);
     expect(() => registry.getByEventId('333')).toThrow(
-      "@cubekit/scramble-puzzle: event '333' is not registered",
+      "@cubegin/scramble-puzzle: event '333' is not registered",
     );
   });
 });
@@ -411,7 +411,7 @@ describe('createPuzzleRegistry', () => {
 Run:
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/events.test.ts src/registry.test.ts
+pnpm --filter @cubegin/scramble-puzzle test -- src/events.test.ts src/registry.test.ts
 ```
 
 Expected: fail because modules are missing.
@@ -475,7 +475,7 @@ export const WCA_EVENT_INFO = Object.freeze({
 `packages/scramble-puzzle/src/errors.ts`:
 
 ```ts
-const ERROR_PREFIX = '@cubekit/scramble-puzzle';
+const ERROR_PREFIX = '@cubegin/scramble-puzzle';
 
 export class ScramblePuzzleError extends Error {
   constructor(message: string) {
@@ -653,8 +653,8 @@ export {
 - [ ] **Step 4: Run tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/events.test.ts src/registry.test.ts
-pnpm --filter @cubekit/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-puzzle test -- src/events.test.ts src/registry.test.ts
+pnpm --filter @cubegin/scramble-puzzle typecheck
 ```
 
 Expected: both commands pass.
@@ -709,7 +709,7 @@ describe('parseCubeAlgorithm', () => {
 - [ ] **Step 2: Run test to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/cube/cube-parser.test.ts
+pnpm --filter @cubegin/scramble-puzzle test -- src/cube/cube-parser.test.ts
 ```
 
 Expected: fail because `cube-parser.ts` does not exist.
@@ -788,8 +788,8 @@ export { parseCubeAlgorithm, parseCubeMove } from './cube/cube-parser.js';
 - [ ] **Step 4: Run tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/cube/cube-parser.test.ts
-pnpm --filter @cubekit/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-puzzle test -- src/cube/cube-parser.test.ts
+pnpm --filter @cubegin/scramble-puzzle typecheck
 ```
 
 Expected: pass.
@@ -854,7 +854,7 @@ describe('cube state transitions', () => {
 - [ ] **Step 2: Run test to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/cube/cube-state.test.ts
+pnpm --filter @cubegin/scramble-puzzle test -- src/cube/cube-state.test.ts
 ```
 
 Expected: fail because cube state modules are missing.
@@ -929,8 +929,8 @@ export type { CubeFacelet, CubeFaceState, CubeImage, CubeState } from './cube/cu
 - [ ] **Step 4: Run tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/cube/cube-state.test.ts
-pnpm --filter @cubekit/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-puzzle test -- src/cube/cube-state.test.ts
+pnpm --filter @cubegin/scramble-puzzle typecheck
 ```
 
 Expected: pass.
@@ -981,7 +981,7 @@ describe('SVG serialization', () => {
 - [ ] **Step 2: Run test to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-image test -- src/svg/svg.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/svg/svg.test.ts
 ```
 
 Expected: fail because SVG modules are missing.
@@ -1085,8 +1085,8 @@ export type { SvgNode } from './svg/svg-elements.js';
 - [ ] **Step 4: Run tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-image test -- src/svg/svg.test.ts
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-image test -- src/svg/svg.test.ts
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: pass.
@@ -1115,7 +1115,7 @@ git commit -m "feat(scramble-image): add svg builder"
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import { createCubeDefinition } from '@cubekit/scramble-puzzle';
+import { createCubeDefinition } from '@cubegin/scramble-puzzle';
 import { renderCubeNet } from './cube-net.js';
 
 describe('renderCubeNet', () => {
@@ -1139,7 +1139,7 @@ describe('renderCubeNet', () => {
 - [ ] **Step 2: Run test to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-image test -- src/renderers/cube-net.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/cube-net.test.ts
 ```
 
 Expected: fail because renderer is missing.
@@ -1149,7 +1149,7 @@ Expected: fail because renderer is missing.
 `packages/scramble-image/src/renderers/cube-net.ts`:
 
 ```ts
-import type { CubeFacelet, CubeState } from '@cubekit/scramble-puzzle';
+import type { CubeFacelet, CubeState } from '@cubegin/scramble-puzzle';
 import { DEFAULT_CUBE_COLORS, type HexColor } from '../color.js';
 import { createSvgDocument } from '../svg/svg-document.js';
 import { rect, type SvgNode } from '../svg/svg-elements.js';
@@ -1201,7 +1201,7 @@ export const renderCubeNet = (state: CubeState, colorScheme: CubeColorScheme = {
 `packages/scramble-image/src/render.ts`:
 
 ```ts
-import { createCubeDefinition, type WcaEventId } from '@cubekit/scramble-puzzle';
+import { createCubeDefinition, type WcaEventId } from '@cubegin/scramble-puzzle';
 import { renderCubeNet } from './renderers/cube-net.js';
 
 const CUBE_SIZE_BY_EVENT = {
@@ -1221,7 +1221,7 @@ const CUBE_SIZE_BY_EVENT = {
 
 export const renderScrambleImage = (eventId: WcaEventId, scramble: string): string => {
   const size = CUBE_SIZE_BY_EVENT[eventId];
-  if (!size) throw new Error(`@cubekit/scramble-image: event '${eventId}' is not renderable yet`);
+  if (!size) throw new Error(`@cubegin/scramble-image: event '${eventId}' is not renderable yet`);
   const cube = createCubeDefinition(size, [eventId]);
   const state = cube
     .parseAlgorithm(scramble)
@@ -1240,8 +1240,8 @@ export { renderCubeNet } from './renderers/cube-net.js';
 - [ ] **Step 4: Run tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-image test -- src/renderers/cube-net.test.ts
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-image test -- src/renderers/cube-net.test.ts
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: pass.
@@ -1284,7 +1284,7 @@ describe('createScrambleGenerator', () => {
   it('throws for generators that are not registered', async () => {
     const generator = createScrambleGenerator({ random: deterministicRandom, generators: {} });
     await expect(generator.generate('333')).rejects.toThrow(
-      "@cubekit/scramble-core: event '333' has no generator",
+      "@cubegin/scramble-core: event '333' has no generator",
     );
   });
 });
@@ -1293,7 +1293,7 @@ describe('createScrambleGenerator', () => {
 - [ ] **Step 2: Run test to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generator.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generator.test.ts
 ```
 
 Expected: fail because core facade modules are missing.
@@ -1317,10 +1317,10 @@ export const createMathRandomSource = (): RandomSource => ({
 `packages/scramble-core/src/generator.ts`:
 
 ```ts
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
 import type { RandomSource } from './random-source.js';
 
-const ERROR_PREFIX = '@cubekit/scramble-core';
+const ERROR_PREFIX = '@cubegin/scramble-core';
 
 export interface GenerateOptions {
   random?: RandomSource;
@@ -1395,8 +1395,8 @@ export type { RandomSource } from './random-source.js';
 - [ ] **Step 4: Run tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generator.test.ts
-pnpm --filter @cubekit/scramble-core typecheck
+pnpm --filter @cubegin/scramble-core test -- src/generator.test.ts
+pnpm --filter @cubegin/scramble-core typecheck
 ```
 
 Expected: pass.
@@ -1424,7 +1424,7 @@ git commit -m "feat(scramble-core): add generator facade"
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import { parseCubeAlgorithm } from '@cubekit/scramble-puzzle';
+import { parseCubeAlgorithm } from '@cubegin/scramble-puzzle';
 import { generateCubeRandomTurnScramble } from './cube-random-turns.js';
 import type { RandomSource } from '../random-source.js';
 
@@ -1468,7 +1468,7 @@ describe('generateCubeRandomTurnScramble', () => {
 - [ ] **Step 2: Run test to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generators/cube-random-turns.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/cube-random-turns.test.ts
 ```
 
 Expected: fail because generator is missing.
@@ -1524,8 +1524,8 @@ export const generateCubeRandomTurnScramble = ({
 - [ ] **Step 4: Run tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generators/cube-random-turns.test.ts
-pnpm --filter @cubekit/scramble-core typecheck
+pnpm --filter @cubegin/scramble-core test -- src/generators/cube-random-turns.test.ts
+pnpm --filter @cubegin/scramble-core typecheck
 ```
 
 Expected: pass.
@@ -1567,9 +1567,9 @@ expect(renderClockState(createSolvedClockState())).toContain('<svg');
 - [ ] **Step 2: Run tests to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/clock/clock.test.ts
-pnpm --filter @cubekit/scramble-core test -- src/generators/clock.test.ts
-pnpm --filter @cubekit/scramble-image test -- src/renderers/clock.test.ts
+pnpm --filter @cubegin/scramble-puzzle test -- src/clock/clock.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/clock.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/clock.test.ts
 ```
 
 Expected: fail because Clock modules are missing.
@@ -1592,12 +1592,12 @@ export const renderClockState: (state: ClockState) => string;
 - [ ] **Step 4: Run tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/clock/clock.test.ts
-pnpm --filter @cubekit/scramble-core test -- src/generators/clock.test.ts
-pnpm --filter @cubekit/scramble-image test -- src/renderers/clock.test.ts
-pnpm --filter @cubekit/scramble-puzzle typecheck
-pnpm --filter @cubekit/scramble-core typecheck
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-puzzle test -- src/clock/clock.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/clock.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/clock.test.ts
+pnpm --filter @cubegin/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-core typecheck
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: pass.
@@ -1638,9 +1638,9 @@ expect(renderMegaminxState(createSolvedMegaminxState())).toContain('<svg');
 - [ ] **Step 2: Run tests to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/megaminx/megaminx.test.ts
-pnpm --filter @cubekit/scramble-core test -- src/generators/megaminx.test.ts
-pnpm --filter @cubekit/scramble-image test -- src/renderers/megaminx.test.ts
+pnpm --filter @cubegin/scramble-puzzle test -- src/megaminx/megaminx.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/megaminx.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/megaminx.test.ts
 ```
 
 Expected: fail because Megaminx modules are missing.
@@ -1664,12 +1664,12 @@ export const renderMegaminxState: (state: MegaminxState) => string;
 - [ ] **Step 4: Run tests and typecheck**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/megaminx/megaminx.test.ts
-pnpm --filter @cubekit/scramble-core test -- src/generators/megaminx.test.ts
-pnpm --filter @cubekit/scramble-image test -- src/renderers/megaminx.test.ts
-pnpm --filter @cubekit/scramble-puzzle typecheck
-pnpm --filter @cubekit/scramble-core typecheck
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-puzzle test -- src/megaminx/megaminx.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/megaminx.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/megaminx.test.ts
+pnpm --filter @cubegin/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-core typecheck
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: pass.
@@ -1697,7 +1697,7 @@ git commit -m "feat(scramble): add megaminx support"
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import { createCubeDefinition } from '@cubekit/scramble-puzzle';
+import { createCubeDefinition } from '@cubegin/scramble-puzzle';
 import { generateTwoByTwoScramble } from './two-by-two.js';
 import type { RandomSource } from '../random-source.js';
 
@@ -1716,7 +1716,7 @@ describe('generateTwoByTwoScramble', () => {
 - [ ] **Step 2: Run test to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generators/two-by-two.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/two-by-two.test.ts
 ```
 
 Expected: fail because 2x2 modules are missing.
@@ -1756,8 +1756,8 @@ export const generateTwoByTwoScramble = ({ random }: { random: RandomSource }): 
 - [ ] **Step 4: Run tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generators/two-by-two.test.ts
-pnpm --filter @cubekit/scramble-core typecheck
+pnpm --filter @cubegin/scramble-core test -- src/generators/two-by-two.test.ts
+pnpm --filter @cubegin/scramble-core typecheck
 ```
 
 Expected: pass.
@@ -1798,9 +1798,9 @@ expect(renderPyraminxState(createSolvedPyraminxState())).toContain('<svg');
 - [ ] **Step 2: Run tests to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/pyraminx/pyraminx.test.ts
-pnpm --filter @cubekit/scramble-core test -- src/generators/pyraminx.test.ts
-pnpm --filter @cubekit/scramble-image test -- src/renderers/pyraminx.test.ts
+pnpm --filter @cubegin/scramble-puzzle test -- src/pyraminx/pyraminx.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/pyraminx.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/pyraminx.test.ts
 ```
 
 Expected: fail because Pyraminx modules are missing.
@@ -1821,12 +1821,12 @@ export const renderPyraminxState: (state: PyraminxState) => string;
 - [ ] **Step 4: Run tests and typecheck**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/pyraminx/pyraminx.test.ts
-pnpm --filter @cubekit/scramble-core test -- src/generators/pyraminx.test.ts
-pnpm --filter @cubekit/scramble-image test -- src/renderers/pyraminx.test.ts
-pnpm --filter @cubekit/scramble-puzzle typecheck
-pnpm --filter @cubekit/scramble-core typecheck
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-puzzle test -- src/pyraminx/pyraminx.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/pyraminx.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/pyraminx.test.ts
+pnpm --filter @cubegin/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-core typecheck
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: pass.
@@ -1867,9 +1867,9 @@ expect(renderSkewbState(createSolvedSkewbState())).toContain('<svg');
 - [ ] **Step 2: Run tests to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/skewb/skewb.test.ts
-pnpm --filter @cubekit/scramble-core test -- src/generators/skewb.test.ts
-pnpm --filter @cubekit/scramble-image test -- src/renderers/skewb.test.ts
+pnpm --filter @cubegin/scramble-puzzle test -- src/skewb/skewb.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/skewb.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/skewb.test.ts
 ```
 
 Expected: fail because Skewb modules are missing.
@@ -1889,12 +1889,12 @@ export const renderSkewbState: (state: SkewbState) => string;
 - [ ] **Step 4: Run tests and typecheck**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/skewb/skewb.test.ts
-pnpm --filter @cubekit/scramble-core test -- src/generators/skewb.test.ts
-pnpm --filter @cubekit/scramble-image test -- src/renderers/skewb.test.ts
-pnpm --filter @cubekit/scramble-puzzle typecheck
-pnpm --filter @cubekit/scramble-core typecheck
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-puzzle test -- src/skewb/skewb.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/skewb.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/skewb.test.ts
+pnpm --filter @cubegin/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-core typecheck
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: pass.
@@ -1944,7 +1944,7 @@ describe('Square-1 parser and state', () => {
 - [ ] **Step 2: Run test to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/square1/square1.test.ts
+pnpm --filter @cubegin/scramble-puzzle test -- src/square1/square1.test.ts
 ```
 
 Expected: fail because Square-1 modules are missing.
@@ -1964,8 +1964,8 @@ export const createSquareOneDefinition: () => PuzzleDefinition<SquareOneState, S
 - [ ] **Step 4: Run tests and typecheck**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test -- src/square1/square1.test.ts
-pnpm --filter @cubekit/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-puzzle test -- src/square1/square1.test.ts
+pnpm --filter @cubegin/scramble-puzzle typecheck
 ```
 
 Expected: pass.
@@ -2007,8 +2007,8 @@ expect(renderSquareOneState(createSolvedSquareOneState())).toContain('<svg');
 - [ ] **Step 2: Run tests to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generators/square1.test.ts
-pnpm --filter @cubekit/scramble-image test -- src/renderers/square1.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/square1.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/square1.test.ts
 ```
 
 Expected: fail because solver and renderer modules are missing.
@@ -2030,10 +2030,10 @@ export const renderSquareOneState: (state: SquareOneState) => string;
 - [ ] **Step 4: Run tests and typecheck**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generators/square1.test.ts
-pnpm --filter @cubekit/scramble-image test -- src/renderers/square1.test.ts
-pnpm --filter @cubekit/scramble-core typecheck
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-core test -- src/generators/square1.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/renderers/square1.test.ts
+pnpm --filter @cubegin/scramble-core typecheck
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: pass.
@@ -2074,7 +2074,7 @@ expect(generateMultiBlindScramble({ random, cubeCount: 3 }).split('\n')).toHaveL
 - [ ] **Step 2: Run tests to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generators/three-by-three.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/three-by-three.test.ts
 ```
 
 Expected: fail because min2phase modules are missing.
@@ -2101,8 +2101,8 @@ export const generateMultiBlindScramble: (options: {
 - [ ] **Step 4: Run tests and typecheck**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generators/three-by-three.test.ts
-pnpm --filter @cubekit/scramble-core typecheck
+pnpm --filter @cubegin/scramble-core test -- src/generators/three-by-three.test.ts
+pnpm --filter @cubegin/scramble-core typecheck
 ```
 
 Expected: pass.
@@ -2147,7 +2147,7 @@ expect(() =>
 - [ ] **Step 2: Run test to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generators/four-by-four.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/generators/four-by-four.test.ts
 ```
 
 Expected: fail because threephase modules are missing.
@@ -2155,7 +2155,7 @@ Expected: fail because threephase modules are missing.
 - [ ] **Step 3: Implement threephase solver**
 
 Port TNoodle `threephase` solver into focused TS modules. Keep table
-initialization lazy and module-local so importing `@cubekit/scramble-core` does
+initialization lazy and module-local so importing `@cubegin/scramble-core` does
 not eagerly build all 4x4 tables.
 
 Public exports:
@@ -2168,8 +2168,8 @@ export const generateFourByFourNoInspectionScramble: (options: { random: RandomS
 - [ ] **Step 4: Run tests and typecheck**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/generators/four-by-four.test.ts
-pnpm --filter @cubekit/scramble-core typecheck
+pnpm --filter @cubegin/scramble-core test -- src/generators/four-by-four.test.ts
+pnpm --filter @cubegin/scramble-core typecheck
 ```
 
 Expected: pass.
@@ -2197,7 +2197,7 @@ git commit -m "feat(scramble-core): add 4x4 generators"
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import { WCA_EVENT_IDS } from '@cubekit/scramble-puzzle';
+import { WCA_EVENT_IDS } from '@cubegin/scramble-puzzle';
 import { createDefaultScrambleGenerator } from './generator.js';
 import type { RandomSource } from './random-source.js';
 
@@ -2236,7 +2236,7 @@ describe('default scramble generator', () => {
 - [ ] **Step 2: Run tests to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/integration.test.ts
+pnpm --filter @cubegin/scramble-core test -- src/integration.test.ts
 ```
 
 Expected: fail because `createDefaultScrambleGenerator` is missing.
@@ -2248,7 +2248,7 @@ with all 17 events wired to the generator modules from previous tasks.
 `333mbld` must require `multiBlindCubeCount`; throw:
 
 ```text
-@cubekit/scramble-core: event '333mbld' requires multiBlindCubeCount
+@cubegin/scramble-core: event '333mbld' requires multiBlindCubeCount
 ```
 
 Export it from `packages/scramble-core/src/index.ts`.
@@ -2256,8 +2256,8 @@ Export it from `packages/scramble-core/src/index.ts`.
 - [ ] **Step 4: Run tests and typecheck**
 
 ```bash
-pnpm --filter @cubekit/scramble-core test -- src/integration.test.ts
-pnpm --filter @cubekit/scramble-core typecheck
+pnpm --filter @cubegin/scramble-core test -- src/integration.test.ts
+pnpm --filter @cubegin/scramble-core typecheck
 ```
 
 Expected: pass.
@@ -2285,7 +2285,7 @@ git commit -m "feat(scramble-core): wire default wca generators"
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import { WCA_EVENT_IDS } from '@cubekit/scramble-puzzle';
+import { WCA_EVENT_IDS } from '@cubegin/scramble-puzzle';
 import { renderScrambleImage } from './render.js';
 
 const SAMPLE_SCRAMBLES = {
@@ -2322,7 +2322,7 @@ describe('renderScrambleImage', () => {
 - [ ] **Step 2: Run test to verify failure**
 
 ```bash
-pnpm --filter @cubekit/scramble-image test -- src/integration.test.ts
+pnpm --filter @cubegin/scramble-image test -- src/integration.test.ts
 ```
 
 Expected: fail until all renderers are wired into `renderScrambleImage`.
@@ -2341,8 +2341,8 @@ Update `renderScrambleImage` to dispatch by event family:
 - [ ] **Step 4: Run tests and typecheck**
 
 ```bash
-pnpm --filter @cubekit/scramble-image test -- src/integration.test.ts
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-image test -- src/integration.test.ts
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: pass.
@@ -2369,12 +2369,12 @@ git commit -m "feat(scramble-image): wire wca renderers"
 - [ ] **Step 1: Run full package tests**
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test
-pnpm --filter @cubekit/scramble-core test
-pnpm --filter @cubekit/scramble-image test
-pnpm --filter @cubekit/scramble-puzzle typecheck
-pnpm --filter @cubekit/scramble-core typecheck
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-puzzle test
+pnpm --filter @cubegin/scramble-core test
+pnpm --filter @cubegin/scramble-image test
+pnpm --filter @cubegin/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-core typecheck
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: all pass.
@@ -2408,14 +2408,14 @@ See `docs/tnoodle-baseline.md`.
 
 ## Verification
 
-- `pnpm --filter @cubekit/scramble-puzzle test`
-- `pnpm --filter @cubekit/scramble-core test`
-- `pnpm --filter @cubekit/scramble-image test`
+- `pnpm --filter @cubegin/scramble-puzzle test`
+- `pnpm --filter @cubegin/scramble-core test`
+- `pnpm --filter @cubegin/scramble-image test`
 - `pnpm test`
 
 ## Runtime Boundary
 
-Apps still import `@cubekit/scramble`. The new packages are not app-wired in this implementation.
+Apps still import `@cubegin/scramble`. The new packages are not app-wired in this implementation.
 ```
 
 - [ ] **Step 4: Update knowledge docs**

@@ -1,15 +1,15 @@
-# @cubekit/scramble-puzzle
+# @cubegin/scramble-puzzle
 
-Puzzle notation, parser, state-transition, and WCA event metadata for CubeKit's
+Puzzle notation, parser, state-transition, and WCA event metadata for Cubegin's
 TNoodle-compatible scramble packages.
 
-This package is the shared foundation for `@cubekit/scramble-core` and
-`@cubekit/scramble-image`. It owns the meaning of a move string, how that move
+This package is the shared foundation for `@cubegin/scramble-core` and
+`@cubegin/scramble-image`. It owns the meaning of a move string, how that move
 changes a puzzle state, and which WCA event ids map to which puzzle family.
 
 ## Install
 
-This package is consumed through the CubeKit pnpm workspace:
+This package is consumed through the Cubegin pnpm workspace:
 
 ```bash
 pnpm install
@@ -18,7 +18,7 @@ pnpm install
 ## Quick Start
 
 ```ts
-import { WCA_EVENT_IDS, createCubeDefinition } from '@cubekit/scramble-puzzle';
+import { WCA_EVENT_IDS, createCubeDefinition } from '@cubegin/scramble-puzzle';
 
 const cube = createCubeDefinition(3, ['333']);
 const solved = cube.createSolvedState();
@@ -56,10 +56,10 @@ Durable notes:
 ## Development
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test
-pnpm --filter @cubekit/scramble-puzzle test:coverage
-pnpm --filter @cubekit/scramble-puzzle typecheck
-pnpm --filter @cubekit/scramble-puzzle build
+pnpm --filter @cubegin/scramble-puzzle test
+pnpm --filter @cubegin/scramble-puzzle test:coverage
+pnpm --filter @cubegin/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-puzzle build
 ```
 
 Coverage thresholds are enforced in `vite.config.ts` and are intentionally tied

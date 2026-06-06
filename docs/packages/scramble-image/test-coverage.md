@@ -8,7 +8,7 @@ flowchart TD
     Layout --> Residual["private empty-polygon guards"]
 ```
 
-Coverage for `@cubekit/scramble-image` is near-complete around public rendering
+Coverage for `@cubegin/scramble-image` is near-complete around public rendering
 contracts and SVG safety.
 
 ## Current Thresholds
@@ -27,7 +27,7 @@ contracts and SVG safety.
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/scramble-image test:coverage
+pnpm --filter @cubegin/scramble-image test:coverage
 ```
 
 ---

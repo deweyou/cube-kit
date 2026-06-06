@@ -18,17 +18,17 @@ The work targets the current official WCA scramble program baseline:
 
 - `thewca/tnoodle` `v1.2.3`
 - `thewca/tnoodle-lib` `v0.19.2`
-- 17 WCA event families currently exposed by CubeKit
+- 17 WCA event families currently exposed by Cubegin
 
 The baseline is recorded in [docs/tnoodle-baseline.md](../../tnoodle-baseline.md).
 Future TNoodle updates should be handled by diffing the old and new upstream
-tags first, then creating focused CubeKit update tasks from the changed
+tags first, then creating focused Cubegin update tasks from the changed
 upstream areas.
 
 The finished packages should prove capability migration through unit tests and
 fixture/property checks before any consumer app imports them. The TypeScript
 interfaces in this document are implementation contracts for the new packages,
-not a compatibility promise for the existing `@cubekit/scramble` public API.
+not a compatibility promise for the existing `@cubegin/scramble` public API.
 
 ---
 
@@ -36,9 +36,9 @@ not a compatibility promise for the existing `@cubekit/scramble` public API.
 
 ```mermaid
 flowchart TD
-    Puzzle["@cubekit/scramble-puzzle"]
-    Core["@cubekit/scramble-core"]
-    Image["@cubekit/scramble-image"]
+    Puzzle["@cubegin/scramble-puzzle"]
+    Core["@cubegin/scramble-core"]
+    Image["@cubegin/scramble-image"]
     Tnoodle["TNoodle reference fixtures"]
     Tests["UT and property tests"]
 
@@ -356,7 +356,7 @@ will be handled separately.
 - No guarantee of byte-for-byte SVG parity with TNoodle.
 - No guarantee of exact seeded output parity with Java `SecureRandom`.
 - No WCIF, PDF, zip, or official-competition packaging support.
-- No claim that CubeKit becomes the official WCA scramble program.
+- No claim that Cubegin becomes the official WCA scramble program.
 
 ---
 

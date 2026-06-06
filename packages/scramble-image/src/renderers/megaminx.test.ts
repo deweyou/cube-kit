@@ -4,7 +4,7 @@ import {
   createSolvedMegaminxState,
   parseMegaminxAlgorithm,
   type MegaminxState,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import { renderMegaminxState } from './megaminx.js';
 
 const countFill = (svg: string, color: string): number =>

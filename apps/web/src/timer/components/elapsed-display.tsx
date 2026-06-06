@@ -1,4 +1,4 @@
-import { formatElapsed } from '@cubekit/timer';
+import { formatElapsed } from '@cubegin/timer';
 
 interface ElapsedDisplayProps {
   ms: number;

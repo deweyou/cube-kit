@@ -1,6 +1,6 @@
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
-import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleAssistResult } from '@cubekit/solver';
-import type { ScrambleImageView } from '@cubekit/scramble-image';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleAssistResult } from '@cubegin/solver';
+import type { ScrambleImageView } from '@cubegin/scramble-image';
 
 export type PlaygroundImageView = ScrambleImageView;
 

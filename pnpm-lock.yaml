@@ -57,16 +57,16 @@ importers:
 
   apps/playground:
     dependencies:
-      '@cubekit/scramble-core':
+      '@cubegin/scramble-core':
         specifier: workspace:*
         version: link:../../packages/scramble-core
-      '@cubekit/scramble-image':
+      '@cubegin/scramble-image':
         specifier: workspace:*
         version: link:../../packages/scramble-image
-      '@cubekit/scramble-puzzle':
+      '@cubegin/scramble-puzzle':
         specifier: workspace:*
         version: link:../../packages/scramble-puzzle
-      '@cubekit/solver':
+      '@cubegin/solver':
         specifier: workspace:*
         version: link:../../packages/solver
       react:
@@ -115,16 +115,16 @@ importers:
 
   apps/web:
     dependencies:
-      '@cubekit/scramble-core':
+      '@cubegin/scramble-core':
         specifier: workspace:*
         version: link:../../packages/scramble-core
-      '@cubekit/scramble-image':
+      '@cubegin/scramble-image':
         specifier: workspace:*
         version: link:../../packages/scramble-image
-      '@cubekit/scramble-puzzle':
+      '@cubegin/scramble-puzzle':
         specifier: workspace:*
         version: link:../../packages/scramble-puzzle
-      '@cubekit/timer':
+      '@cubegin/timer':
         specifier: workspace:*
         version: link:../../packages/timer
       '@deweyou-design/react':
@@ -205,9 +205,36 @@ importers:
         specifier: 'catalog:'
         version: 0.1.16(@types/node@25.5.2)(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(vite@8.0.7(@types/node@25.5.2)(sass@1.99.0)(terser@5.46.1)(yaml@2.8.3))(yaml@2.8.3)
 
+  packages/core:
+    devDependencies:
+      '@cubegin/scramble-core':
+        specifier: workspace:*
+        version: link:../scramble-core
+      '@cubegin/scramble-image':
+        specifier: workspace:*
+        version: link:../scramble-image
+      '@cubegin/scramble-puzzle':
+        specifier: workspace:*
+        version: link:../scramble-puzzle
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.12.2
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vite:
+        specifier: npm:@voidzero-dev/vite-plus-core@latest
+        version: '@voidzero-dev/vite-plus-core@0.1.19(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)'
+      vite-plus:
+        specifier: 'catalog:'
+        version: 0.1.19(@types/node@24.12.2)(@vitest/coverage-v8@4.1.4)(@voidzero-dev/vite-plus-core@0.1.19(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)
+      vitest:
+        specifier: npm:@voidzero-dev/vite-plus-test@latest
+        version: '@voidzero-dev/vite-plus-test@0.1.19(@types/node@24.12.2)(@vitest/coverage-v8@4.1.4)(@voidzero-dev/vite-plus-core@0.1.19(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)'
+
   packages/scramble-core:
     dependencies:
-      '@cubekit/scramble-puzzle':
+      '@cubegin/scramble-puzzle':
         specifier: workspace:*
         version: link:../scramble-puzzle
     devDependencies:
@@ -232,7 +259,7 @@ importers:
 
   packages/scramble-image:
     dependencies:
-      '@cubekit/scramble-puzzle':
+      '@cubegin/scramble-puzzle':
         specifier: workspace:*
         version: link:../scramble-puzzle
     devDependencies:
@@ -278,7 +305,7 @@ importers:
 
   packages/solver:
     dependencies:
-      '@cubekit/scramble-puzzle':
+      '@cubegin/scramble-puzzle':
         specifier: workspace:*
         version: link:../scramble-puzzle
     devDependencies:

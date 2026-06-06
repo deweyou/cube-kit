@@ -274,7 +274,7 @@ export class Edge3 {
     for (let i = 0; i < 11_880; i += 1) {
       if ((occ[i >>> 3]! & (1 << (i & 7))) !== 0) continue;
       if (count >= Edge3.N_SYM) {
-        throw new Error('@cubekit/scramble-core: Edge3 raw symmetry table overflow');
+        throw new Error('@cubegin/scramble-core: Edge3 raw symmetry table overflow');
       }
 
       edge.set(i * Edge3.factX[8]!);
@@ -295,7 +295,7 @@ export class Edge3 {
 
     if (count !== Edge3.N_SYM) {
       throw new Error(
-        `@cubekit/scramble-core: Edge3 raw symmetry table initialized ${count} classes`,
+        `@cubegin/scramble-core: Edge3 raw symmetry table initialized ${count} classes`,
       );
     }
   }
@@ -415,7 +415,7 @@ export class Edge3 {
 
     if (Edge3.done !== Edge3.prunValues[Edge3.MAX_DEPTH - 1]) {
       throw new Error(
-        `@cubekit/scramble-core: Edge3 pruning table initialized ${Edge3.done} states`,
+        `@cubegin/scramble-core: Edge3 pruning table initialized ${Edge3.done} states`,
       );
     }
   }

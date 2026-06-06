@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build an independent `apps/playground` app for manually and automatically testing `@cubekit/scramble-core` and `@cubekit/scramble-image`.
+**Goal:** Build an independent `apps/playground` app for manually and automatically testing `@cubegin/scramble-core` and `@cubegin/scramble-image`.
 
 **Architecture:** The app is a Vite + React workbench with a narrow local adapter boundary around package calls. `scramble-core` generation, `scramble-image` rendering, and diagnostics stay separate in the UI so the app can be used both as a manual TNoodle-like tool page and as a future Playwright E2E target.
 
-**Tech Stack:** TypeScript 5 strict mode, pnpm workspaces, vite-plus, React 19, Vitest, React Testing Library, `@cubekit/scramble-core`, `@cubekit/scramble-image`, `@cubekit/scramble-puzzle`
+**Tech Stack:** TypeScript 5 strict mode, pnpm workspaces, vite-plus, React 19, Vitest, React Testing Library, `@cubegin/scramble-core`, `@cubegin/scramble-image`, `@cubegin/scramble-puzzle`
 
 ---
 
@@ -104,9 +104,9 @@ Create `apps/playground/package.json`:
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cubekit/scramble-core": "workspace:*",
-    "@cubekit/scramble-image": "workspace:*",
-    "@cubekit/scramble-puzzle": "workspace:*",
+    "@cubegin/scramble-core": "workspace:*",
+    "@cubegin/scramble-image": "workspace:*",
+    "@cubegin/scramble-puzzle": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
@@ -176,7 +176,7 @@ Create `apps/playground/index.html`:
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CubeKit Scramble Playground</title>
+    <title>Cubegin Scramble Playground</title>
   </head>
   <body>
     <div id="root"></div>
@@ -209,7 +209,7 @@ createRoot(document.getElementById('root')!).render(
 Create `apps/playground/src/app.tsx`:
 
 ```tsx
-export const App = () => <main>CubeKit Scramble Playground</main>;
+export const App = () => <main>Cubegin Scramble Playground</main>;
 ```
 
 Create `apps/playground/src/styles.css`:
@@ -319,7 +319,7 @@ Expected: FAIL because `seeded-random.ts` does not exist.
 Create `apps/playground/src/playground/seeded-random.ts`:
 
 ```ts
-import type { RandomSource } from '@cubekit/scramble-core';
+import type { RandomSource } from '@cubegin/scramble-core';
 
 export const createSeededRandomSource = (seed: number): RandomSource => {
   let state = seed >>> 0;
@@ -418,7 +418,7 @@ Expected: FAIL because `playground-service.ts` does not exist.
 Create `apps/playground/src/playground/types.ts`:
 
 ```ts
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
 
 export interface PlaygroundScramble {
   readonly id: string;
@@ -466,8 +466,8 @@ export interface PlaygroundManualRenderResult {
 Create `apps/playground/src/playground/playground-service.ts`:
 
 ```ts
-import { createDefaultScrambleGenerator, type RandomSource } from '@cubekit/scramble-core';
-import { renderScrambleImage } from '@cubekit/scramble-image';
+import { createDefaultScrambleGenerator, type RandomSource } from '@cubegin/scramble-core';
+import { renderScrambleImage } from '@cubegin/scramble-image';
 import { createSeededRandomSource } from './seeded-random';
 import type {
   PlaygroundGenerateInput,
@@ -679,7 +679,7 @@ Create `apps/playground/src/playground/use-playground.ts`:
 
 ```ts
 import { useMemo, useState } from 'react';
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
 import { createPlaygroundService } from './playground-service';
 import type {
   PlaygroundGenerateResult,
@@ -849,7 +849,7 @@ Expected: FAIL because the current app shell has no controls or preview.
 Replace `apps/playground/src/app.tsx` with a component that:
 
 ```tsx
-import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubekit/scramble-puzzle';
+import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubegin/scramble-puzzle';
 import { usePlayground } from './playground/use-playground';
 
 export const App = () => {
@@ -859,7 +859,7 @@ export const App = () => {
     <main className="page-shell">
       <header className="page-header">
         <div>
-          <p className="eyebrow">CubeKit</p>
+          <p className="eyebrow">Cubegin</p>
           <h1>Scramble Playground</h1>
         </div>
         <p className="baseline">TNoodle baseline: WCA 1.2.3</p>
@@ -1079,7 +1079,7 @@ import { createSvgDownloadName } from './download';
 
 describe('createSvgDownloadName', () => {
   it('includes event id and one-based index', () => {
-    expect(createSvgDownloadName({ eventId: '333', index: 0 })).toBe('cubekit-333-1.svg');
+    expect(createSvgDownloadName({ eventId: '333', index: 0 })).toBe('cubegin-333-1.svg');
   });
 });
 ```
@@ -1114,7 +1114,7 @@ export const writeScramblesToClipboard = async (
 
 ```ts
 // apps/playground/src/playground/download.ts
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
 
 export const createSvgDownloadName = ({
   eventId,
@@ -1122,7 +1122,7 @@ export const createSvgDownloadName = ({
 }: {
   readonly eventId: WcaEventId;
   readonly index: number;
-}) => `cubekit-${eventId}-${index + 1}.svg`;
+}) => `cubegin-${eventId}-${index + 1}.svg`;
 ```
 
 - [ ] **Step 4: Wire buttons into UI**
@@ -1164,9 +1164,9 @@ Run:
 pnpm --filter playground test
 pnpm --filter playground typecheck
 pnpm --filter playground build
-pnpm --filter @cubekit/scramble-puzzle test
-pnpm --filter @cubekit/scramble-core test
-pnpm --filter @cubekit/scramble-image test
+pnpm --filter @cubegin/scramble-puzzle test
+pnpm --filter @cubegin/scramble-core test
+pnpm --filter @cubegin/scramble-image test
 ```
 
 Expected: all commands pass.

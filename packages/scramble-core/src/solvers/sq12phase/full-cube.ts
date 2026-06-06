@@ -1,9 +1,9 @@
-import type { SquareOneState } from '@cubekit/scramble-puzzle';
+import type { SquareOneState } from '@cubegin/scramble-puzzle';
 import type { RandomSource } from '../../random-source.js';
 import { getShape2Idx, getShapeTables } from './shape.js';
 import { createSquareCoordinate, get8Perm, type SquareCoordinate } from './square.js';
 
-const ERROR_PREFIX = '@cubekit/scramble-core';
+const ERROR_PREFIX = '@cubegin/scramble-core';
 
 const SOLVED_UL = 0x011233;
 const SOLVED_UR = 0x455677;

@@ -1,7 +1,7 @@
 import type { RandomSource } from '../random-source.js';
 import { TwoByTwoSolver } from '../solvers/two-by-two-solver.js';
 
-const ERROR_PREFIX = '@cubekit/scramble-core';
+const ERROR_PREFIX = '@cubegin/scramble-core';
 const SCRAMBLE_LENGTH = 11;
 const WCA_MIN_SCRAMBLE_DISTANCE = 4;
 const MAX_WCA_ATTEMPTS = 100;

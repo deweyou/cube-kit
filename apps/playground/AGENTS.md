@@ -1,7 +1,7 @@
 # Scramble Playground
 
-This app is a developer workbench for testing `@cubekit/scramble-core` and
-`@cubekit/scramble-image` together.
+This app is a developer workbench for testing `@cubegin/scramble-core` and
+`@cubegin/scramble-image` together.
 
 ## Read First
 

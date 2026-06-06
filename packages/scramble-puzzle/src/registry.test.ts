@@ -24,7 +24,7 @@ describe('createPuzzleRegistry', () => {
   it('throws a typed error for unknown events', () => {
     const registry = createPuzzleRegistry([]);
     expect(() => registry.getByEventId('333')).toThrow(
-      "@cubekit/scramble-puzzle: event '333' is not registered",
+      "@cubegin/scramble-puzzle: event '333' is not registered",
     );
   });
 

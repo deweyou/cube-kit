@@ -8,14 +8,14 @@ import {
   parseSquareOneMove,
   type SquareOneMove,
   type SquareOneState,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import { FullCube } from './full-cube.js';
 import { getShapeTables, popCount } from './shape.js';
 import { createSquareCoordinate, getSquareTables } from './square.js';
 
 export const INVERSE_SOLUTION = 0x2;
 
-const ERROR_PREFIX = '@cubekit/scramble-core';
+const ERROR_PREFIX = '@cubegin/scramble-core';
 const WCA_TURN_METRIC = 1;
 const METRIC = WCA_TURN_METRIC;
 const PRUN_INC = METRIC === WCA_TURN_METRIC ? 2 : 1;

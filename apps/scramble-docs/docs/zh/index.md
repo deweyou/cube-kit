@@ -1,7 +1,7 @@
 # WCA 打乱生成与打乱图
 
 ::: warning 官方比赛提示
-CubeKit 是学习与开发实现，不是 WCA 官方打乱程序。正式比赛必须使用 WCA 发布的当前官方打乱程序。
+Cubegin 是学习与开发实现，不是 WCA 官方打乱程序。正式比赛必须使用 WCA 发布的当前官方打乱程序。
 :::
 
 ```mermaid
@@ -38,4 +38,4 @@ flowchart TD
 - [WCA Regulations, Article 4](https://www.worldcubeassociation.org/regulations/#article-4-scrambling)
 - [WCA official scrambles page](https://www.worldcubeassociation.org/regulations/scrambles/)
 - [thewca/tnoodle-lib](https://github.com/thewca/tnoodle-lib)
-- [CubeKit TNoodle notes](https://github.com/deweyou/cubekit/blob/main/docs/tnoodle-implementation-notes.md)
+- [Cubegin TNoodle notes](https://github.com/deweyou/cubegin/blob/main/docs/tnoodle-implementation-notes.md)

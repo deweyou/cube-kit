@@ -1,4 +1,4 @@
-const ERROR_PREFIX = '@cubekit/scramble-puzzle';
+const ERROR_PREFIX = '@cubegin/scramble-puzzle';
 
 const withPrefix = (message: string): string => `${ERROR_PREFIX}: ${message}`;
 

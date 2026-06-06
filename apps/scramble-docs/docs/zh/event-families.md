@@ -83,7 +83,7 @@ if event is 444bld:
 
 大阶魔方走 random-turn：
 
-| 项目 | CubeKit 中的典型长度 | 主要思路 |
+| 项目 | Cubegin 中的典型长度 | 主要思路 |
 | --- | ---: | --- |
 | 5x5 | 60 moves | 随机外层和宽层转动 |
 | 6x6 | 80 moves | 随机外层和宽层转动 |

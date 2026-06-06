@@ -1,7 +1,7 @@
 {
-  "name": "@cubekit/timer",
+  "name": "@cubegin/timer",
   "version": "0.0.0",
-  "description": "Platform-agnostic timer logic for CubeKit.",
+  "description": "Platform-agnostic timer logic for Cubegin.",
   "license": "MIT",
   "files": [
     "dist"

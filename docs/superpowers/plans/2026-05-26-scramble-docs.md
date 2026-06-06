@@ -4,7 +4,7 @@
 
 **Goal:** Build a bilingual static VitePress learning site at `apps/scramble-docs` for WCA scramble generation and scramble image rendering principles.
 
-**Architecture:** Add a standalone workspace app that uses VitePress and contains static Chinese/English Markdown pages. The app links to existing CubeKit package docs and source files but does not import runtime scramble packages.
+**Architecture:** Add a standalone workspace app that uses VitePress and contains static Chinese/English Markdown pages. The app links to existing Cubegin package docs and source files but does not import runtime scramble packages.
 
 **Tech Stack:** VitePress `1.6.4`, TypeScript config for app tooling, pnpm workspace scripts, Markdown/Mermaid content.
 
@@ -116,7 +116,7 @@ git commit -m "feat(scramble-docs): scaffold vitepress app"
 - Create: `apps/scramble-docs/docs/zh/generation.md`
 - Create: `apps/scramble-docs/docs/zh/state-transition.md`
 - Create: `apps/scramble-docs/docs/zh/image-rendering.md`
-- Create: `apps/scramble-docs/docs/zh/cubekit-packages.md`
+- Create: `apps/scramble-docs/docs/zh/cubegin-packages.md`
 - Create matching `apps/scramble-docs/docs/en/*.md`
 
 - [ ] **Step 1: Write Chinese pages**
@@ -129,7 +129,7 @@ Write six Chinese pages with Mermaid diagrams and source links. Required concept
 - Event dispatch and special BLD/MBLD behavior.
 - Move parser and state transition as shared capability.
 - Parse/apply/render SVG image pipeline.
-- CubeKit package boundaries and tests.
+- Cubegin package boundaries and tests.
 
 - [ ] **Step 2: Write English pages**
 

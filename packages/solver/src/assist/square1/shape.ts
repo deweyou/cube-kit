@@ -2,7 +2,7 @@ import {
   parseSquareOneAlgorithm,
   splitAlgorithm,
   type SquareOneMove,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import {
   InvalidSolverScrambleError,
   NoSolverSolutionError,

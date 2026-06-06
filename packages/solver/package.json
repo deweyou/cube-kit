@@ -1,7 +1,7 @@
 {
-  "name": "@cubekit/solver",
+  "name": "@cubegin/solver",
   "version": "0.0.0",
-  "description": "Platform-agnostic auxiliary solve helpers for CubeKit.",
+  "description": "Platform-agnostic auxiliary solve helpers for Cubegin.",
   "license": "GPL-3.0-only",
   "files": [
     "dist",
@@ -20,7 +20,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cubekit/scramble-puzzle": "workspace:*"
+    "@cubegin/scramble-puzzle": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

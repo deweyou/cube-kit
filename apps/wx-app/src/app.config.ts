@@ -3,7 +3,7 @@ export default defineAppConfig({
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#fff',
-    navigationBarTitleText: 'cubekit',
+    navigationBarTitleText: 'cubegin',
     navigationBarTextStyle: 'black',
   },
 });

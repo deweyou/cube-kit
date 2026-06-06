@@ -2,13 +2,13 @@
 
 ```mermaid
 flowchart TD
-    Input["event id + scramble"] --> Puzzle["@cubekit/scramble-puzzle"]
+    Input["event id + scramble"] --> Puzzle["@cubegin/scramble-puzzle"]
     Puzzle --> State["Applied puzzle state"]
     State --> Renderer["Event renderer"]
     Renderer --> SVG["Serialized SVG string"]
 ```
 
-`@cubekit/scramble-image` renders DOM-free SVG previews from puzzle states. It
+`@cubegin/scramble-image` renders DOM-free SVG previews from puzzle states. It
 depends on `scramble-puzzle` for parsing and state application, then serializes a
 single SVG string. The default output remains the TNoodle-compatible 2D net;
 callers can opt into fixed isometric SVG previews for cube, Megaminx, Pyraminx,
@@ -38,9 +38,9 @@ and Skewb events with `renderScrambleImage(eventId, scramble, { view:
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/scramble-image test
-pnpm --filter @cubekit/scramble-image test:coverage
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-image test
+pnpm --filter @cubegin/scramble-image test:coverage
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 ## Key Files

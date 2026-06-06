@@ -1,0 +1,11 @@
+cubegin
+
+This package re-exports Cubegin TNoodle-compatible scramble packages:
+
+- @cubegin/scramble-core
+- @cubegin/scramble-image
+- @cubegin/scramble-puzzle
+
+Those packages port behavior from thewca/tnoodle-lib lib-scrambles v0.19.2,
+which is distributed under GPL-v3.0. Cubegin is not an official WCA scramble
+program.

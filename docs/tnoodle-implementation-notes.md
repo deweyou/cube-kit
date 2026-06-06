@@ -14,9 +14,9 @@ flowchart TD
     Image -. "not wired yet" .-> Wx
 ```
 
-CubeKit now has standalone TypeScript packages for TNoodle-compatible puzzle
+Cubegin now has standalone TypeScript packages for TNoodle-compatible puzzle
 notation/state, scramble generation, and SVG rendering. `apps/web` imports
-these packages directly; the removed legacy `@cubekit/scramble` package should
+these packages directly; the removed legacy `@cubegin/scramble` package should
 not be restored.
 
 ## Implemented Packages
@@ -41,15 +41,15 @@ TNoodle-WCA `1.2.3`, `thewca/tnoodle` `v1.2.3`, and `thewca/tnoodle-lib`
 
 Core package verification commands used during the implementation:
 
-- `pnpm --filter @cubekit/scramble-puzzle test`
-- `pnpm --filter @cubekit/scramble-core test`
-- `pnpm --filter @cubekit/scramble-image test`
-- `pnpm --filter @cubekit/scramble-puzzle test:coverage`
-- `pnpm --filter @cubekit/scramble-core test:coverage`
-- `pnpm --filter @cubekit/scramble-image test:coverage`
-- `pnpm --filter @cubekit/scramble-puzzle typecheck`
-- `pnpm --filter @cubekit/scramble-core typecheck`
-- `pnpm --filter @cubekit/scramble-image typecheck`
+- `pnpm --filter @cubegin/scramble-puzzle test`
+- `pnpm --filter @cubegin/scramble-core test`
+- `pnpm --filter @cubegin/scramble-image test`
+- `pnpm --filter @cubegin/scramble-puzzle test:coverage`
+- `pnpm --filter @cubegin/scramble-core test:coverage`
+- `pnpm --filter @cubegin/scramble-image test:coverage`
+- `pnpm --filter @cubegin/scramble-puzzle typecheck`
+- `pnpm --filter @cubegin/scramble-core typecheck`
+- `pnpm --filter @cubegin/scramble-image typecheck`
 
 Repository verification remains:
 
@@ -71,7 +71,7 @@ packages without a separate runtime check.
 ## Upgrade Flow
 
 When TNoodle changes, diff the pinned upstream tags recorded in
-[docs/tnoodle-baseline.md](tnoodle-baseline.md) before editing CubeKit. Split
+[docs/tnoodle-baseline.md](tnoodle-baseline.md) before editing Cubegin. Split
 updates by upstream area:
 
 - `scrambles` contracts and puzzle files -> `scramble-puzzle`

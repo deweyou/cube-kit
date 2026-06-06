@@ -17,7 +17,7 @@ and scramble generation, while React hooks own browser input and animation.
 
 - `TimerPage` owns the current WCA event, scramble text, page state, and final
   elapsed result in one place. See [apps/web/src/timer/timer-page.tsx#L14](../apps/web/src/timer/timer-page.tsx#L14).
-- `@cubekit/timer` is platform-agnostic state only. It uses `performance.now()`
+- `@cubegin/timer` is platform-agnostic state only. It uses `performance.now()`
   and exposes `start`, `stop`, `reset`, and `getState` through
   [packages/timer/src/timer.ts#L13](../packages/timer/src/timer.ts#L13).
 - `useTimer` bridges the core timer to React with `requestAnimationFrame`; keep

@@ -107,7 +107,7 @@ export class Search {
 
     const p1SolsArr = [...this.p1sols].sort((first, second) => first.value - second.value);
     if (p1SolsArr[0] === undefined) {
-      throw new Error('@cubekit/scramble-core: threephase phase 1 found no candidates');
+      throw new Error('@cubegin/scramble-core: threephase phase 1 found no candidates');
     }
 
     let maxLength2 = 9;
@@ -137,7 +137,7 @@ export class Search {
       .sort((first, second) => first.value - second.value);
     if (arr2.length === 0) {
       throw new Error(
-        `@cubekit/scramble-core: threephase phase 2 found no candidates (phase1=${this.p1sols.length}, firstValue=${String(p1SolsArr[0]?.value)}, arr2idx=${this.arr2idx}, arr2len=${this.arr2.length})`,
+        `@cubegin/scramble-core: threephase phase 2 found no candidates (phase1=${this.p1sols.length}, firstValue=${String(p1SolsArr[0]?.value)}, arr2idx=${this.arr2idx}, arr2len=${this.arr2.length})`,
       );
     }
     let length123 = 100;
@@ -176,7 +176,7 @@ export class Search {
     const facelet = solcube.to333Facelet();
     const sol = this.search333.solution(facelet, 21, 1_000_000, 500, 0);
     if (sol.startsWith('Error')) {
-      throw new Error(`@cubekit/scramble-core: min2phase returned ${sol} during 4x4 reduction`);
+      throw new Error(`@cubegin/scramble-core: min2phase returned ${sol} during 4x4 reduction`);
     }
     const sol333 = toMove(sol);
     for (const move of sol333) solcube.move(move);
@@ -254,7 +254,7 @@ export class Search {
       s2rl < 0 ||
       s2rl >= 70
     ) {
-      throw new Error(`@cubekit/scramble-core: invalid phase 2 coordinate ct=${s2ct} rl=${s2rl}`);
+      throw new Error(`@cubegin/scramble-core: invalid phase 2 coordinate ct=${s2ct} rl=${s2rl}`);
     }
     const ctp = Center2.ctprun[s2ct * 70 + s2rl]!;
 

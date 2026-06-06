@@ -8,7 +8,7 @@ flowchart TD
     Internals --> Residual["Documented defensive gaps"]
 ```
 
-Coverage for `@cubekit/scramble-core` is strongest around public generation
+Coverage for `@cubegin/scramble-core` is strongest around public generation
 contracts and solver boundaries. Deep search engines contain defensive branches
 that are not useful to force through synthetic table corruption.
 
@@ -31,7 +31,7 @@ that are not useful to force through synthetic table corruption.
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/scramble-core test:coverage
+pnpm --filter @cubegin/scramble-core test:coverage
 ```
 
 ---

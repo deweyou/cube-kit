@@ -11,10 +11,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@cubekit/scramble-core': workspacePackage('scramble-core'),
-      '@cubekit/scramble-image': workspacePackage('scramble-image'),
-      '@cubekit/scramble-puzzle': workspacePackage('scramble-puzzle'),
-      '@cubekit/solver': workspacePackage('solver'),
+      '@cubegin/scramble-core': workspacePackage('scramble-core'),
+      '@cubegin/scramble-image': workspacePackage('scramble-image'),
+      '@cubegin/scramble-puzzle': workspacePackage('scramble-puzzle'),
+      '@cubegin/solver': workspacePackage('solver'),
     },
   },
   test: {

@@ -1,4 +1,4 @@
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
 import { generateUniqueScrambleBatch } from './batch.js';
 import { generateClockScramble } from './generators/clock.js';
 import { generateCubeRandomTurnScramble } from './generators/cube-random-turns.js';
@@ -19,7 +19,7 @@ import {
 import { generateTwoByTwoScramble } from './generators/two-by-two.js';
 import type { RandomSource } from './random-source.js';
 
-const ERROR_PREFIX = '@cubekit/scramble-core';
+const ERROR_PREFIX = '@cubegin/scramble-core';
 
 export interface GenerateOptions {
   random?: RandomSource;

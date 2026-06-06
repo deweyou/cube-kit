@@ -1,4 +1,4 @@
-# CubeKit
+# Cubegin
 
 A Rubik's cube tooling monorepo — timer, scramble generator, scramble visualizer, algorithm list, and practice apps — targeting web, H5, and WeChat miniprogram.
 
@@ -16,7 +16,7 @@ Full reasoning and alternatives: [`docs/dependency-licensing.md`](./docs/depende
 ## Workspace layout
 
 ```
-cubekit/
+cubegin/
 ├── apps/
 │   ├── playground/       # scramble package testing workbench
 │   ├── scramble-docs/    # bilingual VitePress learning site
@@ -53,9 +53,9 @@ pnpm test:docs            # verify docs/ is the harness knowledge base
 pnpm check                # vp check (lint + format)
 
 # New TNoodle-compatible packages
-pnpm --filter @cubekit/scramble-puzzle test:coverage
-pnpm --filter @cubekit/scramble-core test:coverage
-pnpm --filter @cubekit/scramble-image test:coverage
+pnpm --filter @cubegin/scramble-puzzle test:coverage
+pnpm --filter @cubegin/scramble-core test:coverage
+pnpm --filter @cubegin/scramble-image test:coverage
 pnpm --filter playground test
 pnpm build:scramble-docs
 ```
@@ -64,26 +64,26 @@ All build / test / lint commands go through [vite-plus](https://github.com/voidz
 
 ## Packages
 
-### [`@cubekit/scramble-puzzle`](./packages/scramble-puzzle) - Puzzle contracts
+### [`@cubegin/scramble-puzzle`](./packages/scramble-puzzle) - Puzzle contracts
 
 Shared WCA event metadata, parsers, state transitions, and puzzle definitions
 for cube, Clock, Megaminx, Pyraminx, Skewb, and Square-1.
 
-### [`@cubekit/scramble-core`](./packages/scramble-core) - Scramble generation
+### [`@cubegin/scramble-core`](./packages/scramble-core) - Scramble generation
 
 TNoodle-compatible WCA scramble generation across the 17 supported event ids,
 including minimum-distance filters, BLD no-inspection orientation moves,
 Fewest Moves padding, and multiline `333mbld` output.
 
-### [`@cubekit/scramble-image`](./packages/scramble-image) - SVG previews
+### [`@cubegin/scramble-image`](./packages/scramble-image) - SVG previews
 
 DOM-free SVG rendering for scramble states. It uses `scramble-puzzle` parsers,
 applies the scramble to a solved state, and returns standalone SVG strings.
 
 ### [`apps/web`](./apps/web) - Timer app
 
-React web/H5 timer UI. It consumes `@cubekit/timer`, `@cubekit/scramble-core`,
-`@cubekit/scramble-puzzle`, and `@cubekit/scramble-image` directly.
+React web/H5 timer UI. It consumes `@cubegin/timer`, `@cubegin/scramble-core`,
+`@cubegin/scramble-puzzle`, and `@cubegin/scramble-image` directly.
 
 ### [`apps/playground`](./apps/playground) - Testing workbench
 

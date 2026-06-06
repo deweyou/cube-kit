@@ -1,5 +1,5 @@
-import { renderScrambleImage } from '@cubekit/scramble-image';
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import { renderScrambleImage } from '@cubegin/scramble-image';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
 import { EventSelector } from '../components/event-selector';
 import { ScrambleText } from '../components/scramble-text';
 import { ScrambleImage } from '../components/scramble-image';

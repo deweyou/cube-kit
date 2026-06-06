@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { createDefaultScrambleGenerator, createMathRandomSource } from '@cubekit/scramble-core';
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import { createDefaultScrambleGenerator, createMathRandomSource } from '@cubegin/scramble-core';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
 import { useTimer } from './hooks/use-timer';
 import { useTimerGesture } from './hooks/use-timer-gesture';
 import { ScrambleView } from './views/scramble-view';

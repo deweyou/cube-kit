@@ -1,6 +1,6 @@
-# @cubekit/solver
+# @cubegin/solver
 
-This package owns platform-agnostic auxiliary solve helpers for CubeKit.
+This package owns platform-agnostic auxiliary solve helpers for Cubegin.
 
 ## Read First
 
@@ -10,14 +10,14 @@ This package owns platform-agnostic auxiliary solve helpers for CubeKit.
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/solver test
-pnpm --filter @cubekit/solver test:coverage
-pnpm --filter @cubekit/solver typecheck
-pnpm --filter @cubekit/solver build
+pnpm --filter @cubegin/solver test
+pnpm --filter @cubegin/solver test:coverage
+pnpm --filter @cubegin/solver typecheck
+pnpm --filter @cubegin/solver build
 ```
 
 ## Constraints
 
 - Keep `src/` platform-agnostic.
-- Depend on `@cubekit/scramble-puzzle` only.
-- Do not import `@cubekit/scramble-core` or `@cubekit/scramble-image`.
+- Depend on `@cubegin/scramble-puzzle` only.
+- Do not import `@cubegin/scramble-core` or `@cubegin/scramble-image`.

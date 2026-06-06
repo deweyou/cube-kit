@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSkewbDefinition } from '@cubekit/scramble-puzzle';
+import { createSkewbDefinition } from '@cubegin/scramble-puzzle';
 import { renderScrambleImage } from '../render.js';
 import { renderSkewbIsometricState } from './skewb-isometric.js';
 import { renderSkewbState } from './skewb.js';

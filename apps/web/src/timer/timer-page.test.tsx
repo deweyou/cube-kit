@@ -8,12 +8,12 @@ const { generate, renderScrambleImage } = vi.hoisted(() => ({
   renderScrambleImage: vi.fn((_eventId: string, scramble: string) => `<svg>${scramble}</svg>`),
 }));
 
-vi.mock('@cubekit/scramble-core', () => ({
+vi.mock('@cubegin/scramble-core', () => ({
   createDefaultScrambleGenerator: () => ({ generate }),
   createMathRandomSource: () => ({ nextInt: () => 0 }),
 }));
 
-vi.mock('@cubekit/scramble-image', () => ({
+vi.mock('@cubegin/scramble-image', () => ({
   renderScrambleImage,
 }));
 
