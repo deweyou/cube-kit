@@ -3,12 +3,14 @@ packages:
   - packages/*
 
 catalog:
-  '@vitest/coverage-v8': 4.1.4
+  '@deweyou-design/react': ^0.3.1
+  '@deweyou-design/styles': ^0.3.1
   '@testing-library/user-event': ^14.6.1
   '@types/node': ^24
   '@types/react': ^19
   '@types/react-dom': ^19
   '@vitejs/plugin-react': ^4
+  '@vitest/coverage-v8': 4.1.4
   react: ^19
   react-dom: ^19
   typescript: ^5

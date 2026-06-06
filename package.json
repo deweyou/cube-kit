@@ -16,8 +16,7 @@
     "build": "vp run build -r",
     "test": "pnpm test:docs && vp run test -r",
     "test:docs": "node --test scripts/docs-home.test.mjs",
-    "check": "vp check",
-    "postinstall": "npx skills install"
+    "check": "vp check"
   },
   "devDependencies": {
     "vite-plus": "catalog:"

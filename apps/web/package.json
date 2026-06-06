@@ -16,8 +16,8 @@
     "@cubekit/scramble-image": "workspace:*",
     "@cubekit/scramble-puzzle": "workspace:*",
     "@cubekit/timer": "workspace:*",
-    "@deweyou-design/react": "^0.0.5",
-    "@deweyou-design/styles": "^0.0.5",
+    "@deweyou-design/react": "catalog:",
+    "@deweyou-design/styles": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
