@@ -14,6 +14,7 @@ import { createIndexedDbTimerSessionRepository } from './storage/timer-session-d
 import { ScrambleView } from './views/scramble-view';
 import { TimingView } from './views/timing-view';
 import { ResultView } from './views/result-view';
+import styles from './timer-page.module.css';
 
 type PageState = 'scramble' | 'timing' | 'result';
 
@@ -52,18 +53,7 @@ export const TimerPage = ({ repository: injectedRepository }: TimerPageProps = {
   }, [injectedRepository]);
 
   if (!repository) {
-    return (
-      <div
-        style={{
-          display: 'grid',
-          height: '100%',
-          placeItems: 'center',
-          color: 'var(--ui-color-text-muted)',
-        }}
-      >
-        载入成绩中...
-      </div>
-    );
+    return <div className={styles.loading}>载入成绩中...</div>;
   }
 
   return <TimerPageContent repository={repository} storageError={storageError} />;
@@ -124,7 +114,9 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
   }, [loadScramble, sessionState.eventId, sessionState.isReady]);
 
   const handleStart = useCallback(() => {
-    if (pageState !== 'scramble' || isScrambleLoading || scrambleError || scramble.length === 0) return;
+    if (pageState !== 'scramble' || isScrambleLoading || scrambleError || scramble.length === 0) {
+      return;
+    }
     start();
     setPageState('timing');
   }, [isScrambleLoading, pageState, scramble, scrambleError, start]);
@@ -228,14 +220,7 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
 
   const sessionPanel = (
     <aside
-      style={{
-        display: 'grid',
-        alignContent: 'start',
-        gap: 14,
-        minWidth: 0,
-        borderLeft: '1px solid var(--ui-color-border)',
-        paddingLeft: 20,
-      }}
+      className={styles.sessionPanel}
       aria-label="成绩面板"
     >
       <StorageAlert message={storageError ?? runtimeStorageError ?? sessionState.error} />
@@ -252,7 +237,7 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
   );
 
   return (
-    <div style={{ height: '100%', overflow: 'hidden' }}>
+    <div className={styles.root}>
       {pageState === 'scramble' && (
         <ScrambleView
           eventId={sessionState.eventId}
