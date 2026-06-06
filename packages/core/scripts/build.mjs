@@ -1,8 +1,8 @@
 import {
   cpSync,
   existsSync,
-  mkdirSync,
   readFileSync,
+  mkdirSync,
   readdirSync,
   rmSync,
   writeFileSync,
@@ -24,6 +24,15 @@ const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
 const toPosix = (path) => path.split(sep).join('/');
 
+const listFiles = (directory) => {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = resolve(directory, entry.name);
+    if (entry.isDirectory()) return listFiles(path);
+    if (entry.isFile()) return [path];
+    return [];
+  });
+};
+
 const discoverPublicPackages = () => {
   return readdirSync(packagesRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && entry.name !== 'core')
@@ -35,7 +44,9 @@ const discoverPublicPackages = () => {
       const publicSubpath = packageJson.cubegin?.publicSubpath;
       if (!publicSubpath) return undefined;
       if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(publicSubpath)) {
-        throw new Error(`Invalid cubegin.publicSubpath '${publicSubpath}' in ${directoryName.name}`);
+        throw new Error(
+          `Invalid cubegin.publicSubpath '${publicSubpath}' in ${directoryName.name}`,
+        );
       }
       return {
         directory,
@@ -132,15 +143,17 @@ const assertBundledOutput = (publicPackages) => {
     }
   }
 
-  const scan = spawnSync('rg', [`(from|import|export).*["']@cubegin/`, distRoot], {
-    cwd: packageRoot,
-    encoding: 'utf8',
-  });
-  if (scan.status === 0) {
-    throw new Error(`Published dist must not import unpublished @cubegin packages:\n${scan.stdout}`);
-  }
-  if (scan.status !== 1) {
-    throw new Error(scan.stderr || 'Failed to scan dist for @cubegin imports');
+  const leakedImports = listFiles(distRoot)
+    .filter((file) => file.endsWith('.mjs') || file.endsWith('.mts'))
+    .flatMap((file) => {
+      const content = readFileSync(file, 'utf8');
+      if (!/(from|import|export).*["']@cubegin\//.test(content)) return [];
+      return [relative(packageRoot, file)];
+    });
+  if (leakedImports.length > 0) {
+    throw new Error(
+      `Published dist must not import unpublished @cubegin packages:\n${leakedImports.join('\n')}`,
+    );
   }
 
   const packageJson = readJson(packageJsonPath);

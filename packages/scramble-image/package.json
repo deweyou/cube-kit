@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "description": "DOM-free SVG rendering for TNoodle-compatible scramble states.",
   "license": "GPL-3.0-only",
-  "cubegin": {
-    "publicSubpath": "scramble-image"
-  },
   "files": [
     "dist",
     "LICENSE",
@@ -28,11 +25,14 @@
     "@cubegin/scramble-puzzle": "workspace:*"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "catalog:",
     "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:"
+  },
+  "cubegin": {
+    "publicSubpath": "scramble-image"
   }
 }

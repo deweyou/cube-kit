@@ -15,7 +15,9 @@ const increment = args.find((arg) => !arg.startsWith('-')) ?? 'patch';
 const dryRun = args.includes('--dry-run');
 
 if (!increments.has(increment)) {
-  throw new Error(`Expected version increment to be major, minor, or patch. Received '${increment}'.`);
+  throw new Error(
+    `Expected version increment to be major, minor, or patch. Received '${increment}'.`,
+  );
 }
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));

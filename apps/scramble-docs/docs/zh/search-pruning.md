@@ -23,15 +23,15 @@ flowchart TD
 ```ts
 state = {
   permutation: 1234,
-  orientation: 321
-}
+  orientation: 321,
+};
 ```
 
 如果做一个 `R`，新的 `permutation` 和 `orientation` 是多少？朴素做法是展开角块、旋转、再重新编码。搜索里这件事会发生几百万次，所以要预计算：
 
 ```ts
-movePerm[1234][R] = 3051
-moveOrient[321][R] = 117
+movePerm[1234][R] = 3051;
+moveOrient[321][R] = 117;
 ```
 
 搜索时一步转动就变成：
@@ -39,8 +39,8 @@ moveOrient[321][R] = 117
 ```ts
 next = {
   permutation: movePerm[state.permutation][move],
-  orientation: moveOrient[state.orientation][move]
-}
+  orientation: moveOrient[state.orientation][move],
+};
 ```
 
 这就是状态图的邻接表：给定一个点和一条边，马上知道下一个点。
@@ -85,7 +85,7 @@ if lowerBound > remainingDepth:
 WCA 最短距离过滤常见写法是：
 
 ```ts
-isTooClose = solver.solveIn(state, minimumDistance - 1) !== null
+isTooClose = solver.solveIn(state, minimumDistance - 1) !== null;
 ```
 
 以 2x2 为例，minimumDistance 是 4，所以检查 3 步内是否存在解：
@@ -111,7 +111,7 @@ return null
 有些小 puzzle 的 WCA/TNoodle 风格输出会使用固定长度。生成器不是「求最短解」，而是搜索一个正好指定长度的路径：
 
 ```ts
-solution = search(state, desiredLength, exactLength = true)
+solution = search(state, desiredLength, (exactLength = true));
 ```
 
 这看起来反直觉：为什么要正好 11 步，而不是最短？原因是打乱字符串要有稳定、可预期的形态；公平性仍然来自前面的 target state 抽样和距离过滤。
@@ -149,7 +149,7 @@ for depth = minPossibleDepth..maxDepth:
     return solution
 ```
 
-这就是 IDA* 风格的核心直觉：像 DFS 一样省内存，但用 pruning table 的下界避免乱搜。
+这就是 IDA\* 风格的核心直觉：像 DFS 一样省内存，但用 pruning table 的下界避免乱搜。
 
 ## 3x3 two-phase 的剪枝直觉
 

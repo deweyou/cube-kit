@@ -97,11 +97,11 @@ competitor.
 
 Big cubes use random-turn generation:
 
-| Event | Typical length in Cubegin | Main idea |
-| --- | ---: | --- |
-| 5x5 | 60 moves | random outer and wide turns |
-| 6x6 | 80 moves | random outer and wide turns |
-| 7x7 | 100 moves | random outer and wide turns |
+| Event | Typical length in Cubegin | Main idea                   |
+| ----- | ------------------------: | --------------------------- |
+| 5x5   |                  60 moves | random outer and wide turns |
+| 6x6   |                  80 moves | random outer and wide turns |
+| 7x7   |                 100 moves | random outer and wide turns |
 
 The generator avoids choosing the same axis back-to-back. A 5x5 blindfolded
 scramble adds no-inspection orientation moves using third-layer-wide moves such

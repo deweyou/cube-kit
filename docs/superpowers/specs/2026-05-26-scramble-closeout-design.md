@@ -162,4 +162,3 @@ separately and do not hide it.
   defensive exclusions explicitly.
 - E2E for the playground remains a follow-up unless adding Playwright becomes part
   of this closeout.
-

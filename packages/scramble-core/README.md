@@ -17,10 +17,7 @@ pnpm install
 ## Quick Start
 
 ```ts
-import {
-  createDefaultScrambleGenerator,
-  createMathRandomSource,
-} from '@cubegin/scramble-core';
+import { createDefaultScrambleGenerator, createMathRandomSource } from '@cubegin/scramble-core';
 
 const generator = createDefaultScrambleGenerator({
   random: createMathRandomSource(),

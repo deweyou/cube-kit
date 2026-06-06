@@ -124,12 +124,7 @@ describe('Pyraminx state transitions', () => {
     expect(() =>
       applyPyraminxMove(
         {
-          image: [
-            Array(9).fill(99),
-            Array(9).fill(1),
-            Array(9).fill(2),
-            Array(9).fill(3),
-          ],
+          image: [Array(9).fill(99), Array(9).fill(1), Array(9).fill(2), Array(9).fill(3)],
         },
         move,
       ),

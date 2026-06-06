@@ -30,10 +30,10 @@ those pages explain why the pseudo-code is fast enough to run.
 
 2x2 only has corners, so the state can be encoded with two coordinates:
 
-| State part | Meaning | Size |
-| --- | --- | ---: |
+| State part  | Meaning                                                  | Size |
+| ----------- | -------------------------------------------------------- | ---: |
 | permutation | relative positions of 7 corners; the last is constrained | 5040 |
-| orientation | orientations of 7 corners; the last is constrained | 729 |
+| orientation | orientations of 7 corners; the last is constrained       |  729 |
 
 The generator does not randomly concatenate `R U F` moves. It does this:
 
@@ -63,8 +63,8 @@ us?
 Instead of moving pieces every time, the solver precomputes tables:
 
 ```ts
-movePerm[permutation][move] = nextPermutation
-moveOrient[orientation][move] = nextOrientation
+movePerm[permutation][move] = nextPermutation;
+moveOrient[orientation][move] = nextOrientation;
 ```
 
 For 2x2, the search uses `U`, `R`, and `F`, each with three turn amounts, so
@@ -122,12 +122,12 @@ the sampled target state.
 
 3x3 state is much larger. It is usually described by:
 
-| Coordinate | Meaning |
-| --- | --- |
+| Coordinate         | Meaning          |
+| ------------------ | ---------------- |
 | corner permutation | corner positions |
-| corner orientation | corner twists |
-| edge permutation | edge positions |
-| edge orientation | edge flips |
+| corner orientation | corner twists    |
+| edge permutation   | edge positions   |
+| edge orientation   | edge flips       |
 
 Sampling those numbers must respect real cube constraints: corner and edge
 permutation parity must match, corner twists must sum correctly, and edge flips
@@ -174,10 +174,10 @@ while moves.length < requiredLength:
 ```
 
 | Event | Length |
-| --- | ---: |
-| 5x5 | 60 |
-| 6x6 | 80 |
-| 7x7 | 100 |
+| ----- | -----: |
+| 5x5   |     60 |
+| 6x6   |     80 |
+| 7x7   |    100 |
 
 Megaminx is also random-turn, but it uses a readable 7-row format that
 alternates `R` and `D` moves and ends each row with `U` or `U'`.
@@ -222,10 +222,10 @@ side.
 
 ## Summary
 
-| Type | Used by | Core logic |
-| --- | --- | --- |
-| random-state | 2x2, 3x3, 4x4, Pyraminx, Skewb, Square-1, and related events | sample state, reject too-easy states, solve, invert |
-| random-turn | 5x5, 6x6, 7x7, Megaminx, Clock | construct a long or fixed-format random move sequence |
+| Type         | Used by                                                      | Core logic                                            |
+| ------------ | ------------------------------------------------------------ | ----------------------------------------------------- |
+| random-state | 2x2, 3x3, 4x4, Pyraminx, Skewb, Square-1, and related events | sample state, reject too-easy states, solve, invert   |
+| random-turn  | 5x5, 6x6, 7x7, Megaminx, Clock                               | construct a long or fixed-format random move sequence |
 
 The real algorithm answers three questions:
 

@@ -54,6 +54,7 @@
 ### Task 1: Coverage Infrastructure
 
 **Files:**
+
 - Modify: `pnpm-workspace.yaml`
 - Modify: `packages/scramble-puzzle/package.json`
 - Modify: `packages/scramble-core/package.json`
@@ -68,7 +69,7 @@
 Add this catalog entry to `pnpm-workspace.yaml`:
 
 ```yaml
-  '@vitest/coverage-v8': ^4
+'@vitest/coverage-v8': ^4
 ```
 
 - [ ] **Step 2: Add package coverage scripts**
@@ -148,6 +149,7 @@ git commit -m "test(scramble): add package coverage commands"
 ### Task 2: WCA Rule And Package Contract Tests
 
 **Files:**
+
 - Modify: `packages/scramble-puzzle/src/events.test.ts`
 - Modify: relevant `packages/scramble-puzzle/src/*/*.test.ts`
 - Modify: `packages/scramble-core/src/integration.test.ts`
@@ -276,6 +278,7 @@ git commit -m "test(scramble): cover wca package contracts"
 ### Task 3: Package/App Knowledge And AGENTS Routing
 
 **Files:**
+
 - Create docs under `docs/packages/scramble-puzzle/`
 - Create docs under `docs/packages/scramble-core/`
 - Create docs under `docs/packages/scramble-image/`
@@ -370,6 +373,7 @@ git commit -m "docs(scramble): add package knowledge routing"
 ### Task 4: License Alignment
 
 **Files:**
+
 - Modify: root `package.json` if SPDX alignment is chosen for root.
 - Modify: `packages/scramble-puzzle/package.json`
 - Modify: `packages/scramble-core/package.json`
@@ -451,6 +455,7 @@ git commit -m "chore(scramble): align package licenses"
 ### Task 5: README Updates
 
 **Files:**
+
 - Create: `packages/scramble-puzzle/README.md`
 - Create: `packages/scramble-core/README.md`
 - Create: `packages/scramble-image/README.md`
@@ -531,6 +536,7 @@ git commit -m "docs(scramble): update package readmes"
 ### Task 6: Final Verification And Memory
 
 **Files:**
+
 - Modify: `docs/.state.md`
 - Modify: `docs/.todo.md` if E2E or coverage follow-ups changed.
 

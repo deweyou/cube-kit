@@ -23,6 +23,7 @@
 ## Task 1: Scaffold VitePress App
 
 **Files:**
+
 - Create: `apps/scramble-docs/package.json`
 - Create: `apps/scramble-docs/tsconfig.json`
 - Create: `apps/scramble-docs/docs/.vitepress/config.mts`
@@ -111,6 +112,7 @@ git commit -m "feat(scramble-docs): scaffold vitepress app"
 ## Task 2: Write Bilingual Learning Content
 
 **Files:**
+
 - Create: `apps/scramble-docs/docs/zh/index.md`
 - Create: `apps/scramble-docs/docs/zh/wca-rules.md`
 - Create: `apps/scramble-docs/docs/zh/generation.md`
@@ -155,6 +157,7 @@ git commit -m "docs(scramble-docs): add bilingual learning content"
 ## Task 3: Update Repository Routing And Memory
 
 **Files:**
+
 - Modify: `README.md`
 - Modify: `AGENTS.md`
 - Modify: `docs/project-structure.md`
@@ -196,6 +199,7 @@ git commit -m "docs: route scramble docs app"
 ## Task 4: Verify Site
 
 **Files:**
+
 - No new files expected unless verification exposes required fixes.
 
 - [ ] **Step 1: Validate YAML/Markdown hygiene**

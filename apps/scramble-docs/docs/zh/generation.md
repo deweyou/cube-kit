@@ -28,10 +28,10 @@ flowchart TD
 
 2x2 只有角块，所以状态可以拆成两类数字：
 
-| 状态部分 | 含义 | 数量级 |
-| --- | --- | ---: |
-| permutation | 7 个角块相对位置，最后一个由约束决定 | 5040 |
-| orientation | 7 个角块朝向，最后一个由朝向和决定 | 729 |
+| 状态部分    | 含义                                 | 数量级 |
+| ----------- | ------------------------------------ | -----: |
+| permutation | 7 个角块相对位置，最后一个由约束决定 |   5040 |
+| orientation | 7 个角块朝向，最后一个由朝向和决定   |    729 |
 
 生成器不会直接随机拼 `R U F`。它做的是：
 
@@ -58,8 +58,8 @@ throw "could not generate"
 如果每次都真的移动 7 个角块，会慢。更常见的做法是提前建表：
 
 ```ts
-movePerm[permutation][move] = nextPermutation
-moveOrient[orientation][move] = nextOrientation
+movePerm[permutation][move] = nextPermutation;
+moveOrient[orientation][move] = nextOrientation;
 ```
 
 2x2 只用 `U`、`R`、`F` 三个面和它们的三种转法，所以共有 9 种 move。建表以后，搜索时只要查数组就能走到下一个状态。
@@ -129,12 +129,12 @@ scramble = inverse(solution)
 
 3x3 状态比 2x2 大很多，状态通常拆成：
 
-| 坐标 | 含义 |
-| --- | --- |
+| 坐标               | 含义     |
+| ------------------ | -------- |
 | corner permutation | 角块位置 |
 | corner orientation | 角块朝向 |
-| edge permutation | 棱块位置 |
-| edge orientation | 棱块朝向 |
+| edge permutation   | 棱块位置 |
+| edge orientation   | 棱块朝向 |
 
 随机抽 3x3 状态时不能随便抽这些数字。它必须满足魔方物理约束：
 
@@ -178,10 +178,10 @@ while moves.length < requiredLength:
 这不是等概率抽状态，而是按规则构造一条足够长、避免明显重复轴的 move 序列：
 
 | 项目 | 长度 |
-| --- | ---: |
-| 5x5 | 60 |
-| 6x6 | 80 |
-| 7x7 | 100 |
+| ---- | ---: |
+| 5x5  |   60 |
+| 6x6  |   80 |
+| 7x7  |  100 |
 
 Megaminx 也是 random-turn，但格式是 7 行，每行交替 `R` 和 `D`，最后用 `U` 或 `U'` 收尾。
 
@@ -223,10 +223,10 @@ U R D L ALL
 
 打乱生成可以分成两大类：
 
-| 类型 | 用在哪里 | 核心逻辑 |
-| --- | --- | --- |
-| random-state | 2x2、3x3、4x4、Pyraminx、Skewb、Square-1 等 | 抽状态、过滤太近状态、求解、反向输出 |
-| random-turn | 5x5、6x6、7x7、Megaminx、Clock | 按项目规则构造足够长或固定格式的随机 move |
+| 类型         | 用在哪里                                    | 核心逻辑                                  |
+| ------------ | ------------------------------------------- | ----------------------------------------- |
+| random-state | 2x2、3x3、4x4、Pyraminx、Skewb、Square-1 等 | 抽状态、过滤太近状态、求解、反向输出      |
+| random-turn  | 5x5、6x6、7x7、Megaminx、Clock              | 按项目规则构造足够长或固定格式的随机 move |
 
 真正的核心不是「随机字符串」，而是这三个问题：
 

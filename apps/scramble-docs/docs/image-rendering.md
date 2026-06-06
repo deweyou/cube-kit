@@ -29,14 +29,14 @@ and easy to test.
 
 ## Renderer Shapes
 
-| Puzzle family | Image idea |
-| --- | --- |
-| NxN cubes | unfolded cube net with one square per sticker |
-| Clock | two circular faces, 18 clock hands, and visible pins |
-| Megaminx | flattened pentagonal faces arranged for readability |
-| Pyraminx | triangular faces with smaller tip pieces |
-| Skewb | square/diamond-like face layout matching its sticker geometry |
-| Square-1 | top and bottom layers drawn with shape-shifting piece arcs |
+| Puzzle family | Image idea                                                    |
+| ------------- | ------------------------------------------------------------- |
+| NxN cubes     | unfolded cube net with one square per sticker                 |
+| Clock         | two circular faces, 18 clock hands, and visible pins          |
+| Megaminx      | flattened pentagonal faces arranged for readability           |
+| Pyraminx      | triangular faces with smaller tip pieces                      |
+| Skewb         | square/diamond-like face layout matching its sticker geometry |
+| Square-1      | top and bottom layers drawn with shape-shifting piece arcs    |
 
 The layout is puzzle-specific, but the input is always the same kind of thing:
 a validated final state.

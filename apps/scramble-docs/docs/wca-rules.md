@@ -33,14 +33,14 @@ For the generator it is stricter: after a state is sampled, a solver checks
 whether the state can be solved within the forbidden distance. If it can, the
 state is rejected and a new one is sampled.
 
-| Event family | Rule idea | Generator idea |
-| --- | --- | --- |
-| Most random-state events | at least 2 moves from solved | sample state, reject trivial states, solve backwards |
-| 2x2 | at least 4 moves | random corner state plus 2x2 solver filter |
-| Pyraminx | at least 6 moves | filter the main Pyraminx state; tips are handled as visible tip moves |
-| Skewb | at least 7 moves | random Skewb state plus Skewb solver filter |
-| Square-1 | at least 11 moves and initially slashable | random Square-1 state plus Square-1 metric filter |
-| 5x5, 6x6, 7x7, Megaminx | sufficiently many random moves | constrained random-turn sequence |
+| Event family             | Rule idea                                 | Generator idea                                                        |
+| ------------------------ | ----------------------------------------- | --------------------------------------------------------------------- |
+| Most random-state events | at least 2 moves from solved              | sample state, reject trivial states, solve backwards                  |
+| 2x2                      | at least 4 moves                          | random corner state plus 2x2 solver filter                            |
+| Pyraminx                 | at least 6 moves                          | filter the main Pyraminx state; tips are handled as visible tip moves |
+| Skewb                    | at least 7 moves                          | random Skewb state plus Skewb solver filter                           |
+| Square-1                 | at least 11 moves and initially slashable | random Square-1 state plus Square-1 metric filter                     |
+| 5x5, 6x6, 7x7, Megaminx  | sufficiently many random moves            | constrained random-turn sequence                                      |
 
 ## Turning The Rule Into An Algorithm
 
