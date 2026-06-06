@@ -2,6 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createMemoryTimerSessionRepository } from './storage/memory-timer-session-repository';
 import { TimerPage } from './timer-page';
 
 const { generate, renderScrambleImage } = vi.hoisted(() => ({
@@ -48,7 +49,7 @@ describe('TimerPage', () => {
       .mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" })
       .mockResolvedValueOnce({ eventId: '333', scramble: "F R U R' U' F'" });
 
-    render(<TimerPage />);
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
 
     expect(await screen.findAllByText("R U R' U'")).toHaveLength(2);
 
@@ -64,13 +65,61 @@ describe('TimerPage', () => {
       .mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" })
       .mockResolvedValueOnce({ eventId: '222', scramble: "R U R'" });
 
-    render(<TimerPage />);
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
 
     expect(await screen.findAllByText("R U R' U'")).toHaveLength(2);
 
-    await userEvent.selectOptions(screen.getByRole('combobox'), '222');
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: '魔方类型' }), '222');
 
     expect(await screen.findAllByText("R U R'")).toHaveLength(2);
     expect(renderScrambleImage).not.toHaveBeenCalledWith('222', "R U R' U'");
+  });
+
+  it('starts with the start button, saves +2, and lists the solve', async () => {
+    generate
+      .mockResolvedValueOnce({ eventId: '333', scramble: 'R U' })
+      .mockResolvedValueOnce({ eventId: '333', scramble: 'F R' });
+
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    await screen.findAllByText('R U');
+    await userEvent.click(screen.getByRole('button', { name: '开始' }));
+    await userEvent.keyboard('{Enter}');
+    await userEvent.click(await screen.findByRole('button', { name: '+2' }));
+
+    expect(await screen.findByText('#1')).not.toBeNull();
+    expect(await screen.findByText('+2')).not.toBeNull();
+    expect(await screen.findAllByText('F R')).toHaveLength(2);
+  });
+
+  it('discards deleted results without adding a solve row', async () => {
+    generate
+      .mockResolvedValueOnce({ eventId: '333', scramble: 'R U' })
+      .mockResolvedValueOnce({ eventId: '333', scramble: 'F R' });
+
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    await screen.findAllByText('R U');
+    await userEvent.click(screen.getByRole('button', { name: '开始' }));
+    await userEvent.keyboard('{Enter}');
+    await userEvent.click(await screen.findByRole('button', { name: '删除' }));
+
+    expect(screen.queryByText('#1')).toBeNull();
+    expect(await screen.findAllByText('F R')).toHaveLength(2);
+  });
+
+  it('switches event changes to the matching default list', async () => {
+    generate
+      .mockResolvedValueOnce({ eventId: '333', scramble: 'R U' })
+      .mockResolvedValueOnce({ eventId: '222', scramble: 'R U R' });
+
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    await screen.findAllByText('R U');
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: '魔方类型' }), '222');
+
+    expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '成绩列表' }).value).toBe(
+      'default:222',
+    );
   });
 });
