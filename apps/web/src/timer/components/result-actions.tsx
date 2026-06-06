@@ -1,42 +1,32 @@
 import { Button } from '@deweyou-design/react/button';
 
-export type Penalty = 'none' | '+2' | 'dnf';
-
 interface ResultActionsProps {
-  penalty: Penalty;
-  onPenalty: (p: Penalty) => void;
-  onDiscard: () => void;
+  onContinue: () => void;
+  onPlusTwo: () => void;
+  onDnf: () => void;
+  onDelete: () => void;
 }
 
-export const ResultActions = ({ penalty, onPenalty, onDiscard }: ResultActionsProps) => (
+export const ResultActions = ({
+  onContinue,
+  onPlusTwo,
+  onDnf,
+  onDelete,
+}: ResultActionsProps) => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+    <Button variant="filled" color="primary" size="md" onClick={onContinue}>
+      继续
+    </Button>
     <div style={{ display: 'flex', gap: 8 }}>
-      <Button
-        variant="outlined"
-        color="neutral"
-        size="sm"
-        onClick={() => onPenalty(penalty === '+2' ? 'none' : '+2')}
-        aria-pressed={penalty === '+2'}
-        style={
-          penalty === '+2'
-            ? { background: 'color-mix(in srgb, var(--ui-color-text) 10%, transparent)' }
-            : undefined
-        }
-      >
+      <Button variant="outlined" color="neutral" size="sm" onClick={onPlusTwo}>
         +2
       </Button>
-      <Button
-        variant="outlined"
-        color="danger"
-        size="sm"
-        onClick={() => onPenalty(penalty === 'dnf' ? 'none' : 'dnf')}
-        aria-pressed={penalty === 'dnf'}
-      >
+      <Button variant="outlined" color="danger" size="sm" onClick={onDnf}>
         DNF
       </Button>
+      <Button variant="outlined" color="danger" size="sm" onClick={onDelete}>
+        删除
+      </Button>
     </div>
-    <Button variant="link" color="neutral" size="sm" onClick={onDiscard}>
-      不记录
-    </Button>
   </div>
 );

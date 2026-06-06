@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { TimerPage } from './timer-page';
 
@@ -15,6 +16,24 @@ vi.mock('@cubegin/scramble-core', () => ({
 
 vi.mock('@cubegin/scramble-image', () => ({
   renderScrambleImage,
+}));
+
+vi.mock('@deweyou-design/react/button', () => ({
+  Button: ({
+    children,
+    onClick,
+    disabled,
+    'aria-label': ariaLabel,
+  }: {
+    children: ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+    'aria-label'?: string;
+  }) => (
+    <button type="button" onClick={onClick} disabled={disabled} aria-label={ariaLabel}>
+      {children}
+    </button>
+  ),
 }));
 
 afterEach(() => {

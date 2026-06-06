@@ -25,6 +25,44 @@ if (typeof Touch === 'undefined') {
 }
 
 describe('useTimerGesture — desktop (Space key)', () => {
+  it('Enter keydown when not running calls onStart immediately', () => {
+    const onStart = vi.fn();
+    renderHook(() => useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }));
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter', bubbles: true }));
+    });
+
+    expect(onStart).toHaveBeenCalledOnce();
+  });
+
+  it('Enter keydown when running calls onStop', () => {
+    const onStop = vi.fn();
+    renderHook(() => useTimerGesture(true, { onStart: vi.fn(), onStop, onCancel: vi.fn() }));
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter', bubbles: true }));
+    });
+
+    expect(onStop).toHaveBeenCalledOnce();
+  });
+
+  it('Enter keydown inside form controls does not start timing', () => {
+    const onStart = vi.fn();
+    const input = document.createElement('input');
+    document.body.append(input);
+    input.focus();
+
+    renderHook(() => useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }));
+
+    act(() => {
+      input.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter', bubbles: true }));
+    });
+
+    expect(onStart).not.toHaveBeenCalled();
+    input.remove();
+  });
+
   it('Space keydown when not running marks ready, then keyup calls onStart', () => {
     const onStart = vi.fn();
     const { result } = renderHook(() =>

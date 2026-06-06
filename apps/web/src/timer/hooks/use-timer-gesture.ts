@@ -27,8 +27,24 @@ export const useTimerGesture = (
   onCancelRef.current = onCancel;
 
   useEffect(() => {
+    const isFormControlFocused = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      if (target.isContentEditable) return true;
+      return ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+    };
+
     // ── Desktop: Space key ───────────────────────
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isFormControlFocused(e.target)) return;
+      if (e.code === 'Enter' && !e.repeat) {
+        e.preventDefault();
+        if (isRunningRef.current) {
+          onStopRef.current();
+        } else {
+          onStartRef.current();
+        }
+        return;
+      }
       if (e.code !== 'Space' || e.repeat) return;
       e.preventDefault();
       if (isRunningRef.current) {
@@ -40,6 +56,7 @@ export const useTimerGesture = (
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      if (isFormControlFocused(e.target)) return;
       if (e.code !== 'Space') return;
       e.preventDefault();
       if (isReadyRef.current) {

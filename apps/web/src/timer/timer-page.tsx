@@ -125,7 +125,9 @@ export const TimerPage = () => {
           elapsed={finalElapsed}
           scramble={scramble}
           onContinue={handleContinue}
-          onDiscard={handleDiscard}
+          onPlusTwo={handleContinue}
+          onDnf={handleContinue}
+          onDelete={handleDiscard}
         />
       )}
     </div>
