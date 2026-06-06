@@ -17,7 +17,6 @@ export default defineConfig({
       '@deweyou-design/styles/color.css': nm('@deweyou-design/styles/css/color.css'),
       '@deweyou-design/styles/theme.css': nm('@deweyou-design/styles/css/theme.css'),
       '@deweyou-design/styles/theme-dark.css': nm('@deweyou-design/styles/css/theme-dark.css'),
-      '@deweyou-design/react/style.css': nm('@deweyou-design/react/index.css'),
     },
   },
   test: {
