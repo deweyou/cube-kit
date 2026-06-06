@@ -16,12 +16,7 @@ interface SolveDetailProps {
   onPenaltyChange: (solveId: string, penalty: SolvePenalty) => void;
 }
 
-export const SolveDetail = ({
-  solve,
-  onClose,
-  onDelete,
-  onPenaltyChange,
-}: SolveDetailProps) => {
+export const SolveDetail = ({ solve, onClose, onDelete, onPenaltyChange }: SolveDetailProps) => {
   const imageResult = useMemo(() => {
     try {
       return { svg: renderScrambleImage(solve.eventId, solve.scramble), error: undefined };
@@ -105,13 +100,28 @@ export const SolveDetail = ({
         </p>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <Button variant="outlined" color="neutral" size="sm" onClick={() => onPenaltyChange(solve.id, 'none')}>
+          <Button
+            variant="outlined"
+            color="neutral"
+            size="sm"
+            onClick={() => onPenaltyChange(solve.id, 'none')}
+          >
             无
           </Button>
-          <Button variant="outlined" color="neutral" size="sm" onClick={() => onPenaltyChange(solve.id, '+2')}>
+          <Button
+            variant="outlined"
+            color="neutral"
+            size="sm"
+            onClick={() => onPenaltyChange(solve.id, '+2')}
+          >
             +2
           </Button>
-          <Button variant="outlined" color="danger" size="sm" onClick={() => onPenaltyChange(solve.id, 'dnf')}>
+          <Button
+            variant="outlined"
+            color="danger"
+            size="sm"
+            onClick={() => onPenaltyChange(solve.id, 'dnf')}
+          >
             DNF
           </Button>
           <Button variant="outlined" color="danger" size="sm" onClick={() => onDelete(solve.id)}>

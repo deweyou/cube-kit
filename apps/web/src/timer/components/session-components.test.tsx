@@ -70,9 +70,7 @@ describe('session components', () => {
 
     expect(onSelect).toHaveBeenCalledWith('custom');
     expect(onCreate).toHaveBeenCalledWith('新列表');
-    expect(screen.getByRole<HTMLButtonElement>('button', { name: '删除列表' }).disabled).toBe(
-      true,
-    );
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: '删除列表' }).disabled).toBe(true);
   });
 
   it('shows reverse sequence numbers and displayed times', () => {

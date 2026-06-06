@@ -45,6 +45,7 @@
 ### Task 1: Add `@cubegin/timer-session` Package Skeleton
 
 **Files:**
+
 - Create: `packages/timer-session/package.json`
 - Create: `packages/timer-session/tsconfig.json`
 - Create: `packages/timer-session/vite.config.ts`
@@ -148,6 +149,7 @@ git commit -m "feat: add timer session package"
 ### Task 2: Implement Package Types, Formatting, and Session Rules with Tests
 
 **Files:**
+
 - Create: `packages/timer-session/src/types.ts`
 - Create: `packages/timer-session/src/event-labels.ts`
 - Create: `packages/timer-session/src/session-rules.ts`
@@ -266,7 +268,11 @@ Create `packages/timer-session/src/solve-format.test.ts`:
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import { getDisplayedElapsedMs, getReverseSequenceNumber, getSolveDisplayText } from './solve-format';
+import {
+  getDisplayedElapsedMs,
+  getReverseSequenceNumber,
+  getSolveDisplayText,
+} from './solve-format';
 
 describe('solve formatting', () => {
   it('applies +2 only to displayed elapsed milliseconds', () => {
@@ -419,10 +425,7 @@ Create `packages/timer-session/src/solve-format.ts`:
 ```ts
 import type { SolvePenalty } from './types';
 
-export const getDisplayedElapsedMs = (
-  elapsedMs: number,
-  penalty: SolvePenalty,
-): number | null => {
+export const getDisplayedElapsedMs = (elapsedMs: number, penalty: SolvePenalty): number | null => {
   if (penalty === 'dnf') return null;
   if (penalty === '+2') return elapsedMs + 2000;
   return elapsedMs;
@@ -472,6 +475,7 @@ git commit -m "feat: add timer session rules"
 ### Task 3: Add Web Storage Repositories
 
 **Files:**
+
 - Create: `apps/web/src/timer/storage/memory-timer-session-repository.ts`
 - Create: `apps/web/src/timer/storage/timer-session-db.ts`
 - Create: `apps/web/src/timer/storage/timer-session-db.test.ts`
@@ -524,7 +528,9 @@ export const createMemoryTimerSessionRepository = (): TimerSessionRepository => 
       });
     },
     async listSolves(sessionId) {
-      return sortSolvesByCreatedDesc([...solves.values()].filter((solve) => solve.sessionId === sessionId));
+      return sortSolvesByCreatedDesc(
+        [...solves.values()].filter((solve) => solve.sessionId === sessionId),
+      );
     },
     async addSolve(record) {
       solves.set(record.id, record);
@@ -577,7 +583,10 @@ describe('timer session repository contract', () => {
       createdAt: 20,
     });
 
-    expect((await repository.listSolves(custom.id)).map((solve) => solve.id)).toEqual(['new', 'old']);
+    expect((await repository.listSolves(custom.id)).map((solve) => solve.id)).toEqual([
+      'new',
+      'old',
+    ]);
   });
 
   it('updates penalties and deletes solves', async () => {
@@ -669,7 +678,9 @@ export const createIndexedDbTimerSessionRepository = async (): Promise<TimerSess
         await Promise.all(
           WCA_EVENT_IDS.map((eventId, index) => {
             const session = createDefaultSession(eventId, now + index);
-            return existing.has(session.id) ? Promise.resolve(session.id) : requestToPromise(store.put(session));
+            return existing.has(session.id)
+              ? Promise.resolve(session.id)
+              : requestToPromise(store.put(session));
           }),
         );
       });
@@ -752,6 +763,7 @@ git commit -m "feat: add timer session storage"
 ### Task 4: Add `useTimerSessions` Hook
 
 **Files:**
+
 - Create: `apps/web/src/timer/hooks/use-timer-sessions.ts`
 - Create: `apps/web/src/timer/hooks/use-timer-sessions.test.tsx`
 
@@ -775,7 +787,9 @@ describe('useTimerSessions', () => {
 
     expect(result.current.eventId).toBe('333');
     expect(result.current.activeSessionId).toBe(getDefaultSessionId('333'));
-    expect(result.current.sessions.some((session) => session.id === getDefaultSessionId('222'))).toBe(true);
+    expect(
+      result.current.sessions.some((session) => session.id === getDefaultSessionId('222')),
+    ).toBe(true);
   });
 
   it('switches event changes to default sessions', async () => {
@@ -1053,6 +1067,7 @@ git commit -m "feat: add web timer session hook"
 ### Task 5: Update Gesture and Result Action Behavior
 
 **Files:**
+
 - Modify: `apps/web/src/timer/hooks/use-timer-gesture.ts`
 - Modify: `apps/web/src/timer/hooks/use-timer-gesture.test.ts`
 - Modify: `apps/web/src/timer/components/elapsed-display.tsx`
@@ -1107,7 +1122,7 @@ Keep existing Space behavior unless it conflicts with input controls. If focus i
 Update `apps/web/src/timer/components/elapsed-display.tsx` so the display style uses:
 
 ```ts
-fontFamily: 'Helvetica, Arial, sans-serif'
+fontFamily: 'Helvetica, Arial, sans-serif';
 ```
 
 - [ ] **Step 4: Write result action tests**
@@ -1190,6 +1205,7 @@ git commit -m "feat: update timer result actions"
 ### Task 6: Build Session UI Components
 
 **Files:**
+
 - Create: `apps/web/src/timer/components/session-selector.tsx`
 - Create: `apps/web/src/timer/components/solve-list.tsx`
 - Create: `apps/web/src/timer/components/solve-detail.tsx`
@@ -1350,6 +1366,7 @@ git commit -m "feat: add timer session components"
 ### Task 7: Integrate Sessions into TimerPage
 
 **Files:**
+
 - Modify: `apps/web/src/timer/timer-page.tsx`
 - Modify: `apps/web/src/timer/timer-page.test.tsx`
 - Modify: `apps/web/src/timer/views/scramble-view.tsx`
@@ -1429,7 +1446,9 @@ In tests, render `<TimerPage repository={createMemoryTimerSessionRepository()} /
 In `TimerPage`, use state for `repository`:
 
 ```ts
-const [repository, setRepository] = useState<TimerSessionRepository | null>(injectedRepository ?? null);
+const [repository, setRepository] = useState<TimerSessionRepository | null>(
+  injectedRepository ?? null,
+);
 
 useEffect(() => {
   if (injectedRepository) return;
@@ -1558,6 +1577,7 @@ git commit -m "feat: persist web timer solves"
 ### Task 8: Polish Responsive Styling and Runtime UX
 
 **Files:**
+
 - Modify/Create: component CSS modules or inline styles under `apps/web/src/timer/**`
 - Modify: `apps/web/src/timer/components/event-selector.tsx`
 - Modify: `apps/web/src/timer/views/scramble-view.tsx`
@@ -1612,6 +1632,7 @@ git commit -m "style: polish timer session UI"
 ### Task 9: Update Repository Memory and Final Verification
 
 **Files:**
+
 - Modify: `docs/project-structure.md`
 - Modify: `docs/timer-workflow.md`
 - Modify: `docs/.state.md`

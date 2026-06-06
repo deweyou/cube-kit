@@ -23,8 +23,8 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "typescript": "catalog:",
-    "vite": "catalog:",
-    "vite-plus": "catalog:",
-    "vitest": "catalog:"
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.1.19",
+    "vite-plus": "0.1.19",
+    "vitest": "npm:@voidzero-dev/vite-plus-test@0.1.19"
   }
 }

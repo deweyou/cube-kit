@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getDisplayedElapsedMs, getReverseSequenceNumber, getSolveDisplayText } from './solve-format';
+import {
+  getDisplayedElapsedMs,
+  getReverseSequenceNumber,
+  getSolveDisplayText,
+} from './solve-format';
 
 describe('solve formatting', () => {
   it('applies +2 only to displayed elapsed milliseconds', () => {

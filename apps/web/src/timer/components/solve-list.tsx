@@ -54,7 +54,12 @@ export const SolveList = ({ solves, onSelectSolve }: SolveListProps) => {
             <span style={{ color: 'var(--ui-color-text-muted)', fontSize: '0.75rem' }}>
               #{getReverseSequenceNumber(solves.length, index)}
             </span>
-            <span style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontVariantNumeric: 'tabular-nums' }}>
+            <span
+              style={{
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
               {getSolveDisplayText(solve.elapsedMs, solve.penalty)}
             </span>
             <span
