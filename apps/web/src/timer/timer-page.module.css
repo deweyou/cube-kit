@@ -1,0 +1,29 @@
+.root {
+  height: 100%;
+  overflow: hidden;
+}
+
+.loading {
+  color: var(--ui-color-text-muted);
+  display: grid;
+  height: 100%;
+  place-items: center;
+}
+
+.sessionPanel {
+  align-content: start;
+  border-left: 1px solid var(--ui-color-border);
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding-left: 20px;
+}
+
+@media (max-width: 860px) {
+  .sessionPanel {
+    border-left: 0;
+    border-top: 1px solid var(--ui-color-border);
+    padding-left: 0;
+    padding-top: 18px;
+  }
+}
