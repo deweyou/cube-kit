@@ -29,6 +29,12 @@ describe('renderPyraminxState', () => {
     expect(svg.match(/<path/g)?.length).toBe(36);
   });
 
+  it('renders explicit sticker outlines', () => {
+    const svg = renderPyraminxState(createSolvedPyraminxState());
+
+    expect(svg).toContain('stroke="#000000" stroke-width="1.25" stroke-linejoin="round"');
+  });
+
   it('renders moved stickers with Pyraminx colors', () => {
     const [move] = parsePyraminxAlgorithm('U');
     const moved = applyPyraminxMove(createSolvedPyraminxState(), move);

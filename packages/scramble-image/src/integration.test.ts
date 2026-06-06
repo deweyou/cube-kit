@@ -67,6 +67,38 @@ const SVG_ROOT_CONTRACTS = {
 const countElements = (svg: string, elementName: string): number =>
   svg.match(new RegExp(`<${elementName}\\b`, 'g'))?.length ?? 0;
 
+const isometricPathCountFor = (eventId: WcaEventId): number | undefined => {
+  switch (eventId) {
+    case '222':
+      return 25;
+    case '333':
+    case '333bld':
+    case '333fm':
+    case '333oh':
+    case '333mbld':
+      return 55;
+    case '444':
+    case '444bld':
+      return 97;
+    case '555':
+    case '555bld':
+      return 151;
+    case '666':
+      return 217;
+    case '777':
+      return 295;
+    case 'minx':
+      return 133;
+    case 'pyram':
+      return 37;
+    case 'skewb':
+      return 31;
+    case 'clock':
+    case 'sq1':
+      return undefined;
+  }
+};
+
 describe('renderScrambleImage', () => {
   it('renders every WCA event with its renderer root SVG shape', () => {
     for (const eventId of WCA_EVENT_IDS) {
@@ -82,6 +114,25 @@ describe('renderScrambleImage', () => {
       expect(countElements(svg, 'path')).toBe(root.paths);
       expect(countElements(svg, 'circle')).toBe(root.circles);
       expect(countElements(svg, 'text')).toBe(root.texts);
+    }
+  });
+
+  it('renders optional isometric SVGs and falls back for Clock and Square-1', () => {
+    for (const eventId of WCA_EVENT_IDS) {
+      const net = renderScrambleImage(eventId, SAMPLE_SCRAMBLES[eventId]);
+      const isometric = renderScrambleImage(eventId, SAMPLE_SCRAMBLES[eventId], {
+        view: 'isometric',
+      });
+      const isometricPaths = isometricPathCountFor(eventId);
+
+      if (isometricPaths === undefined) {
+        expect(isometric).toBe(net);
+        continue;
+      }
+
+      expect(isometric).not.toBe(net);
+      expect(countElements(isometric, 'path')).toBe(isometricPaths);
+      expect(countElements(isometric, 'rect')).toBe(0);
     }
   });
 });

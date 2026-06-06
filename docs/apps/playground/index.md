@@ -23,6 +23,9 @@ auxiliary solver packages without wiring them into production apps.
   target defaults and auto-generates a scramble for the selected event.
 - `?seed=<integer>` provides deterministic browser smoke and future E2E runs.
 - `333mbld` attempts are split into one displayed row per cube.
+- The SVG preview includes a `2D` / `3D` image-view switch. `2D` is the default
+  net renderer; `3D` requests the optional isometric `scramble-image` renderer
+  and naturally falls back for unsupported event families.
 
 ## Verify
 
@@ -41,4 +44,4 @@ pnpm --filter playground build
 
 ---
 
-_Last updated: 2026-05-31 | Reason: add solver diagnostics tab to playground ownership_
+_Last updated: 2026-06-06 | Reason: document solver diagnostics and image-view switch_

@@ -16,6 +16,7 @@ const UNFOLD_WIDTH = 4 * Math.cos(0.1 * Math.PI) + 2 * Math.cos(0.3 * Math.PI);
 const WIDTH = Math.trunc(UNFOLD_WIDTH * 2 * MINX_RADIUS + 3 * GAP);
 const HEIGHT = Math.trunc(UNFOLD_HEIGHT * MINX_RADIUS + 2 * GAP);
 const STROKE = '#000000';
+const STROKE_WIDTH = 1.25;
 
 export type MegaminxColorScheme = Partial<Record<MegaminxFace, HexColor>>;
 
@@ -217,6 +218,8 @@ const drawFace = (
       d: polygonPath(polygon),
       fill: colorForSticker(stickers[stateStickerIndex], colors),
       stroke: STROKE,
+      'stroke-width': STROKE_WIDTH,
+      'stroke-linejoin': 'round',
     });
   });
 };

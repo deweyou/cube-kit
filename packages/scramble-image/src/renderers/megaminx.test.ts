@@ -29,6 +29,12 @@ describe('renderMegaminxState', () => {
     expect(svg.match(/<path/g)?.length).toBe(132);
   });
 
+  it('renders explicit sticker outlines', () => {
+    const svg = renderMegaminxState(createSolvedMegaminxState());
+
+    expect(svg).toContain('stroke="#000000" stroke-width="1.25" stroke-linejoin="round"');
+  });
+
   it('renders moved stickers', () => {
     const [move] = parseMegaminxAlgorithm('R++');
     const moved = applyMegaminxMove(createSolvedMegaminxState(), move);

@@ -9,9 +9,13 @@ import {
   type WcaEventId,
 } from '@cubekit/scramble-puzzle';
 import { renderClockState } from './renderers/clock.js';
+import { renderCubeIsometric } from './renderers/cube-isometric.js';
 import { renderCubeNet } from './renderers/cube-net.js';
+import { renderMegaminxIsometricState } from './renderers/megaminx-isometric.js';
 import { renderMegaminxState } from './renderers/megaminx.js';
+import { renderPyraminxIsometricState } from './renderers/pyraminx-isometric.js';
 import { renderPyraminxState } from './renderers/pyraminx.js';
+import { renderSkewbIsometricState } from './renderers/skewb-isometric.js';
 import { renderSkewbState } from './renderers/skewb.js';
 import { renderSquareOneState } from './renderers/square1.js';
 
@@ -30,8 +34,19 @@ const CUBE_SIZE_BY_EVENT = {
   '777': 7,
 } as Partial<Record<WcaEventId, number>>;
 
-export const renderScrambleImage = (eventId: WcaEventId, scramble: string): string => {
+export type ScrambleImageView = 'net' | 'isometric';
+
+export interface ScrambleImageOptions {
+  view?: ScrambleImageView;
+}
+
+export const renderScrambleImage = (
+  eventId: WcaEventId,
+  scramble: string,
+  options: ScrambleImageOptions = {},
+): string => {
   const eventInfo = WCA_EVENT_INFO[eventId];
+  const view = options.view ?? 'net';
 
   switch (eventInfo.puzzleId) {
     case 'cube': {
@@ -44,7 +59,7 @@ export const renderScrambleImage = (eventId: WcaEventId, scramble: string): stri
       const cube = createCubeDefinition(size, [eventId]);
       const state = cube.applyAlgorithm(cube.createSolvedState(), scramble);
 
-      return renderCubeNet(state);
+      return view === 'isometric' ? renderCubeIsometric(state) : renderCubeNet(state);
     }
     case 'clock': {
       const clock = createClockDefinition();
@@ -56,19 +71,23 @@ export const renderScrambleImage = (eventId: WcaEventId, scramble: string): stri
       const megaminx = createMegaminxDefinition();
       const state = megaminx.applyAlgorithm(megaminx.createSolvedState(), scramble);
 
-      return renderMegaminxState(state);
+      return view === 'isometric'
+        ? renderMegaminxIsometricState(state)
+        : renderMegaminxState(state);
     }
     case 'pyraminx': {
       const pyraminx = createPyraminxDefinition();
       const state = pyraminx.applyAlgorithm(pyraminx.createSolvedState(), scramble);
 
-      return renderPyraminxState(state);
+      return view === 'isometric'
+        ? renderPyraminxIsometricState(state)
+        : renderPyraminxState(state);
     }
     case 'skewb': {
       const skewb = createSkewbDefinition();
       const state = skewb.applyAlgorithm(skewb.createSolvedState(), scramble);
 
-      return renderSkewbState(state);
+      return view === 'isometric' ? renderSkewbIsometricState(state) : renderSkewbState(state);
     }
     case 'square1': {
       const squareOne = createSquareOneDefinition();
