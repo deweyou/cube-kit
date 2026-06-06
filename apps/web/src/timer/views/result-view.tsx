@@ -1,21 +1,23 @@
-import { useState } from 'react';
 import { ElapsedDisplay } from '../components/elapsed-display';
 import { ResultActions } from '../components/result-actions';
-import type { Penalty } from '../components/result-actions';
 
 interface ResultViewProps {
   elapsed: number;
   scramble: string;
   onContinue: () => void;
-  onDiscard: () => void;
+  onPlusTwo: () => void;
+  onDnf: () => void;
+  onDelete: () => void;
 }
 
-export const ResultView = ({ elapsed, scramble, onContinue, onDiscard }: ResultViewProps) => {
-  const [penalty, setPenalty] = useState<Penalty>('none');
-
-  const displayMs = penalty === '+2' ? elapsed + 2000 : elapsed;
-  const displayDecimals = penalty === 'dnf' ? 0 : 3;
-
+export const ResultView = ({
+  elapsed,
+  scramble,
+  onContinue,
+  onPlusTwo,
+  onDnf,
+  onDelete,
+}: ResultViewProps) => {
   return (
     <div
       style={{
@@ -26,32 +28,20 @@ export const ResultView = ({ elapsed, scramble, onContinue, onDiscard }: ResultV
         height: '100%',
         padding: '24px 20px',
         gap: 20,
-        cursor: 'pointer',
       }}
-      onClick={onContinue}
     >
       {/* Final time */}
       <div style={{ textAlign: 'center' }}>
-        {penalty === 'dnf' ? (
-          <span
-            style={{
-              fontFamily: 'var(--ui-font-mono)',
-              fontSize: 'clamp(3rem, 12vw, 6rem)',
-              fontWeight: 300,
-              color: 'var(--ui-color-text-muted)',
-            }}
-          >
-            DNF
-          </span>
-        ) : (
-          <ElapsedDisplay ms={displayMs} decimals={displayDecimals} />
-        )}
+        <ElapsedDisplay ms={elapsed} decimals={3} />
       </div>
 
       {/* Actions — stop click propagation so they don't trigger onContinue */}
-      <div onClick={(e) => e.stopPropagation()}>
-        <ResultActions penalty={penalty} onPenalty={setPenalty} onDiscard={onDiscard} />
-      </div>
+      <ResultActions
+        onContinue={onContinue}
+        onPlusTwo={onPlusTwo}
+        onDnf={onDnf}
+        onDelete={onDelete}
+      />
 
       {/* Scramble review (collapsible) */}
       <details style={{ width: '100%', maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
@@ -91,7 +81,7 @@ export const ResultView = ({ elapsed, scramble, onContinue, onDiscard }: ResultV
           margin: 0,
         }}
       >
-        点击继续
+        选择结果
       </p>
     </div>
   );

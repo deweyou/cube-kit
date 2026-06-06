@@ -9,10 +9,10 @@ interface ElapsedDisplayProps {
 export const ElapsedDisplay = ({ ms, decimals = 2, dimmed = false }: ElapsedDisplayProps) => (
   <span
     style={{
-      fontFamily: 'var(--ui-font-mono)',
+      fontFamily: 'Helvetica, Arial, sans-serif',
       fontSize: 'clamp(3rem, 12vw, 6rem)',
       fontWeight: 300,
-      letterSpacing: '0.05em',
+      letterSpacing: 0,
       fontVariantNumeric: 'tabular-nums',
       color: dimmed ? 'var(--ui-color-text-muted)' : 'var(--ui-color-text)',
       transition: 'color 140ms ease',
