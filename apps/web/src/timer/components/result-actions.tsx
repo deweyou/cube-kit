@@ -7,12 +7,7 @@ interface ResultActionsProps {
   onDelete: () => void;
 }
 
-export const ResultActions = ({
-  onContinue,
-  onPlusTwo,
-  onDnf,
-  onDelete,
-}: ResultActionsProps) => (
+export const ResultActions = ({ onContinue, onPlusTwo, onDnf, onDelete }: ResultActionsProps) => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
     <Button variant="filled" color="primary" size="md" onClick={onContinue}>
       继续

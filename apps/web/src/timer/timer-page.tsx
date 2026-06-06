@@ -161,12 +161,15 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
     void loadScramble(sessionState.eventId);
   }, [sessionState.eventId, loadScramble]);
 
-  const handleEventChange = useCallback(async (id: WcaEventId) => {
-    setScramble('');
-    setScrambleError(undefined);
-    setIsScrambleLoading(true);
-    await sessionState.selectEvent(id);
-  }, [sessionState]);
+  const handleEventChange = useCallback(
+    async (id: WcaEventId) => {
+      setScramble('');
+      setScrambleError(undefined);
+      setIsScrambleLoading(true);
+      await sessionState.selectEvent(id);
+    },
+    [sessionState],
+  );
 
   const handleSessionChange = useCallback(
     async (sessionId: string) => {
@@ -219,10 +222,7 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
   const selectedSolve = sessionState.solves.find((solve) => solve.id === selectedSolveId);
 
   const sessionPanel = (
-    <aside
-      className={styles.sessionPanel}
-      aria-label="成绩面板"
-    >
+    <aside className={styles.sessionPanel} aria-label="成绩面板">
       <StorageAlert message={storageError ?? runtimeStorageError ?? sessionState.error} />
       <SessionSelector
         sessions={sessionState.sessions}

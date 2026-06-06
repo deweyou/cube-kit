@@ -1,9 +1,6 @@
 import type { SolvePenalty } from './types';
 
-export const getDisplayedElapsedMs = (
-  elapsedMs: number,
-  penalty: SolvePenalty,
-): number | null => {
+export const getDisplayedElapsedMs = (elapsedMs: number, penalty: SolvePenalty): number | null => {
   if (penalty === 'dnf') return null;
   if (penalty === '+2') return elapsedMs + 2000;
   return elapsedMs;

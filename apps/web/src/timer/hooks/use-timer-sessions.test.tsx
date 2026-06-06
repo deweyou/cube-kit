@@ -13,9 +13,9 @@ describe('useTimerSessions', () => {
 
     expect(result.current.eventId).toBe('333');
     expect(result.current.activeSessionId).toBe(getDefaultSessionId('333'));
-    expect(result.current.sessions.some((session) => session.id === getDefaultSessionId('222'))).toBe(
-      true,
-    );
+    expect(
+      result.current.sessions.some((session) => session.id === getDefaultSessionId('222')),
+    ).toBe(true);
   });
 
   it('switches event changes to default sessions', async () => {

@@ -58,6 +58,13 @@ export const createIndexedDbTimerSessionRepository = async (): Promise<TimerSess
       sortSessionsByCreatedDesc((await requestToPromise(store.getAll())) as SolveSession[]),
     );
 
+  const listSolves = (sessionId: string) =>
+    runTransaction(SOLVE_STORE, 'readonly', async (store) => {
+      const index = store.index('sessionId');
+      const records = (await requestToPromise(index.getAll(sessionId))) as SolveRecord[];
+      return sortSolvesByCreatedDesc(records);
+    });
+
   return {
     async initializeDefaultSessions(now) {
       const existing = new Set((await getAllSessions()).map((session) => session.id));
@@ -89,7 +96,7 @@ export const createIndexedDbTimerSessionRepository = async (): Promise<TimerSess
       return session;
     },
     async deleteSession(sessionId) {
-      const sessionSolves = await this.listSolves(sessionId);
+      const sessionSolves = await listSolves(sessionId);
       await runTransaction(SESSION_STORE, 'readwrite', async (store) => {
         await requestToPromise(store.delete(sessionId));
       });
@@ -98,11 +105,7 @@ export const createIndexedDbTimerSessionRepository = async (): Promise<TimerSess
       });
     },
     async listSolves(sessionId) {
-      return runTransaction(SOLVE_STORE, 'readonly', async (store) => {
-        const index = store.index('sessionId');
-        const records = (await requestToPromise(index.getAll(sessionId))) as SolveRecord[];
-        return sortSolvesByCreatedDesc(records);
-      });
+      return listSolves(sessionId);
     },
     async addSolve(record) {
       await runTransaction(SOLVE_STORE, 'readwrite', async (store) => {
