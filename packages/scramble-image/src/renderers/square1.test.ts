@@ -76,10 +76,12 @@ describe('renderSquareOneState', () => {
   it('uses the L color when a piece references an unknown Square-1 side', () => {
     const pieces = Array.from({ length: 24 }, () => 3);
     pieces[0] = 16;
-    const svg = renderSquareOneState(
-      { sliceSolved: true, pieces } as SquareOneState,
-      { L: '#123456', B: '#654321', D: '#abcdef', U: '#fedcba' },
-    );
+    const svg = renderSquareOneState({ sliceSolved: true, pieces } as SquareOneState, {
+      L: '#123456',
+      B: '#654321',
+      D: '#abcdef',
+      U: '#fedcba',
+    });
 
     expect(countFill(svg, '#123456')).toBe(1);
   });

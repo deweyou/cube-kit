@@ -1,5 +1,8 @@
 import type { WcaEventId } from '@cubekit/scramble-puzzle';
 import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleAssistResult } from '@cubekit/solver';
+import type { ScrambleImageView } from '@cubekit/scramble-image';
+
+export type PlaygroundImageView = ScrambleImageView;
 
 export interface PlaygroundScramble {
   readonly id: string;
@@ -22,11 +25,13 @@ export interface PlaygroundGenerateInput {
   readonly eventId: WcaEventId;
   readonly count: number;
   readonly multiBlindCubeCount: number;
+  readonly imageView: PlaygroundImageView;
 }
 
 export interface PlaygroundManualRenderInput {
   readonly eventId: WcaEventId;
   readonly scramble: string;
+  readonly imageView: PlaygroundImageView;
 }
 
 export interface PlaygroundGenerateResult {

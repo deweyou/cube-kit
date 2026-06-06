@@ -3,7 +3,8 @@ import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubekit/scrambl
 import type { PuzzleAssistEventId, PuzzleAssistMethod } from '@cubekit/solver';
 import { writeScramblesToClipboard } from './playground/copy';
 import { createSvgDownloadName } from './playground/download';
-import { usePlayground } from './playground/use-playground';
+import type { PlaygroundImageView } from './playground/types';
+import { type PlaygroundService, usePlayground } from './playground/use-playground';
 
 type PlaygroundState = ReturnType<typeof usePlayground>;
 
@@ -93,8 +94,12 @@ const EMPTY_SOLVER_TEXT = {
   pyram: 'Run a Pyraminx V helper to inspect solver output.',
 } satisfies Record<PuzzleAssistEventId, string>;
 
-export const App = () => {
-  const playground = usePlayground();
+export interface AppProps {
+  readonly service?: PlaygroundService;
+}
+
+export const App = ({ service }: AppProps = {}) => {
+  const playground = usePlayground({ service });
   const [actionMessage, setActionMessage] = useState<string>();
 
   const copyScrambles = async () => {
@@ -316,6 +321,26 @@ const ScramblePage = ({
         <div className="panel-heading">
           <p className="eyebrow">scramble-image</p>
           <h2>SVG preview</h2>
+        </div>
+
+        <div className="preview-toolbar">
+          <div className="segmented-control" role="group" aria-label="Image view">
+            {IMAGE_VIEW_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                aria-pressed={playground.imageView === option.value}
+                className={
+                  playground.imageView === option.value
+                    ? 'segmented-option selected'
+                    : 'segmented-option'
+                }
+                type="button"
+                onClick={() => playground.setImageView(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div
@@ -559,6 +584,14 @@ const Diagnostics = ({
 );
 
 const formatMs = (value: number | undefined) => (value === undefined ? '0.0' : value.toFixed(1));
+
+const IMAGE_VIEW_OPTIONS: readonly {
+  readonly label: string;
+  readonly value: PlaygroundImageView;
+}[] = [
+  { label: '2D', value: 'net' },
+  { label: '3D', value: 'isometric' },
+];
 
 const clampInteger = (value: number, min: number, max: number) => {
   if (!Number.isFinite(value)) return min;

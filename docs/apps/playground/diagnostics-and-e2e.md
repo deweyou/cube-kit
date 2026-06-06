@@ -17,6 +17,8 @@ integration failures visible during local testing and future E2E smoke checks.
 - Use `http://127.0.0.1:5173/?seed=42` for deterministic browser checks.
 - E2E should verify the integration chain: UI controls -> `scramble-core` ->
   `scramble-image` -> SVG preview.
+- E2E for image rendering should exercise the `2D` / `3D` switch and assert that
+  supported events change SVG shape while fallback families still render.
 - E2E should not replace package unit tests or golden WCA rule coverage.
 - Copy/download actions are convenience checks for generated rows and selected
   SVG output.
@@ -29,4 +31,4 @@ integration failures visible during local testing and future E2E smoke checks.
 
 ---
 
-_Last updated: 2026-05-26 | Reason: document playground diagnostics and E2E role_
+_Last updated: 2026-06-06 | Reason: add image-view switch smoke guidance_

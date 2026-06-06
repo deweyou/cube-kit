@@ -2,12 +2,14 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { App } from './app';
+import type { PlaygroundGenerateInput, PlaygroundManualRenderInput } from './playground/types';
+import type { PlaygroundService } from './playground/use-playground';
 
 afterEach(cleanup);
 
 describe('App', () => {
   it('generates scrambles and renders an SVG preview', async () => {
-    render(<App />);
+    renderTestApp();
 
     await userEvent.clear(screen.getByLabelText('Count'));
     await userEvent.type(screen.getByLabelText('Count'), '1');
@@ -19,8 +21,24 @@ describe('App', () => {
     expect(screen.getByText(/Generation/i)).toBeTruthy();
   });
 
+  it('toggles the selected SVG preview between 2D and 3D views', async () => {
+    renderTestApp();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Generate' }));
+
+    const preview = screen.getByTestId('svg-preview');
+    expect(screen.getByRole('button', { name: '2D' }).getAttribute('aria-pressed')).toBe('true');
+    expect(preview.querySelectorAll('rect').length).toBeGreaterThan(0);
+
+    await userEvent.click(screen.getByRole('button', { name: '3D' }));
+
+    expect(screen.getByRole('button', { name: '3D' }).getAttribute('aria-pressed')).toBe('true');
+    expect(preview.querySelectorAll('path')).toHaveLength(54);
+    expect(preview.querySelectorAll('rect')).toHaveLength(0);
+  });
+
   it('shows MultiBLD cube count only for 333mbld', async () => {
-    render(<App />);
+    renderTestApp();
 
     expect(screen.queryByLabelText('MultiBLD cubes')).toBeNull();
 
@@ -30,7 +48,7 @@ describe('App', () => {
   });
 
   it('renders manual scramble text through scramble-image', async () => {
-    render(<App />);
+    renderTestApp();
 
     await userEvent.clear(screen.getByLabelText('Manual scramble'));
     await userEvent.type(screen.getByLabelText('Manual scramble'), "R U R' U'");
@@ -40,7 +58,7 @@ describe('App', () => {
   });
 
   it('enables copy and SVG download actions after generation', async () => {
-    render(<App />);
+    renderTestApp();
 
     expect(screen.getByRole('button', { name: 'Copy scrambles' })).toHaveProperty('disabled', true);
     expect(screen.getByRole('button', { name: 'Download selected SVG' })).toHaveProperty(
@@ -135,3 +153,43 @@ describe('App', () => {
     expect((await screen.findByRole('alert')).textContent).toContain('Rw');
   });
 });
+
+const renderTestApp = () => render(<App service={fakeService()} />);
+
+const fakeService = (): PlaygroundService => ({
+  async generate(input: PlaygroundGenerateInput) {
+    const selectedScramble = { id: '333-1', eventId: input.eventId, scramble: "R U R' U'" };
+
+    return {
+      scrambles: [selectedScramble, { id: '333-2', eventId: input.eventId, scramble: 'F2 U2' }],
+      selectedScramble,
+      svg: svgForView(input.imageView),
+      generation: { durationMs: 1, count: 2 },
+      render: { durationMs: 2, scrambleLength: selectedScramble.scramble.length, svgBytes: 20 },
+    };
+  },
+  renderManual(input: PlaygroundManualRenderInput) {
+    return {
+      svg: svgForView(input.imageView),
+      render: { durationMs: 3, scrambleLength: input.scramble.length, svgBytes: 30 },
+      error: undefined,
+    };
+  },
+  async generateSolverScramble(eventId) {
+    return {
+      eventId,
+      scramble: `${eventId}-scramble`,
+      error: undefined,
+    };
+  },
+  solvePuzzleAssist() {
+    return {
+      results: [],
+      diagnostics: { durationMs: 1, resultCount: 0 },
+      error: undefined,
+    };
+  },
+});
+
+const svgForView = (imageView: PlaygroundManualRenderInput['imageView']) =>
+  imageView === 'isometric' ? `<svg>${'<path></path>'.repeat(54)}</svg>` : '<svg><rect /></svg>';

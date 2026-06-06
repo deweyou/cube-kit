@@ -17,7 +17,7 @@ describe('renderCubeNet', () => {
     const svg = renderCubeNet(cube.createSolvedState());
 
     expect(svg).toContain(
-      '<rect x="66" y="34" width="10" height="10" fill="#ff0000" stroke="#000000"></rect>',
+      '<rect x="66" y="34" width="10" height="10" fill="#ff0000" stroke="#000000" stroke-width="1" shape-rendering="crispEdges"></rect>',
     );
   });
 

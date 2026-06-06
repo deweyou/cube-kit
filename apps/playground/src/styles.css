@@ -264,6 +264,42 @@ button {
   font-weight: 700;
 }
 
+.preview-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 10px;
+}
+
+.segmented-control {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(44px, 1fr));
+  overflow: hidden;
+  border: 1px solid #c9d3d8;
+  border-radius: 6px;
+  background: #edf2f4;
+}
+
+.segmented-option {
+  min-width: 44px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #465861;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.segmented-option.selected {
+  background: #257b6e;
+  color: #ffffff;
+}
+
+.segmented-option:hover:not(.selected) {
+  background: #dce6ea;
+  color: #26343b;
+}
+
 .svg-preview {
   display: grid;
   min-height: 300px;

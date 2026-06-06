@@ -5,6 +5,8 @@ import { rect, type SvgNode } from '../svg/svg-elements.js';
 
 const GAP = 2;
 const STICKER = 10;
+const STROKE = '#000000';
+const STROKE_WIDTH = 1;
 
 const FACE_ORDER = ['R', 'U', 'F', 'L', 'D', 'B'] as const;
 
@@ -46,7 +48,9 @@ export const renderCubeNet = (state: CubeState, colorScheme: CubeColorScheme = {
             width: STICKER,
             height: STICKER,
             fill: colors[stickers[row][col]],
-            stroke: '#000000',
+            stroke: STROKE,
+            'stroke-width': STROKE_WIDTH,
+            'shape-rendering': 'crispEdges',
           }),
         );
       }

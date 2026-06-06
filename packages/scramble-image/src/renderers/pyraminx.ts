@@ -13,6 +13,7 @@ const GAP = 5;
 const WIDTH = 2 * 3 * PIECE_SIZE + 4 * GAP;
 const HEIGHT = Math.trunc(2 * 1.5 * Math.sqrt(3) * PIECE_SIZE + 3 * GAP);
 const STROKE = '#000000';
+const STROKE_WIDTH = 1.25;
 
 export type PyraminxColorScheme = Partial<Record<PyraminxFace, HexColor>>;
 
@@ -143,6 +144,8 @@ const drawFace = (
       d: polygonPath(polygon),
       fill: colorForSticker(stickers[stickerIndex], colors),
       stroke: STROKE,
+      'stroke-width': STROKE_WIDTH,
+      'stroke-linejoin': 'round',
     }),
   );
 };

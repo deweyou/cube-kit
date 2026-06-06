@@ -5,6 +5,7 @@ import { getBrowserSeed } from './browser-seed';
 import { createPlaygroundService } from './playground-service';
 import type {
   PlaygroundGenerateResult,
+  PlaygroundImageView,
   PlaygroundManualRenderResult,
   PlaygroundScramble,
   PlaygroundSolverResult,
@@ -39,6 +40,7 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   const [eventId, setEventId] = useState<WcaEventId>('333');
   const [count, setCount] = useState(5);
   const [multiBlindCubeCount, setMultiBlindCubeCount] = useState(3);
+  const [imageView, setImageViewState] = useState<PlaygroundImageView>('net');
   const [scrambles, setScrambles] = useState<readonly PlaygroundScramble[]>([]);
   const [selectedScramble, setSelectedScramble] = useState<PlaygroundScramble | undefined>();
   const [selectedScrambleIndex, setSelectedScrambleIndex] = useState(0);
@@ -62,7 +64,12 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     setGenerationError(undefined);
 
     try {
-      const result = await packageService.generate({ eventId, count, multiBlindCubeCount });
+      const result = await packageService.generate({
+        eventId,
+        count,
+        multiBlindCubeCount,
+        imageView,
+      });
 
       setGenerationResult(result);
       setScrambles(result.scrambles);
@@ -79,6 +86,7 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     const result = packageService.renderManual({
       eventId: scramble.eventId,
       scramble: scramble.scramble,
+      imageView,
     });
 
     setSelectedScramble(scramble);
@@ -95,7 +103,7 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   };
 
   const renderManual = () => {
-    const result = packageService.renderManual({ eventId, scramble: manualScramble });
+    const result = packageService.renderManual({ eventId, scramble: manualScramble, imageView });
 
     setManualResult(result);
     setManualSvg(result.svg);
@@ -148,6 +156,39 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     setSolverResult(result);
   };
 
+  const setImageView = (nextImageView: PlaygroundImageView) => {
+    setImageViewState(nextImageView);
+
+    if (selectedScramble) {
+      const result = packageService.renderManual({
+        eventId: selectedScramble.eventId,
+        scramble: selectedScramble.scramble,
+        imageView: nextImageView,
+      });
+
+      setSvg(result.svg);
+      setGenerationResult((previous) =>
+        previous
+          ? {
+              ...previous,
+              render: result.render,
+            }
+          : previous,
+      );
+    }
+
+    if (manualScramble.length > 0 || manualResult) {
+      const result = packageService.renderManual({
+        eventId,
+        scramble: manualScramble,
+        imageView: nextImageView,
+      });
+
+      setManualResult(result);
+      setManualSvg(result.svg);
+    }
+  };
+
   return {
     activePage,
     setActivePage,
@@ -157,6 +198,8 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     setCount,
     multiBlindCubeCount,
     setMultiBlindCubeCount,
+    imageView,
+    setImageView,
     scrambles,
     selectedScramble,
     selectedScrambleIndex,

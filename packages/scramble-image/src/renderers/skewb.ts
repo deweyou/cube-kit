@@ -9,7 +9,7 @@ const SQRT_THREE_OVER_TWO = Math.sqrt(3) / 2;
 const WIDTH = Math.ceil((3 * GAP + 8 * PIECE_SIZE + 1) * SQRT_THREE_OVER_TWO);
 const HEIGHT = Math.ceil(2 * GAP + 6 * PIECE_SIZE + 1);
 const STROKE = '#000000';
-const STROKE_WIDTH = `${1 / PIECE_SIZE}px`;
+const STROKE_WIDTH = 1.25;
 const SKEWB_RENDER_FACES = ['U', 'R', 'F', 'D', 'L', 'B'] as const;
 
 export type SkewbColorScheme = Partial<Record<SkewbFace, HexColor>>;
@@ -153,6 +153,7 @@ const drawFace = (
       fill: colorForSticker(stickers[stickerIndex], colors),
       stroke: STROKE,
       'stroke-width': STROKE_WIDTH,
+      'stroke-linejoin': 'round',
     }),
   );
 };

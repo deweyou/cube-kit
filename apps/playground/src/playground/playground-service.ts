@@ -1,4 +1,8 @@
-import { createDefaultScrambleGenerator, type RandomSource } from '@cubekit/scramble-core';
+import {
+  createDefaultScrambleGenerator,
+  type RandomSource,
+  type ScrambleGenerator,
+} from '@cubekit/scramble-core';
 import { renderScrambleImage } from '@cubekit/scramble-image';
 import {
   solvePuzzleAssist as solvePuzzleAssistCore,
@@ -21,15 +25,17 @@ export interface PlaygroundServiceOptions {
   readonly seed?: number;
   readonly now?: () => number;
   readonly random?: RandomSource;
+  readonly generator?: ScrambleGenerator;
 }
 
 export const createPlaygroundService = ({
   seed,
   now = () => performance.now(),
   random,
+  generator: providedGenerator,
 }: PlaygroundServiceOptions = {}) => {
   const randomSource = random ?? createSeededRandomSource(seed ?? Date.now());
-  const generator = createDefaultScrambleGenerator({ random: randomSource });
+  const generator = providedGenerator ?? createDefaultScrambleGenerator({ random: randomSource });
 
   return {
     async generate(input: PlaygroundGenerateInput): Promise<PlaygroundGenerateResult> {
@@ -49,7 +55,9 @@ export const createPlaygroundService = ({
       const selectedScramble = scrambles[0];
       const renderStart = now();
       const svg = selectedScramble
-        ? renderScrambleImage(selectedScramble.eventId, selectedScramble.scramble)
+        ? renderScrambleImage(selectedScramble.eventId, selectedScramble.scramble, {
+            view: input.imageView,
+          })
         : '';
       const renderEnd = now();
 
@@ -72,7 +80,7 @@ export const createPlaygroundService = ({
       const renderStart = now();
 
       try {
-        const svg = renderScrambleImage(input.eventId, input.scramble);
+        const svg = renderScrambleImage(input.eventId, input.scramble, { view: input.imageView });
         const renderEnd = now();
 
         return {

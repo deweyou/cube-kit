@@ -53,7 +53,7 @@ describe('renderSkewbState', () => {
     expect(svg).toContain('fill="#404040"');
     expect(svg).toContain('fill="#505050"');
     expect(svg).toContain('fill="#606060"');
-    expect(svg).toContain('stroke-width="0.03333333333333333px"');
+    expect(svg).toContain('stroke="#000000" stroke-width="1.25" stroke-linejoin="round"');
   });
 
   it('uses the U color when a facelet index is outside the Skewb palette', () => {
