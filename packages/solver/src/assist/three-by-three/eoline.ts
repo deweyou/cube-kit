@@ -1,4 +1,4 @@
-import type { CubeFace, CubeMove } from '@cubekit/scramble-puzzle';
+import type { CubeFace, CubeMove } from '@cubegin/scramble-puzzle';
 import {
   NoSolverSolutionError,
   UnknownSolverTargetError,

@@ -1,4 +1,4 @@
-import type { CubeFacelet, CubeState } from '@cubekit/scramble-puzzle';
+import type { CubeFacelet, CubeState } from '@cubegin/scramble-puzzle';
 import { DEFAULT_CUBE_COLORS, type HexColor } from '../color.js';
 import { createSvgDocument } from '../svg/svg-document.js';
 import { path, type SvgNode } from '../svg/svg-elements.js';

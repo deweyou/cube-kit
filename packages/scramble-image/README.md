@@ -1,14 +1,14 @@
-# @cubekit/scramble-image
+# @cubegin/scramble-image
 
 DOM-free SVG rendering for TNoodle-compatible scramble states.
 
-This package parses a WCA scramble through `@cubekit/scramble-puzzle`, applies it
+This package parses a WCA scramble through `@cubegin/scramble-puzzle`, applies it
 to a solved puzzle state, and renders a standalone SVG string. It is intended for
 tests, diagnostics, playground previews, and future worker-backed app flows.
 
 ## Install
 
-This package is consumed through the CubeKit pnpm workspace:
+This package is consumed through the Cubegin pnpm workspace:
 
 ```bash
 pnpm install
@@ -17,7 +17,7 @@ pnpm install
 ## Quick Start
 
 ```ts
-import { renderScrambleImage } from '@cubekit/scramble-image';
+import { renderScrambleImage } from '@cubegin/scramble-image';
 
 const svg = renderScrambleImage('333', "R U R' U' F2");
 
@@ -39,7 +39,7 @@ console.log(svg.startsWith('<svg'));
 
 - The package returns SVG strings only; it never touches `document`, canvas, or
   framework APIs.
-- Invalid scramble syntax surfaces through `@cubekit/scramble-puzzle` parser
+- Invalid scramble syntax surfaces through `@cubegin/scramble-puzzle` parser
   errors.
 - Cube-family events render as unfolded cube nets; non-cube events render their
   TNoodle-compatible puzzle-specific layouts.
@@ -47,7 +47,7 @@ console.log(svg.startsWith('<svg'));
   passed to `renderScrambleImage`.
 
 The baseline is TNoodle `lib-scrambles` v0.19.2, recorded in
-[`../../docs/tnoodle-baseline.md`](../../docs/tnoodle-baseline.md). CubeKit is
+[`../../docs/tnoodle-baseline.md`](../../docs/tnoodle-baseline.md). Cubegin is
 not an official WCA scramble program.
 
 Durable notes:
@@ -59,10 +59,10 @@ Durable notes:
 ## Development
 
 ```bash
-pnpm --filter @cubekit/scramble-image test
-pnpm --filter @cubekit/scramble-image test:coverage
-pnpm --filter @cubekit/scramble-image typecheck
-pnpm --filter @cubekit/scramble-image build
+pnpm --filter @cubegin/scramble-image test
+pnpm --filter @cubegin/scramble-image test:coverage
+pnpm --filter @cubegin/scramble-image typecheck
+pnpm --filter @cubegin/scramble-image build
 ```
 
 Coverage thresholds are enforced in `vite.config.ts` and focus on parser/render

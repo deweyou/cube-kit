@@ -9,7 +9,7 @@ flowchart TD
     Thresholds --> Docs["Documented residual gaps"]
 ```
 
-Coverage for `@cubekit/scramble-puzzle` is intentionally focused on public parser
+Coverage for `@cubegin/scramble-puzzle` is intentionally focused on public parser
 and state behavior rather than unreachable internals.
 
 ## Current Thresholds
@@ -29,7 +29,7 @@ and state behavior rather than unreachable internals.
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test:coverage
+pnpm --filter @cubegin/scramble-puzzle test:coverage
 ```
 
 ---

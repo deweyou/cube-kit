@@ -2,7 +2,7 @@
 
 ```mermaid
 flowchart TD
-    Root["cubekit workspace"] --> Apps["apps/* entry applications"]
+    Root["cubegin workspace"] --> Apps["apps/* entry applications"]
     Root --> Packages["packages/* reusable libraries"]
     Root --> Docs["docs/ repository memory"]
     Root --> Ci[".github/workflows package CI"]
@@ -11,11 +11,18 @@ flowchart TD
     Apps --> ScrambleDocs["apps/scramble-docs VitePress learning site"]
     Apps --> Wx["apps/wx-app Taro shell"]
     Web --> TimerPage["TimerPage"]
-    TimerPage --> TimerPkg["@cubekit/timer"]
-    Packages --> PuzzlePkg["@cubekit/scramble-puzzle"]
-    Packages --> CorePkg["@cubekit/scramble-core"]
-    Packages --> ImagePkg["@cubekit/scramble-image"]
-    Packages --> SolverPkg["@cubekit/solver"]
+    TimerPage --> TimerPkg["@cubegin/timer"]
+    Packages --> PublicCore["cubegin npm package"]
+    Packages --> PuzzlePkg["@cubegin/scramble-puzzle"]
+    Packages --> CorePkg["@cubegin/scramble-core"]
+    Packages --> ImagePkg["@cubegin/scramble-image"]
+    Packages --> SolverPkg["@cubegin/solver"]
+    PublicCore --> CorePath["cubegin/scramble-core"]
+    PublicCore --> ImagePath["cubegin/scramble-image"]
+    PublicCore --> PuzzlePath["cubegin/scramble-puzzle"]
+    CorePath --> CorePkg
+    ImagePath --> ImagePkg
+    PuzzlePath --> PuzzlePkg
     CorePkg --> PuzzlePkg
     ImagePkg --> PuzzlePkg
     SolverPkg --> PuzzlePkg
@@ -35,7 +42,7 @@ flowchart TD
     PackageTest --> Packages
 ```
 
-CubeKit is organized as a pnpm workspace where apps compose reusable packages.
+Cubegin is organized as a pnpm workspace where apps compose reusable packages.
 The web app currently carries the usable timer experience; the WeChat
 miniprogram is a Taro shell waiting for feature parity.
 
@@ -47,6 +54,7 @@ apps/playground/       React scramble generator/image testing workbench
 apps/scramble-docs/    VitePress bilingual scramble learning site
 apps/wx-app/           Taro WeChat miniprogram shell
 packages/timer/        platform-agnostic timer state and formatting
+packages/core/         public cubegin npm package subpath exports
 packages/scramble-puzzle/  TNoodle-compatible event ids, parsers, and states
 packages/scramble-core/    TNoodle-compatible WCA scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
@@ -65,7 +73,7 @@ scripts/               lightweight repository checks
 - [apps/web/src/app.tsx#L1](../apps/web/src/app.tsx#L1) wraps
   [TimerPage](../apps/web/src/timer/timer-page.tsx#L14) in the app shell.
 - `TimerPage` owns the page-level `scramble -> timing -> result` state and calls
-  `@cubekit/timer`, `@cubekit/scramble-core`, and `@cubekit/scramble-image`.
+  `@cubegin/timer`, `@cubegin/scramble-core`, and `@cubegin/scramble-image`.
 - Playground starts with `pnpm dev:playground` at
   [apps/playground/src/main.tsx#L1](../apps/playground/src/main.tsx#L1). Its
   [App](../apps/playground/src/app.tsx#L1) calls the new `scramble-core`,
@@ -101,7 +109,11 @@ scripts/               lightweight repository checks
 - [packages/scramble-puzzle/src/index.ts#L1](../packages/scramble-puzzle/src/index.ts#L1) - TNoodle-compatible puzzle domain barrel.
 - [packages/scramble-core/src/index.ts#L1](../packages/scramble-core/src/index.ts#L1) - TNoodle-compatible generator barrel.
 - [packages/scramble-image/src/index.ts#L1](../packages/scramble-image/src/index.ts#L1) - TNoodle-compatible SVG renderer barrel.
+- [packages/core/package.json#L1](../packages/core/package.json#L1) - public
+  `cubegin` npm package with subpath-only exports for scramble packages.
 - [packages/solver/src/index.ts#L1](../packages/solver/src/index.ts#L1) - auxiliary restore solver barrel.
+- [docs/packages/core/index.md#L1](packages/core/index.md#L1) - public package
+  ownership, subpaths, and verification.
 - [docs/packages/scramble-puzzle/index.md#L1](packages/scramble-puzzle/index.md#L1) - puzzle package ownership and verification.
 - [docs/packages/scramble-core/index.md#L1](packages/scramble-core/index.md#L1) - core generator ownership and verification.
 - [docs/packages/scramble-image/index.md#L1](packages/scramble-image/index.md#L1) - image renderer ownership and verification.
@@ -111,4 +123,4 @@ scripts/               lightweight repository checks
 
 ---
 
-_Last updated: 2026-05-31 | Reason: add auxiliary solver package to workspace map_
+_Last updated: 2026-06-06 | Reason: add public cubegin npm package subpath map_

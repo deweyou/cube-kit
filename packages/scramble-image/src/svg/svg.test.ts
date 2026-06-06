@@ -54,16 +54,16 @@ describe('SVG serialization', () => {
     const node = { name: 'script', attrs: {} } as unknown as SvgNode;
 
     expect(() => serializeSvgNode(node)).toThrow(
-      "@cubekit/scramble-image: invalid SVG element name 'script'",
+      "@cubegin/scramble-image: invalid SVG element name 'script'",
     );
   });
 
   it('rejects unsafe attribute names', () => {
     expect(() => serializeSvgNode(rect({ 'stroke width': 1 }))).toThrow(
-      "@cubekit/scramble-image: invalid SVG attribute name 'stroke width'",
+      "@cubegin/scramble-image: invalid SVG attribute name 'stroke width'",
     );
     expect(() => serializeSvgNode(rect({ 'fill"': '#fff' }))).toThrow(
-      "@cubekit/scramble-image: invalid SVG attribute name 'fill\"'",
+      "@cubegin/scramble-image: invalid SVG attribute name 'fill\"'",
     );
   });
 });

@@ -3,9 +3,9 @@
 ```mermaid
 flowchart TD
     Controls["Controls"] --> Service["playground service"]
-    Service --> Core["@cubekit/scramble-core"]
-    Service --> Image["@cubekit/scramble-image"]
-    Service --> Solver["@cubekit/solver"]
+    Service --> Core["@cubegin/scramble-core"]
+    Service --> Image["@cubegin/scramble-image"]
+    Service --> Solver["@cubegin/solver"]
     Service --> Diagnostics["diagnostics"]
 ```
 
@@ -17,7 +17,7 @@ auxiliary solver packages without wiring them into production apps.
 - It imports package source through Vite aliases for fast local feedback.
 - It is allowed to run generation on the main thread because it is not a
   production app.
-- The Solvers tab calls `@cubekit/solver` through the playground service boundary
+- The Solvers tab calls `@cubegin/solver` through the playground service boundary
   and is for manual diagnostics, not production timer integration.
 - In the Solvers tab, changing the solver event resets event-specific method and
   target defaults and auto-generates a scramble for the selected event.

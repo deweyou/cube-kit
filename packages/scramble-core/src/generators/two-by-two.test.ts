@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createCubeDefinition } from '@cubekit/scramble-puzzle';
+import { createCubeDefinition } from '@cubegin/scramble-puzzle';
 import { generateTwoByTwoScramble } from './two-by-two.js';
 import { TwoByTwoSolver } from '../solvers/two-by-two-solver.js';
 import type { RandomSource } from '../random-source.js';
@@ -58,7 +58,7 @@ describe('generateTwoByTwoScramble', () => {
 
   it('throws clearly when no sampled state reaches the WCA 4-move minimum', () => {
     expect(() => generateTwoByTwoScramble({ random: zeroRandom })).toThrow(
-      '@cubekit/scramble-core: could not generate a 2x2 WCA scramble after 100 attempts',
+      '@cubegin/scramble-core: could not generate a 2x2 WCA scramble after 100 attempts',
     );
   });
 });

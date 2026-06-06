@@ -5,11 +5,11 @@ flowchart TD
     Events["WCA event ids"] --> Registry["Puzzle registry"]
     Registry --> Parsers["Notation parsers"]
     Parsers --> States["State transitions"]
-    States --> Core["@cubekit/scramble-core"]
-    States --> Image["@cubekit/scramble-image"]
+    States --> Core["@cubegin/scramble-core"]
+    States --> Image["@cubegin/scramble-image"]
 ```
 
-`@cubekit/scramble-puzzle` is the shared puzzle-domain layer for the new
+`@cubegin/scramble-puzzle` is the shared puzzle-domain layer for the new
 TNoodle-compatible packages. It owns WCA event metadata, parser contracts, solved
 states, move application, and registry helpers.
 
@@ -27,9 +27,9 @@ states, move application, and registry helpers.
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test
-pnpm --filter @cubekit/scramble-puzzle test:coverage
-pnpm --filter @cubekit/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-puzzle test
+pnpm --filter @cubegin/scramble-puzzle test:coverage
+pnpm --filter @cubegin/scramble-puzzle typecheck
 ```
 
 ## Key Files

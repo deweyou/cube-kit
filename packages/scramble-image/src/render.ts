@@ -7,7 +7,7 @@ import {
   createSquareOneDefinition,
   WCA_EVENT_INFO,
   type WcaEventId,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import { renderClockState } from './renderers/clock.js';
 import { renderCubeIsometric } from './renderers/cube-isometric.js';
 import { renderCubeNet } from './renderers/cube-net.js';
@@ -53,7 +53,7 @@ export const renderScrambleImage = (
       const size = CUBE_SIZE_BY_EVENT[eventId];
 
       if (!size) {
-        throw new Error(`@cubekit/scramble-image: event '${eventId}' is not renderable yet`);
+        throw new Error(`@cubegin/scramble-image: event '${eventId}' is not renderable yet`);
       }
 
       const cube = createCubeDefinition(size, [eventId]);

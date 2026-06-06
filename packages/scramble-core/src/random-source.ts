@@ -1,4 +1,4 @@
-const ERROR_PREFIX = '@cubekit/scramble-core';
+const ERROR_PREFIX = '@cubegin/scramble-core';
 
 export interface RandomSource {
   nextInt(maxExclusive: number): number;

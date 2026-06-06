@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ScrambleGenerator, ScrambleResult } from '@cubekit/scramble-core';
+import type { ScrambleGenerator, ScrambleResult } from '@cubegin/scramble-core';
 import { createPlaygroundService } from './playground-service';
 
 describe('createPlaygroundService', () => {

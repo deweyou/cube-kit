@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubekit/scramble-puzzle';
-import type { PuzzleAssistEventId, PuzzleAssistMethod } from '@cubekit/solver';
+import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubegin/scramble-puzzle';
+import type { PuzzleAssistEventId, PuzzleAssistMethod } from '@cubegin/solver';
 import { writeScramblesToClipboard } from './playground/copy';
 import { createSvgDownloadName } from './playground/download';
 import type { PlaygroundImageView } from './playground/types';
@@ -134,7 +134,7 @@ export const App = ({ service }: AppProps = {}) => {
     <main className="page-shell">
       <header className="page-header">
         <div>
-          <p className="eyebrow">CubeKit</p>
+          <p className="eyebrow">Cubegin</p>
           <h1>Scramble Playground</h1>
         </div>
         <p className="baseline">TNoodle baseline: WCA 1.2.3</p>

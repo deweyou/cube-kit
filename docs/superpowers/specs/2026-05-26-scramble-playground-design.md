@@ -6,16 +6,16 @@ Approved for planning on 2026-05-26.
 
 ## Context
 
-CubeKit now has standalone TNoodle-compatible scramble packages:
+Cubegin now has standalone TNoodle-compatible scramble packages:
 
-- `@cubekit/scramble-puzzle` owns puzzle definitions, parsing, and state transitions.
-- `@cubekit/scramble-core` owns scramble generation.
-- `@cubekit/scramble-image` owns SVG rendering.
+- `@cubegin/scramble-puzzle` owns puzzle definitions, parsing, and state transitions.
+- `@cubegin/scramble-core` owns scramble generation.
+- `@cubegin/scramble-image` owns SVG rendering.
 
 The playground should make these packages easy to test manually and later through
 browser automation. It should be inspired by TNoodle's form-based utility page,
 but it must not copy TNoodle UI code or reconnect the new packages through the
-legacy `@cubekit/scramble` package.
+legacy `@cubegin/scramble` package.
 
 ## Goals
 
@@ -42,9 +42,9 @@ legacy `@cubekit/scramble` package.
 Create `apps/playground` as a private Vite + React app in the existing pnpm
 workspace. The app depends directly on:
 
-- `@cubekit/scramble-core`
-- `@cubekit/scramble-image`
-- `@cubekit/scramble-puzzle`
+- `@cubegin/scramble-core`
+- `@cubegin/scramble-image`
+- `@cubegin/scramble-puzzle`
 
 The app owns its UI state and adapter layer. Package calls stay behind local
 playground functions so tests can inject deterministic behavior without leaking
@@ -142,9 +142,9 @@ Implementation should verify:
 - `pnpm --filter playground test`
 - `pnpm --filter playground typecheck`
 - `pnpm --filter playground build`
-- `pnpm --filter @cubekit/scramble-core test`
-- `pnpm --filter @cubekit/scramble-image test`
-- `pnpm --filter @cubekit/scramble-puzzle test`
+- `pnpm --filter @cubegin/scramble-core test`
+- `pnpm --filter @cubegin/scramble-image test`
+- `pnpm --filter @cubegin/scramble-puzzle test`
 - targeted `vp check` on the new playground files
 
 Full `pnpm check` may continue to fail on known pre-existing app and legacy

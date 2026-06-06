@@ -3,12 +3,12 @@ import {
   createSolvedSquareOneState,
   parseSquareOneAlgorithm,
   type SquareOneState,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import type { RandomSource } from '../random-source.js';
 import { FullCube } from '../solvers/sq12phase/full-cube.js';
 import { INVERSE_SOLUTION, Search, solveSquareOneStateIn } from '../solvers/sq12phase/search.js';
 
-const ERROR_PREFIX = '@cubekit/scramble-core';
+const ERROR_PREFIX = '@cubegin/scramble-core';
 const WCA_MIN_SCRAMBLE_DISTANCE = 11;
 const MAX_WCA_ATTEMPTS = 100;
 

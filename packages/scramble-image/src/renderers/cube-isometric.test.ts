@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createCubeDefinition } from '@cubekit/scramble-puzzle';
+import { createCubeDefinition } from '@cubegin/scramble-puzzle';
 import { renderScrambleImage } from '../render.js';
 import { renderCubeNet } from './cube-net.js';
 import { renderCubeIsometric } from './cube-isometric.js';

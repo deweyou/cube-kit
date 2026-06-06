@@ -1,4 +1,4 @@
-import type { RandomSource } from '@cubekit/scramble-core';
+import type { RandomSource } from '@cubegin/scramble-core';
 
 export const createSeededRandomSource = (seed: number): RandomSource => {
   let state = seed >>> 0;

@@ -1,4 +1,4 @@
-# @cubekit/scramble-core
+# @cubegin/scramble-core
 
 This package owns TNoodle-compatible WCA scramble generation, solver boundaries,
 random sources, and unique batch generation.
@@ -12,9 +12,9 @@ random sources, and unique batch generation.
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/scramble-core test
-pnpm --filter @cubekit/scramble-core test:coverage
-pnpm --filter @cubekit/scramble-core typecheck
+pnpm --filter @cubegin/scramble-core test
+pnpm --filter @cubegin/scramble-core test:coverage
+pnpm --filter @cubegin/scramble-core typecheck
 ```
 
 ## Constraints

@@ -4,7 +4,7 @@ import {
   createSolvedPyraminxState,
   parsePyraminxAlgorithm,
   type PyraminxState,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import { renderPyraminxState } from './pyraminx.js';
 
 const countFill = (svg: string, color: string): number =>

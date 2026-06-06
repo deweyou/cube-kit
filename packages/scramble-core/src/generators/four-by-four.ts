@@ -52,7 +52,7 @@ const chooseOrientation = (random: RandomSource): readonly string[] => {
 
   if (orientation === undefined) {
     throw new RangeError(
-      `@cubekit/scramble-core: random source returned ${index} for max ${ORIENTATION_SEQUENCES.length}`,
+      `@cubegin/scramble-core: random source returned ${index} for max ${ORIENTATION_SEQUENCES.length}`,
     );
   }
 

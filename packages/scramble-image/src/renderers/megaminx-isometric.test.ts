@@ -4,7 +4,7 @@ import {
   createMegaminxDefinition,
   type MegaminxFace,
   type MegaminxState,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import { renderScrambleImage } from '../render.js';
 import { renderMegaminxIsometricState } from './megaminx-isometric.js';
 import { renderMegaminxState } from './megaminx.js';

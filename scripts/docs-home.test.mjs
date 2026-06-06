@@ -4,7 +4,14 @@ import path from 'node:path';
 import { test } from 'node:test';
 
 const repoRoot = path.resolve(import.meta.dirname, '..');
-const ignoredDirs = new Set(['.git', '.superpowers', '.worktrees', 'dist', 'node_modules']);
+const ignoredDirs = new Set([
+  '.build',
+  '.git',
+  '.superpowers',
+  '.worktrees',
+  'dist',
+  'node_modules',
+]);
 
 async function pathExists(filePath) {
   try {

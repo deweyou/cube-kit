@@ -9,7 +9,7 @@ flowchart TD
     TnoodleLib --> Packages["scramble-puzzle / scramble-core / scramble-image"]
 ```
 
-CubeKit's TNoodle-compatible scramble work tracks the official WCA scramble
+Cubegin's TNoodle-compatible scramble work tracks the official WCA scramble
 program by pinning both the application release and the core scramble library
 release. Re-check this page before changing TNoodle-compatible generation,
 notation, state transitions, or SVG rendering.
@@ -28,7 +28,7 @@ Last verified: 2026-05-26.
 | `thewca/tnoodle-lib`           | tag `v0.19.2`; commit `9397fb605d8d593868dc75dbaf84c54c808ee9dc` | <https://github.com/thewca/tnoodle-lib/tree/v0.19.2>                      |
 | `thewca/tnoodle-lib` license   | GPL-v3.0                                                         | <https://github.com/thewca/tnoodle-lib/blob/v0.19.2/LICENSE>              |
 
-CubeKit ports the library behavior from `thewca/tnoodle-lib` / Maven
+Cubegin ports the library behavior from `thewca/tnoodle-lib` / Maven
 `lib-scrambles`, not the AGPL-licensed TNoodle server or UI code.
 
 ## Upgrade Check
@@ -40,7 +40,7 @@ When the WCA publishes a new official scramble program:
    to find the referenced `lib-scrambles` version.
 3. Fetch the corresponding `thewca/tnoodle-lib` tag.
 4. Diff both repositories from the baseline recorded above.
-5. Classify changed files by implementation area before editing CubeKit.
+5. Classify changed files by implementation area before editing Cubegin.
 
 Useful commands:
 
@@ -56,7 +56,7 @@ git diff v0.19.2..vNEW -- min2phase threephase sq12phase svglite
 
 ## Diff Classification
 
-| Upstream path                                                          | CubeKit area to inspect                                            |
+| Upstream path                                                          | Cubegin area to inspect                                            |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | `scrambles/src/main/java/org/worldcubeassociation/tnoodle/scrambles`   | `packages/scramble-puzzle` shared contracts and generation helpers |
 | `scrambles/src/main/java/org/worldcubeassociation/tnoodle/puzzle`      | puzzle parsers, states, generators, and SVG renderers              |

@@ -13,7 +13,7 @@ upstream app's raw string output format.
 ## 1. Goals
 
 Build a platform-agnostic TypeScript package for auxiliary solve hints. The
-first scope covers the helper methods selected for CubeKit's solver package:
+first scope covers the helper methods selected for Cubegin's solver package:
 
 - Cross
 - XCross
@@ -26,7 +26,7 @@ first scope covers the helper methods selected for CubeKit's solver package:
 - Square-1 shape, in face-turn and twist metrics
 - Pyraminx V, for D/L/R/F targets
 
-The package should expose structured results that CubeKit apps can render in
+The package should expose structured results that Cubegin apps can render in
 their own UI. It should not return raw multi-line display strings as the main
 API.
 
@@ -41,10 +41,10 @@ useful.
 
 ```mermaid
 flowchart TD
-    Puzzle["@cubekit/scramble-puzzle"]
-    Solver["@cubekit/solver"]
-    Core["@cubekit/scramble-core"]
-    Image["@cubekit/scramble-image"]
+    Puzzle["@cubegin/scramble-puzzle"]
+    Solver["@cubegin/solver"]
+    Core["@cubegin/scramble-core"]
+    Image["@cubegin/scramble-image"]
     Playground["apps/playground"]
 
     Solver --> Puzzle
@@ -56,15 +56,15 @@ flowchart TD
     Playground --> Puzzle
 ```
 
-Create `packages/solver` as `@cubekit/solver`. It depends only on
-`@cubekit/scramble-puzzle`.
+Create `packages/solver` as `@cubegin/solver`. It depends only on
+`@cubegin/scramble-puzzle`.
 
-`@cubekit/solver` owns search, pruning tables, target definitions, target
+`@cubegin/solver` owns search, pruning tables, target definitions, target
 validation helpers, and solver result formatting primitives. It does not generate
 WCA scrambles and does not render SVG.
 
-`apps/playground` may depend on `@cubekit/solver`, `@cubekit/scramble-core`,
-`@cubekit/scramble-image`, and `@cubekit/scramble-puzzle` because it is the
+`apps/playground` may depend on `@cubegin/solver`, `@cubegin/scramble-core`,
+`@cubegin/scramble-image`, and `@cubegin/scramble-puzzle` because it is the
 developer integration workbench.
 
 ---
@@ -76,9 +76,9 @@ developer integration workbench.
 - `packages/scramble-core`, `packages/scramble-image`, and
   `packages/scramble-puzzle` must not depend on `packages/solver`.
 - Shared notation and 3x3 state helpers should be reused from
-  `@cubekit/scramble-puzzle` where they are already public.
+  `@cubegin/scramble-puzzle` where they are already public.
 - Search-specific coordinate models and pruning tables belong inside
-  `@cubekit/solver`; they should not be added to `scramble-puzzle`.
+  `@cubegin/solver`; they should not be added to `scramble-puzzle`.
 - No new bundled dependency is planned. The package uses the repository's
   existing GPL-3.0-only licensing.
 
@@ -205,7 +205,7 @@ export function solveThreeByThreeAssist(
 ): readonly ThreeByThreeAssistResult[];
 ```
 
-Targets use stable string ids. The initial target ids map to CubeKit's
+Targets use stable string ids. The initial target ids map to Cubegin's
 user-facing auxiliary target families:
 
 | Method     | Target family                                         |
@@ -228,11 +228,11 @@ Invalid scrambles or unknown targets throw typed errors exported by the package.
 
 ## 5. Solver Behavior
 
-The TypeScript implementation should provide deterministic CubeKit helpers with
+The TypeScript implementation should provide deterministic Cubegin helpers with
 stable search targets, move ordering, and depth caps. The implementation can use
 public puzzle-solving techniques such as coordinate search, pruning tables, IDA
 search, and method-specific target predicates, but the package API and
-documentation are CubeKit-owned.
+documentation are Cubegin-owned.
 
 Implementation areas:
 
@@ -251,9 +251,9 @@ Implementation notes:
   cross family, EOline, Roux S1, Petrus S1, public facade, and test support.
 - Initialize heavy move and pruning tables lazily at module level so package
   import stays cheap enough for browser apps.
-- Parse scramble text through `@cubekit/scramble-puzzle` for validation, then
+- Parse scramble text through `@cubegin/scramble-puzzle` for validation, then
   translate parsed puzzle turns into each solver's coordinate move indices.
-- Accept the move set used by each CubeKit helper. 3x3 helpers accept ordinary
+- Accept the move set used by each Cubegin helper. 3x3 helpers accept ordinary
   face turns and reject rotations/wide moves; 2x2 helpers accept the URF
   coordinate move set; Pyraminx V ignores tip-only moves; Square-1 uses tuple
   and slash notation.
@@ -269,7 +269,7 @@ Unit tests should verify solutions by applying `scramble + setupRotation +
 solution` to a solved 3x3 state and checking method-specific predicates. This
 prevents tests from depending only on exact search strings.
 
-Target predicates belong inside `@cubekit/solver` because they define the solver
+Target predicates belong inside `@cubegin/solver` because they define the solver
 contract:
 
 - Cross: target cross edges are solved and oriented relative to the requested
@@ -328,7 +328,7 @@ details directly throughout React components.
 
 ## 8. Error Handling
 
-`@cubekit/solver` should expose package-specific error classes:
+`@cubegin/solver` should expose package-specific error classes:
 
 - invalid solver scramble
 - unsupported move for auxiliary solver scope
@@ -376,9 +376,9 @@ Playground tests:
 Targeted verification:
 
 ```bash
-pnpm --filter @cubekit/solver test
-pnpm --filter @cubekit/solver typecheck
-pnpm --filter @cubekit/solver build
+pnpm --filter @cubegin/solver test
+pnpm --filter @cubegin/solver typecheck
+pnpm --filter @cubegin/solver build
 pnpm --filter playground test
 pnpm --filter playground typecheck
 pnpm --filter playground build
@@ -413,4 +413,4 @@ the changed packages.
 
 ---
 
-_Last updated: 2026-05-31 | Reason: clarify CubeKit-owned auxiliary solver scope and package structure_
+_Last updated: 2026-05-31 | Reason: clarify Cubegin-owned auxiliary solver scope and package structure_

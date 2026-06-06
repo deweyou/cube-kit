@@ -4,7 +4,7 @@ import {
   createSolvedSquareOneState,
   parseSquareOneAlgorithm,
   type SquareOneState,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import { renderScrambleImage } from '../render.js';
 import { renderSquareOneState } from './square1.js';
 

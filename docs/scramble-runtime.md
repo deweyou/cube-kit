@@ -2,9 +2,9 @@
 
 ```mermaid
 flowchart TD
-    UI["apps/web Timer UI"] --> Core["@cubekit/scramble-core"]
-    UI --> Image["@cubekit/scramble-image"]
-    UI --> Puzzle["@cubekit/scramble-puzzle"]
+    UI["apps/web Timer UI"] --> Core["@cubegin/scramble-core"]
+    UI --> Image["@cubegin/scramble-image"]
+    UI --> Puzzle["@cubegin/scramble-puzzle"]
     Playground["apps/playground"] --> Core
     Playground --> Image
     Playground --> Puzzle
@@ -15,24 +15,24 @@ flowchart TD
 ```
 
 The web timer now consumes the TNoodle-compatible scramble packages directly.
-`@cubekit/scramble-puzzle` owns WCA event ids and puzzle parsing,
-`@cubekit/scramble-core` owns async-shaped WCA scramble generation, and
-`@cubekit/scramble-image` owns DOM-free SVG rendering. The removed
+`@cubegin/scramble-puzzle` owns WCA event ids and puzzle parsing,
+`@cubegin/scramble-core` owns async-shaped WCA scramble generation, and
+`@cubegin/scramble-image` owns DOM-free SVG rendering. The removed
 `packages/scramble` cstimer wrapper and browser shim must not be restored.
 
 ## Key Rules
 
 - TNoodle-compatible source lives in three packages:
-  `@cubekit/scramble-puzzle` for parsers/states,
-  `@cubekit/scramble-core` for generators and solvers, and
-  `@cubekit/scramble-image` for SVG renderers.
+  `@cubegin/scramble-puzzle` for parsers/states,
+  `@cubegin/scramble-core` for generators and solvers, and
+  `@cubegin/scramble-image` for SVG renderers.
 - Package-specific maintenance knowledge lives under `docs/packages/*`, while
   local package `AGENTS.md` files only route maintainers to those docs.
-- `@cubekit/scramble-core` exposes `createDefaultScrambleGenerator` for all 17
+- `@cubegin/scramble-core` exposes `createDefaultScrambleGenerator` for all 17
   WCA events. The facade is async-shaped and can move behind a Web Worker later.
-- `@cubekit/scramble-image` exposes `renderScrambleImage(eventId, scramble)` and
+- `@cubegin/scramble-image` exposes `renderScrambleImage(eventId, scramble)` and
   uses `scramble-puzzle` to apply moves before rendering SVG.
-- `apps/web` builds `@cubekit/timer` and the three scramble packages before dev,
+- `apps/web` builds `@cubegin/timer` and the three scramble packages before dev,
   build, test, and typecheck so package `dist` exports are available.
 - `apps/playground` is a test workbench, not a production app migration. It
   imports the new packages directly, aliases Vite runtime resolution to package
@@ -40,7 +40,7 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
   stay fresh.
 - Playground supports deterministic browser smoke tests with `?seed=<integer>`,
   parsed in [apps/playground/src/playground/browser-seed.ts#L1](../apps/playground/src/playground/browser-seed.ts#L1).
-- `@cubekit/scramble-core` returns `333mbld` as one multi-line attempt containing
+- `@cubegin/scramble-core` returns `333mbld` as one multi-line attempt containing
   one 3x3 no-inspection scramble per cube. The playground adapter splits those
   lines into individual display/render rows so each listed scramble stays the same
   shape as `333bld`.
@@ -60,8 +60,8 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 ## Key Files
 
 - [apps/web/src/timer/timer-page.tsx#L1](../apps/web/src/timer/timer-page.tsx#L1) - timer state and async scramble generation.
-- [apps/web/src/timer/views/scramble-view.tsx#L1](../apps/web/src/timer/views/scramble-view.tsx#L1) - web SVG rendering through `@cubekit/scramble-image`.
-- [apps/web/src/timer/components/event-selector.tsx#L1](../apps/web/src/timer/components/event-selector.tsx#L1) - WCA event list from `@cubekit/scramble-puzzle`.
+- [apps/web/src/timer/views/scramble-view.tsx#L1](../apps/web/src/timer/views/scramble-view.tsx#L1) - web SVG rendering through `@cubegin/scramble-image`.
+- [apps/web/src/timer/components/event-selector.tsx#L1](../apps/web/src/timer/components/event-selector.tsx#L1) - WCA event list from `@cubegin/scramble-puzzle`.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - `prepare:deps` for workspace package exports.
 - [packages/scramble-puzzle/src/events.ts#L1](../packages/scramble-puzzle/src/events.ts#L1) - canonical 17-event WCA list for the new packages.
 - [packages/scramble-core/src/generator.ts#L1](../packages/scramble-core/src/generator.ts#L1) - async generator facade and default WCA event dispatch.

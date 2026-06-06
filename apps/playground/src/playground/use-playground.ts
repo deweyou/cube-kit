@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
-import type { PuzzleAssistEventId, PuzzleAssistMethod } from '@cubekit/solver';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import type { PuzzleAssistEventId, PuzzleAssistMethod } from '@cubegin/solver';
 import { getBrowserSeed } from './browser-seed';
 import { createPlaygroundService } from './playground-service';
 import type {

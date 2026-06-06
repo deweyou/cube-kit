@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import styles from './sidebar.module.css';
 
-const STORAGE_KEY = 'cubekit-sidebar-expanded';
+const STORAGE_KEY = 'cubegin-sidebar-expanded';
 
 const NAV_ITEMS = [
   { id: 'timer', label: '计时', icon: '⏱' },
@@ -24,7 +24,7 @@ export const Sidebar = () => {
         className={`${styles.sidebar} ${expanded ? styles.expanded : styles.collapsed}`}
         aria-label="主导航"
       >
-        {expanded && <span className={styles.logo}>CubeKit</span>}
+        {expanded && <span className={styles.logo}>Cubegin</span>}
         <button
           className={styles.toggleBtn}
           onClick={() => setExpanded((e) => !e)}
@@ -61,7 +61,7 @@ export const Sidebar = () => {
         <div className={styles.drawerOverlay}>
           <aside className={styles.drawer} aria-label="主导航">
             <div className={styles.drawerHeader}>
-              <span className={styles.drawerLogo}>CubeKit</span>
+              <span className={styles.drawerLogo}>Cubegin</span>
               <button
                 className={styles.drawerCloseBtn}
                 onClick={() => setDrawerOpen(false)}

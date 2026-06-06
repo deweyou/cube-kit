@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createPyraminxDefinition } from '@cubekit/scramble-puzzle';
+import { createPyraminxDefinition } from '@cubegin/scramble-puzzle';
 import { renderScrambleImage } from '../render.js';
 import { renderPyraminxIsometricState } from './pyraminx-isometric.js';
 import { renderPyraminxState } from './pyraminx.js';

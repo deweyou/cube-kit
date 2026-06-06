@@ -1,4 +1,4 @@
-# @cubekit/scramble-image
+# @cubegin/scramble-image
 
 This package owns DOM-free SVG rendering for scramble states.
 
@@ -11,9 +11,9 @@ This package owns DOM-free SVG rendering for scramble states.
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/scramble-image test
-pnpm --filter @cubekit/scramble-image test:coverage
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-image test
+pnpm --filter @cubegin/scramble-image test:coverage
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 ## Constraints

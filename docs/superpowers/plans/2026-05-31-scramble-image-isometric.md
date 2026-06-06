@@ -24,7 +24,7 @@ Add tests that prove omitted options and `{ view: 'net' }` keep existing output,
 that a supported event can request `{ view: 'isometric' }`, and that Clock and
 Square-1 fall back to current 2D output under the isometric option.
 
-Run: `pnpm --filter @cubekit/scramble-image test -- src/render-dispatch.test.ts`
+Run: `pnpm --filter @cubegin/scramble-image test -- src/render-dispatch.test.ts`
 
 Expected: fail because `renderScrambleImage` does not accept the new options and
 no isometric renderer exists.
@@ -47,7 +47,7 @@ isometric renderer.
 
 - [x] **Step 3: Run dispatch tests**
 
-Run: `pnpm --filter @cubekit/scramble-image test -- src/render-dispatch.test.ts`
+Run: `pnpm --filter @cubegin/scramble-image test -- src/render-dispatch.test.ts`
 
 Expected: pass after temporary isometric stubs or the first real renderer is in
 place.
@@ -69,7 +69,7 @@ Assert solved 3x3 isometric SVG has one root, no `rect` stickers, contains
 and `R` faces. Assert `renderScrambleImage('333', scramble, { view:
 'isometric' })` differs from the default net output.
 
-Run: `pnpm --filter @cubekit/scramble-image test -- src/renderers/cube-isometric.test.ts src/integration.test.ts`
+Run: `pnpm --filter @cubegin/scramble-image test -- src/renderers/cube-isometric.test.ts src/integration.test.ts`
 
 Expected: fail because `cube-isometric.ts` does not exist.
 
@@ -90,7 +90,7 @@ When `eventInfo.puzzleId === 'cube'` and `view === 'isometric'`, call
 
 - [x] **Step 4: Run cube tests**
 
-Run: `pnpm --filter @cubekit/scramble-image test -- src/renderers/cube-isometric.test.ts src/integration.test.ts src/render-dispatch.test.ts`
+Run: `pnpm --filter @cubegin/scramble-image test -- src/renderers/cube-isometric.test.ts src/integration.test.ts src/render-dispatch.test.ts`
 
 Expected: pass.
 
@@ -110,7 +110,7 @@ Expected: pass.
 Assert Pyraminx and Skewb isometric SVGs are distinct from their net renderers,
 use path-based stickers, and preserve custom color schemes.
 
-Run: `pnpm --filter @cubekit/scramble-image test -- src/renderers/pyraminx-isometric.test.ts src/renderers/skewb-isometric.test.ts`
+Run: `pnpm --filter @cubegin/scramble-image test -- src/renderers/pyraminx-isometric.test.ts src/renderers/skewb-isometric.test.ts`
 
 Expected: fail because renderers do not exist.
 
@@ -132,7 +132,7 @@ Dispatch `pyram` and `skewb` families to the new renderers when `view:
 
 - [x] **Step 5: Run side-event tests**
 
-Run: `pnpm --filter @cubekit/scramble-image test -- src/renderers/pyraminx-isometric.test.ts src/renderers/skewb-isometric.test.ts src/render-dispatch.test.ts`
+Run: `pnpm --filter @cubegin/scramble-image test -- src/renderers/pyraminx-isometric.test.ts src/renderers/skewb-isometric.test.ts src/render-dispatch.test.ts`
 
 Expected: pass.
 
@@ -151,7 +151,7 @@ Assert `renderMegaminxIsometricState()` returns a single SVG, renders visible
 pentagon-derived sticker paths, supports custom colors, and differs from the
 current unfolded net renderer.
 
-Run: `pnpm --filter @cubekit/scramble-image test -- src/renderers/megaminx-isometric.test.ts`
+Run: `pnpm --filter @cubegin/scramble-image test -- src/renderers/megaminx-isometric.test.ts`
 
 Expected: fail because renderer does not exist.
 
@@ -167,7 +167,7 @@ Dispatch `minx` to `renderMegaminxIsometricState()` when requested.
 
 - [x] **Step 4: Run Megaminx tests**
 
-Run: `pnpm --filter @cubekit/scramble-image test -- src/renderers/megaminx-isometric.test.ts src/integration.test.ts`
+Run: `pnpm --filter @cubegin/scramble-image test -- src/renderers/megaminx-isometric.test.ts src/integration.test.ts`
 
 Expected: pass.
 
@@ -188,9 +188,9 @@ Square-1 fallback behavior.
 Run:
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle build
-pnpm --filter @cubekit/scramble-image test
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-puzzle build
+pnpm --filter @cubegin/scramble-image test
+pnpm --filter @cubegin/scramble-image typecheck
 ```
 
 Expected: all commands exit 0.

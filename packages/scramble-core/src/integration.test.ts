@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WCA_EVENT_IDS } from '@cubekit/scramble-puzzle';
+import { WCA_EVENT_IDS } from '@cubegin/scramble-puzzle';
 import { createDefaultScrambleGenerator } from './generator.js';
 import type { RandomSource } from './random-source.js';
 
@@ -42,7 +42,7 @@ describe('default scramble generator', () => {
     const generator = createDefaultScrambleGenerator({ random: cyclingRandom() });
 
     await expect(generator.generate('333mbld')).rejects.toThrow(
-      "@cubekit/scramble-core: event '333mbld' requires multiBlindCubeCount",
+      "@cubegin/scramble-core: event '333mbld' requires multiBlindCubeCount",
     );
   });
 });

@@ -1,6 +1,6 @@
 import type { RandomSource } from '../random-source.js';
 
-const ERROR_PREFIX = '@cubekit/scramble-core';
+const ERROR_PREFIX = '@cubegin/scramble-core';
 
 const N_EDGE_PERM = 720;
 const N_EDGE_ORIENT = 32;

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
 
 describe('renderScrambleImage dispatch', () => {
   afterEach(() => {
-    vi.doUnmock('@cubekit/scramble-puzzle');
+    vi.doUnmock('@cubegin/scramble-puzzle');
     vi.resetModules();
   });
 
@@ -44,8 +44,8 @@ describe('renderScrambleImage dispatch', () => {
 
   it('rejects a known cube event when no cube net size is configured for it', async () => {
     vi.resetModules();
-    vi.doMock('@cubekit/scramble-puzzle', async (importOriginal) => {
-      const actual = await importOriginal<typeof import('@cubekit/scramble-puzzle')>();
+    vi.doMock('@cubegin/scramble-puzzle', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('@cubegin/scramble-puzzle')>();
 
       return {
         ...actual,
@@ -59,7 +59,7 @@ describe('renderScrambleImage dispatch', () => {
     const { renderScrambleImage } = await import('./render.js');
 
     expect(() => renderScrambleImage('999' as WcaEventId, '')).toThrow(
-      "@cubekit/scramble-image: event '999' is not renderable yet",
+      "@cubegin/scramble-image: event '999' is not renderable yet",
     );
   });
 });

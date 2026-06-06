@@ -19,10 +19,10 @@ that different important states do not collapse into one value.
 
 ## Solver State Is Not Rendering State
 
-| State type | Main use | Example |
-| --- | --- | --- |
-| solver coordinates | search, tables, pruning | `permutation = 1234`, `orientation = 321` |
-| rendering state | drawing the final puzzle | sticker colors or Clock hand positions |
+| State type         | Main use                 | Example                                   |
+| ------------------ | ------------------------ | ----------------------------------------- |
+| solver coordinates | search, tables, pruning  | `permutation = 1234`, `orientation = 321` |
+| rendering state    | drawing the final puzzle | sticker colors or Clock hand positions    |
 
 Scramble generation mostly uses solver coordinates. Scramble images mostly use
 rendering state. They are related, but optimized for different jobs.
@@ -32,9 +32,9 @@ rendering state. They are related, but optimized for different jobs.
 2x2 only has corners. TNoodle-style 2x2 search fixes one reference corner, so it
 encodes the remaining 7 corners:
 
-| Coordinate | Size | Why |
-| --- | ---: | --- |
-| `permutation` | `7! = 5040` | positions of 7 corners |
+| Coordinate    |        Size | Why                                               |
+| ------------- | ----------: | ------------------------------------------------- |
+| `permutation` | `7! = 5040` | positions of 7 corners                            |
 | `orientation` | `3^6 = 729` | 6 corner twists are free; the last is constrained |
 
 Orientation is `3^6`, not `3^7`, because a real 2x2 cannot twist corners with an
@@ -44,9 +44,9 @@ forced by the physical constraint.
 Conceptually:
 
 ```ts
-permutation = randomInt(5040)
-orientation = randomInt(729)
-state = { permutation, orientation }
+permutation = randomInt(5040);
+orientation = randomInt(729);
+state = { permutation, orientation };
 ```
 
 The solver then uses these two numbers to index move tables and pruning tables.
@@ -55,12 +55,12 @@ The solver then uses these two numbers to index move tables and pruning tables.
 
 3x3 state is usually split into four coordinates:
 
-| Coordinate | Meaning | Constraint |
-| --- | --- | --- |
-| corner permutation | corner positions | parity must match edge permutation |
-| edge permutation | edge positions | parity must match corner permutation |
-| corner orientation | corner twists | total twist must be legal |
-| edge orientation | edge flips | total flip must be legal |
+| Coordinate         | Meaning          | Constraint                           |
+| ------------------ | ---------------- | ------------------------------------ |
+| corner permutation | corner positions | parity must match edge permutation   |
+| edge permutation   | edge positions   | parity must match corner permutation |
+| corner orientation | corner twists    | total twist must be legal            |
+| edge orientation   | edge flips       | total flip must be legal             |
 
 Many arbitrary combinations of those numbers cannot exist on a real cube. For
 example, swapping only two corners is impossible by legal moves.
@@ -68,12 +68,12 @@ example, swapping only two corners is impossible by legal moves.
 So random 3x3 state generation does something like:
 
 ```ts
-cornerPerm = randomPermutation(8)
-cornerParity = parity(cornerPerm)
+cornerPerm = randomPermutation(8);
+cornerParity = parity(cornerPerm);
 
-edgePerm = randomPermutationWithParity(12, cornerParity)
-cornerOrientation = randomOrientation(base = 3, lastValueConstrained = true)
-edgeOrientation = randomOrientation(base = 2, lastValueConstrained = true)
+edgePerm = randomPermutationWithParity(12, cornerParity);
+cornerOrientation = randomOrientation((base = 3), (lastValueConstrained = true));
+edgeOrientation = randomOrientation((base = 2), (lastValueConstrained = true));
 ```
 
 Parity is the even/odd character of a permutation. Real 3x3 states require
@@ -83,12 +83,12 @@ corner and edge permutation parity to agree.
 
 Pyraminx state can be split into:
 
-| Coordinate | Meaning |
-| --- | --- |
-| `edgePerm` | edge permutation |
-| `edgeOrient` | edge orientation |
+| Coordinate     | Meaning                 |
+| -------------- | ----------------------- |
+| `edgePerm`     | edge permutation        |
+| `edgeOrient`   | edge orientation        |
 | `cornerOrient` | main corner orientation |
-| `tips` | four tip orientations |
+| `tips`         | four tip orientations   |
 
 The WCA distance rule is about the main state. Tips are visible moves added
 afterward, so the generator can sample tips while checking the body distance
@@ -98,10 +98,10 @@ separately.
 
 Skewb search uses two compact coordinates:
 
-| Coordinate | Size | Meaning |
-| --- | ---: | --- |
-| `perm` | 4320 | combined center/corner permutation encoding |
-| `twst` | 2187 | corner orientation |
+| Coordinate | Size | Meaning                                     |
+| ---------- | ---: | ------------------------------------------- |
+| `perm`     | 4320 | combined center/corner permutation encoding |
+| `twst`     | 2187 | corner orientation                          |
 
 The search uses four basic move families: `L`, `R`, `B`, and `U`. The state space
 is small enough for move and pruning tables.

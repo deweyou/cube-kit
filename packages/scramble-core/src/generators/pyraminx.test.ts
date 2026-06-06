@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parsePyraminxAlgorithm } from '@cubekit/scramble-puzzle';
+import { parsePyraminxAlgorithm } from '@cubegin/scramble-puzzle';
 import { generatePyraminxScramble } from './pyraminx.js';
 import { PyraminxSolver, type PyraminxSolverState } from '../solvers/pyraminx-solver.js';
 import type { RandomSource } from '../random-source.js';
@@ -40,7 +40,7 @@ describe('generatePyraminxScramble', () => {
 
   it('throws clearly when no sampled state reaches WCA minimum distance', () => {
     expect(() => generatePyraminxScramble({ random: zeroRandom })).toThrow(
-      '@cubekit/scramble-core: could not generate a Pyraminx WCA scramble after 100 attempts',
+      '@cubegin/scramble-core: could not generate a Pyraminx WCA scramble after 100 attempts',
     );
   });
 
@@ -62,7 +62,7 @@ describe('generatePyraminxScramble', () => {
     const random = createUnreachableEdgePermRandom();
 
     expect(() => new PyraminxSolver().randomState(random)).toThrow(
-      '@cubekit/scramble-core: could not sample a reachable Pyraminx edge permutation after 100 attempts',
+      '@cubegin/scramble-core: could not sample a reachable Pyraminx edge permutation after 100 attempts',
     );
   });
 });

@@ -1,4 +1,4 @@
-import { parsePyraminxAlgorithm, type PyraminxMove } from '@cubekit/scramble-puzzle';
+import { parsePyraminxAlgorithm, type PyraminxMove } from '@cubegin/scramble-puzzle';
 import {
   InvalidSolverScrambleError,
   NoSolverSolutionError,

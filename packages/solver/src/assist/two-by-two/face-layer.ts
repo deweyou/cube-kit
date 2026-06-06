@@ -6,7 +6,7 @@ import {
   type CubeFace,
   type CubeMove,
   type CubeState,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import {
   InvalidSolverScrambleError,
   NoSolverSolutionError,

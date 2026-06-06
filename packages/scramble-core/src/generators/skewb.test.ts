@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseSkewbAlgorithm } from '@cubekit/scramble-puzzle';
+import { parseSkewbAlgorithm } from '@cubegin/scramble-puzzle';
 import { generateSkewbScramble } from './skewb.js';
 import { SkewbSolver, type SkewbSolverState } from '../solvers/skewb-solver.js';
 import type { RandomSource } from '../random-source.js';
@@ -39,7 +39,7 @@ describe('generateSkewbScramble', () => {
 
   it('throws clearly when no sampled state reaches WCA minimum distance', () => {
     expect(() => generateSkewbScramble({ random: zeroRandom })).toThrow(
-      '@cubekit/scramble-core: could not generate a Skewb WCA scramble after 100 attempts',
+      '@cubegin/scramble-core: could not generate a Skewb WCA scramble after 100 attempts',
     );
   });
 });
@@ -81,7 +81,7 @@ describe('SkewbSolver', () => {
     const random = createUnsolvableTwistRandom();
 
     expect(() => new SkewbSolver().randomState(random)).toThrow(
-      '@cubekit/scramble-core: could not sample a solvable Skewb twist after 100 attempts',
+      '@cubegin/scramble-core: could not sample a solvable Skewb twist after 100 attempts',
     );
   });
 

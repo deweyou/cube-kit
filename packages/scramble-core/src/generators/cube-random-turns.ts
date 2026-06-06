@@ -16,12 +16,12 @@ export interface CubeRandomTurnOptions {
 
 const validateOptions = ({ size, length }: CubeRandomTurnOptions): void => {
   if (!Number.isSafeInteger(size) || !SUPPORTED_SIZES.has(size)) {
-    throw new Error('@cubekit/scramble-core: cube random-turn size must be 5, 6, or 7');
+    throw new Error('@cubegin/scramble-core: cube random-turn size must be 5, 6, or 7');
   }
 
   if (!Number.isSafeInteger(length) || length < 0) {
     throw new Error(
-      '@cubekit/scramble-core: cube random-turn length must be a non-negative safe integer',
+      '@cubegin/scramble-core: cube random-turn length must be a non-negative safe integer',
     );
   }
 };

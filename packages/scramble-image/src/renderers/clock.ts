@@ -1,4 +1,4 @@
-import type { ClockState } from '@cubekit/scramble-puzzle';
+import type { ClockState } from '@cubegin/scramble-puzzle';
 import { createSvgDocument } from '../svg/svg-document.js';
 import { circle, group, path, type SvgNode } from '../svg/svg-elements.js';
 

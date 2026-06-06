@@ -1,7 +1,7 @@
 import type { RandomSource } from '../random-source.js';
 import { PyraminxSolver } from '../solvers/pyraminx-solver.js';
 
-const ERROR_PREFIX = '@cubekit/scramble-core';
+const ERROR_PREFIX = '@cubegin/scramble-core';
 const SCRAMBLE_LENGTH = 11;
 const WCA_MIN_SCRAMBLE_DISTANCE = 6;
 const MAX_WCA_ATTEMPTS = 100;

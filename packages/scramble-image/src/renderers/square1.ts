@@ -1,4 +1,4 @@
-import type { SquareOneState } from '@cubekit/scramble-puzzle';
+import type { SquareOneState } from '@cubegin/scramble-puzzle';
 import type { HexColor } from '../color.js';
 import { createSvgDocument } from '../svg/svg-document.js';
 import { path, rect, type SvgNode } from '../svg/svg-elements.js';

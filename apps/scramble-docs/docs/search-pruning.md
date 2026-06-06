@@ -24,8 +24,8 @@ Suppose a 2x2 state is:
 ```ts
 state = {
   permutation: 1234,
-  orientation: 321
-}
+  orientation: 321,
+};
 ```
 
 After an `R` move, what are the new coordinates? A slow solver could unpack
@@ -33,8 +33,8 @@ pieces, rotate them, and encode them again. A scramble solver does this millions
 of times, so it precomputes:
 
 ```ts
-movePerm[1234][R] = 3051
-moveOrient[321][R] = 117
+movePerm[1234][R] = 3051;
+moveOrient[321][R] = 117;
 ```
 
 Then a move is just array lookup:
@@ -42,8 +42,8 @@ Then a move is just array lookup:
 ```ts
 next = {
   permutation: movePerm[state.permutation][move],
-  orientation: moveOrient[state.orientation][move]
-}
+  orientation: moveOrient[state.orientation][move],
+};
 ```
 
 This is the adjacency list of the state graph.
@@ -90,7 +90,7 @@ This is a lower bound, not a guess.
 WCA minimum-distance filters usually look like:
 
 ```ts
-isTooClose = solver.solveIn(state, minimumDistance - 1) !== null
+isTooClose = solver.solveIn(state, minimumDistance - 1) !== null;
 ```
 
 For 2x2, the minimum is 4, so the generator asks whether a 3-move solution
@@ -119,7 +119,7 @@ asking for the shortest solution; it is asking for a path of exactly the desired
 length:
 
 ```ts
-solution = search(state, desiredLength, exactLength = true)
+solution = search(state, desiredLength, (exactLength = true));
 ```
 
 Fairness still comes from state sampling and distance filtering. Fixed length is
@@ -156,7 +156,7 @@ for depth = minPossibleDepth..maxDepth:
     return solution
 ```
 
-This is the intuition behind IDA*: memory stays close to DFS, while pruning
+This is the intuition behind IDA\*: memory stays close to DFS, while pruning
 tables keep the search from exploding.
 
 ## 3x3 Two-Phase Search

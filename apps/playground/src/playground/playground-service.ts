@@ -2,12 +2,12 @@ import {
   createDefaultScrambleGenerator,
   type RandomSource,
   type ScrambleGenerator,
-} from '@cubekit/scramble-core';
-import { renderScrambleImage } from '@cubekit/scramble-image';
+} from '@cubegin/scramble-core';
+import { renderScrambleImage } from '@cubegin/scramble-image';
 import {
   solvePuzzleAssist as solvePuzzleAssistCore,
   type PuzzleAssistEventId,
-} from '@cubekit/solver';
+} from '@cubegin/solver';
 import { createSeededRandomSource } from './seeded-random';
 import type {
   PlaygroundGenerateInput,

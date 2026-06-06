@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseClockAlgorithm } from '@cubekit/scramble-puzzle';
+import { parseClockAlgorithm } from '@cubegin/scramble-puzzle';
 import { generateClockScramble } from './clock.js';
 import type { RandomSource } from '../random-source.js';
 

@@ -1,4 +1,4 @@
-# @cubekit/scramble-puzzle
+# @cubegin/scramble-puzzle
 
 This package owns TNoodle-compatible WCA event metadata, notation parsers, puzzle
 state transitions, and registry helpers.
@@ -12,9 +12,9 @@ state transitions, and registry helpers.
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle test
-pnpm --filter @cubekit/scramble-puzzle test:coverage
-pnpm --filter @cubekit/scramble-puzzle typecheck
+pnpm --filter @cubegin/scramble-puzzle test
+pnpm --filter @cubegin/scramble-puzzle test:coverage
+pnpm --filter @cubegin/scramble-puzzle typecheck
 ```
 
 ## Constraints

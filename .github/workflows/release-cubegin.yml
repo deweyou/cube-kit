@@ -1,0 +1,99 @@
+name: Release cubegin
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version increment
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  CI: true
+
+jobs:
+  pack:
+    name: Bump, changelog, and pack
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+          version: 10.33.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+          node-version: 22.12.0
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Prepare release
+        run: pnpm --filter cubegin release:prepare -- ${{ inputs.version }}
+
+      - name: Test public package
+        run: pnpm --filter cubegin test
+
+      - name: Typecheck public package
+        run: pnpm --filter cubegin typecheck
+
+      - name: Build public package
+        run: pnpm --filter cubegin build
+
+      - name: Verify docs index
+        run: pnpm test:docs
+
+      - name: Read package version
+        id: package
+        run: echo "version=$(node -p \"require('./packages/core/package.json').version\")" >> "$GITHUB_OUTPUT"
+
+      - name: Commit release metadata
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/core/package.json packages/core/CHANGELOG.md
+          git commit -m "chore(release): cubegin v${{ steps.package.outputs.version }}"
+          git push origin HEAD:main
+
+      - name: Pack npm tarball
+        id: pack
+        working-directory: packages/core
+        run: |
+          filename=$(npm pack --json | node -e "let data=''; process.stdin.on('data', c => data += c); process.stdin.on('end', () => console.log(JSON.parse(data)[0].filename));")
+          echo "filename=$filename" >> "$GITHUB_OUTPUT"
+
+      - name: Upload npm tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: cubegin-${{ steps.package.outputs.version }}
+          path: packages/core/${{ steps.pack.outputs.filename }}
+          if-no-files-found: error
+
+      - name: Publish npm package
+        working-directory: packages/core
+        run: npm publish --access public --provenance
+
+      - name: Push release tag
+        run: |
+          git tag "cubegin@${{ steps.package.outputs.version }}"
+          git push origin "cubegin@${{ steps.package.outputs.version }}"

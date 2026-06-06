@@ -14,7 +14,7 @@ describe('createScrambleGenerator', () => {
     const generator = createScrambleGenerator({ random: deterministicRandom, generators: {} });
 
     await expect(generator.generate('333')).rejects.toThrow(
-      "@cubekit/scramble-core: event '333' has no generator",
+      "@cubegin/scramble-core: event '333' has no generator",
     );
   });
 
@@ -110,7 +110,7 @@ describe('createScrambleGenerator', () => {
       Number.MAX_SAFE_INTEGER + 1,
     ]) {
       await expect(generator.generateBatch('333', count)).rejects.toThrow(
-        '@cubekit/scramble-core: batch count must be a non-negative safe integer',
+        '@cubegin/scramble-core: batch count must be a non-negative safe integer',
       );
     }
   });
@@ -128,7 +128,7 @@ describe('createScrambleGenerator', () => {
     });
 
     await expect(generator.generateBatch('333', 2)).rejects.toThrow(
-      '@cubekit/scramble-core: generated 1 unique scrambles after 100 attempts',
+      '@cubegin/scramble-core: generated 1 unique scrambles after 100 attempts',
     );
     expect(calls).toBe(100);
   });
@@ -147,7 +147,7 @@ describe('createMathRandomSource', () => {
       Number.MAX_SAFE_INTEGER + 1,
     ]) {
       expect(() => random.nextInt(maxExclusive)).toThrow(
-        '@cubekit/scramble-core: random maxExclusive must be a positive safe integer',
+        '@cubegin/scramble-core: random maxExclusive must be a positive safe integer',
       );
     }
   });

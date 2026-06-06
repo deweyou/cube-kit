@@ -1,4 +1,4 @@
-import type { WcaEventId } from '@cubekit/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
 
 export const createSvgDownloadName = ({
   eventId,
@@ -6,4 +6,4 @@ export const createSvgDownloadName = ({
 }: {
   readonly eventId: WcaEventId;
   readonly index: number;
-}) => `cubekit-${eventId}-${index + 1}.svg`;
+}) => `cubegin-${eventId}-${index + 1}.svg`;

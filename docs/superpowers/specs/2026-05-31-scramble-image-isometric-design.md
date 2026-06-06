@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add an optional static isometric SVG view to `@cubekit/scramble-image` while
+Add an optional static isometric SVG view to `@cubegin/scramble-image` while
 preserving the existing 2D net output as the default. Expose the option in the
 playground so maintainers can compare 2D and 3D SVG output quickly.
 
@@ -99,9 +99,9 @@ Tests should verify:
 Verification commands:
 
 ```bash
-pnpm --filter @cubekit/scramble-puzzle build
-pnpm --filter @cubekit/scramble-image test
-pnpm --filter @cubekit/scramble-image typecheck
+pnpm --filter @cubegin/scramble-puzzle build
+pnpm --filter @cubegin/scramble-image test
+pnpm --filter @cubegin/scramble-image typecheck
 pnpm --filter playground test
 pnpm --filter playground typecheck
 ```

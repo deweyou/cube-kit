@@ -2,14 +2,14 @@
 
 ```mermaid
 flowchart TD
-    WCA["WCA Regulation 4b3"] --> Core["@cubekit/scramble-core"]
+    WCA["WCA Regulation 4b3"] --> Core["@cubegin/scramble-core"]
     Core --> RandomState["Random-state generators"]
     Core --> RandomTurns["Random-turn generators"]
     Core --> NoInspection["BLD orientation moves"]
     Core --> MultiBlind["333mbld multiline attempt"]
 ```
 
-`@cubekit/scramble-core` implements the testable WCA generation rules used by the
+`@cubegin/scramble-core` implements the testable WCA generation rules used by the
 17 supported WCA event ids. The tests assert structure and minimum-distance
 filters; they do not attempt statistical proof of randomness.
 

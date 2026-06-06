@@ -36,7 +36,7 @@ describe('applyAlgorithm', () => {
       expect(error).toBeInstanceOf(InvalidScrambleError);
       expect(error).toHaveProperty(
         'message',
-        "@cubekit/scramble-puzzle: scramble 'bad' is invalid: bad token",
+        "@cubegin/scramble-puzzle: scramble 'bad' is invalid: bad token",
       );
       expect(error).toHaveProperty('cause', parseError);
     }
@@ -54,7 +54,7 @@ describe('applyAlgorithm', () => {
     };
 
     expect(() => applyAlgorithm(definition, { value: 0 }, 'bad')).toThrow(
-      "@cubekit/scramble-puzzle: scramble 'bad' is invalid: bad token",
+      "@cubegin/scramble-puzzle: scramble 'bad' is invalid: bad token",
     );
   });
 });

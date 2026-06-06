@@ -3,8 +3,8 @@
 Developer playground for the new TNoodle-compatible scramble packages.
 
 The app is intentionally separate from production `apps/web` and `apps/wx-app`.
-It exists to manually and automatically exercise `@cubekit/scramble-core` and
-`@cubekit/scramble-image` while the migration is still package-scoped.
+It exists to manually and automatically exercise `@cubegin/scramble-core` and
+`@cubegin/scramble-image` while the migration is still package-scoped.
 
 ## Run
 

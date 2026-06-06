@@ -6,10 +6,10 @@ flowchart TD
     Dispatch --> RandomState["Random-state generators"]
     Dispatch --> RandomTurns["Random-turn generators"]
     Dispatch --> Batch["Unique batch wrapper"]
-    RandomState --> Puzzle["@cubekit/scramble-puzzle"]
+    RandomState --> Puzzle["@cubegin/scramble-puzzle"]
 ```
 
-`@cubekit/scramble-core` owns TNoodle-compatible WCA scramble generation. Its
+`@cubegin/scramble-core` owns TNoodle-compatible WCA scramble generation. Its
 public facade is async-shaped so generation can move behind a worker boundary
 without changing callers.
 
@@ -26,9 +26,9 @@ without changing callers.
 ## Verify
 
 ```bash
-pnpm --filter @cubekit/scramble-core test
-pnpm --filter @cubekit/scramble-core test:coverage
-pnpm --filter @cubekit/scramble-core typecheck
+pnpm --filter @cubegin/scramble-core test
+pnpm --filter @cubegin/scramble-core test:coverage
+pnpm --filter @cubegin/scramble-core typecheck
 ```
 
 ## Key Files

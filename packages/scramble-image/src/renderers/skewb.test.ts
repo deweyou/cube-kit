@@ -4,7 +4,7 @@ import {
   createSolvedSkewbState,
   parseSkewbAlgorithm,
   type SkewbState,
-} from '@cubekit/scramble-puzzle';
+} from '@cubegin/scramble-puzzle';
 import { renderSkewbState } from './skewb.js';
 
 const countFill = (svg: string, color: string): number =>

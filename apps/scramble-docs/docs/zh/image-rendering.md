@@ -26,14 +26,14 @@ SVG 适合这里，因为它是文本、可缩放、输出稳定，也方便测�
 
 ## 各类图怎么画
 
-| Puzzle family | 画图思路 |
-| --- | --- |
-| NxN cubes | 展开的 cube net，每个 sticker 一个方块 |
-| Clock | 两个圆形表盘面、18 个指针和 pin |
-| Megaminx | 把五边形面展开成易读布局 |
-| Pyraminx | 三角面和更小的 tip pieces |
-| Skewb | 按 Skewb sticker 几何展开的面布局 |
-| Square-1 | 用上下层 piece arc 表达变形后的形状 |
+| Puzzle family | 画图思路                               |
+| ------------- | -------------------------------------- |
+| NxN cubes     | 展开的 cube net，每个 sticker 一个方块 |
+| Clock         | 两个圆形表盘面、18 个指针和 pin        |
+| Megaminx      | 把五边形面展开成易读布局               |
+| Pyraminx      | 三角面和更小的 tip pieces              |
+| Skewb         | 按 Skewb sticker 几何展开的面布局      |
+| Square-1      | 用上下层 piece arc 表达变形后的形状    |
 
 布局是 puzzle-specific 的，但输入始终是同一种东西：验证过的最终状态。
 

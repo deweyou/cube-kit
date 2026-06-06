@@ -103,12 +103,12 @@ describe('Clock state transitions', () => {
   it('rejects malformed Clock states when applying moves', () => {
     const [turn, rotation] = parseClockAlgorithm('UR1+ y2');
 
-    expect(() =>
-      applyClockMove({ positions: [0, 0, 0], rightSideUp: true }, rotation),
-    ).toThrow(RangeError);
-    expect(() =>
-      applyClockMove({ positions: Array(19).fill(0), rightSideUp: true }, turn),
-    ).toThrow(RangeError);
+    expect(() => applyClockMove({ positions: [0, 0, 0], rightSideUp: true }, rotation)).toThrow(
+      RangeError,
+    );
+    expect(() => applyClockMove({ positions: Array(19).fill(0), rightSideUp: true }, turn)).toThrow(
+      RangeError,
+    );
   });
 
   it('compares non-equal Clock states', () => {

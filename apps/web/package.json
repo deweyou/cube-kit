@@ -6,16 +6,16 @@
   "scripts": {
     "dev": "pnpm run prepare:deps && vp dev",
     "build": "pnpm run prepare:deps && tsc && vp build",
-    "prepare:deps": "pnpm --filter @cubekit/timer build && pnpm --filter @cubekit/scramble-puzzle build && pnpm --filter @cubekit/scramble-core build && pnpm --filter @cubekit/scramble-image build",
+    "prepare:deps": "pnpm --filter @cubegin/timer build && pnpm --filter @cubegin/scramble-puzzle build && pnpm --filter @cubegin/scramble-core build && pnpm --filter @cubegin/scramble-image build",
     "preview": "vp preview",
     "test": "pnpm run prepare:deps && vp test",
     "typecheck": "pnpm run prepare:deps && tsc --noEmit"
   },
   "dependencies": {
-    "@cubekit/scramble-core": "workspace:*",
-    "@cubekit/scramble-image": "workspace:*",
-    "@cubekit/scramble-puzzle": "workspace:*",
-    "@cubekit/timer": "workspace:*",
+    "@cubegin/scramble-core": "workspace:*",
+    "@cubegin/scramble-image": "workspace:*",
+    "@cubegin/scramble-puzzle": "workspace:*",
+    "@cubegin/timer": "workspace:*",
     "@deweyou-design/react": "catalog:",
     "@deweyou-design/styles": "catalog:",
     "react": "catalog:",
