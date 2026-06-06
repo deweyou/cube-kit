@@ -1,25 +1,8 @@
 import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/scramble-puzzle';
+import { WCA_EVENT_LABELS } from '@cubegin/timer-session';
 
 // Short display labels
-const DISPLAY_LABELS: Record<WcaEventId, string> = {
-  '333': '3×3×3',
-  '222': '2×2×2',
-  '444': '4×4×4',
-  '555': '5×5×5',
-  '666': '6×6×6',
-  '777': '7×7×7',
-  '333bld': '3BLD',
-  '333fm': 'FMC',
-  '333oh': '单手',
-  clock: 'Clock',
-  minx: 'Megaminx',
-  pyram: 'Pyraminx',
-  skewb: 'Skewb',
-  sq1: 'SQ-1',
-  '444bld': '4BLD',
-  '555bld': '5BLD',
-  '333mbld': 'Multi',
-};
+const DISPLAY_LABELS = WCA_EVENT_LABELS;
 
 interface EventSelectorProps {
   value: WcaEventId;
@@ -29,6 +12,7 @@ interface EventSelectorProps {
 export const EventSelector = ({ value, onChange }: EventSelectorProps) => {
   return (
     <select
+      aria-label="魔方类型"
       value={value}
       onChange={(e) => onChange(e.target.value as WcaEventId)}
       style={{
