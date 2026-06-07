@@ -8,15 +8,25 @@ import {
   type SolveRecord,
 } from '@cubegin/timer-session';
 import { ScrambleImage } from './scramble-image';
+import type { TimerLocale, TimerMessages } from '../timer-i18n';
 
 interface SolveDetailProps {
+  locale: TimerLocale;
+  messages: TimerMessages;
   solve: SolveRecord;
   onClose: () => void;
   onDelete: (solveId: string) => void;
   onPenaltyChange: (solveId: string, penalty: SolvePenalty) => void;
 }
 
-export const SolveDetail = ({ solve, onClose, onDelete, onPenaltyChange }: SolveDetailProps) => {
+export const SolveDetail = ({
+  locale,
+  messages,
+  solve,
+  onClose,
+  onDelete,
+  onPenaltyChange,
+}: SolveDetailProps) => {
   const imageResult = useMemo(() => {
     try {
       return { svg: renderScrambleImage(solve.eventId, solve.scramble), error: undefined };
@@ -32,11 +42,11 @@ export const SolveDetail = ({ solve, onClose, onDelete, onPenaltyChange }: Solve
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="成绩详情"
+      aria-label={messages.solveDetail}
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 20,
+        zIndex: 80,
         display: 'grid',
         placeItems: 'center',
         background: 'color-mix(in srgb, black 45%, transparent)',
@@ -52,7 +62,8 @@ export const SolveDetail = ({ solve, onClose, onDelete, onPenaltyChange }: Solve
           overflow: 'auto',
           border: '1px solid var(--ui-color-border)',
           borderRadius: 8,
-          background: 'var(--ui-color-background)',
+          background: 'var(--ui-color-surface-raised, var(--ui-color-surface))',
+          boxShadow: '0 24px 72px color-mix(in srgb, black 22%, transparent)',
           color: 'var(--ui-color-text)',
           padding: 18,
         }}
@@ -70,17 +81,17 @@ export const SolveDetail = ({ solve, onClose, onDelete, onPenaltyChange }: Solve
               {getSolveDisplayText(solve.elapsedMs, solve.penalty)}
             </strong>
             <span style={{ color: 'var(--ui-color-text-muted)', fontSize: '0.8rem' }}>
-              {getWcaEventLabel(solve.eventId)} · {new Date(solve.createdAt).toLocaleString()}
+              {getWcaEventLabel(solve.eventId, locale)} · {new Date(solve.createdAt).toLocaleString()}
             </span>
           </div>
           <Button variant="link" color="neutral" size="sm" onClick={onClose}>
-            关闭
+            {messages.close}
           </Button>
         </header>
 
         {imageResult.error ? (
           <p style={{ color: 'var(--ui-color-text-muted)', margin: 0 }}>
-            打乱图渲染失败：{imageResult.error}
+            {messages.imageRenderFailed(imageResult.error)}
           </p>
         ) : (
           <ScrambleImage svg={imageResult.svg} />
@@ -106,7 +117,7 @@ export const SolveDetail = ({ solve, onClose, onDelete, onPenaltyChange }: Solve
             size="sm"
             onClick={() => onPenaltyChange(solve.id, 'none')}
           >
-            无
+            {messages.noPenalty}
           </Button>
           <Button
             variant="outlined"
@@ -125,7 +136,7 @@ export const SolveDetail = ({ solve, onClose, onDelete, onPenaltyChange }: Solve
             DNF
           </Button>
           <Button variant="outlined" color="danger" size="sm" onClick={() => onDelete(solve.id)}>
-            删除成绩
+            {messages.deleteSolve}
           </Button>
         </div>
       </section>

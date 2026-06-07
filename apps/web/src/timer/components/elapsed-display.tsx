@@ -1,23 +1,21 @@
 import { formatElapsed } from '@cubegin/timer';
+import styles from './elapsed-display.module.css';
 
 interface ElapsedDisplayProps {
   ms: number;
   decimals?: 0 | 1 | 2 | 3;
   dimmed?: boolean;
+  compact?: boolean;
 }
 
-export const ElapsedDisplay = ({ ms, decimals = 2, dimmed = false }: ElapsedDisplayProps) => (
+export const ElapsedDisplay = ({
+  ms,
+  decimals = 2,
+  dimmed = false,
+  compact = false,
+}: ElapsedDisplayProps) => (
   <span
-    style={{
-      fontFamily: 'Helvetica, Arial, sans-serif',
-      fontSize: 'clamp(3rem, 12vw, 6rem)',
-      fontWeight: 300,
-      letterSpacing: 0,
-      fontVariantNumeric: 'tabular-nums',
-      color: dimmed ? 'var(--ui-color-text-muted)' : 'var(--ui-color-text)',
-      transition: 'color 140ms ease',
-      lineHeight: 1,
-    }}
+    className={`${styles.root} ${dimmed ? styles.dimmed : ''} ${compact ? styles.compact : ''}`}
   >
     {formatElapsed(ms, decimals)}
   </span>

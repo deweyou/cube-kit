@@ -24,10 +24,11 @@ export const createMemoryTimerSessionRepository = (): TimerSessionRepository => 
     async listSessions() {
       return sortSessionsByCreatedDesc([...sessions.values()]);
     },
-    async createSession(name, now) {
+    async createSession(name, now, eventId) {
       const session: SolveSession = {
         id: crypto.randomUUID(),
         name,
+        eventId,
         isDefault: false,
         createdAt: now,
       };

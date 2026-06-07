@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { SessionSelector } from './session-selector';
 import { SolveDetail } from './solve-detail';
 import { SolveList } from './solve-list';
+import { TIMER_MESSAGES } from '../timer-i18n';
 
 vi.mock('@deweyou-design/react/button', () => ({
   Button: ({
@@ -51,6 +52,8 @@ const solves = [
 ];
 
 describe('session components', () => {
+  const messages = TIMER_MESSAGES['zh-CN'];
+
   it('selects and creates sessions', async () => {
     const onSelect = vi.fn();
     const onCreate = vi.fn();
@@ -74,11 +77,11 @@ describe('session components', () => {
   });
 
   it('shows reverse sequence numbers and displayed times', () => {
-    render(<SolveList solves={solves} onSelectSolve={vi.fn()} />);
+    render(<SolveList emptyText={messages.noSolves} solves={solves} onSelectSolve={vi.fn()} />);
 
     expect(screen.queryByText('#2')).not.toBeNull();
     expect(screen.queryByText('3.234')).not.toBeNull();
-    expect(screen.queryByText('+2')).not.toBeNull();
+    expect(screen.queryByText('+2')).toBeNull();
     expect(screen.queryByText('#1')).not.toBeNull();
   });
 
@@ -87,6 +90,8 @@ describe('session components', () => {
     const onDelete = vi.fn();
     render(
       <SolveDetail
+        locale="zh-CN"
+        messages={messages}
         solve={solves[0]!}
         onClose={vi.fn()}
         onDelete={onDelete}

@@ -1,0 +1,18 @@
+.root {
+  color: var(--ui-color-text);
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: clamp(5.8rem, 14vw, 11.5rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 300;
+  letter-spacing: 0;
+  line-height: 0.92;
+  transition: color var(--ui-motion-duration-fast) var(--ui-motion-ease-standard);
+}
+
+.dimmed {
+  color: var(--ui-color-text-muted);
+}
+
+.compact {
+  font-size: clamp(4.8rem, 11vw, 8.8rem);
+}

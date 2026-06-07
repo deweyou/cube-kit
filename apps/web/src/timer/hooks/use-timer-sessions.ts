@@ -109,13 +109,13 @@ export const useTimerSessions = ({
 
   const createSession = useCallback(
     async (name: string) => {
-      const session = await repository.createSession(name, now());
+      const session = await repository.createSession(name, now(), eventId);
       await refreshSessions();
       setActiveSessionId(session.id);
       setSolves([]);
       return session;
     },
-    [now, refreshSessions, repository],
+    [eventId, now, refreshSessions, repository],
   );
 
   const deleteSession = useCallback(

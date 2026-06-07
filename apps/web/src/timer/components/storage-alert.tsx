@@ -1,8 +1,9 @@
 interface StorageAlertProps {
+  formatMessage: (message: string) => string;
   message?: string;
 }
 
-export const StorageAlert = ({ message }: StorageAlertProps) => {
+export const StorageAlert = ({ formatMessage, message }: StorageAlertProps) => {
   if (!message) return null;
 
   return (
@@ -17,7 +18,7 @@ export const StorageAlert = ({ message }: StorageAlertProps) => {
         padding: '8px 10px',
       }}
     >
-      成绩暂时无法保存：{message}
+      {formatMessage(message)}
     </p>
   );
 };

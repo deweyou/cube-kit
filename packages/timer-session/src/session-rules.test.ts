@@ -21,7 +21,7 @@ describe('session rules', () => {
     const session = createDefaultSession('333', 100);
     expect(session).toEqual({
       id: 'default:333',
-      name: '3×3×3',
+      name: '三阶速拧',
       eventId: '333',
       isDefault: true,
       createdAt: 100,

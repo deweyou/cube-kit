@@ -1,0 +1,444 @@
+.root {
+  --sidebar-inline-padding: 14px;
+  background: transparent;
+  border-right: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  min-height: 0;
+  padding: 0;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  top: 0;
+  transition:
+    border-color var(--ui-motion-duration-base) var(--ui-motion-ease-standard);
+  width: 312px;
+  z-index: 20;
+}
+
+.root::before {
+  background: color-mix(in srgb, var(--ui-color-surface) 72%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--ui-color-border) 72%, transparent);
+  bottom: 0;
+  content: '';
+  left: 0;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  transform: translateX(0);
+  transition:
+    transform 180ms var(--ui-motion-ease-standard),
+    background var(--ui-motion-duration-base) var(--ui-motion-ease-standard),
+    border-color var(--ui-motion-duration-base) var(--ui-motion-ease-standard);
+  width: 312px;
+  z-index: 0;
+}
+
+.header,
+.controls,
+.scores,
+.statistics,
+.alert {
+  position: relative;
+  z-index: 1;
+}
+
+.header {
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-color-border) 58%, transparent);
+  display: grid;
+  gap: 10px;
+  padding: 18px var(--sidebar-inline-padding) 14px;
+}
+
+.brandRow {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.eventRow {
+  display: flex;
+  width: 100%;
+}
+
+.eventRow > * {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+}
+
+.brand {
+  align-items: center;
+  flex: 0 0 28px;
+  color: var(--ui-color-text);
+  display: inline-flex;
+  font-size: 0.95rem;
+  font-weight: 700;
+  gap: 7px;
+  justify-content: center;
+  letter-spacing: 0;
+}
+
+.brandLogo {
+  display: block;
+  flex: 0 0 auto;
+  height: 22px;
+  width: 22px;
+}
+
+.eventSelector {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+}
+
+.eventSelector :global(button) {
+  font-size: 0.82rem;
+  min-height: 28px;
+  min-width: 0;
+  padding-inline: 0 2px;
+  width: 100%;
+}
+
+.eventSelector :global(button svg) {
+  height: 11px;
+  width: 11px;
+}
+
+.navRow {
+  align-items: center;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.nav {
+  align-items: center;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.navButton,
+.navButtonActive {
+  border-radius: var(--ui-radius-pill);
+}
+
+.navButtonActive {
+  background: transparent;
+  color: var(--ui-color-brand-text);
+}
+
+.navButtonActive:hover {
+  background: transparent;
+  color: var(--ui-color-brand-text);
+}
+
+.controls {
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-color-border) 58%, transparent);
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 0 var(--sidebar-inline-padding) 14px;
+  z-index: 3;
+  transition:
+    opacity 140ms var(--ui-motion-ease-standard),
+    transform 180ms var(--ui-motion-ease-standard);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.sessionMenu {
+  position: relative;
+}
+
+.sessionTrigger {
+  align-items: center;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--ui-color-border) 76%, transparent);
+  border-radius: var(--ui-radius-rect);
+  color: var(--ui-color-text);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 8px;
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 6px 9px;
+  text-align: left;
+  width: 100%;
+}
+
+.sessionTriggerText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sessionTrigger svg {
+  color: color-mix(in srgb, var(--ui-color-text-muted) 82%, transparent);
+  flex: 0 0 auto;
+}
+
+.sessionTrigger:hover {
+  border-color: var(--ui-color-border-strong);
+}
+
+.sessionTrigger:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.sessionPanel {
+  background: color-mix(in srgb, var(--ui-color-surface-raised, var(--ui-color-surface)) 96%, var(--ui-color-canvas));
+  border: 1px solid color-mix(in srgb, var(--ui-color-border-strong, var(--ui-color-border)) 78%, transparent);
+  border-radius: var(--ui-radius-float);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 48%, transparent) inset,
+    0 12px 28px color-mix(in srgb, black 12%, transparent);
+  display: grid;
+  gap: 2px;
+  left: 0;
+  padding: 5px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 70;
+}
+
+.sessionItemRow {
+  align-items: center;
+  border-radius: var(--ui-radius-rect);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ui-touch-target-min);
+}
+
+.sessionItem,
+.createSessionButton {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--ui-radius-rect);
+  color: var(--ui-color-text);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 7px;
+  min-height: 34px;
+  min-width: 0;
+  padding: 6px 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.sessionItem:hover,
+.sessionItemRow:hover,
+.createSessionButton:hover {
+  background: color-mix(in srgb, var(--ui-color-text) 6%, transparent);
+}
+
+.sessionItem[data-active='true'],
+.sessionItemRow[data-active='true'] .sessionItem {
+  color: var(--ui-color-brand-text);
+}
+
+.sessionDeleteButton {
+  opacity: 0;
+}
+
+.sessionItemRow:hover .sessionDeleteButton,
+.sessionDeleteButton:focus-visible {
+  opacity: 1;
+}
+
+.sessionCreate {
+  border-top: 1px solid color-mix(in srgb, var(--ui-color-border) 64%, transparent);
+  display: grid;
+  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) var(--ui-touch-target-min);
+  margin-top: 4px;
+  padding-top: 5px;
+}
+
+.sessionCreate .createSessionButton {
+  grid-column: 1 / -1;
+}
+
+.scoreHeader {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 var(--sidebar-inline-padding) 8px 18px;
+}
+
+.scoreTitle {
+  color: var(--ui-color-text-muted);
+  font-size: 0.75rem;
+}
+
+.scoreCount {
+  color: var(--ui-color-text-muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.scores {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+  transition:
+    opacity 140ms var(--ui-motion-ease-standard),
+    transform 180ms var(--ui-motion-ease-standard);
+}
+
+.statistics {
+  padding: 12px var(--sidebar-inline-padding) 18px 18px;
+  transition:
+    opacity 140ms var(--ui-motion-ease-standard),
+    transform 180ms var(--ui-motion-ease-standard);
+}
+
+.alert {
+  padding: 12px var(--sidebar-inline-padding) 18px;
+  transition:
+    opacity 140ms var(--ui-motion-ease-standard),
+    transform 180ms var(--ui-motion-ease-standard);
+}
+
+.sidebarToggleButton {
+  border-radius: var(--ui-radius-pill);
+  color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
+  flex: 0 0 auto;
+  margin-right: -10px;
+}
+
+.sidebarToggleButton:hover {
+  color: var(--ui-color-text);
+}
+
+.root[data-collapsed='true'] {
+  background: transparent;
+  border-right: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: 0;
+  pointer-events: none;
+  width: 312px;
+}
+
+.root[data-collapsed='true']::before {
+  transform: translateX(-100%);
+}
+
+.root[data-collapsed='true'] .header {
+  border-bottom: 0;
+  gap: 4px;
+  padding: 18px 0 0 18px;
+}
+
+.root[data-collapsed='true'] .brandRow {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  width: 160px;
+}
+
+.root[data-collapsed='true'] .brandRow,
+.root[data-collapsed='true'] .eventRow {
+  pointer-events: auto;
+}
+
+.root[data-collapsed='true'] .brand {
+  font-size: 0.9rem;
+}
+
+.root[data-collapsed='true'] .brandLogo {
+  height: 20px;
+  width: 20px;
+}
+
+.root[data-collapsed='true'] .eventSelector {
+  flex: 0 1 auto;
+  max-width: 128px;
+  min-width: 0;
+}
+
+.root[data-collapsed='true'] .eventRow,
+.root[data-collapsed='true'] .eventRow > * {
+  flex: 0 1 auto;
+  width: max-content;
+}
+
+.root[data-collapsed='true'] .eventSelector :global(button) {
+  color: color-mix(in srgb, var(--ui-color-text) 58%, transparent);
+  font-size: 0.78rem;
+  min-height: 24px;
+  min-width: 0;
+  padding-inline: 0;
+}
+
+.root[data-collapsed='true'] .eventSelector :global(button span) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.root[data-collapsed='true'] .sidebarToggleButton {
+  left: auto;
+  margin-right: 0;
+  position: static;
+  top: auto;
+  --ui-touch-target-min: 28px;
+}
+
+.root[data-collapsed='true'] .nav,
+.root[data-collapsed='true'] .navRow {
+  display: none;
+}
+
+.root[data-collapsed='true'] .controls,
+.root[data-collapsed='true'] .scores,
+.root[data-collapsed='true'] .statistics,
+.root[data-collapsed='true'] .alert {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-16px);
+  visibility: hidden;
+}
+
+@media (max-width: 860px) {
+  .root {
+    border-right: 0;
+    border-top: 0;
+    bottom: 0;
+    left: 0;
+    max-width: none;
+    position: fixed;
+    top: 0;
+    width: min(360px, 100vw);
+    z-index: 20;
+  }
+
+  .root:not([data-collapsed='true']) {
+    background: var(--ui-color-surface);
+    width: 100vw;
+  }
+
+  .root:not([data-collapsed='true'])::before {
+    background: var(--ui-color-surface);
+    width: 100vw;
+  }
+
+  .root[data-collapsed='true'] {
+    background: transparent;
+    border-right: 0;
+    border-top: 0;
+    pointer-events: none;
+    width: 312px;
+  }
+
+}

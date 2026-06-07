@@ -41,6 +41,7 @@ describe('useTimerSessions', () => {
 
     expect(result.current.eventId).toBe('333');
     expect(result.current.activeSessionId).toBe(custom!.id);
+    expect(custom!.eventId).toBe('333');
   });
 
   it('saves solves and switches custom sessions by newest solve event', async () => {

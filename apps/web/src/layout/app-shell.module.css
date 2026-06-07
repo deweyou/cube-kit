@@ -7,21 +7,9 @@
   overflow: hidden;
 }
 
-.desktopSidebar {
-  display: flex;
-  flex-shrink: 0;
-}
-
 .main {
   flex: 1;
   overflow: hidden;
   position: relative;
   min-width: 0;
-}
-
-/* On mobile, hide the desktop sidebar — sidebar renders its own mobile toggle */
-@media (max-width: 639px) {
-  .desktopSidebar {
-    display: none;
-  }
 }
