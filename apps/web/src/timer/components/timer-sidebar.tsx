@@ -1,0 +1,271 @@
+import { useEffect, useState } from 'react';
+import { Button } from '@deweyou-design/react/button';
+import { Input } from '@deweyou-design/react/input';
+import { Tooltip } from '@deweyou-design/react/tooltip';
+import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import {
+  AddIcon,
+  ChartNavIcon,
+  ChevronDownIcon,
+  DeleteIcon,
+  HistoryNavIcon,
+  SidebarCollapseIcon,
+  SidebarExpandIcon,
+  TimerNavIcon,
+} from './timer-icons';
+import type { SolveRecord, SolveSession } from '@cubegin/timer-session';
+import { getDefaultSessionId } from '@cubegin/timer-session';
+import { EventSelector } from './event-selector';
+import { SolveList } from './solve-list';
+import { SolveStatisticsPanel } from './solve-statistics-panel';
+import { StorageAlert } from './storage-alert';
+import type { TimerLocale, TimerMessages } from '../timer-i18n';
+import cubeginMarkUrl from '../../assets/cubegin-mark.svg';
+import styles from './timer-sidebar.module.css';
+
+interface TimerSidebarProps {
+  activeSessionId: string;
+  eventId: WcaEventId;
+  error?: string;
+  onCreateSession: (name: string) => void;
+  onDeleteSession: (sessionId: string) => void;
+  onEventChange: (id: WcaEventId) => void;
+  onSelectSession: (sessionId: string) => void;
+  onSelectSolve: (solve: SolveRecord) => void;
+  onToggleSidebar: () => void;
+  locale: TimerLocale;
+  messages: TimerMessages;
+  sessions: SolveSession[];
+  isCollapsed: boolean;
+  solves: SolveRecord[];
+  toggleSidebarLabel: string;
+}
+
+export const TimerSidebar = ({
+  activeSessionId,
+  eventId,
+  error,
+  onCreateSession,
+  onDeleteSession,
+  onEventChange,
+  onSelectSession,
+  onSelectSolve,
+  onToggleSidebar,
+  locale,
+  messages,
+  sessions,
+  isCollapsed,
+  solves,
+  toggleSidebarLabel,
+}: TimerSidebarProps) => {
+  const [name, setName] = useState('');
+  const [isSessionMenuOpen, setIsSessionMenuOpen] = useState(false);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+
+  const activeSession = sessions.find((session) => session.id === activeSessionId);
+  const visibleSessions = sessions.filter((session) => session.eventId === eventId);
+  const defaultSessionId = getDefaultSessionId(eventId);
+  const defaultSession = visibleSessions.find((session) => session.id === defaultSessionId);
+  const customSessions = visibleSessions.filter((session) => !session.isDefault);
+  const activeSessionName =
+    activeSession?.isDefault || (!activeSession && defaultSession) ?
+      messages.defaultSession
+    : (activeSession?.name ?? messages.defaultSession);
+  const navItems = [
+    { id: 'timer', label: messages.timer, icon: <TimerNavIcon /> },
+    { id: 'formula', label: messages.formulaLibrary, icon: <HistoryNavIcon /> },
+    { id: 'stats', label: messages.stats, icon: <ChartNavIcon /> },
+  ] as const;
+
+  useEffect(() => {
+    if (isCollapsed) {
+      setIsSessionMenuOpen(false);
+      setIsCreatingSession(false);
+    }
+  }, [isCollapsed]);
+
+  const handleCreate = () => {
+    const nextName = name.trim() || messages.newSessionFallback;
+    onCreateSession(nextName);
+    setName('');
+    setIsCreatingSession(false);
+    setIsSessionMenuOpen(false);
+  };
+
+  const handleSelectSession = (sessionId: string) => {
+    onSelectSession(sessionId);
+    setIsSessionMenuOpen(false);
+  };
+
+  const handleDeleteSession = (sessionId: string) => {
+    onDeleteSession(sessionId);
+    if (sessionId === activeSessionId) setIsSessionMenuOpen(false);
+  };
+
+  return (
+    <aside className={styles.root} data-collapsed={isCollapsed} aria-label={messages.sidebar}>
+      <header className={styles.header}>
+        <div className={styles.brandRow}>
+          <strong className={styles.brand}>
+            <img className={styles.brandLogo} src={cubeginMarkUrl} alt="Cubegin" />
+          </strong>
+          <Tooltip.Root placement="bottom">
+            <Tooltip.Trigger>
+              <Button.Icon
+                className={styles.sidebarToggleButton}
+                variant="ghost"
+                color="neutral"
+                size="sm"
+                icon={isCollapsed ? <SidebarExpandIcon /> : <SidebarCollapseIcon />}
+                onClick={onToggleSidebar}
+                aria-label={toggleSidebarLabel}
+              />
+            </Tooltip.Trigger>
+            <Tooltip.Content>{toggleSidebarLabel}</Tooltip.Content>
+          </Tooltip.Root>
+        </div>
+        <div className={styles.eventRow}>
+          <EventSelector
+            className={styles.eventSelector}
+            label={messages.eventSelectorLabel}
+            locale={locale}
+            value={eventId}
+            onChange={onEventChange}
+          />
+        </div>
+        <div className={styles.navRow}>
+          <nav className={styles.nav} aria-label={messages.mainNav}>
+            {navItems.map((item) => (
+              <Tooltip.Root key={item.id} placement="bottom">
+                <Tooltip.Trigger>
+                  <Button.Icon
+                    className={item.id === 'timer' ? styles.navButtonActive : styles.navButton}
+                    variant="ghost"
+                    color="neutral"
+                    size="xs"
+                    icon={item.icon}
+                    disabled={item.id !== 'timer'}
+                    aria-label={item.label}
+                  />
+                </Tooltip.Trigger>
+                <Tooltip.Content>{item.label}</Tooltip.Content>
+              </Tooltip.Root>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <section
+        className={styles.controls}
+        aria-label={messages.sessionSettings}
+        aria-hidden={isCollapsed}
+      >
+        <div className={styles.sessionMenu}>
+          <button
+            type="button"
+            className={styles.sessionTrigger}
+            onClick={() => setIsSessionMenuOpen((isOpen) => !isOpen)}
+            aria-expanded={isSessionMenuOpen}
+            aria-label={messages.sessionList}
+          >
+            <span className={styles.sessionTriggerText}>{activeSessionName}</span>
+            <ChevronDownIcon size={12} />
+          </button>
+          {isSessionMenuOpen && (
+            <div className={styles.sessionPanel} role="menu">
+              {defaultSession && (
+                <button
+                  type="button"
+                  className={styles.sessionItem}
+                  data-active={activeSessionId === defaultSession.id}
+                  onClick={() => handleSelectSession(defaultSession.id)}
+                  role="menuitem"
+                >
+                  <span>{messages.defaultSession}</span>
+                </button>
+              )}
+              {customSessions.map((session) => (
+                <div
+                  key={session.id}
+                  className={styles.sessionItemRow}
+                  data-active={activeSessionId === session.id}
+                >
+                  <button
+                    type="button"
+                    className={styles.sessionItem}
+                    onClick={() => handleSelectSession(session.id)}
+                    role="menuitem"
+                  >
+                    <span>{session.name}</span>
+                  </button>
+                  <Tooltip.Root placement="right">
+                    <Tooltip.Trigger>
+                      <Button.Icon
+                        className={styles.sessionDeleteButton}
+                        variant="ghost"
+                        color="danger"
+                        size="xs"
+                        icon={<DeleteIcon />}
+                        onClick={() => handleDeleteSession(session.id)}
+                        aria-label={messages.deleteSessionAria(session.name)}
+                      />
+                    </Tooltip.Trigger>
+                    <Tooltip.Content>{messages.deleteSession}</Tooltip.Content>
+                  </Tooltip.Root>
+                </div>
+              ))}
+              <div className={styles.sessionCreate}>
+                {isCreatingSession ? (
+                  <>
+                    <Input
+                      aria-label={messages.newSessionName}
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      placeholder={messages.newSessionFallback}
+                      size="sm"
+                    />
+                    <Button.Icon
+                      variant="ghost"
+                      color="neutral"
+                      size="xs"
+                      icon={<AddIcon />}
+                      onClick={handleCreate}
+                      aria-label={messages.confirmCreateSession}
+                    />
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.createSessionButton}
+                    onClick={() => setIsCreatingSession(true)}
+                  >
+                    <AddIcon size={16} />
+                    <span>{messages.createSession}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className={styles.scores} aria-label={messages.solves} aria-hidden={isCollapsed}>
+        <div className={styles.scoreHeader}>
+          <span className={styles.scoreTitle}>{messages.solves}</span>
+          <span className={styles.scoreCount}>{solves.length}</span>
+        </div>
+        <SolveList solves={solves} emptyText={messages.noSolves} onSelectSolve={onSelectSolve} />
+      </section>
+
+      <div className={styles.statistics} aria-hidden={isCollapsed}>
+        <SolveStatisticsPanel messages={messages} solves={solves} />
+      </div>
+
+      {error && !isCollapsed && (
+        <div className={styles.alert}>
+          <StorageAlert message={error} formatMessage={messages.storageError} />
+        </div>
+      )}
+    </aside>
+  );
+};

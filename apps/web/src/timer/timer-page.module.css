@@ -1,0 +1,80 @@
+.root {
+  background:
+    radial-gradient(
+      circle at 68% 18%,
+      color-mix(in srgb, var(--ui-color-brand-text) 8%, transparent),
+      transparent 30%
+    ),
+    var(--ui-color-canvas);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  height: 100%;
+  overflow: hidden;
+  padding-left: 312px;
+  user-select: none;
+}
+
+.root[data-sidebar='collapsed'] {
+  padding-left: 0;
+}
+
+.loading {
+  background: var(--ui-color-canvas);
+  color: var(--ui-color-text-muted);
+  display: grid;
+  height: 100%;
+  place-items: center;
+}
+
+.stage {
+  align-items: center;
+  display: grid;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.pageActions {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  z-index: 40;
+}
+
+.pageActionButton {
+  border-radius: var(--ui-radius-pill);
+  color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
+}
+
+.pageActionButton:hover {
+  color: var(--ui-color-text);
+}
+
+@media (max-width: 860px) {
+  .root {
+    grid-template-columns: minmax(0, 1fr);
+    overflow: auto;
+    padding-left: 0;
+  }
+
+  .root[data-sidebar='collapsed'] {
+    padding-left: 0;
+  }
+
+  .root[data-sidebar='expanded']::before {
+    background: color-mix(in srgb, var(--ui-color-canvas) 62%, transparent);
+    content: '';
+    inset: 0;
+    position: fixed;
+    z-index: 19;
+  }
+
+  .stage {
+    min-height: 620px;
+  }
+
+}

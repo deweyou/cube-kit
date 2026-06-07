@@ -1,8 +1,13 @@
+import { useMemo } from 'react';
+import { Button } from '@deweyou-design/react/button';
+import { Tooltip } from '@deweyou-design/react/tooltip';
 import { renderScrambleImage } from '@cubegin/scramble-image';
 import type { WcaEventId } from '@cubegin/scramble-puzzle';
-import { EventSelector } from '../components/event-selector';
+import { CancelIcon, RefreshTimerIcon } from '../components/timer-icons';
 import { ScrambleText } from '../components/scramble-text';
 import { ScrambleImage } from '../components/scramble-image';
+import type { TimerMessages } from '../timer-i18n';
+import styles from './scramble-view.module.css';
 
 interface ScrambleViewProps {
   eventId: WcaEventId;
@@ -10,7 +15,8 @@ interface ScrambleViewProps {
   error?: string;
   isLoading?: boolean;
   isReady?: boolean;
-  onEventChange: (id: WcaEventId) => void;
+  messages: TimerMessages;
+  onCancelReady: () => void;
   onRefresh: () => void;
 }
 
@@ -20,39 +26,59 @@ export const ScrambleView = ({
   error,
   isLoading = false,
   isReady = false,
-  onEventChange,
+  messages,
+  onCancelReady,
   onRefresh,
 }: ScrambleViewProps) => {
-  const svg = scramble.length > 0 ? renderScrambleImage(eventId, scramble) : '';
-  const scrambleText = error ?? (isLoading ? '生成打乱中...' : scramble);
+  const svg = useMemo(
+    () => (scramble.length > 0 ? renderScrambleImage(eventId, scramble) : ''),
+    [eventId, scramble],
+  );
+  const scrambleText = error ?? (isLoading ? messages.scrambleLoading : scramble);
+
+  const canStart = !isLoading && !error && scramble.length > 0;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        padding: '24px 20px',
-        gap: 20,
-      }}
-    >
-      <EventSelector value={eventId} onChange={onEventChange} />
-      <ScrambleText scramble={scrambleText} isLoading={isLoading} onRefresh={onRefresh} />
-      <ScrambleImage svg={svg} />
-      <p
-        style={{
-          fontSize: '0.8rem',
-          margin: 0,
-          marginTop: 12,
-          color: isReady ? 'var(--ui-color-success-text, #4ade80)' : 'var(--ui-color-text-muted)',
-          opacity: isReady ? 1 : 0.4,
-          transition: 'color 100ms ease, opacity 100ms ease',
-        }}
+    <section className={styles.root} aria-label={messages.timerPage}>
+      <div
+        className={`${styles.startSurface} ${isReady ? styles.startSurfaceReady : ''}`}
+        aria-disabled={!canStart}
       >
-        {isReady ? '松开开始' : '长按开始'}
-      </p>
-    </div>
+        <div className={styles.scrambleRow}>
+          <span className={styles.scrambleBlock}>
+            <ScrambleText scramble={scrambleText} isLoading={isLoading} />
+          </span>
+        </div>
+        <ScrambleImage svg={svg} />
+        <div className={styles.actionStack}>
+          <span className={`${styles.hint} ${isReady ? styles.hintReady : ''}`}>
+            {isReady ? (
+              <span className={styles.hintAction}>{messages.releaseToStart}</span>
+            ) : canStart ? (
+              <span className={styles.hintAction}>{messages.holdEnterToStart}</span>
+            ) : (
+              <span className={styles.hintAction}>{messages.waitingScramble}</span>
+            )}
+          </span>
+          <Tooltip.Root placement="bottom">
+            <Tooltip.Trigger>
+              <Button.Icon
+                variant="ghost"
+                color="neutral"
+                size="sm"
+                className={styles.refreshButton}
+                icon={isReady ? <CancelIcon /> : <RefreshTimerIcon />}
+                onClick={isReady ? onCancelReady : onRefresh}
+                disabled={isLoading}
+                aria-label={isReady ? messages.cancelReady : messages.refreshScramble}
+              />
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              {isReady ? messages.cancelReady : messages.refreshScramble}
+            </Tooltip.Content>
+          </Tooltip.Root>
+        </div>
+      </div>
+    </section>
   );
 };

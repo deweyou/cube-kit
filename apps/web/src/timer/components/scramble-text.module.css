@@ -1,0 +1,14 @@
+.root {
+  color: var(--ui-color-text);
+  font-family: var(--ui-font-mono);
+  font-size: clamp(1.25rem, 1.45vw + 0.28rem, 2.05rem);
+  line-height: 1.75;
+  margin: 0;
+  max-width: min(980px, 100%);
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.loading {
+  color: var(--ui-color-text-muted);
+}

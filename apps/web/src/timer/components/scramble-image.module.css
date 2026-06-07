@@ -1,0 +1,16 @@
+.root {
+  align-items: center;
+  display: flex;
+  height: clamp(220px, 27vw, 340px);
+  justify-content: center;
+  opacity: 0.96;
+  width: clamp(220px, 27vw, 340px);
+}
+
+.root :global(svg) {
+  display: block;
+  height: 100%;
+  max-height: 100%;
+  max-width: 100%;
+  width: 100%;
+}

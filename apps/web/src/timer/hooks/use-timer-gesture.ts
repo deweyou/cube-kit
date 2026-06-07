@@ -1,20 +1,22 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface TimerGestureOptions {
   onStart: () => void;
   onStop: () => void;
   onCancel: () => void;
   cancelZoneHeight?: number;
+  isStartEnabled?: boolean;
 }
 
 export const useTimerGesture = (
   isRunning: boolean,
-  { onStart, onStop, onCancel, cancelZoneHeight = 80 }: TimerGestureOptions,
-): { isInCancelZone: boolean; isReady: boolean } => {
+  { onStart, onStop, onCancel, cancelZoneHeight = 80, isStartEnabled = true }: TimerGestureOptions,
+): { cancelReady: () => void; isInCancelZone: boolean; isReady: boolean } => {
   const [isInCancelZone, setIsInCancelZone] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isRunningRef = useRef(isRunning);
+  const isStartEnabledRef = useRef(isStartEnabled);
   const isReadyRef = useRef(false);
   const onStartRef = useRef(onStart);
   const onStopRef = useRef(onStop);
@@ -22,30 +24,44 @@ export const useTimerGesture = (
 
   // Keep refs current so event listeners don't capture stale closures
   isRunningRef.current = isRunning;
+  isStartEnabledRef.current = isStartEnabled;
   onStartRef.current = onStart;
   onStopRef.current = onStop;
   onCancelRef.current = onCancel;
 
+  const cancelReady = useCallback(() => {
+    isReadyRef.current = false;
+    setIsReady(false);
+  }, []);
+
   useEffect(() => {
-    // ── Desktop: Space key ───────────────────────
+    const isFormControlFocused = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      if (target.isContentEditable) return true;
+      return ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+    };
+
+    // ── Desktop: keyboard ───────────────────────
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code !== 'Space' || e.repeat) return;
+      if (isFormControlFocused(e.target)) return;
+      if (!['Enter', 'Space'].includes(e.code) || e.repeat) return;
       e.preventDefault();
       if (isRunningRef.current) {
         onStopRef.current();
-      } else {
+      } else if (isStartEnabledRef.current) {
         isReadyRef.current = true;
         setIsReady(true);
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code !== 'Space') return;
+      if (isFormControlFocused(e.target)) return;
+      if (!['Enter', 'Space'].includes(e.code)) return;
       e.preventDefault();
       if (isReadyRef.current) {
         isReadyRef.current = false;
         setIsReady(false);
-        if (!isRunningRef.current) {
+        if (!isRunningRef.current && isStartEnabledRef.current) {
           onStartRef.current();
         }
       }
@@ -99,5 +115,5 @@ export const useTimerGesture = (
     };
   }, [cancelZoneHeight]);
 
-  return { isInCancelZone, isReady };
+  return { cancelReady, isInCancelZone, isReady };
 };

@@ -1,0 +1,62 @@
+.root {
+  border-top: 1px solid color-mix(in srgb, var(--ui-color-border) 58%, transparent);
+  display: grid;
+  gap: 7px;
+  padding: 12px 4px 0;
+}
+
+.singleRow,
+.dualRow {
+  align-items: baseline;
+  display: grid;
+  gap: 8px;
+}
+
+.singleRow {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.dualRow {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.rollingRows {
+  display: grid;
+  gap: 6px;
+  padding-top: 3px;
+}
+
+.label {
+  color: var(--ui-color-text-muted);
+  font-size: 0.72rem;
+  min-width: 0;
+}
+
+.value,
+.bestValue,
+.currentValue,
+.slash {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.pairValue {
+  align-items: baseline;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.value,
+.currentValue {
+  color: color-mix(in srgb, var(--ui-color-text) 86%, transparent);
+}
+
+.bestValue {
+  color: var(--ui-color-danger-text, #dc2626);
+}
+
+.slash {
+  color: color-mix(in srgb, var(--ui-color-text-muted) 46%, transparent);
+}

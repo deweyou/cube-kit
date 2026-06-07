@@ -1,51 +1,38 @@
 import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/scramble-puzzle';
-
-// Short display labels
-const DISPLAY_LABELS: Record<WcaEventId, string> = {
-  '333': '3×3×3',
-  '222': '2×2×2',
-  '444': '4×4×4',
-  '555': '5×5×5',
-  '666': '6×6×6',
-  '777': '7×7×7',
-  '333bld': '3BLD',
-  '333fm': 'FMC',
-  '333oh': '单手',
-  clock: 'Clock',
-  minx: 'Megaminx',
-  pyram: 'Pyraminx',
-  skewb: 'Skewb',
-  sq1: 'SQ-1',
-  '444bld': '4BLD',
-  '555bld': '5BLD',
-  '333mbld': 'Multi',
-};
+import { Select } from '@deweyou-design/react/select';
+import { getWcaEventLabel, type TimerLocale } from '@cubegin/timer-session';
+import styles from './event-selector.module.css';
 
 interface EventSelectorProps {
+  className?: string;
+  label: string;
+  locale: TimerLocale;
   value: WcaEventId;
   onChange: (id: WcaEventId) => void;
 }
 
-export const EventSelector = ({ value, onChange }: EventSelectorProps) => {
+export const EventSelector = ({ className, label, locale, value, onChange }: EventSelectorProps) => {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value as WcaEventId)}
-      style={{
-        background: 'var(--ui-color-surface)',
-        border: '1px solid var(--ui-color-border)',
-        borderRadius: 'var(--ui-radius-float)',
-        color: 'var(--ui-color-text)',
-        padding: '4px 8px',
-        fontSize: '0.875rem',
-        cursor: 'pointer',
+    <Select.Root
+      className={className ? `${styles.root} ${className}` : styles.root}
+      label={<span className={styles.visuallyHidden}>{label}</span>}
+      value={[value]}
+      onValueChange={(nextValue) => {
+        const nextEventId = nextValue[0];
+        if (nextEventId) onChange(nextEventId as WcaEventId);
       }}
     >
-      {WCA_EVENT_IDS.map((eventId) => (
-        <option key={eventId} value={eventId}>
-          {DISPLAY_LABELS[eventId]}
-        </option>
-      ))}
-    </select>
+      <Select.Trigger />
+      <Select.Content className={styles.content}>
+        {WCA_EVENT_IDS.map((eventId) => (
+          <Select.Item
+            key={eventId}
+            className={styles.item}
+            value={eventId}
+            label={getWcaEventLabel(eventId, locale)}
+          />
+        ))}
+      </Select.Content>
+    </Select.Root>
   );
 };

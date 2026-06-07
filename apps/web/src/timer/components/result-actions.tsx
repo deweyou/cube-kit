@@ -1,42 +1,55 @@
 import { Button } from '@deweyou-design/react/button';
-
-export type Penalty = 'none' | '+2' | 'dnf';
+import styles from './result-actions.module.css';
 
 interface ResultActionsProps {
-  penalty: Penalty;
-  onPenalty: (p: Penalty) => void;
-  onDiscard: () => void;
+  continueLabel: string;
+  deleteLabel: string;
+  resultSelectionLabel: string;
+  onContinue: () => void;
+  onPlusTwo: () => void;
+  onDnf: () => void;
+  onDelete: () => void;
 }
 
-export const ResultActions = ({ penalty, onPenalty, onDiscard }: ResultActionsProps) => (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-    <div style={{ display: 'flex', gap: 8 }}>
-      <Button
-        variant="outlined"
-        color="neutral"
-        size="sm"
-        onClick={() => onPenalty(penalty === '+2' ? 'none' : '+2')}
-        aria-pressed={penalty === '+2'}
-        style={
-          penalty === '+2'
-            ? { background: 'color-mix(in srgb, var(--ui-color-text) 10%, transparent)' }
-            : undefined
-        }
-      >
+export const ResultActions = ({
+  continueLabel,
+  deleteLabel,
+  resultSelectionLabel,
+  onContinue,
+  onPlusTwo,
+  onDnf,
+  onDelete,
+}: ResultActionsProps) => (
+  <div className={styles.root}>
+    <Button
+      className={styles.continueButton}
+      variant="link"
+      color="neutral"
+      size="sm"
+      onClick={onContinue}
+      aria-label={continueLabel}
+    >
+      {continueLabel}
+    </Button>
+    <div className={styles.penalties} aria-label={resultSelectionLabel}>
+      <span className={styles.separator} aria-hidden>
+        ·
+      </span>
+      <Button className={styles.penaltyButton} variant="link" color="neutral" size="sm" onClick={onPlusTwo}>
         +2
       </Button>
-      <Button
-        variant="outlined"
-        color="danger"
-        size="sm"
-        onClick={() => onPenalty(penalty === 'dnf' ? 'none' : 'dnf')}
-        aria-pressed={penalty === 'dnf'}
-      >
+      <span className={styles.separator} aria-hidden>
+        ·
+      </span>
+      <Button className={styles.penaltyButton} variant="link" color="neutral" size="sm" onClick={onDnf}>
         DNF
       </Button>
+      <span className={styles.separator} aria-hidden>
+        ·
+      </span>
+      <Button className={styles.deleteButton} variant="link" color="danger" size="sm" onClick={onDelete}>
+        {deleteLabel}
+      </Button>
     </div>
-    <Button variant="link" color="neutral" size="sm" onClick={onDiscard}>
-      不记录
-    </Button>
   </div>
 );
