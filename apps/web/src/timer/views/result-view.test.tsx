@@ -3,20 +3,36 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { ResultView } from './result-view';
+import { TIMER_MESSAGES } from '../timer-i18n';
 
 vi.mock('@deweyou-design/react/button', () => ({
-  Button: ({
-    children,
-    onClick,
-    disabled,
-  }: {
-    children: ReactNode;
-    onClick?: () => void;
-    disabled?: boolean;
-  }) => (
-    <button type="button" onClick={onClick} disabled={disabled}>
-      {children}
-    </button>
+  Button: Object.assign(
+    ({
+      children,
+      onClick,
+      disabled,
+    }: {
+      children: ReactNode;
+      onClick?: () => void;
+      disabled?: boolean;
+    }) => (
+      <button type="button" onClick={onClick} disabled={disabled}>
+        {children}
+      </button>
+    ),
+    {
+      Icon: ({
+        'aria-label': ariaLabel,
+        onClick,
+      }: {
+        'aria-label': string;
+        onClick?: () => void;
+      }) => (
+        <button type="button" aria-label={ariaLabel} onClick={onClick}>
+          {ariaLabel}
+        </button>
+      ),
+    },
   ),
 }));
 
@@ -30,7 +46,7 @@ describe('ResultView', () => {
     render(
       <ResultView
         elapsed={1234}
-        scramble="R U"
+        messages={TIMER_MESSAGES['zh-CN']}
         onContinue={onContinue}
         onPlusTwo={onPlusTwo}
         onDnf={onDnf}
@@ -38,7 +54,9 @@ describe('ResultView', () => {
       />,
     );
 
-    await userEvent.click(screen.getByRole('button', { name: '继续' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: TIMER_MESSAGES['zh-CN'].enterToContinue }),
+    );
     await userEvent.click(screen.getByRole('button', { name: '+2' }));
     await userEvent.click(screen.getByRole('button', { name: 'DNF' }));
     await userEvent.click(screen.getByRole('button', { name: '删除' }));

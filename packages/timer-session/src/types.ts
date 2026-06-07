@@ -23,7 +23,7 @@ export interface SolveSession {
 export interface TimerSessionRepository {
   initializeDefaultSessions(now: number): Promise<SolveSession[]>;
   listSessions(): Promise<SolveSession[]>;
-  createSession(name: string, now: number): Promise<SolveSession>;
+  createSession(name: string, now: number, eventId?: WcaEventId): Promise<SolveSession>;
   deleteSession(sessionId: string): Promise<void>;
   listSolves(sessionId: string): Promise<SolveRecord[]>;
   addSolve(record: SolveRecord): Promise<SolveRecord>;

@@ -1,91 +1,65 @@
+import { useMemo, useState } from 'react';
 import {
   getReverseSequenceNumber,
   getSolveDisplayText,
-  getWcaEventLabel,
   type SolveRecord,
 } from '@cubegin/timer-session';
+import styles from './solve-list.module.css';
+
+const ROW_HEIGHT = 50;
+const OVERSCAN = 6;
 
 interface SolveListProps {
+  emptyText: string;
   solves: SolveRecord[];
   onSelectSolve: (solve: SolveRecord) => void;
 }
 
-export const SolveList = ({ solves, onSelectSolve }: SolveListProps) => {
+export const SolveList = ({ emptyText, solves, onSelectSolve }: SolveListProps) => {
+  const [scrollTop, setScrollTop] = useState(0);
+
+  const virtualRange = useMemo(() => {
+    const firstVisibleIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
+    const visibleCount = Math.ceil(720 / ROW_HEIGHT) + OVERSCAN * 2;
+    const lastVisibleIndex = Math.min(solves.length, firstVisibleIndex + visibleCount);
+    return {
+      items: solves.slice(firstVisibleIndex, lastVisibleIndex),
+      offsetTop: firstVisibleIndex * ROW_HEIGHT,
+      startIndex: firstVisibleIndex,
+      totalHeight: solves.length * ROW_HEIGHT,
+    };
+  }, [scrollTop, solves]);
+
   if (solves.length === 0) {
-    return (
-      <p style={{ color: 'var(--ui-color-text-muted)', fontSize: '0.875rem', margin: 0 }}>
-        暂无成绩
-      </p>
-    );
+    return <p className={styles.empty}>{emptyText}</p>;
   }
 
   return (
-    <ol
-      style={{
-        display: 'grid',
-        gap: 6,
-        listStyle: 'none',
-        margin: 0,
-        padding: 0,
-        width: '100%',
-      }}
+    <div
+      className={styles.viewport}
+      onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
     >
-      {solves.map((solve, index) => (
-        <li key={solve.id}>
-          <button
-            type="button"
-            onClick={() => onSelectSolve(solve)}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '44px minmax(72px, 1fr) auto',
-              alignItems: 'center',
-              gap: 8,
-              width: '100%',
-              minHeight: 42,
-              border: '1px solid var(--ui-color-border)',
-              borderRadius: 8,
-              background: 'var(--ui-color-surface)',
-              color: 'var(--ui-color-text)',
-              cursor: 'pointer',
-              padding: '6px 8px',
-              textAlign: 'left',
-            }}
-          >
-            <span style={{ color: 'var(--ui-color-text-muted)', fontSize: '0.75rem' }}>
-              #{getReverseSequenceNumber(solves.length, index)}
-            </span>
-            <span
-              style={{
-                fontFamily: 'Helvetica, Arial, sans-serif',
-                fontVariantNumeric: 'tabular-nums',
-              }}
+      <ol className={styles.root} style={{ height: virtualRange.totalHeight }}>
+        {virtualRange.items.map((solve, index) => {
+          const solveIndex = virtualRange.startIndex + index;
+          return (
+            <li
+              key={solve.id}
+              className={styles.item}
+              style={{ transform: `translateY(${virtualRange.offsetTop + index * ROW_HEIGHT}px)` }}
             >
-              {getSolveDisplayText(solve.elapsedMs, solve.penalty)}
-            </span>
-            <span
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                color: 'var(--ui-color-text-muted)',
-                fontSize: '0.75rem',
-              }}
-            >
-              {solve.penalty !== 'none' && <span>{solve.penalty === 'dnf' ? 'DNF' : '+2'}</span>}
-              <span>{getWcaEventLabel(solve.eventId)}</span>
-            </span>
-            <span
-              style={{
-                gridColumn: '2 / 4',
-                color: 'var(--ui-color-text-muted)',
-                fontSize: '0.7rem',
-              }}
-            >
-              {new Date(solve.createdAt).toLocaleString()}
-            </span>
-          </button>
-        </li>
-      ))}
-    </ol>
+              <button type="button" className={styles.row} onClick={() => onSelectSolve(solve)}>
+                <span className={styles.sequence}>
+                  #{getReverseSequenceNumber(solves.length, solveIndex)}
+                </span>
+                <span className={styles.time}>
+                  {getSolveDisplayText(solve.elapsedMs, solve.penalty)}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 };

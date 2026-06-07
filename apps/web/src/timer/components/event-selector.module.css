@@ -1,0 +1,52 @@
+.root {
+  min-width: 0;
+}
+
+.root :global(button) {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: color-mix(in srgb, var(--ui-color-text) 76%, transparent);
+  min-height: 32px;
+  min-width: 0;
+  padding-inline: 6px 4px;
+}
+
+.root :global(button:hover) {
+  background: transparent;
+  color: var(--ui-color-text);
+}
+
+.root :global(button:focus-visible) {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.content {
+  background: var(--ui-color-surface);
+}
+
+.item[data-state='checked'] {
+  background: color-mix(in srgb, var(--ui-color-brand-text) 14%, transparent);
+  color: var(--ui-color-brand-text);
+}
+
+.item[data-state='checked'] span:last-child {
+  color: var(--ui-color-brand-text);
+}
+
+.item[data-highlighted] {
+  background: color-mix(in srgb, var(--ui-color-text) 9%, transparent);
+}
+
+.visuallyHidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

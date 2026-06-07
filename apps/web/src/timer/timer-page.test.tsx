@@ -1,9 +1,10 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ReactNode } from 'react';
+import type { ChangeEvent, ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryTimerSessionRepository } from './storage/memory-timer-session-repository';
 import { TimerPage } from './timer-page';
+import { TIMER_MESSAGES } from './timer-i18n';
 
 const { generate, renderScrambleImage } = vi.hoisted(() => ({
   generate: vi.fn(),
@@ -20,21 +21,102 @@ vi.mock('@cubegin/scramble-image', () => ({
 }));
 
 vi.mock('@deweyou-design/react/button', () => ({
-  Button: ({
-    children,
-    onClick,
-    disabled,
+  Button: Object.assign(
+    ({
+      children,
+      onClick,
+      disabled,
+      'aria-label': ariaLabel,
+    }: {
+      children: ReactNode;
+      onClick?: () => void;
+      disabled?: boolean;
+      'aria-label'?: string;
+    }) => (
+      <button type="button" onClick={onClick} disabled={disabled} aria-label={ariaLabel}>
+        {children}
+      </button>
+    ),
+    {
+      Icon: ({
+        icon,
+        onClick,
+        disabled,
+        'aria-label': ariaLabel,
+      }: {
+        icon: ReactNode;
+        onClick?: () => void;
+        disabled?: boolean;
+        'aria-label'?: string;
+      }) => (
+        <button type="button" onClick={onClick} disabled={disabled} aria-label={ariaLabel}>
+          {icon}
+        </button>
+      ),
+    },
+  ),
+}));
+
+vi.mock('@deweyou-design/react/input', () => ({
+  Input: ({
+    label,
+    value,
+    onChange,
+    placeholder,
     'aria-label': ariaLabel,
   }: {
-    children: ReactNode;
-    onClick?: () => void;
-    disabled?: boolean;
+    label?: string;
+    value?: string;
+    onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+    placeholder?: string;
     'aria-label'?: string;
   }) => (
-    <button type="button" onClick={onClick} disabled={disabled} aria-label={ariaLabel}>
-      {children}
-    </button>
+    <label>
+      {label}
+      <input value={value} onChange={onChange} placeholder={placeholder} aria-label={ariaLabel} />
+    </label>
   ),
+}));
+
+vi.mock('@deweyou-design/react/select', () => {
+  const Select = {
+    Root: ({
+      children,
+      label,
+      value,
+      onValueChange,
+    }: {
+      children: ReactNode;
+      label?: ReactNode;
+      value?: string[];
+      onValueChange?: (value: string[]) => void;
+    }) => (
+      <label>
+        {label}
+        <select
+          aria-label={typeof label === 'string' ? label : undefined}
+          value={value?.[0] ?? ''}
+          onChange={(event) => onValueChange?.([event.target.value])}
+        >
+          {children}
+        </select>
+      </label>
+    ),
+    Trigger: () => null,
+    Content: ({ children }: { children: ReactNode }) => <>{children}</>,
+    Item: ({ value, label }: { value: string; label: string }) => (
+      <option value={value}>{label}</option>
+    ),
+  };
+  return { Select };
+});
+
+vi.mock('@deweyou-design/react/tooltip', () => ({
+  Tooltip: {
+    Root: ({ children }: { children: ReactNode }) => <>{children}</>,
+    Trigger: ({ children }: { children: ReactNode }) => <>{children}</>,
+    Content: ({ children }: { children: ReactNode }) => <>{children}</>,
+  },
 }));
 
 afterEach(() => {
@@ -83,12 +165,13 @@ describe('TimerPage', () => {
     render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
 
     await screen.findAllByText('R U');
-    await userEvent.click(screen.getByRole('button', { name: '开始' }));
+    await userEvent.keyboard('{Enter}');
     await userEvent.keyboard('{Enter}');
     await userEvent.click(await screen.findByRole('button', { name: '+2' }));
 
     expect(await screen.findByText('#1')).not.toBeNull();
-    expect(await screen.findByText('+2')).not.toBeNull();
+    expect(await screen.findAllByText((text) => /^2\.\d{3}$/.test(text))).not.toHaveLength(0);
+    expect(screen.queryByText('+2')).toBeNull();
     expect(await screen.findAllByText('F R')).toHaveLength(2);
   });
 
@@ -100,11 +183,47 @@ describe('TimerPage', () => {
     render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
 
     await screen.findAllByText('R U');
-    await userEvent.click(screen.getByRole('button', { name: '开始' }));
+    await userEvent.keyboard('{Enter}');
     await userEvent.keyboard('{Enter}');
     await userEvent.click(await screen.findByRole('button', { name: '删除' }));
 
     expect(screen.queryByText('#1')).toBeNull();
+    expect(await screen.findAllByText('F R')).toHaveLength(2);
+  });
+
+  it('pressing Enter on result continues with no penalty', async () => {
+    generate
+      .mockResolvedValueOnce({ eventId: '333', scramble: 'R U' })
+      .mockResolvedValueOnce({ eventId: '333', scramble: 'F R' });
+
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    await screen.findAllByText('R U');
+    await userEvent.keyboard('{Enter}');
+    await userEvent.keyboard('{Enter}');
+    await screen.findByRole('button', { name: TIMER_MESSAGES['zh-CN'].enterToContinue });
+
+    await userEvent.keyboard('{Enter}');
+
+    expect(await screen.findByText('#1')).not.toBeNull();
+    expect(await screen.findAllByText('F R')).toHaveLength(2);
+  });
+
+  it('pressing Space on result continues with no penalty', async () => {
+    generate
+      .mockResolvedValueOnce({ eventId: '333', scramble: 'R U' })
+      .mockResolvedValueOnce({ eventId: '333', scramble: 'F R' });
+
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    await screen.findAllByText('R U');
+    await userEvent.keyboard('{Enter}');
+    await userEvent.keyboard('{Enter}');
+    await screen.findByRole('button', { name: TIMER_MESSAGES['zh-CN'].enterToContinue });
+
+    fireEvent.keyDown(document, { code: 'Space' });
+
+    expect(await screen.findByText('#1')).not.toBeNull();
     expect(await screen.findAllByText('F R')).toHaveLength(2);
   });
 
@@ -118,8 +237,6 @@ describe('TimerPage', () => {
     await screen.findAllByText('R U');
     await userEvent.selectOptions(screen.getByRole('combobox', { name: '魔方类型' }), '222');
 
-    expect(screen.getByRole<HTMLSelectElement>('combobox', { name: '成绩列表' }).value).toBe(
-      'default:222',
-    );
+    expect(screen.getByRole('button', { name: '成绩列表' }).textContent).toContain('默认列表');
   });
 });

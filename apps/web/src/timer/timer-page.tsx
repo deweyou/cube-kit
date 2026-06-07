@@ -1,14 +1,20 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { Button } from '@deweyou-design/react/button';
+import { Tooltip } from '@deweyou-design/react/tooltip';
 import { createDefaultScrambleGenerator, createMathRandomSource } from '@cubegin/scramble-core';
 import type { WcaEventId } from '@cubegin/scramble-puzzle';
 import type { SolvePenalty, SolveRecord, TimerSessionRepository } from '@cubegin/timer-session';
 import { useTimer } from './hooks/use-timer';
 import { useTimerGesture } from './hooks/use-timer-gesture';
 import { useTimerSessions } from './hooks/use-timer-sessions';
-import { SessionSelector } from './components/session-selector';
 import { SolveDetail } from './components/solve-detail';
-import { SolveList } from './components/solve-list';
-import { StorageAlert } from './components/storage-alert';
+import { TimerSidebar } from './components/timer-sidebar';
+import {
+  LanguageIcon,
+  SunIcon,
+  ThemeMoonIcon,
+} from './components/timer-icons';
+import { TIMER_MESSAGES, type TimerLocale } from './timer-i18n';
 import { createMemoryTimerSessionRepository } from './storage/memory-timer-session-repository';
 import { createIndexedDbTimerSessionRepository } from './storage/timer-session-db';
 import { ScrambleView } from './views/scramble-view';
@@ -17,8 +23,12 @@ import { ResultView } from './views/result-view';
 import styles from './timer-page.module.css';
 
 type PageState = 'scramble' | 'timing' | 'result';
+type ThemeMode = 'light' | 'dark';
 
 const DEFAULT_MULTI_BLIND_CUBE_COUNT = 3;
+const THEME_STORAGE_KEY = 'cubegin-theme';
+const LANGUAGE_STORAGE_KEY = 'cubegin-language';
+const SIDEBAR_MOBILE_QUERY = '(max-width: 860px)';
 
 const getMultiBlindCubeCount = (eventId: WcaEventId): number | undefined =>
   eventId === '333mbld' ? DEFAULT_MULTI_BLIND_CUBE_COUNT : undefined;
@@ -53,7 +63,7 @@ export const TimerPage = ({ repository: injectedRepository }: TimerPageProps = {
   }, [injectedRepository]);
 
   if (!repository) {
-    return <div className={styles.loading}>载入成绩中...</div>;
+    return <div className={styles.loading}>{TIMER_MESSAGES['zh-CN'].loading}</div>;
   }
 
   return <TimerPageContent repository={repository} storageError={storageError} />;
@@ -78,8 +88,43 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
   const [finalElapsed, setFinalElapsed] = useState(0);
   const [selectedSolveId, setSelectedSolveId] = useState<string>();
   const [runtimeStorageError, setRuntimeStorageError] = useState<string>();
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme;
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+  const [locale, setLocale] = useState<TimerLocale>(() => {
+    const storedLocale = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (storedLocale === 'zh-CN' || storedLocale === 'en-US') return storedLocale;
+    return 'zh-CN';
+  });
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
+    () => window.matchMedia?.(SIDEBAR_MOBILE_QUERY).matches ?? false,
+  );
 
   const { elapsed, start, stop, reset } = useTimer();
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia?.(SIDEBAR_MOBILE_QUERY);
+    if (!mediaQuery) return;
+
+    const handleViewportChange = (event: MediaQueryListEvent) => {
+      if (event.matches) setIsSidebarCollapsed(true);
+    };
+
+    mediaQuery.addEventListener('change', handleViewportChange);
+    return () => mediaQuery.removeEventListener('change', handleViewportChange);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = themeMode;
+    localStorage.setItem(THEME_STORAGE_KEY, themeMode);
+  }, [themeMode]);
+
+  useEffect(() => {
+    document.documentElement.lang = locale === 'zh-CN' ? 'zh-CN' : 'en';
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, locale);
+  }, [locale]);
 
   const loadScramble = useCallback(
     async (nextEventId: WcaEventId) => {
@@ -190,13 +235,26 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
     [sessionState],
   );
 
-  const handleDeleteActiveSession = useCallback(async () => {
-    await sessionState.deleteSession(sessionState.activeSessionId);
-  }, [sessionState]);
-
   const handleSelectSolve = useCallback((solve: SolveRecord) => {
     setSelectedSolveId(solve.id);
   }, []);
+
+  useEffect(() => {
+    if (pageState !== 'result') return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!['Enter', 'Space'].includes(event.code) || event.repeat) return;
+      if (event.target instanceof HTMLElement) {
+        if (event.target.isContentEditable) return;
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+      }
+      event.preventDefault();
+      void finishResult('none');
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [finishResult, pageState]);
 
   const handlePenaltyChange = useCallback(
     async (solveId: string, penalty: SolvePenalty) => {
@@ -213,63 +271,112 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
     [sessionState],
   );
 
-  const { isInCancelZone, isReady } = useTimerGesture(pageState === 'timing', {
+  const { cancelReady, isInCancelZone, isReady } = useTimerGesture(pageState === 'timing', {
+    isStartEnabled: pageState === 'scramble',
     onStart: handleStart,
     onStop: handleStop,
     onCancel: handleCancel,
   });
 
   const selectedSolve = sessionState.solves.find((solve) => solve.id === selectedSolveId);
-
-  const sessionPanel = (
-    <aside className={styles.sessionPanel} aria-label="成绩面板">
-      <StorageAlert message={storageError ?? runtimeStorageError ?? sessionState.error} />
-      <SessionSelector
-        sessions={sessionState.sessions}
-        activeSessionId={sessionState.activeSessionId}
-        canDeleteActiveSession={sessionState.canDeleteActiveSession}
-        onCreateSession={(name) => void handleCreateSession(name)}
-        onDeleteActiveSession={() => void handleDeleteActiveSession()}
-        onSelectSession={(sessionId) => void handleSessionChange(sessionId)}
-      />
-      <SolveList solves={sessionState.solves} onSelectSolve={handleSelectSolve} />
-    </aside>
-  );
+  const sidebarError = storageError ?? runtimeStorageError ?? sessionState.error;
+  const messages = TIMER_MESSAGES[locale];
+  const toggleThemeLabel =
+    themeMode === 'dark' ? messages.toggleThemeLight : messages.toggleThemeDark;
+  const toggleSidebarLabel = isSidebarCollapsed ? messages.sidebarExpand : messages.sidebarCollapse;
 
   return (
-    <div className={styles.root}>
-      {pageState === 'scramble' && (
-        <ScrambleView
-          eventId={sessionState.eventId}
-          scramble={scramble}
-          error={scrambleError}
-          isLoading={isScrambleLoading}
-          isReady={isReady}
-          sessionPanel={sessionPanel}
-          onEventChange={(id) => void handleEventChange(id)}
-          onRefresh={handleRefresh}
-          onStart={handleStart}
-        />
-      )}
-      {pageState === 'timing' && <TimingView elapsed={elapsed} isInCancelZone={isInCancelZone} />}
-      {pageState === 'result' && (
-        <ResultView
-          elapsed={finalElapsed}
-          scramble={scramble}
-          onContinue={() => void finishResult('none')}
-          onPlusTwo={() => void finishResult('+2')}
-          onDnf={() => void finishResult('dnf')}
-          onDelete={() => void finishResult()}
-        />
-      )}
-      {selectedSolve && (
-        <SolveDetail
-          solve={selectedSolve}
-          onClose={() => setSelectedSolveId(undefined)}
-          onDelete={(solveId) => void handleDeleteSolve(solveId)}
-          onPenaltyChange={(solveId, penalty) => void handlePenaltyChange(solveId, penalty)}
-        />
-      )}
+    <div
+      className={styles.root}
+      data-state={pageState}
+      data-sidebar={isSidebarCollapsed ? 'collapsed' : 'expanded'}
+    >
+      <TimerSidebar
+        sessions={sessionState.sessions}
+        activeSessionId={sessionState.activeSessionId}
+        eventId={sessionState.eventId}
+        error={sidebarError}
+        isCollapsed={isSidebarCollapsed}
+        solves={sessionState.solves}
+        onCreateSession={(name) => void handleCreateSession(name)}
+        onDeleteSession={(sessionId) => void sessionState.deleteSession(sessionId)}
+        onEventChange={(id) => void handleEventChange(id)}
+        onSelectSession={(sessionId) => void handleSessionChange(sessionId)}
+        onSelectSolve={handleSelectSolve}
+        onToggleSidebar={() => setIsSidebarCollapsed((isCollapsed) => !isCollapsed)}
+        locale={locale}
+        messages={messages}
+        toggleSidebarLabel={toggleSidebarLabel}
+      />
+      <div className={styles.pageActions}>
+        <Tooltip.Root placement="bottom">
+          <Tooltip.Trigger>
+            <Button.Icon
+              className={styles.pageActionButton}
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              icon={<LanguageIcon />}
+              onClick={() =>
+                setLocale((currentLocale) => (currentLocale === 'zh-CN' ? 'en-US' : 'zh-CN'))
+              }
+              aria-label={messages.toggleLanguage}
+            />
+          </Tooltip.Trigger>
+          <Tooltip.Content>{messages.toggleLanguage}</Tooltip.Content>
+        </Tooltip.Root>
+        <Tooltip.Root placement="bottom">
+          <Tooltip.Trigger>
+            <Button.Icon
+              className={styles.pageActionButton}
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              icon={themeMode === 'dark' ? <SunIcon /> : <ThemeMoonIcon />}
+              onClick={() =>
+                setThemeMode((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
+              }
+              aria-label={toggleThemeLabel}
+            />
+          </Tooltip.Trigger>
+          <Tooltip.Content>{toggleThemeLabel}</Tooltip.Content>
+        </Tooltip.Root>
+      </div>
+      <main className={styles.stage} aria-label={messages.timerPage}>
+        {pageState === 'scramble' && (
+          <ScrambleView
+            eventId={sessionState.eventId}
+            scramble={scramble}
+            error={scrambleError}
+            isLoading={isScrambleLoading}
+            isReady={isReady}
+            messages={messages}
+            onCancelReady={cancelReady}
+            onRefresh={handleRefresh}
+          />
+        )}
+        {pageState === 'timing' && <TimingView elapsed={elapsed} isInCancelZone={isInCancelZone} />}
+        {pageState === 'result' && (
+          <ResultView
+            elapsed={finalElapsed}
+            messages={messages}
+            onContinue={() => void finishResult('none')}
+            onPlusTwo={() => void finishResult('+2')}
+            onDnf={() => void finishResult('dnf')}
+            onDelete={() => void finishResult()}
+          />
+        )}
+        {selectedSolve && (
+          <SolveDetail
+            locale={locale}
+            messages={messages}
+            solve={selectedSolve}
+            onClose={() => setSelectedSolveId(undefined)}
+            onDelete={(solveId) => void handleDeleteSolve(solveId)}
+            onPenaltyChange={(solveId, penalty) => void handlePenaltyChange(solveId, penalty)}
+          />
+        )}
+      </main>
     </div>
   );
 };

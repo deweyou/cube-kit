@@ -5,7 +5,9 @@ describe('timer session repository contract', () => {
   it('creates sessions and lists solves newest first', async () => {
     const repository = createMemoryTimerSessionRepository();
     await repository.initializeDefaultSessions(100);
-    const custom = await repository.createSession('练习', 1000);
+    const custom = await repository.createSession('练习', 1000, '333');
+
+    expect(custom.eventId).toBe('333');
 
     await repository.addSolve({
       id: 'old',
