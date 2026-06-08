@@ -411,6 +411,12 @@ button {
   align-items: start;
 }
 
+.solver-mode-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin: -6px 0 16px;
+}
+
 .solver-scramble-stack {
   display: grid;
   gap: 10px;
@@ -423,6 +429,11 @@ button {
 .solver-options {
   display: grid;
   gap: 14px;
+}
+
+.full-solver-summary {
+  display: grid;
+  gap: 8px;
 }
 
 .method-fieldset {
@@ -462,6 +473,10 @@ button {
   height: 16px;
   margin: 0;
   accent-color: #257b6e;
+}
+
+.diagnostics.compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .method-option span {

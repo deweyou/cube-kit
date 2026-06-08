@@ -3,11 +3,13 @@
 ```mermaid
 flowchart TD
     Public["@cubegin/solver public API"] --> Facade["solvePuzzleAssist"]
+    Public --> FullFacade["solvePuzzleFull"]
     Public --> ThreeFacade["solveThreeByThreeAssist"]
     Public --> Full["full solver primitives"]
     Public --> Methods["method helpers"]
     Facade --> Methods
     ThreeFacade --> Methods
+    FullFacade --> Full
     Methods --> Search["Coordinate search, pruning tables, and focused BFS"]
     Full --> Search
     Search --> Puzzle["@cubegin/scramble-puzzle"]
@@ -16,8 +18,9 @@ flowchart TD
 
 `@cubegin/solver` owns platform-agnostic auxiliary restore helpers and full
 solver primitives. It provides structured TypeScript results for method-specific
-assist searches, and it hosts the full solvers used by scramble generation
-without depending on scramble generation or SVG rendering packages.
+assist searches, a unified full restore facade, and the full solvers used by
+scramble generation without depending on scramble generation or SVG rendering
+packages.
 
 ## Key Rules
 
@@ -27,6 +30,9 @@ without depending on scramble generation or SVG rendering packages.
   Pyraminx V, and Skewb Face.
 - Full solver primitives include 2x2, 3x3 min2phase/WCA search, 4x4
   threephase, Clock linear state solver, Pyraminx, Skewb, and Square-1.
+- `solvePuzzleFull` exposes full restore output for 3x3, 4x4, 2x2,
+  Pyraminx, Skewb, Square-1, and Clock. 2x2 full input follows the current
+  URF coordinate move scope.
 - The package depends only on
   [@cubegin/scramble-puzzle](../../../packages/scramble-puzzle/src/index.ts#L1)
   for notation parsing and shared puzzle state semantics.
@@ -52,6 +58,7 @@ pnpm --filter @cubegin/solver build
 
 - [packages/solver/src/index.ts#L1](../../../packages/solver/src/index.ts#L1) - public exports.
 - [packages/solver/src/types.ts#L1](../../../packages/solver/src/types.ts#L1) - structured assist result API.
+- [packages/solver/src/full/facade.ts#L1](../../../packages/solver/src/full/facade.ts#L1) - aggregate dispatcher for full restore solvers.
 - [packages/solver/src/assist/facade.ts#L1](../../../packages/solver/src/assist/facade.ts#L1) - aggregate dispatcher for 3x3, 2x2, Square-1, Pyraminx, and Skewb.
 - [packages/solver/src/assist/three-by-three/facade.ts#L1](../../../packages/solver/src/assist/three-by-three/facade.ts#L1) - aggregate 3x3 method dispatcher.
 - [packages/solver/src/assist/three-by-three/cross.ts#L1](../../../packages/solver/src/assist/three-by-three/cross.ts#L1) - Cross, XCross, and EOFC search family.
@@ -68,4 +75,4 @@ pnpm --filter @cubegin/solver build
 
 ---
 
-_Last updated: 2026-06-09 | Reason: add cstimer 3x3 General mask solver scope_
+_Last updated: 2026-06-09 | Reason: add unified full solver facade_

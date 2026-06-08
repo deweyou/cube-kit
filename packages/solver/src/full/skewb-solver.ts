@@ -1,3 +1,4 @@
+import { parseSkewbAlgorithm } from '@cubegin/scramble-puzzle';
 import type { RandomSource } from '../random-source.js';
 
 const ERROR_PREFIX = '@cubegin/solver';
@@ -371,6 +372,15 @@ const swapMoveNames = (moveNames: string[]): void => {
   moveNames[3] = savedMove;
 };
 
+const moveIndexFromFace = (moveNames: readonly string[], face: string): number => {
+  const moveIndex = moveNames.indexOf(face);
+  if (moveIndex === -1) {
+    throw new Error(`${ERROR_PREFIX}: unsupported Skewb move face ${face}`);
+  }
+
+  return moveIndex;
+};
+
 const formatSolution = (solution: readonly number[], solutionLength: number): string => {
   const moves: string[] = [];
   const moveNames = [...SOLUTION_MOVES];
@@ -392,6 +402,33 @@ const formatSolution = (solution: readonly number[], solutionLength: number): st
 };
 
 export class SkewbSolver {
+  stateFromScramble(scramble: string): SkewbSolverState {
+    const tables = getTables();
+    const moveNames = [...SOLUTION_MOVES];
+    let perm = 0;
+    let twst = 0;
+
+    for (const move of parseSkewbAlgorithm(scramble)) {
+      const moveIndex = moveIndexFromFace(moveNames, move.face);
+
+      for (let amount = 0; amount < move.amount; amount += 1) {
+        perm = tables.movePerm[perm][moveIndex];
+        twst = tables.moveTwist[twst][moveIndex];
+      }
+
+      if (moveIndex === 2) {
+        for (let amount = 0; amount < move.amount; amount += 1) {
+          swapMoveNames(moveNames);
+        }
+      }
+    }
+
+    const state = { perm, twst };
+    validateState(state);
+
+    return state;
+  }
+
   randomState(random: RandomSource): SkewbSolverState {
     const state: SkewbSolverState = {
       perm: nextCoordinate(random, 'perm', N_PERM),

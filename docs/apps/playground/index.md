@@ -20,6 +20,9 @@ solver packages without wiring them into production apps.
 - The Solvers tab calls `@cubegin/solver` through the playground service boundary
   and is for manual auxiliary/full-solver diagnostics, not production timer
   integration.
+- The Solvers tab has Assist and Full modes. Assist keeps method/target
+  diagnostics; Full calls `solvePuzzleFull` for 3x3, 4x4, 2x2, Pyraminx,
+  Skewb, Square-1, and Clock restore checks.
 - In the Solvers tab, changing the solver event resets event-specific method and
   target defaults and auto-generates a scramble for the selected event.
 - The 3x3 solver method list includes the cstimer-style staged helpers,
@@ -43,9 +46,9 @@ pnpm --filter playground build
 - [apps/playground/src/playground/playground-service.ts#L1](../../../apps/playground/src/playground/playground-service.ts#L1) - package adapter.
 - [apps/playground/src/playground/use-playground.ts#L1](../../../apps/playground/src/playground/use-playground.ts#L1) - React state boundary.
 - [apps/playground/src/app.tsx#L1](../../../apps/playground/src/app.tsx#L1) - Scrambles and Solvers tab composition.
-- [packages/solver/src/index.ts#L1](../../../packages/solver/src/index.ts#L1) - auxiliary solver API used by the Solvers tab.
+- [packages/solver/src/index.ts#L1](../../../packages/solver/src/index.ts#L1) - auxiliary and full solver APIs used by the Solvers tab.
 - [docs/apps/playground/diagnostics-and-e2e.md](diagnostics-and-e2e.md) - diagnostics and E2E guidance.
 
 ---
 
-_Last updated: 2026-06-09 | Reason: document 3x3 General solver diagnostics_
+_Last updated: 2026-06-09 | Reason: document full solver playground mode_

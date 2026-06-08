@@ -1,3 +1,4 @@
+import { parsePyraminxAlgorithm, PYRAMINX_AXES } from '@cubegin/scramble-puzzle';
 import type { RandomSource } from '../random-source.js';
 
 const ERROR_PREFIX = '@cubegin/solver';
@@ -304,6 +305,9 @@ const validateLength = (length: number): void => {
   }
 };
 
+const pyraminxMoveIndex = (face: string, amount: number): number =>
+  PYRAMINX_AXES.indexOf(face as (typeof PYRAMINX_AXES)[number]) * 2 + amount - 1;
+
 const nextCoordinate = (
   random: RandomSource,
   coordinateName: string,
@@ -407,6 +411,38 @@ const formatSolution = (
 };
 
 export class PyraminxSolver {
+  stateFromScramble(scramble: string): PyraminxSolverState {
+    const tables = getTables();
+    const tipOrientations = Array.from({ length: 4 }, () => 0);
+    let edgePerm = 0;
+    let edgeOrient = 0;
+    let cornerOrient = 0;
+
+    for (const move of parsePyraminxAlgorithm(scramble)) {
+      const moveIndex = pyraminxMoveIndex(move.face, move.amount);
+
+      if (move.type === 'tip') {
+        const tipIndex = Math.floor(moveIndex / 2);
+        tipOrientations[tipIndex] = ((tipOrientations[tipIndex] ?? 0) + move.amount) % 3;
+        continue;
+      }
+
+      edgePerm = tables.moveEdgePerm[edgePerm][moveIndex];
+      edgeOrient = tables.moveEdgeOrient[edgeOrient][moveIndex];
+      cornerOrient = tables.moveCornerOrient[cornerOrient][moveIndex];
+    }
+
+    const state = {
+      edgePerm,
+      edgeOrient,
+      cornerOrient,
+      tips: packCornerOrient(tipOrientations),
+    };
+    validateState(state);
+
+    return state;
+  }
+
   randomState(random: RandomSource): PyraminxSolverState {
     const tables = getTables();
     let edgePerm: number | undefined;

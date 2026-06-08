@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import type { WcaEventId } from '@cubegin/scramble-puzzle';
-import type { PuzzleAssistEventId, PuzzleAssistMethod } from '@cubegin/solver';
+import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleFullEventId } from '@cubegin/solver';
 import { getBrowserSeed } from './browser-seed';
 import { createPlaygroundService } from './playground-service';
 import type {
+  PlaygroundFullSolverResult,
   PlaygroundGenerateResult,
   PlaygroundImageView,
   PlaygroundManualRenderResult,
@@ -12,7 +13,10 @@ import type {
 } from './types';
 
 export type PlaygroundPage = 'scrambles' | 'solvers';
+export type PlaygroundSolverMode = 'assist' | 'full';
 export type PlaygroundService = ReturnType<typeof createPlaygroundService>;
+
+const ASSIST_SOLVER_EVENT_IDS = ['333', '222', 'sq1', 'pyram', 'skewb'] as const;
 
 const DEFAULT_SOLVER_METHODS = {
   '333': ['cross'],
@@ -53,13 +57,15 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   const [manualResult, setManualResult] = useState<PlaygroundManualRenderResult>();
   const [generationError, setGenerationError] = useState<string>();
   const [activePage, setActivePage] = useState<PlaygroundPage>('scrambles');
-  const [solverEventId, setSolverEventIdState] = useState<PuzzleAssistEventId>('333');
+  const [solverMode, setSolverModeState] = useState<PlaygroundSolverMode>('assist');
+  const [solverEventId, setSolverEventIdState] = useState<PuzzleFullEventId>('333');
   const [solverScramble, setSolverScramble] = useState("R U R' U'");
   const [solverTargetText, setSolverTargetText] = useState(DEFAULT_SOLVER_TARGET_TEXT['333']);
   const [solverMethods, setSolverMethods] = useState<readonly PuzzleAssistMethod[]>(
     DEFAULT_SOLVER_METHODS['333'],
   );
   const [solverResult, setSolverResult] = useState<PlaygroundSolverResult>();
+  const [fullSolverResult, setFullSolverResult] = useState<PlaygroundFullSolverResult>();
   const [solverGenerationError, setSolverGenerationError] = useState<string>();
 
   const generate = async () => {
@@ -111,21 +117,43 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     setManualSvg(result.svg);
   };
 
-  const applyGeneratedSolverScramble = async (nextEventId: PuzzleAssistEventId) => {
+  const applyGeneratedSolverScramble = async (nextEventId: PuzzleFullEventId) => {
     const result = await packageService.generateSolverScramble(nextEventId);
 
     setSolverGenerationError(result.error);
     if (!result.error) {
       setSolverScramble(result.scramble);
       setSolverResult(undefined);
+      setFullSolverResult(undefined);
     }
   };
 
-  const setSolverEventId = async (nextEventId: PuzzleAssistEventId) => {
+  const setSolverEventId = async (nextEventId: PuzzleFullEventId) => {
     setSolverEventIdState(nextEventId);
-    setSolverMethods(DEFAULT_SOLVER_METHODS[nextEventId]);
-    setSolverTargetText(DEFAULT_SOLVER_TARGET_TEXT[nextEventId]);
+    if (isPuzzleAssistEventId(nextEventId)) {
+      setSolverMethods(DEFAULT_SOLVER_METHODS[nextEventId]);
+      setSolverTargetText(DEFAULT_SOLVER_TARGET_TEXT[nextEventId]);
+    }
     setSolverResult(undefined);
+    setFullSolverResult(undefined);
+    setSolverGenerationError(undefined);
+    setSolverScramble('');
+
+    await applyGeneratedSolverScramble(nextEventId);
+  };
+
+  const setSolverMode = async (nextMode: PlaygroundSolverMode) => {
+    const nextEventId =
+      nextMode === 'assist' && !isPuzzleAssistEventId(solverEventId) ? '333' : solverEventId;
+
+    setSolverModeState(nextMode);
+    setSolverEventIdState(nextEventId);
+    if (isPuzzleAssistEventId(nextEventId)) {
+      setSolverMethods(DEFAULT_SOLVER_METHODS[nextEventId]);
+      setSolverTargetText(DEFAULT_SOLVER_TARGET_TEXT[nextEventId]);
+    }
+    setSolverResult(undefined);
+    setFullSolverResult(undefined);
     setSolverGenerationError(undefined);
     setSolverScramble('');
 
@@ -148,6 +176,8 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   };
 
   const solvePuzzleAssist = () => {
+    if (!isPuzzleAssistEventId(solverEventId)) return;
+
     const result = packageService.solvePuzzleAssist({
       eventId: solverEventId,
       scramble: solverScramble,
@@ -156,6 +186,15 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     });
 
     setSolverResult(result);
+  };
+
+  const solvePuzzleFull = () => {
+    const result = packageService.solvePuzzleFull({
+      eventId: solverEventId,
+      scramble: solverScramble,
+    });
+
+    setFullSolverResult(result);
   };
 
   const setImageView = (nextImageView: PlaygroundImageView) => {
@@ -217,6 +256,8 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     renderManual,
     solverEventId,
     setSolverEventId,
+    solverMode,
+    setSolverMode,
     solverScramble,
     setSolverScramble,
     solverTargetText,
@@ -224,9 +265,11 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     solverMethods,
     setSolverMethod,
     solverResult,
+    fullSolverResult,
     solverGenerationError,
     generateSolverScramble,
     solvePuzzleAssist,
+    solvePuzzleFull,
   };
 };
 
@@ -238,3 +281,6 @@ const parseTargetText = (value: string): readonly string[] | undefined => {
 
   return targets.length > 0 ? targets : undefined;
 };
+
+const isPuzzleAssistEventId = (eventId: PuzzleFullEventId): eventId is PuzzleAssistEventId =>
+  ASSIST_SOLVER_EVENT_IDS.includes(eventId as PuzzleAssistEventId);
