@@ -68,9 +68,9 @@ export const TimerSidebar = ({
   const defaultSession = visibleSessions.find((session) => session.id === defaultSessionId);
   const customSessions = visibleSessions.filter((session) => !session.isDefault);
   const activeSessionName =
-    activeSession?.isDefault || (!activeSession && defaultSession) ?
-      messages.defaultSession
-    : (activeSession?.name ?? messages.defaultSession);
+    activeSession?.isDefault || (!activeSession && defaultSession)
+      ? messages.defaultSession
+      : (activeSession?.name ?? messages.defaultSession);
   const navItems = [
     { id: 'timer', label: messages.timer, icon: <TimerNavIcon /> },
     { id: 'formula', label: messages.formulaLibrary, icon: <HistoryNavIcon /> },
@@ -124,15 +124,17 @@ export const TimerSidebar = ({
             <Tooltip.Content>{toggleSidebarLabel}</Tooltip.Content>
           </Tooltip.Root>
         </div>
-        <div className={styles.eventRow}>
-          <EventSelector
-            className={styles.eventSelector}
-            label={messages.eventSelectorLabel}
-            locale={locale}
-            value={eventId}
-            onChange={onEventChange}
-          />
-        </div>
+        {!isCollapsed && (
+          <div className={styles.eventRow}>
+            <EventSelector
+              className={styles.eventSelector}
+              label={messages.eventSelectorLabel}
+              locale={locale}
+              value={eventId}
+              onChange={onEventChange}
+            />
+          </div>
+        )}
         <div className={styles.navRow}>
           <nav className={styles.nav} aria-label={messages.mainNav}>
             {navItems.map((item) => (

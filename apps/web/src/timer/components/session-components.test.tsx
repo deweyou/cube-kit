@@ -26,7 +26,7 @@ vi.mock('@deweyou-design/react/button', () => ({
 }));
 
 const sessions = [
-  { id: 'default:333', name: '3×3×3', eventId: '333' as const, isDefault: true, createdAt: 1 },
+  { id: 'default:333', name: '3x3x3', eventId: '333' as const, isDefault: true, createdAt: 1 },
   { id: 'custom', name: '练习', isDefault: false, createdAt: 2 },
 ];
 

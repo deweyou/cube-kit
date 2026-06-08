@@ -15,6 +15,7 @@ generation, scramble visualization, and a WeChat miniprogram shell.
 | [docs/packages/scramble-puzzle/index.md](docs/packages/scramble-puzzle/index.md) | Puzzle notation, state, and parser package boundary       |
 | [docs/packages/scramble-core/index.md](docs/packages/scramble-core/index.md)     | WCA generation rules and solver package boundary          |
 | [docs/packages/scramble-image/index.md](docs/packages/scramble-image/index.md)   | SVG renderer contracts and package boundary               |
+| [docs/packages/event-icons/index.md](docs/packages/event-icons/index.md)         | WCA event icon SVG contracts and package boundary         |
 | [docs/packages/solver/index.md](docs/packages/solver/index.md)                   | Auxiliary/full solver API and package boundary            |
 | [docs/apps/playground/index.md](docs/apps/playground/index.md)                   | Scramble playground diagnostics and E2E role              |
 | [docs/apps/scramble-docs/index.md](docs/apps/scramble-docs/index.md)             | VitePress scramble learning site ownership                |
@@ -49,6 +50,10 @@ generation, scramble visualization, and a WeChat miniprogram shell.
   first.
 - If you change a specific new scramble package, read its local `AGENTS.md` and
   owner-scoped docs under `docs/packages/`.
+- If you change `packages/event-icons`, read
+  [docs/packages/event-icons/index.md](docs/packages/event-icons/index.md),
+  [docs/packages/event-icons/DESIGN.md](docs/packages/event-icons/DESIGN.md),
+  and the local [packages/event-icons/AGENTS.md](packages/event-icons/AGENTS.md).
 - If you change `packages/solver`, read
   [docs/packages/solver/index.md](docs/packages/solver/index.md) and the local
   [packages/solver/AGENTS.md](packages/solver/AGENTS.md).

@@ -18,13 +18,16 @@ flowchart TD
     Packages --> PuzzlePkg["@cubegin/scramble-puzzle"]
     Packages --> CorePkg["@cubegin/scramble-core"]
     Packages --> ImagePkg["@cubegin/scramble-image"]
+    Packages --> EventIconsPkg["@cubegin/event-icons"]
     Packages --> SolverPkg["@cubegin/solver"]
+    PublicCore --> IconPath["cubegin/event-icons"]
     PublicCore --> CorePath["cubegin/scramble-core"]
     PublicCore --> ImagePath["cubegin/scramble-image"]
     PublicCore --> PuzzlePath["cubegin/scramble-puzzle"]
     CorePath --> CorePkg
     ImagePath --> ImagePkg
     PuzzlePath --> PuzzlePkg
+    IconPath --> EventIconsPkg
     CorePkg --> PuzzlePkg
     ImagePkg --> PuzzlePkg
     SolverPkg --> PuzzlePkg
@@ -61,6 +64,7 @@ packages/core/         public cubegin npm package subpath exports
 packages/scramble-puzzle/  TNoodle-compatible event ids, parsers, and states
 packages/scramble-core/    TNoodle-compatible WCA scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
+packages/event-icons/      Platform-agnostic WCA event SVG icons
 packages/solver/           platform-agnostic auxiliary and full solver helpers
 docs/                  repository memory and Superpowers specs/plans
 docs/packages/         package-scoped knowledge for new scramble packages
@@ -84,6 +88,8 @@ scripts/               lightweight repository checks
   [App](../apps/playground/src/app.tsx#L1) calls the new `scramble-core`,
   `scramble-image`, and `solver` packages through
   [usePlayground](../apps/playground/src/playground/use-playground.ts#L1).
+- The playground Icons tab consumes `@cubegin/event-icons` to inspect all 17 WCA
+  event glyphs from one UI surface.
 - Scramble Docs starts with `pnpm dev:scramble-docs` at
   [apps/scramble-docs/docs/index.md#L1](../apps/scramble-docs/docs/index.md#L1).
   Its [VitePress config](../apps/scramble-docs/docs/.vitepress/config.mts#L1)
@@ -115,18 +121,20 @@ scripts/               lightweight repository checks
 - [packages/scramble-puzzle/src/index.ts#L1](../packages/scramble-puzzle/src/index.ts#L1) - TNoodle-compatible puzzle domain barrel.
 - [packages/scramble-core/src/index.ts#L1](../packages/scramble-core/src/index.ts#L1) - TNoodle-compatible generator barrel.
 - [packages/scramble-image/src/index.ts#L1](../packages/scramble-image/src/index.ts#L1) - TNoodle-compatible SVG renderer barrel.
+- [packages/event-icons/src/index.ts#L1](../packages/event-icons/src/index.ts#L1) - platform-agnostic WCA event icon barrel.
 - [packages/core/package.json#L1](../packages/core/package.json#L1) - public
-  `cubegin` npm package with subpath-only exports for scramble packages.
+  `cubegin` npm package with subpath-only exports for selected packages.
 - [packages/solver/src/index.ts#L1](../packages/solver/src/index.ts#L1) - auxiliary and full solver barrel.
 - [docs/packages/core/index.md#L1](packages/core/index.md#L1) - public package
   ownership, subpaths, and verification.
 - [docs/packages/scramble-puzzle/index.md#L1](packages/scramble-puzzle/index.md#L1) - puzzle package ownership and verification.
 - [docs/packages/scramble-core/index.md#L1](packages/scramble-core/index.md#L1) - core generator ownership and verification.
 - [docs/packages/scramble-image/index.md#L1](packages/scramble-image/index.md#L1) - image renderer ownership and verification.
+- [docs/packages/event-icons/index.md#L1](packages/event-icons/index.md#L1) - event icon ownership and verification.
 - [docs/packages/solver/index.md#L1](packages/solver/index.md#L1) - solver package ownership and verification.
 - [docs/apps/playground/index.md#L1](apps/playground/index.md#L1) - playground ownership and diagnostics role.
 - [docs/tnoodle-implementation-notes.md#L1](tnoodle-implementation-notes.md#L1) - implementation notes and upgrade routing for the new packages.
 
 ---
 
-_Last updated: 2026-06-08 | Reason: document solver package ownership and playground diagnostics_
+_Last updated: 2026-06-09 | Reason: document event-icons package ownership and public facade path_

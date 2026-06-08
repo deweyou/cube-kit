@@ -12,6 +12,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@cubegin/scramble-core': workspacePackage('scramble-core'),
+      '@cubegin/event-icons': workspacePackage('event-icons'),
       '@cubegin/scramble-image': workspacePackage('scramble-image'),
       '@cubegin/scramble-puzzle': workspacePackage('scramble-puzzle'),
       '@cubegin/solver': workspacePackage('solver'),

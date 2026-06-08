@@ -5,13 +5,6 @@
     "moduleDetection": "force",
     "module": "preserve",
     "moduleResolution": "bundler",
-    "paths": {
-      "@cubegin/event-icons": ["../event-icons/src/index.ts"],
-      "@cubegin/scramble-core": ["../scramble-core/src/index.ts"],
-      "@cubegin/scramble-image": ["../scramble-image/src/index.ts"],
-      "@cubegin/scramble-puzzle": ["../scramble-puzzle/src/index.ts"],
-      "@cubegin/solver": ["../solver/src/index.ts"]
-    },
     "resolveJsonModule": true,
     "types": ["node"],
     "strict": true,

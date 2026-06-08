@@ -38,20 +38,69 @@
 .pageActions {
   align-items: center;
   display: inline-flex;
-  gap: 6px;
+  gap: 16px;
+  min-height: 32px;
   position: fixed;
   right: 18px;
   top: 18px;
   z-index: 40;
 }
 
+.collapsedEventSelectorSlot {
+  align-items: center;
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.collapsedEventSelectorSlot > :global(div) {
+  align-items: center;
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+}
+
+.collapsedEventSelectorSlot :global(label) {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .pageActionButton {
+  --button-ghost-background-active: transparent;
+  --button-ghost-background-hover: transparent;
+  --button-height: 32px;
+  --button-square-size: 32px;
+  --ui-touch-target-min: 32px;
+  background: transparent;
+  border-color: transparent;
   border-radius: var(--ui-radius-pill);
   color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
+  height: 32px;
+  padding: 0;
+  width: 32px;
 }
 
 .pageActionButton:hover {
-  color: var(--ui-color-text);
+  background: transparent;
+  color: var(--ui-color-brand-text);
+}
+
+.pageActionButton :global(svg) {
+  display: block;
+  height: 20px;
+  width: 20px;
+}
+
+.collapsedEventSelector {
+  min-width: 0;
 }
 
 @media (max-width: 860px) {
@@ -76,5 +125,4 @@
   .stage {
     min-height: 620px;
   }
-
 }
