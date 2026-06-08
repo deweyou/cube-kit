@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { type CSSProperties, useState } from 'react';
+import { EVENT_ICON_SVGS } from '@cubegin/event-icons';
 import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubegin/scramble-puzzle';
 import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleFullEventId } from '@cubegin/solver';
 import { writeScramblesToClipboard } from './playground/copy';
@@ -7,6 +8,17 @@ import type { PlaygroundImageView } from './playground/types';
 import { type PlaygroundService, usePlayground } from './playground/use-playground';
 
 type PlaygroundState = ReturnType<typeof usePlayground>;
+
+const EVENT_ICON_PREVIEW_SIZES = [24, 64, 100, 128, 160] as const;
+type EventIconPreviewSize = (typeof EVENT_ICON_PREVIEW_SIZES)[number];
+
+const EVENT_ICON_PREVIEW_BACKGROUNDS = [
+  { label: 'White background', value: '#ffffff' },
+  { label: 'Gray background', value: '#e8edf1' },
+  { label: 'Dark background', value: '#1f2a30' },
+  { label: 'Blue background', value: '#6b99bd' },
+] as const;
+type EventIconPreviewBackground = (typeof EVENT_ICON_PREVIEW_BACKGROUNDS)[number]['value'];
 
 const SOLVER_EVENTS: readonly {
   readonly eventId: PuzzleAssistEventId;
@@ -225,6 +237,17 @@ export const App = ({ service }: AppProps = {}) => {
         >
           Solvers
         </button>
+        <button
+          aria-controls="icons-panel"
+          aria-selected={playground.activePage === 'icons'}
+          className="tab-button"
+          id="icons-tab"
+          role="tab"
+          type="button"
+          onClick={() => playground.setActivePage('icons')}
+        >
+          Icons
+        </button>
       </nav>
 
       {playground.activePage === 'scrambles' ? (
@@ -237,7 +260,96 @@ export const App = ({ service }: AppProps = {}) => {
       ) : null}
 
       {playground.activePage === 'solvers' ? <SolverPage playground={playground} /> : null}
+      {playground.activePage === 'icons' ? <IconsPage /> : null}
     </main>
+  );
+};
+
+const IconsPage = () => {
+  const [previewSize, setPreviewSize] = useState<EventIconPreviewSize>(100);
+  const [previewBackground, setPreviewBackground] = useState<EventIconPreviewBackground>('#ffffff');
+
+  return (
+    <section
+      aria-labelledby="icons-tab"
+      className="icons-workbench"
+      id="icons-panel"
+      role="tabpanel"
+      style={
+        {
+          '--event-icon-frame-size': `${previewSize + 24}px`,
+          '--event-icon-preview-bg': previewBackground,
+          '--event-icon-size': `${previewSize}px`,
+        } as CSSProperties
+      }
+    >
+      <section className="panel icons-panel">
+        <div className="icons-panel-header">
+          <div className="panel-heading">
+            <p className="eyebrow">event-icons</p>
+            <h2>WCA event icons</h2>
+          </div>
+
+          <div className="icon-preview-controls">
+            <div className="icon-bg-control" role="group" aria-label="Icon background">
+              {EVENT_ICON_PREVIEW_BACKGROUNDS.map(({ label, value }) => (
+                <button
+                  aria-label={label}
+                  aria-pressed={previewBackground === value}
+                  className={
+                    previewBackground === value ? 'icon-bg-option selected' : 'icon-bg-option'
+                  }
+                  key={value}
+                  style={{ '--event-icon-bg-swatch': value } as CSSProperties}
+                  title={label}
+                  type="button"
+                  onClick={() => setPreviewBackground(value)}
+                />
+              ))}
+            </div>
+
+            <div className="icon-size-control" role="group" aria-label="Icon size">
+              {EVENT_ICON_PREVIEW_SIZES.map((size) => (
+                <button
+                  aria-pressed={previewSize === size}
+                  className={
+                    previewSize === size ? 'segmented-option selected' : 'segmented-option'
+                  }
+                  key={size}
+                  type="button"
+                  onClick={() => setPreviewSize(size)}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="event-icon-grid" aria-label="WCA event icons">
+          {WCA_EVENT_IDS.map((eventId) => (
+            <article
+              className="event-icon-card"
+              data-testid={`event-icon-${eventId}`}
+              id={`event-icon-${eventId}`}
+              key={eventId}
+            >
+              <div
+                className="event-icon-preview"
+                data-testid={`event-icon-svg-${eventId}`}
+                dangerouslySetInnerHTML={{ __html: EVENT_ICON_SVGS[eventId] }}
+              />
+              <div className="event-icon-copy">
+                <strong>
+                  {eventId} - {WCA_EVENT_INFO[eventId].label}
+                </strong>
+                <span>{WCA_EVENT_INFO[eventId].puzzleId}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </section>
   );
 };
 

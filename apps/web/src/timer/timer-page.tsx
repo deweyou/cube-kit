@@ -7,13 +7,10 @@ import type { SolvePenalty, SolveRecord, TimerSessionRepository } from '@cubegin
 import { useTimer } from './hooks/use-timer';
 import { useTimerGesture } from './hooks/use-timer-gesture';
 import { useTimerSessions } from './hooks/use-timer-sessions';
+import { EventSelector } from './components/event-selector';
 import { SolveDetail } from './components/solve-detail';
 import { TimerSidebar } from './components/timer-sidebar';
-import {
-  LanguageIcon,
-  SunIcon,
-  ThemeMoonIcon,
-} from './components/timer-icons';
+import { LanguageIcon, SunIcon, ThemeMoonIcon } from './components/timer-icons';
 import { TIMER_MESSAGES, type TimerLocale } from './timer-i18n';
 import { createMemoryTimerSessionRepository } from './storage/memory-timer-session-repository';
 import { createIndexedDbTimerSessionRepository } from './storage/timer-session-db';
@@ -309,6 +306,18 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
         toggleSidebarLabel={toggleSidebarLabel}
       />
       <div className={styles.pageActions}>
+        {isSidebarCollapsed && (
+          <div className={styles.collapsedEventSelectorSlot}>
+            <EventSelector
+              className={styles.collapsedEventSelector}
+              isIconOnly
+              label={messages.eventSelectorLabel}
+              locale={locale}
+              value={sessionState.eventId}
+              onChange={(id) => void handleEventChange(id)}
+            />
+          </div>
+        )}
         <Tooltip.Root placement="bottom">
           <Tooltip.Trigger>
             <Button.Icon

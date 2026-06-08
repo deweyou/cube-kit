@@ -1,7 +1,7 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ChangeEvent, ReactNode } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { ChangeEvent, CSSProperties, ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryTimerSessionRepository } from './storage/memory-timer-session-repository';
 import { TimerPage } from './timer-page';
 import { TIMER_MESSAGES } from './timer-i18n';
@@ -10,6 +10,23 @@ const { generate, renderScrambleImage } = vi.hoisted(() => ({
   generate: vi.fn(),
   renderScrambleImage: vi.fn((_eventId: string, scramble: string) => `<svg>${scramble}</svg>`),
 }));
+
+const setNarrowViewport = (matches: boolean) => {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: query === '(max-width: 860px)' ? matches : false,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+};
 
 vi.mock('@cubegin/scramble-core', () => ({
   createDefaultScrambleGenerator: () => ({ generate }),
@@ -82,16 +99,20 @@ vi.mock('@deweyou-design/react/select', () => {
   const Select = {
     Root: ({
       children,
+      className,
       label,
+      style,
       value,
       onValueChange,
     }: {
       children: ReactNode;
+      className?: string;
       label?: ReactNode;
+      style?: CSSProperties;
       value?: string[];
       onValueChange?: (value: string[]) => void;
     }) => (
-      <label>
+      <label className={className} style={style}>
         {label}
         <select
           aria-label={typeof label === 'string' ? label : undefined}
@@ -104,8 +125,20 @@ vi.mock('@deweyou-design/react/select', () => {
     ),
     Trigger: () => null,
     Content: ({ children }: { children: ReactNode }) => <>{children}</>,
-    Item: ({ value, label }: { value: string; label: string }) => (
-      <option value={value}>{label}</option>
+    Item: ({
+      className,
+      style,
+      value,
+      label,
+    }: {
+      className?: string;
+      style?: CSSProperties;
+      value: string;
+      label: string;
+    }) => (
+      <option className={className} style={style} value={value}>
+        {label}
+      </option>
     ),
   };
   return { Select };
@@ -119,6 +152,10 @@ vi.mock('@deweyou-design/react/tooltip', () => ({
   },
 }));
 
+beforeEach(() => {
+  setNarrowViewport(false);
+});
+
 afterEach(() => {
   cleanup();
   generate.mockReset();
@@ -126,6 +163,18 @@ afterEach(() => {
 });
 
 describe('TimerPage', () => {
+  it('moves the event selector to the page actions when the sidebar is collapsed', () => {
+    setNarrowViewport(true);
+    generate.mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" });
+
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    const sidebar = screen.getByRole('complementary', { name: '练习列表' });
+
+    expect(within(sidebar).queryByRole('combobox', { name: '魔方类型' })).toBeNull();
+    expect(screen.getByRole('combobox', { name: '魔方类型' })).not.toBeNull();
+  });
+
   it('loads the initial scramble and refreshes through the default scramble generator', async () => {
     generate
       .mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" })

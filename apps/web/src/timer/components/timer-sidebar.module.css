@@ -10,8 +10,7 @@
   left: 0;
   position: fixed;
   top: 0;
-  transition:
-    border-color var(--ui-motion-duration-base) var(--ui-motion-ease-standard);
+  transition: border-color var(--ui-motion-duration-base) var(--ui-motion-ease-standard);
   width: 312px;
   z-index: 20;
 }
@@ -193,8 +192,13 @@
 }
 
 .sessionPanel {
-  background: color-mix(in srgb, var(--ui-color-surface-raised, var(--ui-color-surface)) 96%, var(--ui-color-canvas));
-  border: 1px solid color-mix(in srgb, var(--ui-color-border-strong, var(--ui-color-border)) 78%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--ui-color-surface-raised, var(--ui-color-surface)) 96%,
+    var(--ui-color-canvas)
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--ui-color-border-strong, var(--ui-color-border)) 78%, transparent);
   border-radius: var(--ui-radius-float);
   box-shadow:
     0 1px 0 color-mix(in srgb, white 48%, transparent) inset,
@@ -310,14 +314,25 @@
 }
 
 .sidebarToggleButton {
+  --button-ghost-background-active: transparent;
+  --button-ghost-background-hover: transparent;
+  --button-height: 32px;
+  --button-square-size: 32px;
+  --ui-touch-target-min: 32px;
+  background: transparent;
+  border-color: transparent;
   border-radius: var(--ui-radius-pill);
   color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
   flex: 0 0 auto;
+  height: 32px;
   margin-right: -10px;
+  padding: 0;
+  width: 32px;
 }
 
 .sidebarToggleButton:hover {
-  color: var(--ui-color-text);
+  background: transparent;
+  color: var(--ui-color-brand-text);
 }
 
 .root[data-collapsed='true'] {
@@ -347,8 +362,7 @@
   width: 160px;
 }
 
-.root[data-collapsed='true'] .brandRow,
-.root[data-collapsed='true'] .eventRow {
+.root[data-collapsed='true'] .brandRow {
   pointer-events: auto;
 }
 
@@ -361,38 +375,11 @@
   width: 20px;
 }
 
-.root[data-collapsed='true'] .eventSelector {
-  flex: 0 1 auto;
-  max-width: 128px;
-  min-width: 0;
-}
-
-.root[data-collapsed='true'] .eventRow,
-.root[data-collapsed='true'] .eventRow > * {
-  flex: 0 1 auto;
-  width: max-content;
-}
-
-.root[data-collapsed='true'] .eventSelector :global(button) {
-  color: color-mix(in srgb, var(--ui-color-text) 58%, transparent);
-  font-size: 0.78rem;
-  min-height: 24px;
-  min-width: 0;
-  padding-inline: 0;
-}
-
-.root[data-collapsed='true'] .eventSelector :global(button span) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .root[data-collapsed='true'] .sidebarToggleButton {
   left: auto;
   margin-right: 0;
   position: static;
   top: auto;
-  --ui-touch-target-min: 28px;
 }
 
 .root[data-collapsed='true'] .nav,
@@ -440,5 +427,4 @@
     pointer-events: none;
     width: 312px;
   }
-
 }

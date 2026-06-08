@@ -8,7 +8,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, relative, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -19,6 +19,9 @@ const vendorRoot = resolve(buildRoot, 'vendor');
 const generatedConfigPath = resolve(buildRoot, 'public-pack.json');
 const packageJsonPath = resolve(packageRoot, 'package.json');
 const watch = process.argv.includes('--watch');
+const eventIconsPublicSubpath = 'event-icons';
+const eventIconsSvgExportPath = `./${eventIconsPublicSubpath}/svg/*`;
+const eventIconsSvgExportTarget = `./dist/${eventIconsPublicSubpath}/svg/*`;
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
@@ -112,12 +115,16 @@ const collectVendoredPackages = (publicPackages, workspacePackages) => {
 
 const syncPackageExports = (publicPackages) => {
   const packageJson = readJson(packageJsonPath);
-  const exports = Object.fromEntries(
-    publicPackages.map(({ publicSubpath }) => [
-      `./${publicSubpath}`,
-      `./dist/${publicSubpath}.mjs`,
-    ]),
-  );
+  const exports = {};
+
+  for (const { publicSubpath } of publicPackages) {
+    exports[`./${publicSubpath}`] = `./dist/${publicSubpath}.mjs`;
+
+    if (publicSubpath === eventIconsPublicSubpath) {
+      exports[eventIconsSvgExportPath] = eventIconsSvgExportTarget;
+    }
+  }
+
   exports['./package.json'] = './package.json';
 
   const nextPackageJson = {
@@ -181,6 +188,24 @@ const runPack = () => {
   }
 };
 
+const writePublicEventIconSvgFiles = async (publicPackages) => {
+  if (watch) return;
+  if (!publicPackages.some(({ publicSubpath }) => publicSubpath === eventIconsPublicSubpath))
+    return;
+
+  const eventIconsModule = await import(
+    pathToFileURL(resolve(packageRoot, `dist/${eventIconsPublicSubpath}.mjs`)).href
+  );
+  const eventIconsScript = await import(
+    pathToFileURL(resolve(packagesRoot, 'event-icons/scripts/write-svg-files.mjs')).href
+  );
+
+  await eventIconsScript.writeEventIconSvgFiles({
+    icons: eventIconsModule.EVENT_ICON_SVGS,
+    outDir: resolve(packageRoot, `dist/${eventIconsPublicSubpath}/svg`),
+  });
+};
+
 const assertBundledOutput = (publicPackages) => {
   if (watch) return;
   const distRoot = resolve(packageRoot, 'dist');
@@ -222,4 +247,6 @@ const vendoredPackages = collectVendoredPackages(publicPackages, workspacePackag
 syncPackageExports(publicPackages);
 prepareBuildTree(publicPackages, vendoredPackages);
 runPack();
+syncPackageExports(publicPackages);
+await writePublicEventIconSvgFiles(publicPackages);
 assertBundledOutput(publicPackages);

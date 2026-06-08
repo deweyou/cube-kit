@@ -1,19 +1,22 @@
 # cubegin
 
 Public Cubegin npm entrypoints for TNoodle-compatible scramble generation,
-scramble SVG rendering, and puzzle notation/state helpers.
+scramble SVG rendering, puzzle notation/state helpers, and WCA event icons.
 
 The package intentionally does not expose a root API. Import one of the
 published subpaths instead:
 
 ```ts
 import { createDefaultScrambleGenerator } from 'cubegin/scramble-core';
+import { EVENT_ICON_333_SVG, EVENT_ICON_SVGS } from 'cubegin/event-icons';
 import { renderScrambleImage } from 'cubegin/scramble-image';
 import { WCA_EVENT_IDS } from 'cubegin/scramble-puzzle';
 ```
 
 ## Entrypoints
 
+- `cubegin/event-icons` bundles the `@cubegin/event-icons` implementation.
+- `cubegin/event-icons/svg/<eventId>.svg` exposes generated per-event SVG files.
 - `cubegin/scramble-core` bundles the `@cubegin/scramble-core` implementation.
 - `cubegin/scramble-image` bundles the `@cubegin/scramble-image` implementation.
 - `cubegin/scramble-puzzle` bundles the `@cubegin/scramble-puzzle` implementation.

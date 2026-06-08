@@ -51,6 +51,44 @@ describe('App', () => {
     expect(screen.getByLabelText('MultiBLD cubes')).toBeTruthy();
   });
 
+  it('shows every WCA event icon in the playground gallery', async () => {
+    renderTestApp();
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Icons' }));
+
+    expect(screen.getByRole('tabpanel', { name: 'Icons' })).toBeTruthy();
+    expect(screen.getAllByTestId(/^event-icon-svg-/)).toHaveLength(17);
+    expect(screen.getByText('333 - 3x3x3 Cube')).toBeTruthy();
+    expect(screen.getByTestId('event-icon-svg-333').querySelector('svg')).toBeTruthy();
+    expect(screen.getByTestId('event-icon-333mbld').textContent).toContain('333mbld');
+  });
+
+  it('changes icon preview size from the icons gallery', async () => {
+    renderTestApp();
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Icons' }));
+    await userEvent.click(screen.getByRole('button', { name: '128' }));
+
+    expect(screen.getByRole('button', { name: '128' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('tabpanel', { name: 'Icons' }).getAttribute('style')).toContain(
+      '--event-icon-size: 128px',
+    );
+  });
+
+  it('changes icon preview background from the icons gallery', async () => {
+    renderTestApp();
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Icons' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Dark background' }));
+
+    expect(
+      screen.getByRole('button', { name: 'Dark background' }).getAttribute('aria-pressed'),
+    ).toBe('true');
+    expect(screen.getByRole('tabpanel', { name: 'Icons' }).getAttribute('style')).toContain(
+      '--event-icon-preview-bg: #1f2a30',
+    );
+  });
+
   it('renders manual scramble text through scramble-image', async () => {
     renderTestApp();
 

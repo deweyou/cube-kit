@@ -12,7 +12,7 @@ import type {
   PlaygroundSolverResult,
 } from './types';
 
-export type PlaygroundPage = 'scrambles' | 'solvers';
+export type PlaygroundPage = 'scrambles' | 'solvers' | 'icons';
 export type PlaygroundSolverMode = 'assist' | 'full';
 export type PlaygroundService = ReturnType<typeof createPlaygroundService>;
 

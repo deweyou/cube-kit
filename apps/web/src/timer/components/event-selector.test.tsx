@@ -1,6 +1,6 @@
 import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { EventSelector } from './event-selector';
 
@@ -8,16 +8,20 @@ vi.mock('@deweyou-design/react/select', () => {
   const Select = {
     Root: ({
       children,
+      className,
       label,
+      style,
       value,
       onValueChange,
     }: {
       children: ReactNode;
+      className?: string;
       label?: ReactNode;
+      style?: CSSProperties;
       value?: string[];
       onValueChange?: (value: string[]) => void;
     }) => (
-      <label>
+      <label className={className} style={style}>
         {label}
         <select
           aria-label={typeof label === 'string' ? label : undefined}
@@ -30,8 +34,20 @@ vi.mock('@deweyou-design/react/select', () => {
     ),
     Trigger: () => null,
     Content: ({ children }: { children: ReactNode }) => <>{children}</>,
-    Item: ({ value, label }: { value: string; label: string }) => (
-      <option value={value}>{label}</option>
+    Item: ({
+      className,
+      style,
+      value,
+      label,
+    }: {
+      className?: string;
+      style?: CSSProperties;
+      value: string;
+      label: string;
+    }) => (
+      <option className={className} style={style} value={value}>
+        {label}
+      </option>
     ),
   };
   return { Select };
@@ -42,7 +58,13 @@ afterEach(cleanup);
 describe('EventSelector', () => {
   it('renders the current event label', () => {
     render(<EventSelector label="魔方类型" locale="zh-CN" value="333" onChange={vi.fn()} />);
-    expect(screen.getByText('三阶速拧')).toBeTruthy();
+    const option = screen.getByRole('option', { name: '三阶速拧' });
+
+    expect(option).toBeTruthy();
+    expect(
+      screen.getByRole('combobox').parentElement?.style.getPropertyValue('--event-icon-mask'),
+    ).toContain('data:image/svg+xml');
+    expect(option.style.getPropertyValue('--event-icon-mask')).toContain('data:image/svg+xml');
   });
 
   it('calls onChange with event id when a new event is selected', async () => {
