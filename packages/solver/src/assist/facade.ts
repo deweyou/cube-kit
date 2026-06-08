@@ -50,7 +50,8 @@ const isThreeByThreeMethod = (method: PuzzleAssistMethod): method is ThreeByThre
   method === 'zz-f2l' ||
   method === 'block-222' ||
   method === 'eo-dr' ||
-  method === '333-two-phase';
+  method === '333-two-phase' ||
+  method === '333-general';
 
 const isTwoByTwoMethod = (method: PuzzleAssistMethod): method is TwoByTwoAssistMethod =>
   method in TWO_BY_TWO_SOLVERS;

@@ -14,6 +14,7 @@ import {
   solveEODR,
   solvePetrusS2,
   solveRouxS2,
+  solveThreeByThreeGeneral,
   solveThreeByThreeTwoPhase,
   solveZZF2L,
 } from './stage-mask.js';
@@ -37,6 +38,7 @@ const METHOD_SOLVERS = {
   'block-222': solveBlock222,
   'eo-dr': solveEODR,
   '333-two-phase': solveThreeByThreeTwoPhase,
+  '333-general': solveThreeByThreeGeneral,
 } satisfies Record<ThreeByThreeAssistMethod, MethodSolver>;
 
 const isThreeByThreeAssistMethod = (method: string): method is ThreeByThreeAssistMethod =>

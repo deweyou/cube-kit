@@ -117,7 +117,7 @@ describe('createPlaygroundService', () => {
     const result = service.solvePuzzleAssist({
       eventId: '333',
       scramble: '',
-      methods: ['cfop-f2l'],
+      methods: ['cfop-f2l', '333-general'],
       targets: [],
     });
 
@@ -129,7 +129,11 @@ describe('createPlaygroundService', () => {
       'F2L-3',
       'F2L-4',
     ]);
-    expect(result.diagnostics.resultCount).toBe(5);
+    expect(result.results[1]?.method).toBe('333-general');
+    expect(result.results[1]?.solutions.map((solution) => solution.targetLabel)).toEqual([
+      'Cross',
+    ]);
+    expect(result.diagnostics.resultCount).toBe(6);
     expect(result.error).toBeUndefined();
   });
 

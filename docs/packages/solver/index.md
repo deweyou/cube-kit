@@ -22,9 +22,9 @@ without depending on scramble generation or SVG rendering packages.
 ## Key Rules
 
 - The auxiliary public scope is Cross, XCross, EOline, EOFC, Roux S1/S2,
-  Petrus S1/S2, CFOP F2L, ZZ F2L, 2x2x2 block, EO+DR, 3x3 TwoPhase, 2x2
-  Face/Layer, Square-1 shape in FTM/TTM-style metrics, Pyraminx V, and Skewb
-  Face.
+  Petrus S1/S2, CFOP F2L, ZZ F2L, 2x2x2 block, EO+DR, 3x3 TwoPhase, 3x3
+  General mask, 2x2 Face/Layer, Square-1 shape in FTM/TTM-style metrics,
+  Pyraminx V, and Skewb Face.
 - Full solver primitives include 2x2, 3x3 min2phase/WCA search, 4x4
   threephase, Clock linear state solver, Pyraminx, Skewb, and Square-1.
 - The package depends only on
@@ -68,4 +68,4 @@ pnpm --filter @cubegin/solver build
 
 ---
 
-_Last updated: 2026-06-08 | Reason: define auxiliary and full solver package scope_
+_Last updated: 2026-06-09 | Reason: add cstimer 3x3 General mask solver scope_

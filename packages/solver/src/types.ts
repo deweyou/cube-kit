@@ -11,7 +11,8 @@ export type ThreeByThreeAssistMethod =
   | 'zz-f2l'
   | 'block-222'
   | 'eo-dr'
-  | '333-two-phase';
+  | '333-two-phase'
+  | '333-general';
 
 export type TwoByTwoAssistMethod = '222-face' | '222-layer';
 

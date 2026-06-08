@@ -22,6 +22,8 @@ solver packages without wiring them into production apps.
   integration.
 - In the Solvers tab, changing the solver event resets event-specific method and
   target defaults and auto-generates a scramble for the selected event.
+- The 3x3 solver method list includes the cstimer-style staged helpers,
+  TwoPhase, and General mask diagnostics.
 - `?seed=<integer>` provides deterministic browser smoke and future E2E runs.
 - `333mbld` attempts are split into one displayed row per cube.
 - The SVG preview includes a `2D` / `3D` image-view switch. `2D` is the default
@@ -46,4 +48,4 @@ pnpm --filter playground build
 
 ---
 
-_Last updated: 2026-06-08 | Reason: document Skewb solver diagnostics_
+_Last updated: 2026-06-09 | Reason: document 3x3 General solver diagnostics_
