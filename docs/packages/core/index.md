@@ -8,6 +8,7 @@ flowchart TD
     ScrambleCore --> CorePkg["@cubegin/scramble-core"]
     ScrambleImage --> ImagePkg["@cubegin/scramble-image"]
     ScramblePuzzle --> PuzzlePkg["@cubegin/scramble-puzzle"]
+    CorePkg -. private vendored dependency .-> SolverPkg["@cubegin/solver"]
 ```
 
 `packages/core` owns the public `cubegin` npm package. It is a bundled package
@@ -55,6 +56,8 @@ with the build script.
 - `packages/core/scripts/build.mjs` scans those markers, syncs the public
   `exports` map, vendors source into `.build/vendor`, and runs `vp pack` in
   `unbundle` mode so the published package keeps internal ESM module boundaries.
+- The build script also vendors workspace runtime dependencies required by those
+  public packages without adding matching public `cubegin/*` exports.
 - Do not copy implementation logic into this package.
 - Do not publish runtime dependencies on unpublished `@cubegin/*` packages.
 - Keep GPL-3.0-only while exported paths depend on TNoodle-compatible packages.

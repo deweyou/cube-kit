@@ -222,6 +222,9 @@ importers:
       '@cubegin/scramble-puzzle':
         specifier: workspace:*
         version: link:../scramble-puzzle
+      '@cubegin/solver':
+        specifier: workspace:*
+        version: link:../solver
       '@types/node':
         specifier: 'catalog:'
         version: 24.12.2
