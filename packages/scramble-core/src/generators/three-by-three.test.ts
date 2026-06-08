@@ -1,14 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { createCubeDefinition } from '@cubegin/scramble-puzzle';
 import {
+  MIN2PHASE_INVERSE_SOLUTION as INVERSE_SOLUTION,
+  randomCube,
+  randomThreeByThreeState as randomState,
+  SearchWCA,
+} from '@cubegin/solver';
+import {
   generateMultiBlindScramble,
   generateThreeByThreeFewestMovesScramble,
   generateThreeByThreeNoInspectionScramble,
   generateThreeByThreeScramble,
 } from './three-by-three.js';
 import type { RandomSource } from '../random-source.js';
-import { SearchWCA, INVERSE_SOLUTION } from '../solvers/min2phase/search-wca.js';
-import { randomCube, randomState } from '../solvers/min2phase/tools.js';
 
 describe('3x3 WCA generators', () => {
   it('generates a normal scramble within the WCA max length', () => {

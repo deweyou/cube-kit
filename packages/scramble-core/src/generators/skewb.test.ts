@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseSkewbAlgorithm } from '@cubegin/scramble-puzzle';
 import { generateSkewbScramble } from './skewb.js';
-import { SkewbSolver, type SkewbSolverState } from '../solvers/skewb-solver.js';
+import { SkewbSolver, type SkewbSolverState } from '@cubegin/solver';
 import type { RandomSource } from '../random-source.js';
 
 const zeroRandom: RandomSource = { nextInt: () => 0 };
@@ -81,7 +81,7 @@ describe('SkewbSolver', () => {
     const random = createUnsolvableTwistRandom();
 
     expect(() => new SkewbSolver().randomState(random)).toThrow(
-      '@cubegin/scramble-core: could not sample a solvable Skewb twist after 100 attempts',
+      '@cubegin/solver: could not sample a solvable Skewb twist after 100 attempts',
     );
   });
 

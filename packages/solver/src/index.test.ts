@@ -1,13 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import {
   SolverError,
+  ClockSolver,
+  FourByFourThreephaseSearch,
   UnsupportedSolverMoveError,
+  PyraminxSolver,
+  SearchWCA,
+  SkewbSolver,
+  SquareOneFullCube,
+  SquareOneSearch,
+  TwoByTwoSolver,
+  randomCube,
   solveCross,
   solveEOLine,
   solveEOFC,
   solvePetrusS1,
   solvePuzzleAssist,
   solvePyraminxV,
+  solveSkewbFace,
+  solveSquareOneStateIn,
   solveRouxS1,
   solveSquareOneShapeFaceTurnMetric,
   solveSquareOneShapeTwistMetric,
@@ -34,7 +45,21 @@ describe('@cubegin/solver public API', () => {
     expect(typeof solveSquareOneShapeFaceTurnMetric).toBe('function');
     expect(typeof solveSquareOneShapeTwistMetric).toBe('function');
     expect(typeof solvePyraminxV).toBe('function');
+    expect(typeof solveSkewbFace).toBe('function');
     expect(typeof solvePuzzleAssist).toBe('function');
+  });
+
+  it('exports full solver primitives migrated from scramble-core', () => {
+    expect(typeof SearchWCA).toBe('function');
+    expect(typeof ClockSolver).toBe('function');
+    expect(typeof randomCube).toBe('function');
+    expect(typeof TwoByTwoSolver).toBe('function');
+    expect(typeof PyraminxSolver).toBe('function');
+    expect(typeof SkewbSolver).toBe('function');
+    expect(typeof SquareOneFullCube.randomCube).toBe('function');
+    expect(typeof SquareOneSearch).toBe('function');
+    expect(typeof solveSquareOneStateIn).toBe('function');
+    expect(typeof FourByFourThreephaseSearch).toBe('function');
   });
 
   it('exports solver-specific errors', () => {

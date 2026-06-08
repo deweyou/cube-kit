@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parsePyraminxAlgorithm } from '@cubegin/scramble-puzzle';
 import { generatePyraminxScramble } from './pyraminx.js';
-import { PyraminxSolver, type PyraminxSolverState } from '../solvers/pyraminx-solver.js';
+import { PyraminxSolver, type PyraminxSolverState } from '@cubegin/solver';
 import type { RandomSource } from '../random-source.js';
 
 const zeroRandom: RandomSource = { nextInt: () => 0 };
@@ -62,7 +62,7 @@ describe('generatePyraminxScramble', () => {
     const random = createUnreachableEdgePermRandom();
 
     expect(() => new PyraminxSolver().randomState(random)).toThrow(
-      '@cubegin/scramble-core: could not sample a reachable Pyraminx edge permutation after 100 attempts',
+      '@cubegin/solver: could not sample a reachable Pyraminx edge permutation after 100 attempts',
     );
   });
 });

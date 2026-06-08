@@ -124,6 +124,9 @@ importers:
       '@cubegin/scramble-puzzle':
         specifier: workspace:*
         version: link:../../packages/scramble-puzzle
+      '@cubegin/solver':
+        specifier: workspace:*
+        version: link:../../packages/solver
       '@cubegin/timer':
         specifier: workspace:*
         version: link:../../packages/timer
@@ -219,6 +222,9 @@ importers:
       '@cubegin/scramble-puzzle':
         specifier: workspace:*
         version: link:../scramble-puzzle
+      '@cubegin/solver':
+        specifier: workspace:*
+        version: link:../solver
       '@types/node':
         specifier: 'catalog:'
         version: 24.12.2
@@ -240,6 +246,9 @@ importers:
       '@cubegin/scramble-puzzle':
         specifier: workspace:*
         version: link:../scramble-puzzle
+      '@cubegin/solver':
+        specifier: workspace:*
+        version: link:../solver
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

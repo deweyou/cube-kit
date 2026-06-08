@@ -1,6 +1,6 @@
 # @cubegin/solver
 
-This package owns platform-agnostic auxiliary solve helpers for Cubegin.
+This package owns platform-agnostic auxiliary and full solve helpers for Cubegin.
 
 ## Read First
 

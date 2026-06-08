@@ -4,7 +4,14 @@ export type ThreeByThreeAssistMethod =
   | 'eoline'
   | 'eofc'
   | 'roux-s1'
-  | 'petrus-s1';
+  | 'roux-s2'
+  | 'petrus-s1'
+  | 'petrus-s2'
+  | 'cfop-f2l'
+  | 'zz-f2l'
+  | 'block-222'
+  | 'eo-dr'
+  | '333-two-phase';
 
 export type TwoByTwoAssistMethod = '222-face' | '222-layer';
 
@@ -12,13 +19,16 @@ export type SquareOneAssistMethod = 'sq1-shape-ftm' | 'sq1-shape-twist';
 
 export type PyraminxAssistMethod = 'pyraminx-v';
 
+export type SkewbAssistMethod = 'skewb-face';
+
 export type PuzzleAssistMethod =
   | ThreeByThreeAssistMethod
   | TwoByTwoAssistMethod
   | SquareOneAssistMethod
-  | PyraminxAssistMethod;
+  | PyraminxAssistMethod
+  | SkewbAssistMethod;
 
-export type PuzzleAssistEventId = '333' | '222' | 'sq1' | 'pyram';
+export type PuzzleAssistEventId = '333' | '222' | 'sq1' | 'pyram' | 'skewb';
 
 export interface PuzzleAssistOptions {
   readonly targets?: readonly string[];

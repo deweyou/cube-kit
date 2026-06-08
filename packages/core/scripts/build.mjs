@@ -33,7 +33,9 @@ const listFiles = (directory) => {
   });
 };
 
-const discoverPublicPackages = () => {
+const isValidSubpath = (subpath) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(subpath);
+
+const discoverWorkspacePackages = () => {
   return readdirSync(packagesRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && entry.name !== 'core')
     .map((directoryName) => {
@@ -42,21 +44,70 @@ const discoverPublicPackages = () => {
       if (!existsSync(packageJsonPath)) return undefined;
       const packageJson = readJson(packageJsonPath);
       const publicSubpath = packageJson.cubegin?.publicSubpath;
-      if (!publicSubpath) return undefined;
-      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(publicSubpath)) {
-        throw new Error(
-          `Invalid cubegin.publicSubpath '${publicSubpath}' in ${directoryName.name}`,
-        );
-      }
       return {
         directory,
         directoryName: directoryName.name,
+        packageJson,
         packageName: packageJson.name,
         publicSubpath,
       };
     })
     .filter(Boolean)
+    .sort((left, right) => left.directoryName.localeCompare(right.directoryName));
+};
+
+const discoverPublicPackages = (workspacePackages) => {
+  return workspacePackages
+    .filter(({ directoryName, publicSubpath }) => {
+      if (!publicSubpath) return false;
+      if (!isValidSubpath(publicSubpath)) {
+        throw new Error(
+          `Invalid cubegin.publicSubpath '${publicSubpath}' in ${directoryName}`,
+        );
+      }
+      return true;
+    })
     .sort((left, right) => left.publicSubpath.localeCompare(right.publicSubpath));
+};
+
+const collectVendoredPackages = (publicPackages, workspacePackages) => {
+  const workspacePackageByName = new Map(
+    workspacePackages.map((workspacePackage) => [
+      workspacePackage.packageName,
+      workspacePackage,
+    ]),
+  );
+  const vendoredPackageByName = new Map();
+
+  const visitPackage = (workspacePackage) => {
+    if (vendoredPackageByName.has(workspacePackage.packageName)) return;
+
+    const vendorSubpath = workspacePackage.publicSubpath ?? workspacePackage.directoryName;
+    if (!isValidSubpath(vendorSubpath)) {
+      throw new Error(
+        `Invalid vendored package directory '${vendorSubpath}' in ${workspacePackage.directoryName}`,
+      );
+    }
+
+    vendoredPackageByName.set(workspacePackage.packageName, {
+      ...workspacePackage,
+      vendorSubpath,
+    });
+
+    for (const dependencyName of Object.keys(workspacePackage.packageJson.dependencies ?? {})) {
+      const dependencyPackage = workspacePackageByName.get(dependencyName);
+      if (!dependencyPackage) continue;
+      visitPackage(dependencyPackage);
+    }
+  };
+
+  for (const publicPackage of publicPackages) {
+    visitPackage(publicPackage);
+  }
+
+  return Array.from(vendoredPackageByName.values()).sort((left, right) =>
+    left.vendorSubpath.localeCompare(right.vendorSubpath),
+  );
 };
 
 const syncPackageExports = (publicPackages) => {
@@ -79,16 +130,16 @@ const syncPackageExports = (publicPackages) => {
   }
 };
 
-const prepareBuildTree = (publicPackages) => {
+const prepareBuildTree = (publicPackages, vendoredPackages) => {
   rmSync(buildRoot, { force: true, recursive: true });
   mkdirSync(vendorRoot, { recursive: true });
 
-  for (const publicPackage of publicPackages) {
-    const source = resolve(publicPackage.directory, 'src');
+  for (const vendoredPackage of vendoredPackages) {
+    const source = resolve(vendoredPackage.directory, 'src');
     if (!existsSync(source)) {
-      throw new Error(`Package ${publicPackage.packageName} has no src directory`);
+      throw new Error(`Package ${vendoredPackage.packageName} has no src directory`);
     }
-    const destination = resolve(vendorRoot, publicPackage.publicSubpath, 'src');
+    const destination = resolve(vendorRoot, vendoredPackage.vendorSubpath, 'src');
     cpSync(source, destination, {
       filter: (sourcePath) => !sourcePath.endsWith('.test.ts'),
       recursive: true,
@@ -96,9 +147,9 @@ const prepareBuildTree = (publicPackages) => {
   }
 
   const aliases = Object.fromEntries(
-    publicPackages.map(({ packageName, publicSubpath }) => [
+    vendoredPackages.map(({ packageName, vendorSubpath }) => [
       packageName,
-      toPosix(resolve(vendorRoot, publicSubpath, 'src/index.ts')),
+      toPosix(resolve(vendorRoot, vendorSubpath, 'src/index.ts')),
     ]),
   );
   const entry = Object.fromEntries(
@@ -165,8 +216,10 @@ const assertBundledOutput = (publicPackages) => {
   }
 };
 
-const publicPackages = discoverPublicPackages();
+const workspacePackages = discoverWorkspacePackages();
+const publicPackages = discoverPublicPackages(workspacePackages);
+const vendoredPackages = collectVendoredPackages(publicPackages, workspacePackages);
 syncPackageExports(publicPackages);
-prepareBuildTree(publicPackages);
+prepareBuildTree(publicPackages, vendoredPackages);
 runPack();
 assertBundledOutput(publicPackages);

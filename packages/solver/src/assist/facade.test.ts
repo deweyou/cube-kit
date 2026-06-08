@@ -9,12 +9,27 @@ describe('puzzle assist facade', () => {
     expect(result.solutions[0]?.target).toBe('D');
   });
 
-  it('routes Square-1 and Pyraminx helper methods through the generic facade', () => {
+  it('routes Square-1, Pyraminx, and Skewb helper methods through the generic facade', () => {
     const [sq1] = solvePuzzleAssist('sq1', ['sq1-shape-ftm'], '(3,0) /');
     const [pyram] = solvePuzzleAssist('pyram', ['pyraminx-v'], 'U R', { targets: ['D'] });
+    const [skewb] = solvePuzzleAssist('skewb', ['skewb-face'], 'R U', { targets: ['D'] });
 
     expect(sq1.method).toBe('sq1-shape-ftm');
     expect(pyram.method).toBe('pyraminx-v');
+    expect(skewb.method).toBe('skewb-face');
+  });
+
+  it('routes cstimer-style staged 3x3 helpers through the generic facade', () => {
+    const [result] = solvePuzzleAssist('333', ['cfop-f2l'], '');
+
+    expect(result.method).toBe('cfop-f2l');
+    expect(result.solutions.map((solution) => solution.targetLabel)).toEqual([
+      'Cross',
+      'F2L-1',
+      'F2L-2',
+      'F2L-3',
+      'F2L-4',
+    ]);
   });
 
   it('rejects methods that do not belong to the selected event', () => {

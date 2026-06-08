@@ -1,5 +1,5 @@
 import type { RandomSource } from '../random-source.js';
-import { TwoByTwoSolver } from '../solvers/two-by-two-solver.js';
+import { TwoByTwoSolver } from '@cubegin/solver';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 const SCRAMBLE_LENGTH = 11;

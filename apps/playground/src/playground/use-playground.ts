@@ -19,6 +19,7 @@ const DEFAULT_SOLVER_METHODS = {
   '222': ['222-face'],
   sq1: ['sq1-shape-ftm'],
   pyram: ['pyraminx-v'],
+  skewb: ['skewb-face'],
 } satisfies Record<PuzzleAssistEventId, readonly PuzzleAssistMethod[]>;
 
 const DEFAULT_SOLVER_TARGET_TEXT = {
@@ -26,6 +27,7 @@ const DEFAULT_SOLVER_TARGET_TEXT = {
   '222': 'D',
   sq1: 'shape',
   pyram: 'D',
+  skewb: 'D',
 } satisfies Record<PuzzleAssistEventId, string>;
 
 export interface UsePlaygroundOptions {

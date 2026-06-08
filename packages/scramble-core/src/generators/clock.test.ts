@@ -15,23 +15,26 @@ const cyclingRandom = (): RandomSource => {
 };
 
 describe('generateClockScramble', () => {
-  it('generates TNoodle-shaped Clock scrambles', () => {
+  it('generates parseable random-state Clock scrambles', () => {
     const random = cyclingRandom();
+    const scramble = generateClockScramble({ random });
 
-    expect(generateClockScramble({ random })).toMatch(/^UR\d[+-] DR\d[+-] DL\d[+-] UL\d[+-]/);
+    expect(scramble).toContain('y2');
+    expect(parseClockAlgorithm(scramble).length).toBe(scramble.split(/\s+/u).length);
   });
 
-  it('emits 9 moves, y2, and 5 moves', () => {
+  it('omits zero turns while keeping the y2 side separator', () => {
     const scramble = generateClockScramble({ random: cyclingRandom() });
+    const tokens = scramble.split(/\s+/u);
 
-    expect(scramble.split(/\s+/)).toHaveLength(15);
-    expect(scramble.split(/\s+/)[9]).toBe('y2');
-    expect(parseClockAlgorithm(scramble)).toHaveLength(15);
+    expect(tokens).toContain('y2');
+    expect(tokens.every((token) => !/0[+-]$/u.test(token))).toBe(true);
+    expect(parseClockAlgorithm(scramble)).toHaveLength(tokens.length);
   });
 
-  it('maps TNoodle random turn values to signed absolute notation', () => {
+  it('maps the deterministic random state to a stable solver solution', () => {
     const scramble = generateClockScramble({ random: cyclingRandom() });
 
-    expect(scramble).toBe('UR5- DR4- DL3- UL2- U1- R0+ D1+ L2+ ALL3+ y2 U4+ R5+ D6+ L5- ALL4-');
+    expect(scramble).toBe('DR1- DL3- U3- R2+ D5- L2+ y2 DR1+ DL1+ UL2- ALL1-');
   });
 });

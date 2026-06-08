@@ -90,6 +90,21 @@ describe('App', () => {
     expect(screen.getByText(/Result count/i)).toBeTruthy();
   });
 
+  it('shows cstimer-style 3x3 staged helper methods in the solver page', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
+
+    expect(screen.getByLabelText('CFOP F2L')).toBeTruthy();
+    expect(screen.getByLabelText('Roux S2')).toBeTruthy();
+    expect(screen.getByLabelText('Petrus S2')).toBeTruthy();
+    expect(screen.getByLabelText('ZZ F2L')).toBeTruthy();
+    expect(screen.getByLabelText('2x2x2 block')).toBeTruthy();
+    expect(screen.getByLabelText('EO + DR')).toBeTruthy();
+    expect(screen.getByLabelText('3x3 TwoPhase')).toBeTruthy();
+    expect(screen.getByRole('option', { name: '2x2x2 URF' })).toBeTruthy();
+  });
+
   it('generates a 3x3 scramble for the solver page', async () => {
     render(<App />);
 
@@ -131,7 +146,7 @@ describe('App', () => {
     expect(screen.getByText('Face')).toBeTruthy();
   });
 
-  it('shows Square-1 and Pyraminx helper methods in the solver page', async () => {
+  it('shows Square-1, Pyraminx, and Skewb helper methods in the solver page', async () => {
     render(<App />);
 
     await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
@@ -140,6 +155,22 @@ describe('App', () => {
 
     await userEvent.selectOptions(screen.getByLabelText('Solver event'), 'pyram');
     expect(screen.getByLabelText('Pyraminx V')).toBeTruthy();
+
+    await userEvent.selectOptions(screen.getByLabelText('Solver event'), 'skewb');
+    expect(screen.getByLabelText('Skewb Face')).toBeTruthy();
+  });
+
+  it('switches to Skewb Face and solves a face target', async () => {
+    render(<App />);
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
+    await userEvent.selectOptions(screen.getByLabelText('Solver event'), 'skewb');
+    await userEvent.clear(screen.getByLabelText('Solver scramble'));
+    await userEvent.type(screen.getByLabelText('Solver scramble'), 'R U');
+    await userEvent.click(screen.getByRole('button', { name: 'Solve' }));
+
+    expect(await screen.findByText('skewb-face')).toBeTruthy();
+    expect(screen.getByText('Skewb Face')).toBeTruthy();
   });
 
   it('shows solver errors without leaving the solver page', async () => {

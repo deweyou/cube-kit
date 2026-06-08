@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createCubeDefinition } from '@cubegin/scramble-puzzle';
 import { generateTwoByTwoScramble } from './two-by-two.js';
-import { TwoByTwoSolver } from '../solvers/two-by-two-solver.js';
+import { TwoByTwoSolver } from '@cubegin/solver';
 import type { RandomSource } from '../random-source.js';
 
 const zeroRandom: RandomSource = { nextInt: () => 0 };
