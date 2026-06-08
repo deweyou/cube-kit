@@ -6,8 +6,8 @@ describe('scramble-core entrypoint', () => {
 
     await import('./index.js');
     const [{ Center1, Center2, Center3 }, { Edge3 }] = await Promise.all([
-      import('./solvers/threephase/center.js'),
-      import('./solvers/threephase/edge.js'),
+      import('../../solver/src/full/threephase/center.js'),
+      import('../../solver/src/full/threephase/edge.js'),
     ]);
 
     expect(Center1.ctsmv).toHaveLength(0);

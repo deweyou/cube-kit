@@ -43,7 +43,7 @@ export const randomState = (
       parity = resolvePerm(resolvedEp, epUnknownCount, -1, random);
       epValue = getNPerm(resolvedEp, 12);
     } else {
-      throw new Error('@cubegin/scramble-core: invalid random edge state');
+      throw new Error('@cubegin/solver: invalid random edge state');
     }
 
     if (cornerPermutation === STATE_SOLVED) {

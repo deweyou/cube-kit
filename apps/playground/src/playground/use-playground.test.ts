@@ -68,6 +68,19 @@ describe('usePlayground', () => {
     expect(result.current.solverMethods).toEqual(['222-face']);
     expect(result.current.solverTargetText).toBe('D');
   });
+
+  it('sets Skewb Face as the default Skewb helper', async () => {
+    const { result } = renderHook(() => usePlayground({ service: fakeService() }));
+
+    await act(async () => {
+      await result.current.setSolverEventId('skewb');
+    });
+
+    expect(result.current.solverEventId).toBe('skewb');
+    expect(result.current.solverScramble).toBe('skewb-scramble');
+    expect(result.current.solverMethods).toEqual(['skewb-face']);
+    expect(result.current.solverTargetText).toBe('D');
+  });
 });
 
 const fakeService = () => ({
@@ -90,7 +103,7 @@ const fakeService = () => ({
       error: undefined,
     };
   },
-  async generateSolverScramble(eventId: '333' | '222' | 'sq1' | 'pyram') {
+  async generateSolverScramble(eventId: '333' | '222' | 'sq1' | 'pyram' | 'skewb') {
     return {
       eventId,
       scramble: `${eventId}-scramble`,

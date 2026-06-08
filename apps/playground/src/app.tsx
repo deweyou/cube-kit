@@ -16,6 +16,7 @@ const SOLVER_EVENTS: readonly {
   { eventId: '222', label: '2x2' },
   { eventId: 'sq1', label: 'Square-1' },
   { eventId: 'pyram', label: 'Pyraminx' },
+  { eventId: 'skewb', label: 'Skewb' },
 ];
 
 const SOLVER_METHODS: Record<
@@ -32,6 +33,13 @@ const SOLVER_METHODS: Record<
     { method: 'eofc', label: 'EOFC' },
     { method: 'roux-s1', label: 'Roux S1' },
     { method: 'petrus-s1', label: 'Petrus S1' },
+    { method: 'cfop-f2l', label: 'CFOP F2L' },
+    { method: 'roux-s2', label: 'Roux S2' },
+    { method: 'petrus-s2', label: 'Petrus S2' },
+    { method: 'zz-f2l', label: 'ZZ F2L' },
+    { method: 'block-222', label: '2x2x2 block' },
+    { method: 'eo-dr', label: 'EO + DR' },
+    { method: '333-two-phase', label: '3x3 TwoPhase' },
   ],
   '222': [
     { method: '222-face', label: 'Face' },
@@ -42,6 +50,7 @@ const SOLVER_METHODS: Record<
     { method: 'sq1-shape-twist', label: 'SQ1 shape twist' },
   ],
   pyram: [{ method: 'pyraminx-v', label: 'Pyraminx V' }],
+  skewb: [{ method: 'skewb-face', label: 'Skewb Face' }],
 };
 
 const SOLVER_EVENT_TITLES = {
@@ -49,6 +58,7 @@ const SOLVER_EVENT_TITLES = {
   '222': '2x2 auxiliary restore',
   sq1: 'Square-1 shape restore',
   pyram: 'Pyraminx V restore',
+  skewb: 'Skewb face restore',
 } satisfies Record<PuzzleAssistEventId, string>;
 
 const SOLVER_TARGET_OPTIONS = {
@@ -64,6 +74,14 @@ const SOLVER_TARGET_OPTIONS = {
     { value: 'D(FB)', label: 'EOFC D(FB)' },
     { value: 'LU', label: 'Roux LU' },
     { value: 'ULF', label: 'Petrus ULF' },
+    { value: 'URF', label: '2x2x2 URF' },
+    { value: 'UFL', label: '2x2x2 UFL' },
+    { value: 'ULB', label: '2x2x2 ULB' },
+    { value: 'UBR', label: '2x2x2 UBR' },
+    { value: 'DFR', label: '2x2x2 DFR' },
+    { value: 'DLF', label: '2x2x2 DLF' },
+    { value: 'DBL', label: '2x2x2 DBL' },
+    { value: 'DRB', label: '2x2x2 DRB' },
   ],
   '222': [
     { value: '', label: 'All targets' },
@@ -82,6 +100,15 @@ const SOLVER_TARGET_OPTIONS = {
     { value: 'R', label: 'R V' },
     { value: 'F', label: 'F V' },
   ],
+  skewb: [
+    { value: '', label: 'All targets' },
+    { value: 'D', label: 'D face' },
+    { value: 'U', label: 'U face' },
+    { value: 'L', label: 'L face' },
+    { value: 'R', label: 'R face' },
+    { value: 'F', label: 'F face' },
+    { value: 'B', label: 'B face' },
+  ],
 } satisfies Record<
   PuzzleAssistEventId,
   readonly { readonly value: string; readonly label: string }[]
@@ -92,6 +119,7 @@ const EMPTY_SOLVER_TEXT = {
   '222': 'Run a 2x2 helper method to inspect solver output.',
   sq1: 'Run a Square-1 shape helper to inspect solver output.',
   pyram: 'Run a Pyraminx V helper to inspect solver output.',
+  skewb: 'Run a Skewb face helper to inspect solver output.',
 } satisfies Record<PuzzleAssistEventId, string>;
 
 export interface AppProps {

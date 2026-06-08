@@ -90,15 +90,46 @@ describe('createPlaygroundService', () => {
   it('solves non-3x3 helper methods through the playground service', () => {
     const service = createPlaygroundService({ seed: 42, now: fixedClock([1, 5]) });
 
-    const result = service.solvePuzzleAssist({
+    const pyramResult = service.solvePuzzleAssist({
       eventId: 'pyram',
       scramble: 'U R',
       methods: ['pyraminx-v'],
       targets: ['D'],
     });
+    const skewbResult = service.solvePuzzleAssist({
+      eventId: 'skewb',
+      scramble: 'R U',
+      methods: ['skewb-face'],
+      targets: ['D'],
+    });
 
-    expect(result.results[0]?.method).toBe('pyraminx-v');
-    expect(result.diagnostics.resultCount).toBe(1);
+    expect(pyramResult.results[0]?.method).toBe('pyraminx-v');
+    expect(pyramResult.diagnostics.resultCount).toBe(1);
+    expect(pyramResult.error).toBeUndefined();
+    expect(skewbResult.results[0]?.method).toBe('skewb-face');
+    expect(skewbResult.diagnostics.resultCount).toBe(1);
+    expect(skewbResult.error).toBeUndefined();
+  });
+
+  it('solves staged cstimer-style 3x3 helpers through the playground service', () => {
+    const service = createPlaygroundService({ seed: 42, now: fixedClock([1, 5]) });
+
+    const result = service.solvePuzzleAssist({
+      eventId: '333',
+      scramble: '',
+      methods: ['cfop-f2l'],
+      targets: [],
+    });
+
+    expect(result.results[0]?.method).toBe('cfop-f2l');
+    expect(result.results[0]?.solutions.map((solution) => solution.targetLabel)).toEqual([
+      'Cross',
+      'F2L-1',
+      'F2L-2',
+      'F2L-3',
+      'F2L-4',
+    ]);
+    expect(result.diagnostics.resultCount).toBe(5);
     expect(result.error).toBeUndefined();
   });
 

@@ -28,12 +28,8 @@ export type {
 } from './generators/three-by-three.js';
 export { generateTwoByTwoScramble } from './generators/two-by-two.js';
 export type { TwoByTwoScrambleOptions } from './generators/two-by-two.js';
-export { PyraminxSolver } from './solvers/pyraminx-solver.js';
-export type { PyraminxSolverState } from './solvers/pyraminx-solver.js';
-export { SkewbSolver } from './solvers/skewb-solver.js';
-export type { SkewbSolverState } from './solvers/skewb-solver.js';
-export { TwoByTwoSolver } from './solvers/two-by-two-solver.js';
-export type { TwoByTwoState } from './solvers/two-by-two-solver.js';
+export { PyraminxSolver, SkewbSolver, TwoByTwoSolver } from '@cubegin/solver';
+export type { PyraminxSolverState, SkewbSolverState, TwoByTwoState } from '@cubegin/solver';
 export type {
   EventScrambleGenerator,
   DefaultScrambleGeneratorOptions,

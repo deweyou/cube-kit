@@ -1,5 +1,6 @@
 import { UnknownSolverMethodError } from '../errors.js';
 import { solvePyraminxV } from './pyraminx/v.js';
+import { solveSkewbFace } from './skewb/face.js';
 import {
   solveSquareOneShapeFaceTurnMetric,
   solveSquareOneShapeTwistMetric,
@@ -11,6 +12,7 @@ import type {
   PuzzleAssistMethod,
   PuzzleAssistOptions,
   PuzzleAssistResult,
+  SkewbAssistMethod,
   SquareOneAssistMethod,
   ThreeByThreeAssistMethod,
   TwoByTwoAssistMethod,
@@ -31,13 +33,24 @@ const SQUARE_ONE_SOLVERS = {
   'sq1-shape-twist': solveSquareOneShapeTwistMetric,
 } satisfies Record<SquareOneAssistMethod, MethodSolver<SquareOneAssistMethod>>;
 
+const SKEWB_SOLVERS = {
+  'skewb-face': solveSkewbFace,
+} satisfies Record<SkewbAssistMethod, MethodSolver<SkewbAssistMethod>>;
+
 const isThreeByThreeMethod = (method: PuzzleAssistMethod): method is ThreeByThreeAssistMethod =>
   method === 'cross' ||
   method === 'xcross' ||
   method === 'eoline' ||
   method === 'eofc' ||
   method === 'roux-s1' ||
-  method === 'petrus-s1';
+  method === 'roux-s2' ||
+  method === 'petrus-s1' ||
+  method === 'petrus-s2' ||
+  method === 'cfop-f2l' ||
+  method === 'zz-f2l' ||
+  method === 'block-222' ||
+  method === 'eo-dr' ||
+  method === '333-two-phase';
 
 const isTwoByTwoMethod = (method: PuzzleAssistMethod): method is TwoByTwoAssistMethod =>
   method in TWO_BY_TWO_SOLVERS;
@@ -45,11 +58,15 @@ const isTwoByTwoMethod = (method: PuzzleAssistMethod): method is TwoByTwoAssistM
 const isSquareOneMethod = (method: PuzzleAssistMethod): method is SquareOneAssistMethod =>
   method in SQUARE_ONE_SOLVERS;
 
+const isSkewbMethod = (method: PuzzleAssistMethod): method is SkewbAssistMethod =>
+  method in SKEWB_SOLVERS;
+
 const assertEventMethod = (eventId: PuzzleAssistEventId, method: PuzzleAssistMethod): void => {
   if (eventId === '333' && isThreeByThreeMethod(method)) return;
   if (eventId === '222' && isTwoByTwoMethod(method)) return;
   if (eventId === 'sq1' && isSquareOneMethod(method)) return;
   if (eventId === 'pyram' && method === 'pyraminx-v') return;
+  if (eventId === 'skewb' && isSkewbMethod(method)) return;
 
   throw new UnknownSolverMethodError(method);
 };
@@ -86,6 +103,12 @@ export const solvePuzzleAssist = (
 
   if (eventId === 'pyram') {
     return methods.map(() => solvePyraminxV(scramble, options));
+  }
+
+  if (eventId === 'skewb') {
+    return (methods as readonly SkewbAssistMethod[]).map((method) =>
+      SKEWB_SOLVERS[method](scramble, options),
+    );
   }
 
   throw new UnknownSolverMethodError(eventId);

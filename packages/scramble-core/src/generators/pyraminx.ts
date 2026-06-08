@@ -1,5 +1,5 @@
 import type { RandomSource } from '../random-source.js';
-import { PyraminxSolver } from '../solvers/pyraminx-solver.js';
+import { PyraminxSolver } from '@cubegin/solver';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 const SCRAMBLE_LENGTH = 11;

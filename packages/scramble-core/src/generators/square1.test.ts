@@ -5,9 +5,8 @@ import {
   createSquareOneDefinition,
   type SquareOneState,
 } from '@cubegin/scramble-puzzle';
+import { solveSquareOneStateIn, SquareOneFullCube as FullCube } from '@cubegin/solver';
 import { generateSquareOneScramble } from './square1.js';
-import { FullCube } from '../solvers/sq12phase/full-cube.js';
-import { solveSquareOneStateIn } from '../solvers/sq12phase/search.js';
 import type { RandomSource } from '../random-source.js';
 
 const solvedFullCubeRandomSequence = [

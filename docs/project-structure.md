@@ -61,7 +61,7 @@ packages/core/         public cubegin npm package subpath exports
 packages/scramble-puzzle/  TNoodle-compatible event ids, parsers, and states
 packages/scramble-core/    TNoodle-compatible WCA scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
-packages/solver/           Platform-agnostic 3x3 auxiliary restore helpers
+packages/solver/           platform-agnostic auxiliary and full solver helpers
 docs/                  repository memory and Superpowers specs/plans
 docs/packages/         package-scoped knowledge for new scramble packages
 docs/apps/             app-scoped knowledge for playground and docs apps
@@ -117,7 +117,7 @@ scripts/               lightweight repository checks
 - [packages/scramble-image/src/index.ts#L1](../packages/scramble-image/src/index.ts#L1) - TNoodle-compatible SVG renderer barrel.
 - [packages/core/package.json#L1](../packages/core/package.json#L1) - public
   `cubegin` npm package with subpath-only exports for scramble packages.
-- [packages/solver/src/index.ts#L1](../packages/solver/src/index.ts#L1) - auxiliary restore solver barrel.
+- [packages/solver/src/index.ts#L1](../packages/solver/src/index.ts#L1) - auxiliary and full solver barrel.
 - [docs/packages/core/index.md#L1](packages/core/index.md#L1) - public package
   ownership, subpaths, and verification.
 - [docs/packages/scramble-puzzle/index.md#L1](packages/scramble-puzzle/index.md#L1) - puzzle package ownership and verification.
@@ -129,4 +129,4 @@ scripts/               lightweight repository checks
 
 ---
 
-_Last updated: 2026-06-06 | Reason: add web timer sessions and IndexedDB solve persistence_
+_Last updated: 2026-06-08 | Reason: document solver package ownership and playground diagnostics_

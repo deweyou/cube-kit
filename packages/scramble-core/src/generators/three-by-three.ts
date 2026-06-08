@@ -1,7 +1,11 @@
 import type { RandomSource } from '../random-source.js';
-import { SearchWCA } from '../solvers/min2phase/search-wca.js';
-import { randomCube } from '../solvers/min2phase/tools.js';
-import { axisForRestriction, INVERSE_SOLUTION, splitAlgorithm } from '../solvers/min2phase/util.js';
+import {
+  axisForRestriction,
+  MIN2PHASE_INVERSE_SOLUTION as INVERSE_SOLUTION,
+  randomCube,
+  SearchWCA,
+  splitMin2PhaseAlgorithm as splitAlgorithm,
+} from '@cubegin/solver';
 
 const THREE_BY_THREE_MAX_SCRAMBLE_LENGTH = 21;
 const THREE_BY_THREE_PROBE_MAX = 100_000;

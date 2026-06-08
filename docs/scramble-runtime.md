@@ -8,6 +8,7 @@ flowchart TD
     Playground["apps/playground"] --> Core
     Playground --> Image
     Playground --> Puzzle
+    Core --> Solver["@cubegin/solver"]
     Core --> Puzzle
     Image --> Puzzle
     Core --> Generators["WCA generator dispatch"]
@@ -30,6 +31,8 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
   local package `AGENTS.md` files only route maintainers to those docs.
 - `@cubegin/scramble-core` exposes `createDefaultScrambleGenerator` for all 17
   WCA events. The facade is async-shaped and can move behind a Web Worker later.
+- `@cubegin/scramble-core` delegates full solver-backed generation to
+  `@cubegin/solver`; Clock uses the solver package's linear state solver.
 - `@cubegin/scramble-image` exposes `renderScrambleImage(eventId, scramble)` and
   uses `scramble-puzzle` to apply moves before rendering SVG.
 - `apps/web` builds `@cubegin/timer` and the three scramble packages before dev,
@@ -65,6 +68,7 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - `prepare:deps` for workspace package exports.
 - [packages/scramble-puzzle/src/events.ts#L1](../packages/scramble-puzzle/src/events.ts#L1) - canonical 17-event WCA list for the new packages.
 - [packages/scramble-core/src/generator.ts#L1](../packages/scramble-core/src/generator.ts#L1) - async generator facade and default WCA event dispatch.
+- [packages/solver/src/full/clock-solver.ts#L1](../packages/solver/src/full/clock-solver.ts#L1) - Clock random-state solver used by scramble generation.
 - [packages/scramble-image/src/render.ts#L1](../packages/scramble-image/src/render.ts#L1) - WCA event dispatch for SVG rendering.
 - [docs/packages/scramble-puzzle/index.md#L1](packages/scramble-puzzle/index.md#L1) - puzzle package knowledge.
 - [docs/packages/scramble-core/wca-generation-rules.md#L1](packages/scramble-core/wca-generation-rules.md#L1) - WCA generation rule mapping.
@@ -75,4 +79,4 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 
 ---
 
-_Last updated: 2026-05-31 | Reason: web runtime migrated to TNoodle-compatible packages_
+_Last updated: 2026-06-08 | Reason: document solver package runtime boundary_

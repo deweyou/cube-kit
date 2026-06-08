@@ -5,8 +5,12 @@ import {
   type SquareOneState,
 } from '@cubegin/scramble-puzzle';
 import type { RandomSource } from '../random-source.js';
-import { FullCube } from '../solvers/sq12phase/full-cube.js';
-import { INVERSE_SOLUTION, Search, solveSquareOneStateIn } from '../solvers/sq12phase/search.js';
+import {
+  SQUARE_ONE_INVERSE_SOLUTION as INVERSE_SOLUTION,
+  solveSquareOneStateIn,
+  SquareOneFullCube as FullCube,
+  SquareOneSearch as Search,
+} from '@cubegin/solver';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 const WCA_MIN_SCRAMBLE_DISTANCE = 11;

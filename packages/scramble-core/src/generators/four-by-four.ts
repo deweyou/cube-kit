@@ -1,5 +1,5 @@
 import type { RandomSource } from '../random-source.js';
-import { Search } from '../solvers/threephase/search.js';
+import { FourByFourThreephaseSearch as Search } from '@cubegin/solver';
 
 export interface FourByFourScrambleOptions {
   random: RandomSource;

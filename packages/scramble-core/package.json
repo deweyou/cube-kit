@@ -22,7 +22,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cubegin/scramble-puzzle": "workspace:*"
+    "@cubegin/scramble-puzzle": "workspace:*",
+    "@cubegin/solver": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

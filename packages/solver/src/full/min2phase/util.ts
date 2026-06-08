@@ -58,16 +58,14 @@ export const invertAlgorithm = (algorithm: string): string =>
 
 export const drawRandomInt = (random: RandomSource, maxExclusive: number): number => {
   if (!Number.isSafeInteger(maxExclusive) || maxExclusive <= 0) {
-    throw new RangeError(
-      '@cubegin/scramble-core: random maxExclusive must be a positive safe integer',
-    );
+    throw new RangeError('@cubegin/solver: random maxExclusive must be a positive safe integer');
   }
 
   const value = random.nextInt(maxExclusive);
 
   if (!Number.isSafeInteger(value) || value < 0 || value >= maxExclusive) {
     throw new RangeError(
-      `@cubegin/scramble-core: random source returned ${value} for max ${maxExclusive}`,
+      `@cubegin/solver: random source returned ${value} for max ${maxExclusive}`,
     );
   }
 
