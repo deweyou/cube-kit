@@ -102,6 +102,7 @@ describe('App', () => {
     expect(screen.getByLabelText('2x2x2 block')).toBeTruthy();
     expect(screen.getByLabelText('EO + DR')).toBeTruthy();
     expect(screen.getByLabelText('3x3 TwoPhase')).toBeTruthy();
+    expect(screen.getByLabelText('3x3 General')).toBeTruthy();
     expect(screen.getByRole('option', { name: '2x2x2 URF' })).toBeTruthy();
   });
 

@@ -69,6 +69,7 @@ import {
   solveEODR as solveEODRImpl,
   solvePetrusS2 as solvePetrusS2Impl,
   solveRouxS2 as solveRouxS2Impl,
+  solveThreeByThreeGeneral as solveThreeByThreeGeneralImpl,
   solveThreeByThreeTwoPhase as solveThreeByThreeTwoPhaseImpl,
   solveZZF2L as solveZZF2LImpl,
 } from './assist/three-by-three/stage-mask.js';
@@ -151,6 +152,11 @@ export const solveThreeByThreeTwoPhase = (
   scramble: string,
   options: ThreeByThreeAssistOptions = {},
 ): ThreeByThreeAssistResult => solveThreeByThreeTwoPhaseImpl(scramble, options);
+
+export const solveThreeByThreeGeneral = (
+  scramble: string,
+  options: ThreeByThreeAssistOptions = {},
+): ThreeByThreeAssistResult => solveThreeByThreeGeneralImpl(scramble, options);
 
 export const solveThreeByThreeAssist = (
   scramble: string,

@@ -15,6 +15,7 @@ const SUFFIXES = ['', '2', "'"] as const;
 const DEFAULT_STAGE_MAX_DEPTH = 10;
 const DEFAULT_BLOCK_222_MAX_DEPTH = 8;
 const DEFAULT_TWO_PHASE_MAX_DEPTH = 30;
+const DEFAULT_GENERAL_MAX_DEPTH = 10;
 const MAX_PRUNING_SIZE = 100_000;
 
 type StageMethod = 'cfop-f2l' | 'roux-s2' | 'petrus-s2' | 'zz-f2l' | 'eo-dr';
@@ -725,6 +726,26 @@ const BLOCK_222_SOLVED_STATES = [
 
 type Block222Target = (typeof BLOCK_222_TARGETS)[number];
 
+const GENERAL_PRESETS = [
+  ['3x3x3', SOLVED_FACELETS],
+  ['Empty', '----U--------R--------F--------D--------L--------B----'],
+  ['2x2x2', '----UU-UURR-RR-----FF-FF------------------------------'],
+  ['2x2x3', '---UUUUUURR-RR----FFFFFF-------------LL-LL------------'],
+  ['Cross', '----U--------R--R-----F--F--D-DDD-D-----L--L-----B--B-'],
+  ['XCross', '----U-------RR-RR-----FF-FF-DDDDD-D-----L--L-----B--B-'],
+  ['EOLine', '-H-HUH-H-----R-------HFH-F--D-HDH-D-----L-------HBH-B-'],
+  ['Roux1', '---------------------F--F--D--D--D-----LLLLLL-----B--B'],
+  ['Domino', 'UUUUUUUUU---RRR------FFF---UUUUUUUUU---RRR------FFF---'],
+  ['EO&CO', 'XYXYUYXYX----R-------YFY---XYXYDYXYX----L-------YBY---'],
+  ['Corner', 'U-U---U-UR-R---R-RF-F---F-FD-D---D-DL-L---L-LB-B---B-B'],
+] as const satisfies readonly (readonly [string, string])[];
+
+const GENERAL_PRESET_BY_LABEL = new Map<string, string>(GENERAL_PRESETS);
+const GENERAL_LABEL_BY_MASK = new Map<string, string>(
+  GENERAL_PRESETS.map(([label, mask]) => [mask, label]),
+);
+const GENERAL_RAW_MASK_PATTERN = /^[URFDLBHXYZ-]{54}$/u;
+
 const isBlock222Target = (target: string): target is Block222Target =>
   BLOCK_222_TARGETS.includes(target as Block222Target);
 
@@ -737,6 +758,23 @@ const resolveBlock222Targets = (
     if (!isBlock222Target(target)) throw new UnknownSolverTargetError('block-222', target);
 
     return target;
+  });
+};
+
+const resolveGeneralTargets = (
+  targets: readonly string[] | undefined,
+): readonly (readonly [string, string])[] => {
+  const requestedTargets = targets ?? ['Cross'];
+
+  return requestedTargets.map((target) => {
+    const presetMask = GENERAL_PRESET_BY_LABEL.get(target);
+    if (presetMask !== undefined) return [target, presetMask] as const;
+
+    if (GENERAL_RAW_MASK_PATTERN.test(target)) {
+      return [GENERAL_LABEL_BY_MASK.get(target) ?? target, target] as const;
+    }
+
+    throw new UnknownSolverTargetError('333-general', target);
   });
 };
 
@@ -784,6 +822,26 @@ export const solveBlock222 = (
   });
 
   return { method: 'block-222', scramble, solutions };
+};
+
+export const solveThreeByThreeGeneral = (
+  scramble: string,
+  options: ThreeByThreeAssistOptions = {},
+): ThreeByThreeAssistResult => {
+  const scrambleMoves = parseStageScramble(scramble);
+  const maxDepth = options.maxDepth ?? DEFAULT_GENERAL_MAX_DEPTH;
+  const solutions = resolveGeneralTargets(options.targets).map(([targetLabel, solvedState]) => {
+    const solver = new MaskSolver([solvedState], cubeMove, MOVES);
+    const moves = solver.search(stateInit(solvedState, scrambleMoves, []), 0, maxDepth);
+
+    if (moves === undefined) {
+      throw new NoSolverSolutionError('333-general', targetLabel, maxDepth);
+    }
+
+    return createStageSolution('333-general', solvedState, targetLabel, moves);
+  });
+
+  return { method: '333-general', scramble, solutions };
 };
 
 export const solveThreeByThreeTwoPhase = (

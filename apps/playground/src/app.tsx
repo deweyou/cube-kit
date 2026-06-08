@@ -40,6 +40,7 @@ const SOLVER_METHODS: Record<
     { method: 'block-222', label: '2x2x2 block' },
     { method: 'eo-dr', label: 'EO + DR' },
     { method: '333-two-phase', label: '3x3 TwoPhase' },
+    { method: '333-general', label: '3x3 General' },
   ],
   '222': [
     { method: '222-face', label: 'Face' },

@@ -20,7 +20,7 @@ describe('puzzle assist facade', () => {
   });
 
   it('routes cstimer-style staged 3x3 helpers through the generic facade', () => {
-    const [result] = solvePuzzleAssist('333', ['cfop-f2l'], '');
+    const [result, general] = solvePuzzleAssist('333', ['cfop-f2l', '333-general'], '');
 
     expect(result.method).toBe('cfop-f2l');
     expect(result.solutions.map((solution) => solution.targetLabel)).toEqual([
@@ -30,6 +30,8 @@ describe('puzzle assist facade', () => {
       'F2L-3',
       'F2L-4',
     ]);
+    expect(general.method).toBe('333-general');
+    expect(general.solutions.map((solution) => solution.targetLabel)).toEqual(['Cross']);
   });
 
   it('rejects methods that do not belong to the selected event', () => {

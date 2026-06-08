@@ -23,6 +23,7 @@ import {
   solveSquareOneShapeFaceTurnMetric,
   solveSquareOneShapeTwistMetric,
   solveThreeByThreeAssist,
+  solveThreeByThreeGeneral,
   solveTwoByTwoFace,
   solveTwoByTwoLayer,
   solveXCross,
@@ -36,6 +37,7 @@ describe('@cubegin/solver public API', () => {
     expect(typeof solveEOFC).toBe('function');
     expect(typeof solveRouxS1).toBe('function');
     expect(typeof solvePetrusS1).toBe('function');
+    expect(typeof solveThreeByThreeGeneral).toBe('function');
     expect(typeof solveThreeByThreeAssist).toBe('function');
   });
 
