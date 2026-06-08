@@ -1,6 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { PlaygroundGenerateInput, PlaygroundManualRenderInput } from './types';
+import type {
+  PlaygroundFullSolverInput,
+  PlaygroundGenerateInput,
+  PlaygroundManualRenderInput,
+} from './types';
 import { usePlayground } from './use-playground';
 
 describe('usePlayground', () => {
@@ -81,6 +85,25 @@ describe('usePlayground', () => {
     expect(result.current.solverMethods).toEqual(['skewb-face']);
     expect(result.current.solverTargetText).toBe('D');
   });
+
+  it('switches to full solver mode and stores full solve results', async () => {
+    const { result } = renderHook(() => usePlayground({ service: fakeService() }));
+
+    await act(async () => {
+      await result.current.setSolverMode('full');
+    });
+    await act(async () => {
+      await result.current.setSolverEventId('clock');
+    });
+    act(() => {
+      result.current.solvePuzzleFull();
+    });
+
+    expect(result.current.solverMode).toBe('full');
+    expect(result.current.solverEventId).toBe('clock');
+    expect(result.current.solverScramble).toBe('clock-scramble');
+    expect(result.current.fullSolverResult?.result?.engine).toBe('clock-inverse');
+  });
 });
 
 const fakeService = () => ({
@@ -103,7 +126,9 @@ const fakeService = () => ({
       error: undefined,
     };
   },
-  async generateSolverScramble(eventId: '333' | '222' | 'sq1' | 'pyram' | 'skewb') {
+  async generateSolverScramble(
+    eventId: '333' | '444' | '222' | 'sq1' | 'pyram' | 'skewb' | 'clock',
+  ) {
     return {
       eventId,
       scramble: `${eventId}-scramble`,
@@ -114,6 +139,19 @@ const fakeService = () => ({
     return {
       results: [],
       diagnostics: { durationMs: 1, resultCount: 0 },
+      error: undefined,
+    };
+  },
+  solvePuzzleFull(input: PlaygroundFullSolverInput) {
+    return {
+      result: {
+        eventId: input.eventId,
+        scramble: input.scramble,
+        solution: "UR1- y2 DR1+",
+        moveCount: 2,
+        engine: 'clock-inverse' as const,
+      },
+      diagnostics: { durationMs: 2, resultCount: 1 },
       error: undefined,
     };
   },

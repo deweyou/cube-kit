@@ -31,10 +31,25 @@ export type PuzzleAssistMethod =
 
 export type PuzzleAssistEventId = '333' | '222' | 'sq1' | 'pyram' | 'skewb';
 
+export type PuzzleFullEventId = '333' | '444' | '222' | 'pyram' | 'skewb' | 'sq1' | 'clock';
+
+export type PuzzleFullEngine =
+  | 'min2phase'
+  | 'threephase'
+  | 'two-by-two-coordinate'
+  | 'pyraminx-coordinate'
+  | 'skewb-coordinate'
+  | 'square-one-two-phase'
+  | 'clock-inverse';
+
 export interface PuzzleAssistOptions {
   readonly targets?: readonly string[];
   readonly maxDepth?: number;
   readonly maxSolutionsPerTarget?: number;
+}
+
+export interface PuzzleFullOptions {
+  readonly maxDepth?: number;
 }
 
 export type ThreeByThreeAssistOptions = PuzzleAssistOptions;
@@ -65,3 +80,11 @@ export interface PuzzleAssistResult<Method extends PuzzleAssistMethod = PuzzleAs
 }
 
 export type ThreeByThreeAssistResult = PuzzleAssistResult<ThreeByThreeAssistMethod>;
+
+export interface PuzzleFullResult<EventId extends PuzzleFullEventId = PuzzleFullEventId> {
+  readonly eventId: EventId;
+  readonly scramble: string;
+  readonly solution: string;
+  readonly moveCount: number;
+  readonly engine: PuzzleFullEngine;
+}

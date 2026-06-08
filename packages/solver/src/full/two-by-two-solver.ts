@@ -1,4 +1,6 @@
+import { parseCubeMove, splitAlgorithm } from '@cubegin/scramble-puzzle';
 import type { RandomSource } from '../random-source.js';
+import { UnsupportedSolverMoveError } from '../errors.js';
 
 // Ported from TNoodle v0.19.2 TwoByTwoSolver: BLD corner fixed, U/R/F search only.
 const ERROR_PREFIX = '@cubegin/solver';
@@ -240,6 +242,28 @@ const validateLength = (length: number): void => {
   }
 };
 
+const moveIndexFromToken = (token: string): number => {
+  const move = parseCubeMove(token);
+  if (move.isRotation || move.width !== 1) throw new UnsupportedSolverMoveError(token);
+
+  let faceIndex: number;
+  switch (move.face) {
+    case 'U':
+      faceIndex = 0;
+      break;
+    case 'R':
+      faceIndex = 1;
+      break;
+    case 'F':
+      faceIndex = 2;
+      break;
+    default:
+      throw new UnsupportedSolverMoveError(token);
+  }
+
+  return faceIndex * 3 + move.amount - 1;
+};
+
 const computeCost = (
   solution: readonly number[],
   index: number,
@@ -384,6 +408,20 @@ const formatSolution = (solution: readonly number[], length: number, inverse: bo
 };
 
 export class TwoByTwoSolver {
+  stateFromScramble(scramble: string): TwoByTwoState {
+    const tables = getTables();
+    let permutation = 0;
+    let orientation = 0;
+
+    for (const token of splitAlgorithm(scramble)) {
+      const move = moveIndexFromToken(token);
+      permutation = tables.movePerm[permutation][move];
+      orientation = tables.moveOrient[orientation][move];
+    }
+
+    return { permutation, orientation };
+  }
+
   randomState(random: RandomSource): TwoByTwoState {
     const state = {
       permutation: random.nextInt(N_PERM),

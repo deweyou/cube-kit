@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubegin/scramble-puzzle';
-import type { PuzzleAssistEventId, PuzzleAssistMethod } from '@cubegin/solver';
+import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleFullEventId } from '@cubegin/solver';
 import { writeScramblesToClipboard } from './playground/copy';
 import { createSvgDownloadName } from './playground/download';
 import type { PlaygroundImageView } from './playground/types';
@@ -17,6 +17,19 @@ const SOLVER_EVENTS: readonly {
   { eventId: 'sq1', label: 'Square-1' },
   { eventId: 'pyram', label: 'Pyraminx' },
   { eventId: 'skewb', label: 'Skewb' },
+];
+
+const FULL_SOLVER_EVENTS: readonly {
+  readonly eventId: PuzzleFullEventId;
+  readonly label: string;
+}[] = [
+  { eventId: '333', label: '3x3' },
+  { eventId: '444', label: '4x4' },
+  { eventId: '222', label: '2x2' },
+  { eventId: 'pyram', label: 'Pyraminx' },
+  { eventId: 'skewb', label: 'Skewb' },
+  { eventId: 'sq1', label: 'Square-1' },
+  { eventId: 'clock', label: 'Clock' },
 ];
 
 const SOLVER_METHODS: Record<
@@ -61,6 +74,16 @@ const SOLVER_EVENT_TITLES = {
   pyram: 'Pyraminx V restore',
   skewb: 'Skewb face restore',
 } satisfies Record<PuzzleAssistEventId, string>;
+
+const FULL_SOLVER_EVENT_TITLES = {
+  '333': '3x3 full restore',
+  '444': '4x4 full restore',
+  '222': '2x2 full restore',
+  pyram: 'Pyraminx full restore',
+  skewb: 'Skewb full restore',
+  sq1: 'Square-1 full restore',
+  clock: 'Clock full restore',
+} satisfies Record<PuzzleFullEventId, string>;
 
 const SOLVER_TARGET_OPTIONS = {
   '333': [
@@ -122,6 +145,16 @@ const EMPTY_SOLVER_TEXT = {
   pyram: 'Run a Pyraminx V helper to inspect solver output.',
   skewb: 'Run a Skewb face helper to inspect solver output.',
 } satisfies Record<PuzzleAssistEventId, string>;
+
+const EMPTY_FULL_SOLVER_TEXT = {
+  '333': 'Run the 3x3 full solver to inspect restore output.',
+  '444': 'Run the 4x4 full solver to inspect restore output.',
+  '222': 'Run the 2x2 full solver to inspect restore output.',
+  pyram: 'Run the Pyraminx full solver to inspect restore output.',
+  skewb: 'Run the Skewb full solver to inspect restore output.',
+  sq1: 'Run the Square-1 full solver to inspect restore output.',
+  clock: 'Run the Clock full solver to inspect restore output.',
+} satisfies Record<PuzzleFullEventId, string>;
 
 export interface AppProps {
   readonly service?: PlaygroundService;
@@ -439,158 +472,247 @@ const ScramblePage = ({
   </>
 );
 
-const SolverPage = ({ playground }: { readonly playground: PlaygroundState }) => (
-  <section
-    aria-labelledby="solver-tab"
-    className="solver-workbench"
-    id="solver-panel"
-    role="tabpanel"
-  >
-    <section className="panel solver-controls-panel">
-      <div className="panel-heading">
-        <p className="eyebrow">solver</p>
-        <h2>{SOLVER_EVENT_TITLES[playground.solverEventId]}</h2>
-      </div>
+const SolverPage = ({ playground }: { readonly playground: PlaygroundState }) => {
+  const assistEventId = isPuzzleAssistEventId(playground.solverEventId)
+    ? playground.solverEventId
+    : '333';
+  const solverEvents = playground.solverMode === 'assist' ? SOLVER_EVENTS : FULL_SOLVER_EVENTS;
+  const solverTitle =
+    playground.solverMode === 'assist'
+      ? SOLVER_EVENT_TITLES[assistEventId]
+      : FULL_SOLVER_EVENT_TITLES[playground.solverEventId];
+  const solverDiagnostics =
+    playground.solverMode === 'assist'
+      ? playground.solverResult?.diagnostics
+      : playground.fullSolverResult?.diagnostics;
+  const solverError =
+    playground.solverMode === 'assist'
+      ? playground.solverResult?.error
+      : playground.fullSolverResult?.error;
 
-      <div className="solver-grid">
-        <div className="solver-scramble-stack">
-          <label className="field">
-            <span>Solver event</span>
-            <select
-              value={playground.solverEventId}
-              onChange={(event) =>
-                void playground.setSolverEventId(event.currentTarget.value as PuzzleAssistEventId)
+  return (
+    <section
+      aria-labelledby="solver-tab"
+      className="solver-workbench"
+      id="solver-panel"
+      role="tabpanel"
+    >
+      <section className="panel solver-controls-panel">
+        <div className="panel-heading">
+          <p className="eyebrow">solver</p>
+          <h2>{solverTitle}</h2>
+        </div>
+
+        <div className="solver-mode-toolbar">
+          <div className="segmented-control" role="group" aria-label="Solver mode">
+            {(['assist', 'full'] as const).map((mode) => (
+              <button
+                key={mode}
+                aria-pressed={playground.solverMode === mode}
+                className={
+                  playground.solverMode === mode
+                    ? 'segmented-option selected'
+                    : 'segmented-option'
+                }
+                type="button"
+                onClick={() => void playground.setSolverMode(mode)}
+              >
+                {mode === 'assist' ? 'Assist' : 'Full'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="solver-grid">
+          <div className="solver-scramble-stack">
+            <label className="field">
+              <span>Solver event</span>
+              <select
+                value={playground.solverEventId}
+                onChange={(event) =>
+                  void playground.setSolverEventId(event.currentTarget.value as PuzzleFullEventId)
+                }
+              >
+                {solverEvents.map(({ eventId, label }) => (
+                  <option key={eventId} value={eventId}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field solver-scramble-field">
+              <span>Solver scramble</span>
+              <textarea
+                value={playground.solverScramble}
+                onChange={(event) => playground.setSolverScramble(event.currentTarget.value)}
+              />
+            </label>
+
+            <button
+              className="secondary-action"
+              type="button"
+              onClick={() => void playground.generateSolverScramble()}
+            >
+              Generate solver scramble
+            </button>
+          </div>
+
+          <div className="solver-options">
+            {playground.solverMode === 'assist' ? (
+              <>
+                <label className="field">
+                  <span>Solver targets</span>
+                  <select
+                    value={playground.solverTargetText}
+                    onChange={(event) => playground.setSolverTargetText(event.currentTarget.value)}
+                  >
+                    {SOLVER_TARGET_OPTIONS[assistEventId].map(({ value, label }) => (
+                      <option key={value || 'all-targets'} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <fieldset className="method-fieldset">
+                  <legend>Methods</legend>
+                  <div className="method-grid">
+                    {SOLVER_METHODS[assistEventId].map(({ method, label }) => (
+                      <label className="method-option" key={method}>
+                        <input
+                          checked={playground.solverMethods.includes(method)}
+                          type="checkbox"
+                          onChange={(event) =>
+                            playground.setSolverMethod(method, event.currentTarget.checked)
+                          }
+                        />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              </>
+            ) : (
+              <div className="full-solver-summary">
+                <dl className="diagnostics compact" aria-label="Full solver selection">
+                  <div>
+                    <dt>Event</dt>
+                    <dd>{playground.solverEventId}</dd>
+                  </div>
+                  <div>
+                    <dt>Mode</dt>
+                    <dd>Full</dd>
+                  </div>
+                </dl>
+              </div>
+            )}
+
+            <button
+              className="primary-action"
+              type="button"
+              onClick={
+                playground.solverMode === 'assist'
+                  ? playground.solvePuzzleAssist
+                  : playground.solvePuzzleFull
               }
             >
-              {SOLVER_EVENTS.map(({ eventId, label }) => (
-                <option key={eventId} value={eventId}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field solver-scramble-field">
-            <span>Solver scramble</span>
-            <textarea
-              value={playground.solverScramble}
-              onChange={(event) => playground.setSolverScramble(event.currentTarget.value)}
-            />
-          </label>
-
-          <button
-            className="secondary-action"
-            type="button"
-            onClick={() => void playground.generateSolverScramble()}
-          >
-            Generate solver scramble
-          </button>
+              Solve
+            </button>
+          </div>
         </div>
 
-        <div className="solver-options">
-          <label className="field">
-            <span>Solver targets</span>
-            <select
-              value={playground.solverTargetText}
-              onChange={(event) => playground.setSolverTargetText(event.currentTarget.value)}
-            >
-              {SOLVER_TARGET_OPTIONS[playground.solverEventId].map(({ value, label }) => (
-                <option key={value || 'all-targets'} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
+        {solverError ? (
+          <p className="error" role="alert">
+            {solverError}
+          </p>
+        ) : null}
 
-          <fieldset className="method-fieldset">
-            <legend>Methods</legend>
-            <div className="method-grid">
-              {SOLVER_METHODS[playground.solverEventId].map(({ method, label }) => (
-                <label className="method-option" key={method}>
-                  <input
-                    checked={playground.solverMethods.includes(method)}
-                    type="checkbox"
-                    onChange={(event) =>
-                      playground.setSolverMethod(method, event.currentTarget.checked)
-                    }
-                  />
-                  <span>{label}</span>
-                </label>
-              ))}
+        {playground.solverGenerationError ? (
+          <p className="error" role="alert">
+            {playground.solverGenerationError}
+          </p>
+        ) : null}
+
+        <Diagnostics
+          title="Solver"
+          values={[
+            ['Result count', String(solverDiagnostics?.resultCount ?? 0)],
+            ['Duration', `${formatMs(solverDiagnostics?.durationMs)} ms`],
+          ]}
+        />
+      </section>
+
+      <section className="panel solver-results-panel">
+        <div className="panel-heading">
+          <p className="eyebrow">solutions</p>
+          <h2>{playground.solverMode === 'assist' ? 'Assist results' : 'Full result'}</h2>
+        </div>
+
+        {playground.solverMode === 'assist' ? (
+          playground.solverResult && playground.solverResult.results.length > 0 ? (
+            <div className="solver-results">
+              <table className="solver-table">
+                <thead>
+                  <tr>
+                    <th>Method</th>
+                    <th>Solutions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {playground.solverResult.results.map((result) => (
+                    <tr key={result.method}>
+                      <td>{result.method}</td>
+                      <td>
+                        <ol className="solution-list">
+                          {result.solutions.map((solution) => (
+                            <li
+                              key={`${solution.target}-${solution.setupRotation}-${solution.solution}`}
+                            >
+                              <span>{solution.targetLabel}</span>
+                              <code>{solution.setupRotation || '-'}</code>
+                              <strong>{solution.solution || '-'}</strong>
+                              <span>{solution.metric.ftm} FTM</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </fieldset>
-
-          <button className="primary-action" type="button" onClick={playground.solvePuzzleAssist}>
-            Solve
-          </button>
-        </div>
-      </div>
-
-      {playground.solverResult?.error ? (
-        <p className="error" role="alert">
-          {playground.solverResult.error}
-        </p>
-      ) : null}
-
-      {playground.solverGenerationError ? (
-        <p className="error" role="alert">
-          {playground.solverGenerationError}
-        </p>
-      ) : null}
-
-      <Diagnostics
-        title="Solver"
-        values={[
-          ['Result count', String(playground.solverResult?.diagnostics.resultCount ?? 0)],
-          ['Duration', `${formatMs(playground.solverResult?.diagnostics.durationMs)} ms`],
-        ]}
-      />
-    </section>
-
-    <section className="panel solver-results-panel">
-      <div className="panel-heading">
-        <p className="eyebrow">solutions</p>
-        <h2>Assist results</h2>
-      </div>
-
-      {playground.solverResult && playground.solverResult.results.length > 0 ? (
-        <div className="solver-results">
-          <table className="solver-table">
-            <thead>
-              <tr>
-                <th>Method</th>
-                <th>Solutions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {playground.solverResult.results.map((result) => (
-                <tr key={result.method}>
-                  <td>{result.method}</td>
-                  <td>
-                    <ol className="solution-list">
-                      {result.solutions.map((solution) => (
-                        <li
-                          key={`${solution.target}-${solution.setupRotation}-${solution.solution}`}
-                        >
-                          <span>{solution.targetLabel}</span>
-                          <code>{solution.setupRotation || '-'}</code>
-                          <strong>{solution.solution || '-'}</strong>
-                          <span>{solution.metric.ftm} FTM</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </td>
+          ) : (
+            <p className="empty-state">{EMPTY_SOLVER_TEXT[assistEventId]}</p>
+          )
+        ) : playground.fullSolverResult?.result ? (
+          <div className="solver-results">
+            <table className="solver-table">
+              <thead>
+                <tr>
+                  <th>Engine</th>
+                  <th>Solution</th>
+                  <th>Move count</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="empty-state">{EMPTY_SOLVER_TEXT[playground.solverEventId]}</p>
-      )}
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{playground.fullSolverResult.result.engine}</td>
+                  <td>
+                    <strong>{playground.fullSolverResult.result.solution || '-'}</strong>
+                  </td>
+                  <td>{playground.fullSolverResult.result.moveCount}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="empty-state">{EMPTY_FULL_SOLVER_TEXT[playground.solverEventId]}</p>
+        )}
+      </section>
     </section>
-  </section>
-);
+  );
+};
 
 const Diagnostics = ({
   title,
@@ -627,3 +749,6 @@ const clampInteger = (value: number, min: number, max: number) => {
 
   return Math.min(Math.max(Math.trunc(value), min), max);
 };
+
+const isPuzzleAssistEventId = (eventId: PuzzleFullEventId): eventId is PuzzleAssistEventId =>
+  SOLVER_EVENTS.some((event) => event.eventId === eventId);

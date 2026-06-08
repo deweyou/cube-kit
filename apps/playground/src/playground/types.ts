@@ -1,5 +1,11 @@
 import type { WcaEventId } from '@cubegin/scramble-puzzle';
-import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleAssistResult } from '@cubegin/solver';
+import type {
+  PuzzleAssistEventId,
+  PuzzleAssistMethod,
+  PuzzleAssistResult,
+  PuzzleFullEventId,
+  PuzzleFullResult,
+} from '@cubegin/solver';
 import type { ScrambleImageView } from '@cubegin/scramble-image';
 
 export type PlaygroundImageView = ScrambleImageView;
@@ -66,8 +72,19 @@ export interface PlaygroundSolverResult {
   readonly error: string | undefined;
 }
 
+export interface PlaygroundFullSolverInput {
+  readonly eventId: PuzzleFullEventId;
+  readonly scramble: string;
+}
+
+export interface PlaygroundFullSolverResult {
+  readonly result: PuzzleFullResult | undefined;
+  readonly diagnostics: PlaygroundSolverDiagnostics;
+  readonly error: string | undefined;
+}
+
 export interface PlaygroundSolverScrambleResult {
-  readonly eventId: PuzzleAssistEventId;
+  readonly eventId: PuzzleAssistEventId | PuzzleFullEventId;
   readonly scramble: string;
   readonly error: string | undefined;
 }

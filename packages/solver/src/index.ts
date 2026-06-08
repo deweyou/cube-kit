@@ -13,6 +13,10 @@ export type {
   PuzzleAssistOptions,
   PuzzleAssistResult,
   PuzzleAssistSolution,
+  PuzzleFullEngine,
+  PuzzleFullEventId,
+  PuzzleFullOptions,
+  PuzzleFullResult,
   PyraminxAssistMethod,
   SkewbAssistMethod,
   SquareOneAssistMethod,
@@ -24,6 +28,7 @@ export type {
   TwoByTwoAssistMethod,
 } from './types.js';
 export type { RandomSource } from './random-source.js';
+export { solvePuzzleFull } from './full/facade.js';
 export { ClockSolver } from './full/clock-solver.js';
 export type { ClockSolverSolution } from './full/clock-solver.js';
 export { SearchWCA } from './full/min2phase/search-wca.js';

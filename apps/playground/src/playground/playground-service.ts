@@ -6,12 +6,16 @@ import {
 import { renderScrambleImage } from '@cubegin/scramble-image';
 import {
   solvePuzzleAssist as solvePuzzleAssistCore,
+  solvePuzzleFull as solvePuzzleFullCore,
   type PuzzleAssistEventId,
+  type PuzzleFullEventId,
 } from '@cubegin/solver';
 import { createSeededRandomSource } from './seeded-random';
 import type {
   PlaygroundGenerateInput,
   PlaygroundGenerateResult,
+  PlaygroundFullSolverInput,
+  PlaygroundFullSolverResult,
   PlaygroundManualRenderInput,
   PlaygroundManualRenderResult,
   PlaygroundRenderDiagnostics,
@@ -107,7 +111,7 @@ export const createPlaygroundService = ({
       }
     },
     async generateSolverScramble(
-      eventId: PuzzleAssistEventId,
+      eventId: PuzzleAssistEventId | PuzzleFullEventId,
     ): Promise<PlaygroundSolverScrambleResult> {
       try {
         const [result] = await generator.generateBatch(eventId, 1);
@@ -147,6 +151,34 @@ export const createPlaygroundService = ({
 
         return {
           results: [],
+          diagnostics: createSolverDiagnostics({
+            durationMs: solveEnd - solveStart,
+            resultCount: 0,
+          }),
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
+    solvePuzzleFull(input: PlaygroundFullSolverInput): PlaygroundFullSolverResult {
+      const solveStart = now();
+
+      try {
+        const result = solvePuzzleFullCore(input.eventId, input.scramble);
+        const solveEnd = now();
+
+        return {
+          result,
+          diagnostics: createSolverDiagnostics({
+            durationMs: solveEnd - solveStart,
+            resultCount: 1,
+          }),
+          error: undefined,
+        };
+      } catch (error) {
+        const solveEnd = now();
+
+        return {
+          result: undefined,
           diagnostics: createSolverDiagnostics({
             durationMs: solveEnd - solveStart,
             resultCount: 0,

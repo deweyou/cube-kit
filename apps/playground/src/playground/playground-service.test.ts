@@ -137,6 +137,21 @@ describe('createPlaygroundService', () => {
     expect(result.error).toBeUndefined();
   });
 
+  it('solves full puzzle scrambles through the playground service', () => {
+    const service = createPlaygroundService({ seed: 42, now: fixedClock([1, 6]) });
+
+    const result = service.solvePuzzleFull({
+      eventId: '222',
+      scramble: 'R U F',
+    });
+
+    expect(result.result?.eventId).toBe('222');
+    expect(result.result?.engine).toBe('two-by-two-coordinate');
+    expect(result.diagnostics.resultCount).toBe(1);
+    expect(result.diagnostics.durationMs).toBe(5);
+    expect(result.error).toBeUndefined();
+  });
+
   it('renders generated and manual SVGs with the requested image view', async () => {
     const generator = fakeGenerator([{ eventId: '333', scramble: "R U R' U'" }]);
     const netService = createPlaygroundService({

@@ -16,6 +16,7 @@ import {
   solveEOFC,
   solvePetrusS1,
   solvePuzzleAssist,
+  solvePuzzleFull,
   solvePyraminxV,
   solveSkewbFace,
   solveSquareOneStateIn,
@@ -62,6 +63,10 @@ describe('@cubegin/solver public API', () => {
     expect(typeof SquareOneSearch).toBe('function');
     expect(typeof solveSquareOneStateIn).toBe('function');
     expect(typeof FourByFourThreephaseSearch).toBe('function');
+  });
+
+  it('exports the full solver facade', () => {
+    expect(typeof solvePuzzleFull).toBe('function');
   });
 
   it('exports solver-specific errors', () => {

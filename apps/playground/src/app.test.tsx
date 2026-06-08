@@ -2,7 +2,11 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { App } from './app';
-import type { PlaygroundGenerateInput, PlaygroundManualRenderInput } from './playground/types';
+import type {
+  PlaygroundFullSolverInput,
+  PlaygroundGenerateInput,
+  PlaygroundManualRenderInput,
+} from './playground/types';
 import type { PlaygroundService } from './playground/use-playground';
 
 afterEach(cleanup);
@@ -174,6 +178,19 @@ describe('App', () => {
     expect(screen.getByText('Skewb Face')).toBeTruthy();
   });
 
+  it('switches to full solver mode and shows a full solution', async () => {
+    renderTestApp();
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Full' }));
+    await userEvent.selectOptions(screen.getByLabelText('Solver event'), 'clock');
+    await userEvent.click(screen.getByRole('button', { name: 'Solve' }));
+
+    expect(await screen.findByText('clock-inverse')).toBeTruthy();
+    expect(screen.getByText("UR1- y2 DR1+")).toBeTruthy();
+    expect(screen.getByText(/Move count/i)).toBeTruthy();
+  });
+
   it('shows solver errors without leaving the solver page', async () => {
     render(<App />);
 
@@ -218,6 +235,19 @@ const fakeService = (): PlaygroundService => ({
     return {
       results: [],
       diagnostics: { durationMs: 1, resultCount: 0 },
+      error: undefined,
+    };
+  },
+  solvePuzzleFull(input: PlaygroundFullSolverInput) {
+    return {
+      result: {
+        eventId: input.eventId,
+        scramble: input.scramble,
+        solution: "UR1- y2 DR1+",
+        moveCount: 2,
+        engine: 'clock-inverse' as const,
+      },
+      diagnostics: { durationMs: 2, resultCount: 1 },
       error: undefined,
     };
   },
