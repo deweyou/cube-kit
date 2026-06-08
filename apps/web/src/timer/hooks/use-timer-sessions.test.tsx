@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { getDefaultSessionId } from '@cubegin/timer-session';
+import { getDefaultSessionId } from '@cubegin/shared/timer-session';
 import { createMemoryTimerSessionRepository } from '../storage/memory-timer-session-repository';
 import { useTimerSessions } from './use-timer-sessions';
 

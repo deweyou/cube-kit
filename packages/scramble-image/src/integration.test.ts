@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/scramble-puzzle';
+import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/shared/wca';
 import { renderScrambleImage } from './render.js';
 
 interface SvgRootContract {

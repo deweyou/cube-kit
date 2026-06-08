@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@deweyou-design/react/button';
-import type { SolveSession } from '@cubegin/timer-session';
+import type { SolveSession } from '@cubegin/shared/timer-session';
 
 interface SessionSelectorProps {
   sessions: SolveSession[];

@@ -2,7 +2,8 @@
 
 ```mermaid
 flowchart TD
-    TnoodleLib["tnoodle-lib GPL-v3.0"] --> NewPackages["scramble-puzzle / scramble-core / scramble-image GPL-3.0-only"]
+    TnoodleLib["tnoodle-lib GPL-v3.0"] --> SharedPkg["shared GPL-3.0-only"]
+    SharedPkg --> NewPackages["scramble-puzzle / scramble-core / scramble-image GPL-3.0-only"]
     RepoLicense --> EventIcons["@cubegin/event-icons GPL-3.0-only"]
     NewPackages --> PublicPackage["cubegin package subpaths GPL-3.0-only"]
     EventIcons --> PublicPackage
@@ -23,9 +24,9 @@ decisions as licensing decisions, not only build decisions.
 
 - The root package license is GPL-3.0-only. See [package.json#L5](../package.json#L5)
   and [README.md#L5](../README.md#L5).
-- `@cubegin/scramble-puzzle`, `@cubegin/scramble-core`, and
-  `@cubegin/scramble-image` are GPL-3.0-only while they port TNoodle-compatible
-  behavior from the GPL `tnoodle-lib` baseline. See
+- `@cubegin/shared`, `@cubegin/scramble-puzzle`, `@cubegin/scramble-core`, and
+  `@cubegin/scramble-image` are GPL-3.0-only while they carry WCA metadata or
+  port TNoodle-compatible behavior from the GPL `tnoodle-lib` baseline. See
   [docs/tnoodle-baseline.md#L1](tnoodle-baseline.md#L1).
 - `cubegin` is GPL-3.0-only while it bundles those TNoodle-compatible packages
   through `cubegin/scramble-core`, `cubegin/scramble-image`, and
@@ -51,4 +52,4 @@ decisions as licensing decisions, not only build decisions.
 
 ---
 
-_Last updated: 2026-06-06 | Reason: document cubegin public package licensing boundary_
+_Last updated: 2026-06-09 | Reason: add shared package to GPL WCA metadata boundary_

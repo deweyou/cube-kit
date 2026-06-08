@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { createTimer } from '@cubegin/timer';
-import type { TimerState } from '@cubegin/timer';
+import { createTimer } from '@cubegin/shared/timer';
+import type { TimerState } from '@cubegin/shared/timer';
 
 export const useTimer = () => {
   const timerRef = useRef(createTimer());

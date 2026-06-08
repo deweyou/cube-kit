@@ -3,7 +3,7 @@ import {
   formatMilliseconds,
   type RollingAverageStat,
   type SolveRecord,
-} from '@cubegin/timer-session';
+} from '@cubegin/shared/timer-session';
 import type { TimerMessages } from '../timer-i18n';
 import styles from './solve-statistics-panel.module.css';
 

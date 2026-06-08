@@ -1,4 +1,4 @@
-import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/shared/wca';
 
 export const createSvgDownloadName = ({
   eventId,

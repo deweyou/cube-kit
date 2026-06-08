@@ -5,9 +5,8 @@ import {
   createPyraminxDefinition,
   createSkewbDefinition,
   createSquareOneDefinition,
-  WCA_EVENT_INFO,
-  type WcaEventId,
 } from '@cubegin/scramble-puzzle';
+import { WCA_EVENT_INFO, type WcaEventId } from '@cubegin/shared/wca';
 import { renderClockState } from './renderers/clock.js';
 import { renderCubeIsometric } from './renderers/cube-isometric.js';
 import { renderCubeNet } from './renderers/cube-net.js';
@@ -46,6 +45,10 @@ export const renderScrambleImage = (
   options: ScrambleImageOptions = {},
 ): string => {
   const eventInfo = WCA_EVENT_INFO[eventId];
+  if (!eventInfo) {
+    throw new Error(`@cubegin/scramble-image: event '${eventId}' is not renderable yet`);
+  }
+
   const view = options.view ?? 'net';
 
   switch (eventInfo.puzzleId) {

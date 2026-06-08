@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Button } from '@deweyou-design/react/button';
 import { Tooltip } from '@deweyou-design/react/tooltip';
 import { renderScrambleImage } from '@cubegin/scramble-image';
-import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/shared/wca';
 import { CancelIcon, RefreshTimerIcon } from '../components/timer-icons';
 import { ScrambleText } from '../components/scramble-text';
 import { ScrambleImage } from '../components/scramble-image';

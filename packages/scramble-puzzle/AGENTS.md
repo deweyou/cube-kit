@@ -1,7 +1,8 @@
 # @cubegin/scramble-puzzle
 
-This package owns TNoodle-compatible WCA event metadata, notation parsers, puzzle
-state transitions, and registry helpers.
+This package owns TNoodle-compatible notation parsers, puzzle state transitions,
+and registry helpers. WCA event metadata lives in `@cubegin/shared/wca` and is
+re-exported here for compatibility.
 
 ## Read First
 
@@ -20,5 +21,5 @@ pnpm --filter @cubegin/scramble-puzzle typecheck
 ## Constraints
 
 - Keep `src/` platform-agnostic.
-- Do not change WCA event ids or notation semantics without updating the
-  package docs and coverage notes.
+- Do not change WCA event ids, puzzle routing, or notation semantics without
+  updating the package docs and coverage notes.

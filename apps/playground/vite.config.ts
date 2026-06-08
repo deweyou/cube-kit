@@ -15,6 +15,7 @@ export default defineConfig({
       '@cubegin/event-icons': workspacePackage('event-icons'),
       '@cubegin/scramble-image': workspacePackage('scramble-image'),
       '@cubegin/scramble-puzzle': workspacePackage('scramble-puzzle'),
+      '@cubegin/shared/wca': workspacePackage('shared/wca'),
       '@cubegin/solver': workspacePackage('solver'),
     },
   },

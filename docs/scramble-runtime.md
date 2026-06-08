@@ -4,19 +4,24 @@
 flowchart TD
     UI["apps/web Timer UI"] --> Core["@cubegin/scramble-core"]
     UI --> Image["@cubegin/scramble-image"]
-    UI --> Puzzle["@cubegin/scramble-puzzle"]
+    UI --> Shared["@cubegin/shared/wca"]
     Playground["apps/playground"] --> Core
     Playground --> Image
+    Playground --> Shared
     Playground --> Puzzle
     Core --> Solver["@cubegin/solver"]
+    Puzzle["@cubegin/scramble-puzzle"] --> Shared
+    Core --> Shared
     Core --> Puzzle
+    Image --> Shared
     Image --> Puzzle
     Core --> Generators["WCA generator dispatch"]
     Image --> Renderers["SVG renderer dispatch"]
 ```
 
 The web timer now consumes the TNoodle-compatible scramble packages directly.
-`@cubegin/scramble-puzzle` owns WCA event ids and puzzle parsing,
+`@cubegin/shared/wca` owns WCA event ids and puzzle routing metadata,
+`@cubegin/scramble-puzzle` owns puzzle parsing and state transitions,
 `@cubegin/scramble-core` owns async-shaped WCA scramble generation, and
 `@cubegin/scramble-image` owns DOM-free SVG rendering. The removed
 `packages/scramble` cstimer wrapper and browser shim must not be restored.
@@ -35,8 +40,8 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
   `@cubegin/solver`; Clock uses the solver package's linear state solver.
 - `@cubegin/scramble-image` exposes `renderScrambleImage(eventId, scramble)` and
   uses `scramble-puzzle` to apply moves before rendering SVG.
-- `apps/web` builds `@cubegin/timer` and the three scramble packages before dev,
-  build, test, and typecheck so package `dist` exports are available.
+- `apps/web` builds `@cubegin/shared` and the three scramble packages before
+  dev, build, test, and typecheck so package `dist` exports are available.
 - `apps/playground` is a test workbench, not a production app migration. It
   imports the new packages directly, aliases Vite runtime resolution to package
   source, and runs `prepare:deps` before typecheck/build so package dist types
@@ -64,9 +69,9 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 
 - [apps/web/src/timer/timer-page.tsx#L1](../apps/web/src/timer/timer-page.tsx#L1) - timer state and async scramble generation.
 - [apps/web/src/timer/views/scramble-view.tsx#L1](../apps/web/src/timer/views/scramble-view.tsx#L1) - web SVG rendering through `@cubegin/scramble-image`.
-- [apps/web/src/timer/components/event-selector.tsx#L1](../apps/web/src/timer/components/event-selector.tsx#L1) - WCA event list from `@cubegin/scramble-puzzle`.
+- [apps/web/src/timer/components/event-selector.tsx#L1](../apps/web/src/timer/components/event-selector.tsx#L1) - WCA event list from `@cubegin/shared/wca`.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - `prepare:deps` for workspace package exports.
-- [packages/scramble-puzzle/src/events.ts#L1](../packages/scramble-puzzle/src/events.ts#L1) - canonical 17-event WCA list for the new packages.
+- [packages/shared/src/wca/events.ts#L1](../packages/shared/src/wca/events.ts#L1) - canonical 17-event WCA list for the new packages.
 - [packages/scramble-core/src/generator.ts#L1](../packages/scramble-core/src/generator.ts#L1) - async generator facade and default WCA event dispatch.
 - [packages/solver/src/full/clock-solver.ts#L1](../packages/solver/src/full/clock-solver.ts#L1) - Clock random-state solver used by scramble generation.
 - [packages/scramble-image/src/render.ts#L1](../packages/scramble-image/src/render.ts#L1) - WCA event dispatch for SVG rendering.
@@ -79,4 +84,4 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 
 ---
 
-_Last updated: 2026-06-08 | Reason: document solver package runtime boundary_
+_Last updated: 2026-06-09 | Reason: document solver runtime boundary and shared WCA metadata_

@@ -1,4 +1,4 @@
-import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import type { WcaEventId } from '../wca';
 
 export type TimerLocale = 'zh-CN' | 'en-US';
 

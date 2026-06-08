@@ -1,4 +1,4 @@
-import { WCA_EVENT_IDS } from '@cubegin/scramble-puzzle';
+import { WCA_EVENT_IDS } from '@cubegin/shared/wca';
 import {
   createDefaultSession,
   sortSessionsByCreatedDesc,
@@ -7,7 +7,7 @@ import {
   type SolveRecord,
   type SolveSession,
   type TimerSessionRepository,
-} from '@cubegin/timer-session';
+} from '@cubegin/shared/timer-session';
 
 const DB_NAME = 'cubegin-timer';
 const DB_VERSION = 1;

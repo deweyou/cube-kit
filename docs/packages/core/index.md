@@ -10,6 +10,9 @@ flowchart TD
     ScrambleCore --> CorePkg["@cubegin/scramble-core"]
     ScrambleImage --> ImagePkg["@cubegin/scramble-image"]
     ScramblePuzzle --> PuzzlePkg["@cubegin/scramble-puzzle"]
+    CorePkg -. private vendored dependency .-> SharedPkg["@cubegin/shared"]
+    ImagePkg -. private vendored dependency .-> SharedPkg
+    PuzzlePkg -. private vendored dependency .-> SharedPkg
     CorePkg -. private vendored dependency .-> SolverPkg["@cubegin/solver"]
 ```
 

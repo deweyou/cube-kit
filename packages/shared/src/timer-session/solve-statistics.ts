@@ -30,21 +30,22 @@ const averageDisplayedMs = (
 ): number | null => {
   const times = [...displayedTimes];
   if (shouldTrim && times.length >= 3) {
-    const bestIndex = times.reduce(
+    const bestIndex = times.reduce<number>(
       (best, time, index) => (compareDisplayedMs(time, times[best]!) < 0 ? index : best),
       0,
     );
     times.splice(bestIndex, 1);
 
-    const worstIndex = times.reduce(
+    const worstIndex = times.reduce<number>(
       (worst, time, index) => (compareDisplayedMs(time, times[worst]!) > 0 ? index : worst),
       0,
     );
     times.splice(worstIndex, 1);
   }
 
-  if (times.length === 0 || times.some((time) => time === null)) return null;
-  return Math.round(times.reduce((sum, time) => sum + time, 0) / times.length);
+  const numericTimes = times.filter((time): time is number => time !== null);
+  if (numericTimes.length === 0 || numericTimes.length !== times.length) return null;
+  return Math.round(numericTimes.reduce((sum, time) => sum + time, 0) / numericTimes.length);
 };
 
 const getDisplayedTimes = (solves: readonly SolveRecord[]): (number | null)[] =>
@@ -61,7 +62,10 @@ const calculateRollingAverage = (
   let bestMs = currentMs;
 
   for (let start = 1; start <= displayedTimesNewestFirst.length - size; start += 1) {
-    const averageMs = averageDisplayedMs(displayedTimesNewestFirst.slice(start, start + size), shouldTrim);
+    const averageMs = averageDisplayedMs(
+      displayedTimesNewestFirst.slice(start, start + size),
+      shouldTrim,
+    );
     if (bestMs === null || (averageMs !== null && averageMs < bestMs)) {
       bestMs = averageMs;
     }

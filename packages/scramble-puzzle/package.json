@@ -22,6 +22,9 @@
     "test:coverage": "vp test --coverage",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@cubegin/shared": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",

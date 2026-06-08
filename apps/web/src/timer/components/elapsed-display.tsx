@@ -1,4 +1,4 @@
-import { formatElapsed } from '@cubegin/timer';
+import { formatElapsed } from '@cubegin/shared/timer';
 import styles from './elapsed-display.module.css';
 
 interface ElapsedDisplayProps {

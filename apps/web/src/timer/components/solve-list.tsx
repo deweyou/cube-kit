@@ -3,7 +3,7 @@ import {
   getReverseSequenceNumber,
   getSolveDisplayText,
   type SolveRecord,
-} from '@cubegin/timer-session';
+} from '@cubegin/shared/timer-session';
 import styles from './solve-list.module.css';
 
 const ROW_HEIGHT = 50;
