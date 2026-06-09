@@ -246,6 +246,51 @@ const runPack = () => {
   }
 };
 
+const getStaticAssetExportGroup = (exportPath) => {
+  const match = /^\.\/(.+?)\/svg\/\*$/.exec(exportPath);
+  if (!match) {
+    throw new Error(`Unsupported static asset export path '${exportPath}'`);
+  }
+  return match[1];
+};
+
+const copyPublicStaticAssetFiles = ({ destination, source }) => {
+  if (!existsSync(source)) return false;
+
+  rmSync(destination, { force: true, recursive: true });
+  cpSync(source, destination, { recursive: true });
+  return true;
+};
+
+const writePublicStaticAssetFilesFromModule = async ({ destination, groupName, publicSubpath }) => {
+  const modulePath = resolve(packageRoot, 'dist', publicSubpath, `${groupName}.mjs`);
+  if (!existsSync(modulePath)) {
+    throw new Error(`Missing static asset module ${relative(packageRoot, modulePath)}`);
+  }
+
+  const moduleExports = await import(`${modulePath}?t=${Date.now()}`);
+  const svgMaps = Object.entries(moduleExports).filter(
+    ([exportName, value]) =>
+      exportName.endsWith('_SVGS') && value && typeof value === 'object' && !Array.isArray(value),
+  );
+
+  if (svgMaps.length !== 1) {
+    throw new Error(
+      `Expected one ${publicSubpath}/${groupName} SVG map export, found ${String(svgMaps.length)}`,
+    );
+  }
+
+  rmSync(destination, { force: true, recursive: true });
+  mkdirSync(destination, { recursive: true });
+
+  for (const [assetId, svgContent] of Object.entries(svgMaps[0][1])) {
+    if (typeof svgContent !== 'string') {
+      throw new Error(`Expected ${publicSubpath}/${groupName}/${assetId} to be an SVG string`);
+    }
+    writeFileSync(resolve(destination, `${assetId}.svg`), `${svgContent}\n`);
+  }
+};
+
 const writePublicStaticAssetFiles = async (publicPackages) => {
   if (watch) return;
 
@@ -254,6 +299,8 @@ const writePublicStaticAssetFiles = async (publicPackages) => {
 
     for (const [exportPath, exportTarget] of Object.entries(staticAssetExports)) {
       const source = resolve(directory, exportTarget.replace('./dist/', 'dist/').replace('/*', ''));
+      const groupName = getStaticAssetExportGroup(exportPath);
+      const sourceAssetDirectory = resolve(directory, 'src', groupName, 'svg');
       const destination = resolve(
         packageRoot,
         'dist',
@@ -261,8 +308,14 @@ const writePublicStaticAssetFiles = async (publicPackages) => {
         exportPath.slice(2).replace('/*', ''),
       );
 
-      rmSync(destination, { force: true, recursive: true });
-      cpSync(source, destination, { recursive: true });
+      if (copyPublicStaticAssetFiles({ destination, source })) continue;
+      if (copyPublicStaticAssetFiles({ destination, source: sourceAssetDirectory })) continue;
+
+      await writePublicStaticAssetFilesFromModule({
+        destination,
+        groupName,
+        publicSubpath,
+      });
     }
   }
 };

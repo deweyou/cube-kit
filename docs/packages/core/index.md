@@ -14,6 +14,7 @@ flowchart TD
     ImagePkg -. private vendored dependency .-> SharedPkg
     PuzzlePkg -. private vendored dependency .-> SharedPkg
     CorePkg -. private vendored dependency .-> SolverPkg["@cubegin/solver"]
+    Icons -. static SVG mirror .-> StaticSvg["cubegin/icons/<group>/svg/*.svg"]
 ```
 
 `packages/core` owns the public `cubegin` npm package. It is a bundled package
@@ -72,6 +73,13 @@ with the build script.
 - The icons subpath also mirrors static SVG files such as
   `cubegin/icons/events/svg/333.svg` and
   `cubegin/icons/brand/svg/cubegin-mark.svg`.
+- `pnpm --filter cubegin build` must work from a clean checkout. Static SVG
+  mirroring should not require a pre-existing ignored `packages/icons/dist`; the
+  core build can copy source SVG files or generate them from built SVG maps.
 - Do not copy implementation logic into this package.
 - Do not publish runtime dependencies on unpublished `@cubegin/*` packages.
 - Keep GPL-3.0-only while exported paths depend on TNoodle-compatible packages.
+
+---
+
+_Last updated: 2026-06-09 | Reason: record clean-checkout static SVG release build boundary_
