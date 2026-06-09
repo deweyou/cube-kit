@@ -8,7 +8,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, relative, resolve, sep } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -19,9 +19,6 @@ const vendorRoot = resolve(buildRoot, 'vendor');
 const generatedConfigPath = resolve(buildRoot, 'public-pack.json');
 const packageJsonPath = resolve(packageRoot, 'package.json');
 const watch = process.argv.includes('--watch');
-const eventIconsPublicSubpath = 'event-icons';
-const eventIconsSvgExportPath = `./${eventIconsPublicSubpath}/svg/*`;
-const eventIconsSvgExportTarget = `./dist/${eventIconsPublicSubpath}/svg/*`;
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
@@ -38,9 +35,40 @@ const listFiles = (directory) => {
 
 const isValidSubpath = (subpath) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(subpath);
 
-const resolveSourceExportPath = (exportTarget) => {
-  const match = /^\.[/](.+?)[/]index\.mjs$/.exec(exportTarget);
-  return match ? `src/${match[1]}/index.ts` : undefined;
+const resolveSourceExportPath = (exportTarget, packageDirectory) => {
+  const match =
+    /^\.[/]dist[/](.+?)[/]index\.mjs$/.exec(exportTarget) ??
+    /^\.[/](.+?)[/]index\.mjs$/.exec(exportTarget);
+  if (!match) return undefined;
+
+  const sourceBasePath = `src/${match[1]}/index`;
+
+  for (const extension of ['.ts', '.tsx']) {
+    const sourceExportPath = `${sourceBasePath}${extension}`;
+    if (existsSync(resolve(packageDirectory, sourceExportPath))) return sourceExportPath;
+  }
+
+  return undefined;
+};
+
+const getPublicPackageEntries = (publicPackage) => {
+  const entries = [[publicPackage.publicSubpath, 'src/index.ts']];
+  const publicJsExports = new Set(publicPackage.packageJson.cubegin?.publicJsExports ?? []);
+
+  for (const [exportPath, exportTarget] of Object.entries(
+    publicPackage.packageJson.exports ?? {},
+  )) {
+    if (exportPath === '.' || exportPath === './package.json') continue;
+    if (!publicJsExports.has(exportPath)) continue;
+    if (typeof exportTarget !== 'string') continue;
+
+    const sourceExportPath = resolveSourceExportPath(exportTarget, publicPackage.directory);
+    if (!sourceExportPath) continue;
+
+    entries.push([`${publicPackage.publicSubpath}/${exportPath.slice(2)}`, sourceExportPath]);
+  }
+
+  return entries;
 };
 
 const getVendoredAliases = (vendoredPackage) => {
@@ -56,7 +84,7 @@ const getVendoredAliases = (vendoredPackage) => {
     if (exportPath === '.' || exportPath === './package.json') continue;
     if (typeof exportTarget !== 'string') continue;
 
-    const sourceExportPath = resolveSourceExportPath(exportTarget);
+    const sourceExportPath = resolveSourceExportPath(exportTarget, vendoredPackage.directory);
     if (!sourceExportPath) continue;
 
     aliases[`${vendoredPackage.packageName}/${exportPath.slice(2)}`] = toPosix(
@@ -141,11 +169,20 @@ const syncPackageExports = (publicPackages) => {
   const packageJson = readJson(packageJsonPath);
   const exports = {};
 
-  for (const { publicSubpath } of publicPackages) {
+  for (const publicPackage of publicPackages) {
+    const { packageJson: publicPackageJson, publicSubpath } = publicPackage;
+
     exports[`./${publicSubpath}`] = `./dist/${publicSubpath}.mjs`;
 
-    if (publicSubpath === eventIconsPublicSubpath) {
-      exports[eventIconsSvgExportPath] = eventIconsSvgExportTarget;
+    for (const [entryName] of getPublicPackageEntries(publicPackage).slice(1)) {
+      exports[`./${entryName}`] = `./dist/${entryName}.mjs`;
+    }
+
+    for (const [exportPath, exportTarget] of Object.entries(
+      publicPackageJson.cubegin?.staticAssetExports ?? {},
+    )) {
+      exports[`./${publicSubpath}/${exportPath.slice(2)}`] =
+        `./dist/${publicSubpath}/${exportTarget.slice('./dist/'.length)}`;
     }
   }
 
@@ -179,10 +216,12 @@ const prepareBuildTree = (publicPackages, vendoredPackages) => {
 
   const aliases = Object.assign({}, ...vendoredPackages.map(getVendoredAliases));
   const entry = Object.fromEntries(
-    publicPackages.map(({ publicSubpath }) => [
-      publicSubpath,
-      toPosix(resolve(vendorRoot, publicSubpath, 'src/index.ts')),
-    ]),
+    publicPackages.flatMap((publicPackage) =>
+      getPublicPackageEntries(publicPackage).map(([entryName, sourceExportPath]) => [
+        entryName,
+        toPosix(resolve(vendorRoot, publicPackage.publicSubpath, sourceExportPath)),
+      ]),
+    ),
   );
 
   writeFileSync(
@@ -207,22 +246,25 @@ const runPack = () => {
   }
 };
 
-const writePublicEventIconSvgFiles = async (publicPackages) => {
+const writePublicStaticAssetFiles = async (publicPackages) => {
   if (watch) return;
-  if (!publicPackages.some(({ publicSubpath }) => publicSubpath === eventIconsPublicSubpath))
-    return;
 
-  const eventIconsModule = await import(
-    pathToFileURL(resolve(packageRoot, `dist/${eventIconsPublicSubpath}.mjs`)).href
-  );
-  const eventIconsScript = await import(
-    pathToFileURL(resolve(packagesRoot, 'event-icons/scripts/write-svg-files.mjs')).href
-  );
+  for (const { directory, packageJson, publicSubpath } of publicPackages) {
+    const staticAssetExports = packageJson.cubegin?.staticAssetExports ?? {};
 
-  await eventIconsScript.writeEventIconSvgFiles({
-    icons: eventIconsModule.EVENT_ICON_SVGS,
-    outDir: resolve(packageRoot, `dist/${eventIconsPublicSubpath}/svg`),
-  });
+    for (const [exportPath, exportTarget] of Object.entries(staticAssetExports)) {
+      const source = resolve(directory, exportTarget.replace('./dist/', 'dist/').replace('/*', ''));
+      const destination = resolve(
+        packageRoot,
+        'dist',
+        publicSubpath,
+        exportPath.slice(2).replace('/*', ''),
+      );
+
+      rmSync(destination, { force: true, recursive: true });
+      cpSync(source, destination, { recursive: true });
+    }
+  }
 };
 
 const assertBundledOutput = (publicPackages) => {
@@ -267,5 +309,5 @@ syncPackageExports(publicPackages);
 prepareBuildTree(publicPackages, vendoredPackages);
 runPack();
 syncPackageExports(publicPackages);
-await writePublicEventIconSvgFiles(publicPackages);
+await writePublicStaticAssetFiles(publicPackages);
 assertBundledOutput(publicPackages);

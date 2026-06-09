@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Button } from '@deweyou-design/react/button';
 import { Tooltip } from '@deweyou-design/react/tooltip';
+import { CubeginAnimatedIcon } from '@cubegin/icons/react';
 import { renderScrambleImage } from '@cubegin/scramble-image';
 import type { WcaEventId } from '@cubegin/shared/wca';
 import { CancelIcon, RefreshTimerIcon } from '../components/timer-icons';
@@ -45,6 +46,14 @@ export const ScrambleView = ({
         aria-disabled={!canStart}
       >
         <div className={styles.scrambleRow}>
+          {isLoading && (
+            <CubeginAnimatedIcon
+              className={styles.loadingLogo}
+              size={52}
+              title={messages.scrambleLoading}
+              trigger="loop"
+            />
+          )}
           <span className={styles.scrambleBlock}>
             <ScrambleText scramble={scrambleText} isLoading={isLoading} />
           </span>

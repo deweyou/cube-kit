@@ -17,6 +17,9 @@ const publicPackConfig: PublicPackConfig = existsSync(publicPackConfigPath)
 export default defineConfig({
   pack: definePackConfig({
     alias: publicPackConfig.alias,
+    deps: {
+      neverBundle: ['react', 'react/jsx-runtime'],
+    },
     dts: {},
     entry: publicPackConfig.entry,
     exports: true,

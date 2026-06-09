@@ -12,8 +12,12 @@
   ],
   "type": "module",
   "exports": {
-    "./event-icons": "./dist/event-icons.mjs",
-    "./event-icons/svg/*": "./dist/event-icons/svg/*",
+    "./icons": "./dist/icons.mjs",
+    "./icons/brand": "./dist/icons/brand.mjs",
+    "./icons/events": "./dist/icons/events.mjs",
+    "./icons/react": "./dist/icons/react.mjs",
+    "./icons/brand/svg/*": "./dist/icons/brand/svg/*",
+    "./icons/events/svg/*": "./dist/icons/events/svg/*",
     "./scramble-core": "./dist/scramble-core.mjs",
     "./scramble-image": "./dist/scramble-image.mjs",
     "./scramble-puzzle": "./dist/scramble-puzzle.mjs",
@@ -27,16 +31,21 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@cubegin/event-icons": "workspace:*",
+    "@cubegin/icons": "workspace:*",
     "@cubegin/scramble-core": "workspace:*",
     "@cubegin/scramble-image": "workspace:*",
     "@cubegin/scramble-puzzle": "workspace:*",
     "@cubegin/shared": "workspace:*",
     "@cubegin/solver": "workspace:*",
     "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "react": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "18 || 19"
   }
 }

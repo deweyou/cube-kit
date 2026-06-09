@@ -5,8 +5,8 @@ flowchart TD
     Core["cubegin npm package"] --> ScrambleCore["cubegin/scramble-core"]
     Core --> ScrambleImage["cubegin/scramble-image"]
     Core --> ScramblePuzzle["cubegin/scramble-puzzle"]
-    Core --> EventIcons["cubegin/event-icons"]
-    EventIcons --> EventIconsPkg["@cubegin/event-icons"]
+    Core --> Icons["cubegin/icons"]
+    Icons --> IconsPkg["@cubegin/icons"]
     ScrambleCore --> CorePkg["@cubegin/scramble-core"]
     ScrambleImage --> ImagePkg["@cubegin/scramble-image"]
     ScramblePuzzle --> PuzzlePkg["@cubegin/scramble-puzzle"]
@@ -24,8 +24,12 @@ subpath.
 ## Public Paths
 
 - `cubegin/scramble-core`
-- `cubegin/event-icons`
-- `cubegin/event-icons/svg/<eventId>.svg`
+- `cubegin/icons`
+- `cubegin/icons/brand`
+- `cubegin/icons/brand/svg/<iconId>.svg`
+- `cubegin/icons/events`
+- `cubegin/icons/events/svg/<eventId>.svg`
+- `cubegin/icons/react`
 - `cubegin/scramble-image`
 - `cubegin/scramble-puzzle`
 
@@ -65,8 +69,9 @@ with the build script.
   `unbundle` mode so the published package keeps internal ESM module boundaries.
 - The build script also vendors workspace runtime dependencies required by those
   public packages without adding matching public `cubegin/*` exports.
-- The event-icons subpath also mirrors generated per-event SVG files such as
-  `cubegin/event-icons/svg/333.svg`.
+- The icons subpath also mirrors static SVG files such as
+  `cubegin/icons/events/svg/333.svg` and
+  `cubegin/icons/brand/svg/cubegin-mark.svg`.
 - Do not copy implementation logic into this package.
 - Do not publish runtime dependencies on unpublished `@cubegin/*` packages.
 - Keep GPL-3.0-only while exported paths depend on TNoodle-compatible packages.

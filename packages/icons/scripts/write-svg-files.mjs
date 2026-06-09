@@ -1,31 +1,22 @@
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const packageJsonPath = resolve(packageRoot, 'package.json');
-const svgExportPath = './svg/*';
-const svgExportTarget = './dist/svg/*';
 
-export const syncEventIconSvgExport = async ({ packageJsonPath: path } = {}) => {
+export const syncIconStaticAssetExports = async ({ packageJsonPath: path } = {}) => {
   const targetPackageJsonPath = path ?? packageJsonPath;
   const packageJson = JSON.parse(await readFile(targetPackageJsonPath, 'utf8'));
+  const staticAssetExports = packageJson.cubegin?.staticAssetExports ?? {};
   const packageExports = packageJson.exports ?? {};
+  const nextExports = { ...packageExports };
 
-  if (packageExports[svgExportPath] === svgExportTarget) return;
-
-  const nextExports = {};
-
-  for (const [exportPath, exportTarget] of Object.entries(packageExports)) {
+  for (const [exportPath, exportTarget] of Object.entries(staticAssetExports)) {
     nextExports[exportPath] = exportTarget;
-    if (exportPath === '.') {
-      nextExports[svgExportPath] = svgExportTarget;
-    }
   }
 
-  if (!Object.hasOwn(nextExports, svgExportPath)) {
-    nextExports[svgExportPath] = svgExportTarget;
-  }
+  if (JSON.stringify(packageExports) === JSON.stringify(nextExports)) return;
 
   await writeFile(
     targetPackageJsonPath,
@@ -48,12 +39,24 @@ export const writeEventIconSvgFiles = async ({ icons, outDir }) => {
   );
 };
 
+export const copyStaticSvgFiles = async ({ root = packageRoot } = {}) => {
+  await Promise.all(
+    ['brand'].map(async (groupName) => {
+      const outDir = resolve(root, 'dist', groupName, 'svg');
+
+      await rm(outDir, { force: true, recursive: true });
+      await cp(resolve(root, 'src', groupName, 'svg'), outDir, { recursive: true });
+    }),
+  );
+};
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const { EVENT_ICON_SVGS } = await import('../dist/index.mjs');
+  const { EVENT_ICON_SVGS } = await import('../dist/events/index.mjs');
 
   await writeEventIconSvgFiles({
     icons: EVENT_ICON_SVGS,
-    outDir: resolve(packageRoot, 'dist/svg'),
+    outDir: resolve(packageRoot, 'dist/events/svg'),
   });
-  await syncEventIconSvgExport();
+  await copyStaticSvgFiles();
+  await syncIconStaticAssetExports();
 }

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Button } from '@deweyou-design/react/button';
 import { Input } from '@deweyou-design/react/input';
 import { Tooltip } from '@deweyou-design/react/tooltip';
+import { BRAND_ICON_SVGS } from '@cubegin/icons/brand';
+import { CubeginAnimatedIcon } from '@cubegin/icons/react';
 import type { WcaEventId } from '@cubegin/shared/wca';
 import {
   AddIcon,
@@ -20,7 +22,6 @@ import { SolveList } from './solve-list';
 import { SolveStatisticsPanel } from './solve-statistics-panel';
 import { StorageAlert } from './storage-alert';
 import type { TimerLocale, TimerMessages } from '../timer-i18n';
-import cubeginMarkUrl from '../../assets/cubegin-mark.svg';
 import styles from './timer-sidebar.module.css';
 
 interface TimerSidebarProps {
@@ -38,6 +39,7 @@ interface TimerSidebarProps {
   sessions: SolveSession[];
   isCollapsed: boolean;
   solves: SolveRecord[];
+  themeMode: 'light' | 'dark';
   toggleSidebarLabel: string;
 }
 
@@ -56,11 +58,13 @@ export const TimerSidebar = ({
   sessions,
   isCollapsed,
   solves,
+  themeMode,
   toggleSidebarLabel,
 }: TimerSidebarProps) => {
   const [name, setName] = useState('');
   const [isSessionMenuOpen, setIsSessionMenuOpen] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [isBrandHovering, setIsBrandHovering] = useState(false);
 
   const activeSession = sessions.find((session) => session.id === activeSessionId);
   const visibleSessions = sessions.filter((session) => session.eventId === eventId);
@@ -71,6 +75,8 @@ export const TimerSidebar = ({
     activeSession?.isDefault || (!activeSession && defaultSession)
       ? messages.defaultSession
       : (activeSession?.name ?? messages.defaultSession);
+  const wordmarkSvg =
+    BRAND_ICON_SVGS[themeMode === 'dark' ? 'cubegin-wordmark-dark' : 'cubegin-wordmark'];
   const navItems = [
     { id: 'timer', label: messages.timer, icon: <TimerNavIcon /> },
     { id: 'formula', label: messages.formulaLibrary, icon: <HistoryNavIcon /> },
@@ -106,8 +112,23 @@ export const TimerSidebar = ({
     <aside className={styles.root} data-collapsed={isCollapsed} aria-label={messages.sidebar}>
       <header className={styles.header}>
         <div className={styles.brandRow}>
-          <strong className={styles.brand}>
-            <img className={styles.brandLogo} src={cubeginMarkUrl} alt="Cubegin" />
+          <strong
+            className={styles.brand}
+            onMouseEnter={() => setIsBrandHovering(true)}
+            onMouseLeave={() => setIsBrandHovering(false)}
+          >
+            <CubeginAnimatedIcon
+              className={styles.brandLogo}
+              isPlaying={isBrandHovering}
+              size={32}
+              title="Cubegin"
+              trigger="manual"
+            />
+            <span
+              className={styles.wordmark}
+              aria-hidden="true"
+              dangerouslySetInnerHTML={{ __html: wordmarkSvg }}
+            />
           </strong>
           <Tooltip.Root placement="bottom">
             <Tooltip.Trigger>

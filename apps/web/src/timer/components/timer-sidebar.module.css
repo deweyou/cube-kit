@@ -47,6 +47,7 @@
   display: grid;
   gap: 10px;
   padding: 18px var(--sidebar-inline-padding) 14px;
+  z-index: 4;
 }
 
 .brandRow {
@@ -69,21 +70,42 @@
 
 .brand {
   align-items: center;
-  flex: 0 0 28px;
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--ui-color-text);
   display: inline-flex;
   font-size: 0.95rem;
   font-weight: 700;
-  gap: 7px;
-  justify-content: center;
+  gap: 8px;
+  justify-content: flex-start;
   letter-spacing: 0;
 }
 
 .brandLogo {
   display: block;
   flex: 0 0 auto;
-  height: 22px;
-  width: 22px;
+  height: 32px;
+  width: 32px;
+}
+
+.brand:hover .brandLogo :global(.cubegin-animated-icon__piece) {
+  animation: cubegin-brand-spin 1.1s cubic-bezier(0.16, 0.67, 0.27, 1) forwards;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  width: 78px;
+}
+
+.wordmark svg {
+  display: block;
+  width: 78px;
+  height: auto;
+  max-height: 22px;
 }
 
 .eventSelector {
@@ -93,16 +115,16 @@
 }
 
 .eventSelector :global(button) {
-  font-size: 0.82rem;
-  min-height: 28px;
+  font-size: 0.88rem;
+  min-height: 32px;
   min-width: 0;
-  padding-inline: 0 2px;
+  padding-inline: 6px 4px;
   width: 100%;
 }
 
 .eventSelector :global(button svg) {
-  height: 11px;
-  width: 11px;
+  height: 13px;
+  width: 13px;
 }
 
 .navRow {
@@ -114,12 +136,23 @@
 .nav {
   align-items: center;
   display: inline-flex;
-  gap: 2px;
+  gap: 16px;
 }
 
 .navButton,
 .navButtonActive {
+  --button-ghost-background-active: transparent;
+  --button-ghost-background-hover: transparent;
+  --button-height: 32px;
+  --button-square-size: 32px;
+  --ui-touch-target-min: 32px;
+  background: transparent;
+  border-color: transparent;
   border-radius: var(--ui-radius-pill);
+  color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
+  height: 32px;
+  padding: 0;
+  width: 32px;
 }
 
 .navButtonActive {
@@ -127,9 +160,24 @@
   color: var(--ui-color-brand-text);
 }
 
+.navButton:hover,
 .navButtonActive:hover {
   background: transparent;
   color: var(--ui-color-brand-text);
+}
+
+.navButton:disabled,
+.navButtonActive:disabled {
+  background: transparent;
+  color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
+  opacity: 1;
+}
+
+.navButton :global(svg),
+.navButtonActive :global(svg) {
+  display: block;
+  height: 20px;
+  width: 20px;
 }
 
 .controls {
@@ -367,12 +415,24 @@
 }
 
 .root[data-collapsed='true'] .brand {
+  flex: 0 0 auto;
   font-size: 0.9rem;
+  gap: 6px;
+  justify-content: flex-start;
 }
 
 .root[data-collapsed='true'] .brandLogo {
-  height: 20px;
-  width: 20px;
+  height: 32px;
+  width: 32px;
+}
+
+.root[data-collapsed='true'] .wordmark,
+.root[data-collapsed='true'] .wordmark svg {
+  width: 72px;
+}
+
+.root[data-collapsed='true'] .wordmark svg {
+  max-height: 20px;
 }
 
 .root[data-collapsed='true'] .sidebarToggleButton {
@@ -395,6 +455,16 @@
   pointer-events: none;
   transform: translateX(-16px);
   visibility: hidden;
+}
+
+@keyframes cubegin-brand-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(378deg);
+  }
 }
 
 @media (max-width: 860px) {

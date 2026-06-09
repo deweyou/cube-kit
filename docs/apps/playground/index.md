@@ -32,6 +32,8 @@ solver packages without wiring them into production apps.
 - The SVG preview includes a `2D` / `3D` image-view switch. `2D` is the default
   net renderer; `3D` requests the optional isometric `scramble-image` renderer
   and naturally falls back for unsupported event families.
+- The Icons tab previews `@cubegin/icons` brand SVG assets, animated React
+  components, and WCA event SVG assets with shared size and background controls.
 
 ## Verify
 
