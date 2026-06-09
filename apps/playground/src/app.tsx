@@ -1,5 +1,7 @@
 import { type CSSProperties, useState } from 'react';
-import { EVENT_ICON_SVGS } from '@cubegin/event-icons';
+import { BRAND_ICON_SVGS, type BrandIconId } from '@cubegin/icons/brand';
+import { EVENT_ICON_SVGS } from '@cubegin/icons/events';
+import { CubeginAnimatedIcon, type CubeginAnimatedIconTrigger } from '@cubegin/icons/react';
 import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubegin/shared/wca';
 import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleFullEventId } from '@cubegin/solver';
 import { writeScramblesToClipboard } from './playground/copy';
@@ -9,16 +11,58 @@ import { type PlaygroundService, usePlayground } from './playground/use-playgrou
 
 type PlaygroundState = ReturnType<typeof usePlayground>;
 
-const EVENT_ICON_PREVIEW_SIZES = [24, 64, 100, 128, 160] as const;
-type EventIconPreviewSize = (typeof EVENT_ICON_PREVIEW_SIZES)[number];
+const ICON_PREVIEW_SIZES = [24, 64, 100, 128, 160] as const;
+type IconPreviewSize = (typeof ICON_PREVIEW_SIZES)[number];
 
-const EVENT_ICON_PREVIEW_BACKGROUNDS = [
+const ICON_PREVIEW_BACKGROUNDS = [
   { label: 'White background', value: '#ffffff' },
   { label: 'Gray background', value: '#e8edf1' },
   { label: 'Dark background', value: '#1f2a30' },
   { label: 'Blue background', value: '#6b99bd' },
 ] as const;
-type EventIconPreviewBackground = (typeof EVENT_ICON_PREVIEW_BACKGROUNDS)[number]['value'];
+type IconPreviewBackground = (typeof ICON_PREVIEW_BACKGROUNDS)[number]['value'];
+
+interface IconPreviewAsset {
+  readonly id: string;
+  readonly label: string;
+  readonly meta: string;
+  readonly previewSurface?: 'dark';
+  readonly svg: string;
+  readonly variant?: 'wide';
+}
+
+const BRAND_ICON_LABELS = {
+  'appicon-dark': 'App icon dark',
+  'appicon-gradient': 'App icon gradient',
+  'appicon-white': 'App icon white',
+  'cubegin-lockup-dark': 'Cubegin lockup dark',
+  'cubegin-lockup': 'Cubegin lockup',
+  'cubegin-mark': 'Cubegin mark',
+  'cubegin-wordmark-dark': 'Cubegin wordmark dark',
+  'cubegin-wordmark': 'Cubegin wordmark',
+} satisfies Record<BrandIconId, string>;
+
+const BRAND_ICON_IDS = Object.keys(BRAND_ICON_SVGS) as BrandIconId[];
+
+const ANIMATED_ICON_PREVIEWS = [
+  {
+    id: 'cubegin-entrance-hover',
+    label: 'Cubegin entrance hover',
+    meta: 'react: trigger=hover',
+    trigger: 'hover',
+  },
+  {
+    id: 'cubegin-entrance-loop',
+    label: 'Cubegin entrance loop',
+    meta: 'react: trigger=loop',
+    trigger: 'loop',
+  },
+] satisfies readonly {
+  readonly id: string;
+  readonly label: string;
+  readonly meta: string;
+  readonly trigger: CubeginAnimatedIconTrigger;
+}[];
 
 const SOLVER_EVENTS: readonly {
   readonly eventId: PuzzleAssistEventId;
@@ -266,8 +310,22 @@ export const App = ({ service }: AppProps = {}) => {
 };
 
 const IconsPage = () => {
-  const [previewSize, setPreviewSize] = useState<EventIconPreviewSize>(100);
-  const [previewBackground, setPreviewBackground] = useState<EventIconPreviewBackground>('#ffffff');
+  const [previewSize, setPreviewSize] = useState<IconPreviewSize>(100);
+  const [previewBackground, setPreviewBackground] = useState<IconPreviewBackground>('#ffffff');
+  const brandIcons = BRAND_ICON_IDS.map((iconId) => ({
+    id: iconId,
+    label: BRAND_ICON_LABELS[iconId],
+    meta: `brand/svg/${iconId}.svg`,
+    previewSurface: iconId.endsWith('-dark') ? 'dark' : undefined,
+    svg: BRAND_ICON_SVGS[iconId],
+    variant: iconId.includes('lockup') || iconId.includes('wordmark') ? 'wide' : undefined,
+  })) satisfies IconPreviewAsset[];
+  const eventIcons = WCA_EVENT_IDS.map((eventId) => ({
+    id: eventId,
+    label: `${eventId} - ${WCA_EVENT_INFO[eventId].label}`,
+    meta: WCA_EVENT_INFO[eventId].puzzleId,
+    svg: EVENT_ICON_SVGS[eventId],
+  })) satisfies IconPreviewAsset[];
 
   return (
     <section
@@ -277,22 +335,22 @@ const IconsPage = () => {
       role="tabpanel"
       style={
         {
-          '--event-icon-frame-size': `${previewSize + 24}px`,
-          '--event-icon-preview-bg': previewBackground,
-          '--event-icon-size': `${previewSize}px`,
+          '--icon-asset-frame-size': `${previewSize + 24}px`,
+          '--icon-asset-preview-bg': previewBackground,
+          '--icon-asset-size': `${previewSize}px`,
         } as CSSProperties
       }
     >
       <section className="panel icons-panel">
         <div className="icons-panel-header">
           <div className="panel-heading">
-            <p className="eyebrow">event-icons</p>
-            <h2>WCA event icons</h2>
+            <p className="eyebrow">icons</p>
+            <h2>Cubegin icon assets</h2>
           </div>
 
           <div className="icon-preview-controls">
             <div className="icon-bg-control" role="group" aria-label="Icon background">
-              {EVENT_ICON_PREVIEW_BACKGROUNDS.map(({ label, value }) => (
+              {ICON_PREVIEW_BACKGROUNDS.map(({ label, value }) => (
                 <button
                   aria-label={label}
                   aria-pressed={previewBackground === value}
@@ -300,7 +358,7 @@ const IconsPage = () => {
                     previewBackground === value ? 'icon-bg-option selected' : 'icon-bg-option'
                   }
                   key={value}
-                  style={{ '--event-icon-bg-swatch': value } as CSSProperties}
+                  style={{ '--icon-bg-swatch': value } as CSSProperties}
                   title={label}
                   type="button"
                   onClick={() => setPreviewBackground(value)}
@@ -309,7 +367,7 @@ const IconsPage = () => {
             </div>
 
             <div className="icon-size-control" role="group" aria-label="Icon size">
-              {EVENT_ICON_PREVIEW_SIZES.map((size) => (
+              {ICON_PREVIEW_SIZES.map((size) => (
                 <button
                   aria-pressed={previewSize === size}
                   className={
@@ -326,32 +384,75 @@ const IconsPage = () => {
           </div>
         </div>
 
-        <div className="event-icon-grid" aria-label="WCA event icons">
-          {WCA_EVENT_IDS.map((eventId) => (
-            <article
-              className="event-icon-card"
-              data-testid={`event-icon-${eventId}`}
-              id={`event-icon-${eventId}`}
-              key={eventId}
-            >
-              <div
-                className="event-icon-preview"
-                data-testid={`event-icon-svg-${eventId}`}
-                dangerouslySetInnerHTML={{ __html: EVENT_ICON_SVGS[eventId] }}
-              />
-              <div className="event-icon-copy">
-                <strong>
-                  {eventId} - {WCA_EVENT_INFO[eventId].label}
-                </strong>
-                <span>{WCA_EVENT_INFO[eventId].puzzleId}</span>
-              </div>
-            </article>
-          ))}
-        </div>
+        <IconAssetSection assets={brandIcons} heading="Brand assets" testIdPrefix="brand-icon" />
+        <AnimatedIconSection />
+        <IconAssetSection assets={eventIcons} heading="WCA event icons" testIdPrefix="event-icon" />
       </section>
     </section>
   );
 };
+
+const AnimatedIconSection = () => (
+  <section className="icon-asset-section" aria-labelledby="animated-icon-heading">
+    <h3 id="animated-icon-heading">Animated React icons</h3>
+    <div className="icon-asset-grid" aria-label="Animated React icons">
+      {ANIMATED_ICON_PREVIEWS.map((asset) => (
+        <article
+          className="icon-asset-card"
+          data-testid={`animated-icon-${asset.id}`}
+          key={asset.id}
+        >
+          <div className="icon-asset-preview" data-testid={`animated-icon-svg-${asset.id}`}>
+            <CubeginAnimatedIcon trigger={asset.trigger} />
+          </div>
+          <div className="icon-asset-copy">
+            <strong>{asset.label}</strong>
+            <span>{asset.meta}</span>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+);
+
+const IconAssetSection = ({
+  assets,
+  heading,
+  testIdPrefix,
+}: {
+  readonly assets: readonly IconPreviewAsset[];
+  readonly heading: string;
+  readonly testIdPrefix: string;
+}) => (
+  <section className="icon-asset-section" aria-labelledby={`${testIdPrefix}-heading`}>
+    <h3 id={`${testIdPrefix}-heading`}>{heading}</h3>
+    <div className="icon-asset-grid" aria-label={heading}>
+      {assets.map((asset) => (
+        <article
+          className={asset.variant === 'wide' ? 'icon-asset-card wide' : 'icon-asset-card'}
+          data-testid={`${testIdPrefix}-${asset.id}`}
+          id={`${testIdPrefix}-${asset.id}`}
+          key={asset.id}
+        >
+          <div
+            className="icon-asset-preview"
+            data-testid={`${testIdPrefix}-svg-${asset.id}`}
+            style={
+              asset.previewSurface === 'dark'
+                ? ({ '--icon-asset-local-bg': '#1f2a30' } as CSSProperties)
+                : undefined
+            }
+            dangerouslySetInnerHTML={{ __html: asset.svg }}
+          />
+          <div className="icon-asset-copy">
+            <strong>{asset.label}</strong>
+            <span>{asset.meta}</span>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+);
 
 const ScramblePage = ({
   actionMessage,

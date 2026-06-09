@@ -1,22 +1,26 @@
 # cubegin
 
 Public Cubegin npm entrypoints for TNoodle-compatible scramble generation,
-scramble SVG rendering, puzzle notation/state helpers, and WCA event icons.
+scramble SVG rendering, puzzle notation/state helpers, and Cubegin icon assets.
 
 The package intentionally does not expose a root API. Import one of the
 published subpaths instead:
 
 ```ts
 import { createDefaultScrambleGenerator } from 'cubegin/scramble-core';
-import { EVENT_ICON_333_SVG, EVENT_ICON_SVGS } from 'cubegin/event-icons';
+import { EVENT_ICON_333_SVG, EVENT_ICON_SVGS } from 'cubegin/icons/events';
+import { BRAND_ICON_CUBEGIN_MARK_SVG } from 'cubegin/icons/brand';
+import { CubeginAnimatedIcon } from 'cubegin/icons/react';
 import { renderScrambleImage } from 'cubegin/scramble-image';
 import { WCA_EVENT_IDS } from 'cubegin/scramble-puzzle';
 ```
 
 ## Entrypoints
 
-- `cubegin/event-icons` bundles the `@cubegin/event-icons` implementation.
-- `cubegin/event-icons/svg/<eventId>.svg` exposes generated per-event SVG files.
+- `cubegin/icons` bundles the `@cubegin/icons` implementation.
+- `cubegin/icons/events/svg/<eventId>.svg` exposes generated per-event SVG files.
+- `cubegin/icons/brand/svg/<iconId>.svg` exposes imported brand SVG files.
+- `cubegin/icons/react` exposes React components for interactive Cubegin mark animations.
 - `cubegin/scramble-core` bundles the `@cubegin/scramble-core` implementation.
 - `cubegin/scramble-image` bundles the `@cubegin/scramble-image` implementation.
 - `cubegin/scramble-puzzle` bundles the `@cubegin/scramble-puzzle` implementation.

@@ -206,6 +206,30 @@ describe('TimerPage', () => {
     expect(renderScrambleImage).not.toHaveBeenCalledWith('222', "R U R' U'");
   });
 
+  it('optimistically switches event controls while a slow scramble is loading', async () => {
+    let resolveFourByFour: (result: { eventId: '444'; scramble: string }) => void = () => {};
+    generate.mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" }).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFourByFour = resolve;
+        }),
+    );
+
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    await screen.findAllByText("R U R' U'");
+    const eventSelector = screen.getByRole('combobox', { name: '魔方类型' }) as HTMLSelectElement;
+    await userEvent.selectOptions(eventSelector, '444');
+
+    expect(eventSelector.value).toBe('444');
+    expect(screen.getAllByText(TIMER_MESSAGES['zh-CN'].scrambleLoading)).not.toHaveLength(0);
+    expect(screen.queryByText("R U R' U'")).toBeNull();
+
+    resolveFourByFour({ eventId: '444', scramble: "R U R' F" });
+
+    expect(await screen.findAllByText("R U R' F")).toHaveLength(2);
+  });
+
   it('starts with the start button, saves +2, and lists the solve', async () => {
     generate
       .mockResolvedValueOnce({ eventId: '333', scramble: 'R U' })

@@ -112,30 +112,43 @@ export const ThemeMoonIcon = ({ size = 18 }: TimerIconProps) => (
       strokeLinejoin="round"
       strokeWidth="2"
     />
-    <path
-      d="M18 4v3M16.5 5.5h3"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeWidth="1.7"
-    />
+    <path d="M18 4v3M16.5 5.5h3" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
   </svg>
 );
 
 export const SidebarCollapseIcon = ({ size = 18 }: TimerIconProps) => (
   <svg {...iconProps(size)}>
-    <path d="m15 6-6 6 6 6" stroke="currentColor" strokeLinecap="square" strokeLinejoin="round" strokeWidth="2" />
+    <path
+      d="m7 7 10 10M17 7 7 17"
+      stroke="currentColor"
+      strokeLinecap="square"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
   </svg>
 );
 
 export const SidebarExpandIcon = ({ size = 18 }: TimerIconProps) => (
   <svg {...iconProps(size)}>
-    <path d="m9 6 6 6-6 6" stroke="currentColor" strokeLinecap="square" strokeLinejoin="round" strokeWidth="2" />
+    <path
+      d="m9 6 6 6-6 6"
+      stroke="currentColor"
+      strokeLinecap="square"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
   </svg>
 );
 
 export const LanguageIcon = ({ size = 18 }: TimerIconProps) => (
   <svg {...iconProps(size)}>
-    <path d="M4 5h9M8.5 3v2M10.5 5c-.8 3.2-3 5.8-6 7.5M6 8c1.2 2 2.9 3.4 5 4.3M13 20l4-9 4 9M14.4 17h5.2" stroke="currentColor" strokeLinecap="square" strokeLinejoin="round" strokeWidth="2" />
+    <path
+      d="M4 5h9M8.5 3v2M10.5 5c-.8 3.2-3 5.8-6 7.5M6 8c1.2 2 2.9 3.4 5 4.3M13 20l4-9 4 9M14.4 17h5.2"
+      stroke="currentColor"
+      strokeLinecap="square"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
   </svg>
 );
 

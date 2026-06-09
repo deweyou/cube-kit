@@ -6,13 +6,13 @@
   "scripts": {
     "dev": "pnpm run prepare:deps && vp dev",
     "build": "pnpm run prepare:deps && tsc && vp build",
-    "prepare:deps": "pnpm --filter @cubegin/shared build && pnpm --filter @cubegin/scramble-puzzle build && pnpm --filter @cubegin/event-icons build && pnpm --filter @cubegin/solver build && pnpm --filter @cubegin/scramble-core build && pnpm --filter @cubegin/scramble-image build",
+    "prepare:deps": "pnpm --filter @cubegin/shared build && pnpm --filter @cubegin/scramble-puzzle build && pnpm --filter @cubegin/icons build && pnpm --filter @cubegin/solver build && pnpm --filter @cubegin/scramble-core build && pnpm --filter @cubegin/scramble-image build",
     "preview": "vp preview",
     "test": "pnpm run prepare:deps && vp test",
     "typecheck": "pnpm run prepare:deps && tsc --noEmit"
   },
   "dependencies": {
-    "@cubegin/event-icons": "workspace:*",
+    "@cubegin/icons": "workspace:*",
     "@cubegin/scramble-core": "workspace:*",
     "@cubegin/scramble-image": "workspace:*",
     "@cubegin/shared": "workspace:*",

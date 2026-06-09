@@ -14,8 +14,12 @@ describe('cubegin package exports', () => {
   it('keeps the package root private and exposes selected public subpaths', () => {
     expect(Object.hasOwn(packageJson.exports, '.')).toBe(false);
     expect(packageJson.exports).toMatchObject({
-      './event-icons': './dist/event-icons.mjs',
-      './event-icons/svg/*': './dist/event-icons/svg/*',
+      './icons': './dist/icons.mjs',
+      './icons/brand': './dist/icons/brand.mjs',
+      './icons/brand/svg/*': './dist/icons/brand/svg/*',
+      './icons/events': './dist/icons/events.mjs',
+      './icons/events/svg/*': './dist/icons/events/svg/*',
+      './icons/react': './dist/icons/react.mjs',
       './scramble-core': './dist/scramble-core.mjs',
       './scramble-image': './dist/scramble-image.mjs',
       './scramble-puzzle': './dist/scramble-puzzle.mjs',

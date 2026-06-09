@@ -31,6 +31,11 @@ const THEME_STORAGE_KEY = 'cubegin-theme';
 const LANGUAGE_STORAGE_KEY = 'cubegin-language';
 const SIDEBAR_MOBILE_QUERY = '(max-width: 860px)';
 
+const waitForLoadingPaint = () =>
+  new Promise<void>((resolve) => {
+    window.setTimeout(resolve, 0);
+  });
+
 const getMultiBlindCubeCount = (eventId: WcaEventId): number | undefined =>
   eventId === '333mbld' ? DEFAULT_MULTI_BLIND_CUBE_COUNT : undefined;
 
@@ -89,6 +94,8 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
   const [finalElapsed, setFinalElapsed] = useState(0);
   const [selectedSolveId, setSelectedSolveId] = useState<string>();
   const [runtimeStorageError, setRuntimeStorageError] = useState<string>();
+  const [displayEventId, setDisplayEventId] = useState<WcaEventId>('333');
+  const [isEventTransitionPending, setIsEventTransitionPending] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
     if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme;
@@ -133,6 +140,8 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
       latestScrambleRequestId.current = requestId;
       setIsScrambleLoading(true);
       setScrambleError(undefined);
+      await waitForLoadingPaint();
+      if (latestScrambleRequestId.current !== requestId) return;
 
       try {
         const result = await generator.generate(nextEventId, {
@@ -156,16 +165,27 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
 
   useEffect(() => {
     if (!sessionState.isReady) return;
-    void loadScramble(sessionState.eventId);
-  }, [loadScramble, sessionState.eventId, sessionState.isReady]);
+    void loadScramble(displayEventId);
+  }, [displayEventId, loadScramble, sessionState.isReady]);
+
+  useEffect(() => {
+    if (isEventTransitionPending) return;
+    setDisplayEventId(sessionState.eventId);
+  }, [isEventTransitionPending, sessionState.eventId]);
 
   const handleStart = useCallback(() => {
-    if (pageState !== 'scramble' || isScrambleLoading || scrambleError || scramble.length === 0) {
+    if (
+      pageState !== 'scramble' ||
+      isScrambleLoading ||
+      isEventTransitionPending ||
+      scrambleError ||
+      scramble.length === 0
+    ) {
       return;
     }
     start();
     setPageState('timing');
-  }, [isScrambleLoading, pageState, scramble, scrambleError, start]);
+  }, [isEventTransitionPending, isScrambleLoading, pageState, scramble, scrambleError, start]);
 
   const handleStop = useCallback(() => {
     const ms = stop();
@@ -204,15 +224,27 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
   );
 
   const handleRefresh = useCallback(() => {
-    void loadScramble(sessionState.eventId);
-  }, [sessionState.eventId, loadScramble]);
+    void loadScramble(displayEventId);
+  }, [displayEventId, loadScramble]);
 
   const handleEventChange = useCallback(
     async (id: WcaEventId) => {
+      setPageState('scramble');
+      setSelectedSolveId(undefined);
+      setDisplayEventId(id);
       setScramble('');
       setScrambleError(undefined);
       setIsScrambleLoading(true);
-      await sessionState.selectEvent(id);
+      setIsEventTransitionPending(true);
+      try {
+        await sessionState.selectEvent(id);
+        setRuntimeStorageError(undefined);
+      } catch (cause) {
+        setRuntimeStorageError(cause instanceof Error ? cause.message : String(cause));
+        setDisplayEventId(sessionState.eventId);
+      } finally {
+        setIsEventTransitionPending(false);
+      }
     },
     [sessionState],
   );
@@ -221,6 +253,9 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
     async (sessionId: string) => {
       const transition = await sessionState.selectSession(sessionId);
       if (transition?.shouldGenerateScramble) {
+        setPageState('scramble');
+        setSelectedSolveId(undefined);
+        setDisplayEventId(transition.eventId);
         setScramble('');
         setScrambleError(undefined);
         setIsScrambleLoading(true);
@@ -295,10 +330,11 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
       <TimerSidebar
         sessions={sessionState.sessions}
         activeSessionId={sessionState.activeSessionId}
-        eventId={sessionState.eventId}
+        eventId={displayEventId}
         error={sidebarError}
         isCollapsed={isSidebarCollapsed}
         solves={sessionState.solves}
+        themeMode={themeMode}
         onCreateSession={(name) => void handleCreateSession(name)}
         onDeleteSession={(sessionId) => void sessionState.deleteSession(sessionId)}
         onEventChange={(id) => void handleEventChange(id)}
@@ -317,7 +353,7 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
               isIconOnly
               label={messages.eventSelectorLabel}
               locale={locale}
-              value={sessionState.eventId}
+              value={displayEventId}
               onChange={(id) => void handleEventChange(id)}
             />
           </div>
@@ -358,10 +394,10 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
       <main className={styles.stage} aria-label={messages.timerPage}>
         {pageState === 'scramble' && (
           <ScrambleView
-            eventId={sessionState.eventId}
+            eventId={displayEventId}
             scramble={scramble}
             error={scrambleError}
-            isLoading={isScrambleLoading}
+            isLoading={isScrambleLoading || isEventTransitionPending}
             isReady={isReady}
             messages={messages}
             onCancelReady={cancelReady}

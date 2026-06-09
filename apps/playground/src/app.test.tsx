@@ -51,13 +51,25 @@ describe('App', () => {
     expect(screen.getByLabelText('MultiBLD cubes')).toBeTruthy();
   });
 
-  it('shows every WCA event icon in the playground gallery', async () => {
+  it('shows Cubegin brand, animated React, and WCA event icons in the playground gallery', async () => {
     renderTestApp();
 
     await userEvent.click(screen.getByRole('tab', { name: 'Icons' }));
 
     expect(screen.getByRole('tabpanel', { name: 'Icons' })).toBeTruthy();
+    expect(screen.getAllByTestId(/^brand-icon-svg-/)).toHaveLength(8);
+    expect(screen.getAllByTestId(/^animated-icon-svg-/)).toHaveLength(2);
     expect(screen.getAllByTestId(/^event-icon-svg-/)).toHaveLength(17);
+    expect(screen.getByTestId('brand-icon-svg-cubegin-mark').querySelector('svg')).toBeTruthy();
+    const entranceHoverIcon = screen
+      .getByTestId('animated-icon-svg-cubegin-entrance-hover')
+      .querySelector('svg');
+    const entranceLoopIcon = screen
+      .getByTestId('animated-icon-svg-cubegin-entrance-loop')
+      .querySelector('svg');
+
+    expect(entranceHoverIcon?.getAttribute('data-trigger')).toBe('hover');
+    expect(entranceLoopIcon?.getAttribute('data-trigger')).toBe('loop');
     expect(screen.getByText('333 - 3x3x3 Cube')).toBeTruthy();
     expect(screen.getByTestId('event-icon-svg-333').querySelector('svg')).toBeTruthy();
     expect(screen.getByTestId('event-icon-333mbld').textContent).toContain('333mbld');
@@ -71,7 +83,7 @@ describe('App', () => {
 
     expect(screen.getByRole('button', { name: '128' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByRole('tabpanel', { name: 'Icons' }).getAttribute('style')).toContain(
-      '--event-icon-size: 128px',
+      '--icon-asset-size: 128px',
     );
   });
 
@@ -85,7 +97,7 @@ describe('App', () => {
       screen.getByRole('button', { name: 'Dark background' }).getAttribute('aria-pressed'),
     ).toBe('true');
     expect(screen.getByRole('tabpanel', { name: 'Icons' }).getAttribute('style')).toContain(
-      '--event-icon-preview-bg: #1f2a30',
+      '--icon-asset-preview-bg: #1f2a30',
     );
   });
 
@@ -225,7 +237,7 @@ describe('App', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Solve' }));
 
     expect(await screen.findByText('clock-inverse')).toBeTruthy();
-    expect(screen.getByText("UR1- y2 DR1+")).toBeTruthy();
+    expect(screen.getByText('UR1- y2 DR1+')).toBeTruthy();
     expect(screen.getByText(/Move count/i)).toBeTruthy();
   });
 
@@ -281,7 +293,7 @@ const fakeService = (): PlaygroundService => ({
       result: {
         eventId: input.eventId,
         scramble: input.scramble,
-        solution: "UR1- y2 DR1+",
+        solution: 'UR1- y2 DR1+',
         moveCount: 2,
         engine: 'clock-inverse' as const,
       },

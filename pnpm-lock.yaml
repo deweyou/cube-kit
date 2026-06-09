@@ -57,9 +57,9 @@ importers:
 
   apps/playground:
     dependencies:
-      '@cubegin/event-icons':
+      '@cubegin/icons':
         specifier: workspace:*
-        version: link:../../packages/event-icons
+        version: link:../../packages/icons
       '@cubegin/scramble-core':
         specifier: workspace:*
         version: link:../../packages/scramble-core
@@ -121,9 +121,9 @@ importers:
 
   apps/web:
     dependencies:
-      '@cubegin/event-icons':
+      '@cubegin/icons':
         specifier: workspace:*
-        version: link:../../packages/event-icons
+        version: link:../../packages/icons
       '@cubegin/scramble-core':
         specifier: workspace:*
         version: link:../../packages/scramble-core
@@ -216,9 +216,9 @@ importers:
 
   packages/core:
     devDependencies:
-      '@cubegin/event-icons':
+      '@cubegin/icons':
         specifier: workspace:*
-        version: link:../event-icons
+        version: link:../icons
       '@cubegin/scramble-core':
         specifier: workspace:*
         version: link:../scramble-core
@@ -237,6 +237,12 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.12.2
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.14
+      react:
+        specifier: 'catalog:'
+        version: 19.2.5
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -250,7 +256,7 @@ importers:
         specifier: npm:@voidzero-dev/vite-plus-test@latest
         version: '@voidzero-dev/vite-plus-test@0.1.19(@types/node@24.12.2)(@vitest/coverage-v8@4.1.4)(@voidzero-dev/vite-plus-core@0.1.19(@types/node@24.12.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3))(jsdom@29.0.2)(sass@1.99.0)(terser@5.46.1)(typescript@5.9.3)(yaml@2.8.3)'
 
-  packages/event-icons:
+  packages/icons:
     devDependencies:
       '@cubegin/scramble-puzzle':
         specifier: workspace:*
@@ -258,6 +264,12 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.12.2
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.14
+      react:
+        specifier: 'catalog:'
+        version: 19.2.5
       typescript:
         specifier: 'catalog:'
         version: 5.9.3

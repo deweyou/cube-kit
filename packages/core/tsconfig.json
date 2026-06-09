@@ -6,7 +6,10 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "paths": {
-      "@cubegin/event-icons": ["../event-icons/src/index.ts"],
+      "@cubegin/icons": ["../icons/src/index.ts"],
+      "@cubegin/icons/brand": ["../icons/src/brand/index.ts"],
+      "@cubegin/icons/events": ["../icons/src/events/index.ts"],
+      "@cubegin/icons/react": ["../icons/src/react/index.tsx"],
       "@cubegin/scramble-core": ["../scramble-core/src/index.ts"],
       "@cubegin/scramble-image": ["../scramble-image/src/index.ts"],
       "@cubegin/scramble-puzzle": ["../scramble-puzzle/src/index.ts"],
