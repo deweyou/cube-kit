@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WCA_EVENT_IDS } from '@cubegin/scramble-puzzle';
+import { WCA_EVENT_IDS } from '@cubegin/shared/wca';
 import { createDefaultScrambleGenerator } from './generator.js';
 import type { RandomSource } from './random-source.js';
 

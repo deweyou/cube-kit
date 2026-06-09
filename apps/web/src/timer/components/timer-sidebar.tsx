@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@deweyou-design/react/button';
 import { Input } from '@deweyou-design/react/input';
 import { Tooltip } from '@deweyou-design/react/tooltip';
-import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/shared/wca';
 import {
   AddIcon,
   ChartNavIcon,
@@ -13,8 +13,8 @@ import {
   SidebarExpandIcon,
   TimerNavIcon,
 } from './timer-icons';
-import type { SolveRecord, SolveSession } from '@cubegin/timer-session';
-import { getDefaultSessionId } from '@cubegin/timer-session';
+import type { SolveRecord, SolveSession } from '@cubegin/shared/timer-session';
+import { getDefaultSessionId } from '@cubegin/shared/timer-session';
 import { EventSelector } from './event-selector';
 import { SolveList } from './solve-list';
 import { SolveStatisticsPanel } from './solve-statistics-panel';

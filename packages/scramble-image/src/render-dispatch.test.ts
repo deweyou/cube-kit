@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/shared/wca';
 
 describe('renderScrambleImage dispatch', () => {
   afterEach(() => {
-    vi.doUnmock('@cubegin/scramble-puzzle');
+    vi.doUnmock('@cubegin/shared/wca');
     vi.resetModules();
   });
 
@@ -44,8 +44,8 @@ describe('renderScrambleImage dispatch', () => {
 
   it('rejects a known cube event when no cube net size is configured for it', async () => {
     vi.resetModules();
-    vi.doMock('@cubegin/scramble-puzzle', async (importOriginal) => {
-      const actual = await importOriginal<typeof import('@cubegin/scramble-puzzle')>();
+    vi.doMock('@cubegin/shared/wca', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('@cubegin/shared/wca')>();
 
       return {
         ...actual,

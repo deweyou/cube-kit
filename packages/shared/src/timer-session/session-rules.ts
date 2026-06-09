@@ -1,4 +1,4 @@
-import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import type { WcaEventId } from '../wca';
 import { getWcaEventLabel } from './event-labels';
 import type { SessionTransition, SolveRecord, SolveSession } from './types';
 

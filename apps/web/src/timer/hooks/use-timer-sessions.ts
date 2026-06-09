@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/shared/wca';
 import {
   canDeleteSession,
   getDefaultSessionId,
@@ -10,7 +10,7 @@ import {
   type SolveRecord,
   type SolveSession,
   type TimerSessionRepository,
-} from '@cubegin/timer-session';
+} from '@cubegin/shared/timer-session';
 
 interface SaveSolveInput {
   eventId: WcaEventId;

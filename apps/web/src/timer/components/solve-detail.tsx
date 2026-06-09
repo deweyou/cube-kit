@@ -6,7 +6,7 @@ import {
   getWcaEventLabel,
   type SolvePenalty,
   type SolveRecord,
-} from '@cubegin/timer-session';
+} from '@cubegin/shared/timer-session';
 import { ScrambleImage } from './scramble-image';
 import type { TimerLocale, TimerMessages } from '../timer-i18n';
 
@@ -81,7 +81,8 @@ export const SolveDetail = ({
               {getSolveDisplayText(solve.elapsedMs, solve.penalty)}
             </strong>
             <span style={{ color: 'var(--ui-color-text-muted)', fontSize: '0.8rem' }}>
-              {getWcaEventLabel(solve.eventId, locale)} · {new Date(solve.createdAt).toLocaleString()}
+              {getWcaEventLabel(solve.eventId, locale)} ·{' '}
+              {new Date(solve.createdAt).toLocaleString()}
             </span>
           </div>
           <Button variant="link" color="neutral" size="sm" onClick={onClose}>

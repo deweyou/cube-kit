@@ -1,6 +1,6 @@
 import { type CSSProperties, useState } from 'react';
 import { EVENT_ICON_SVGS } from '@cubegin/event-icons';
-import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubegin/scramble-puzzle';
+import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubegin/shared/wca';
 import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleFullEventId } from '@cubegin/solver';
 import { writeScramblesToClipboard } from './playground/copy';
 import { createSvgDownloadName } from './playground/download';
@@ -622,9 +622,7 @@ const SolverPage = ({ playground }: { readonly playground: PlaygroundState }) =>
                 key={mode}
                 aria-pressed={playground.solverMode === mode}
                 className={
-                  playground.solverMode === mode
-                    ? 'segmented-option selected'
-                    : 'segmented-option'
+                  playground.solverMode === mode ? 'segmented-option selected' : 'segmented-option'
                 }
                 type="button"
                 onClick={() => void playground.setSolverMode(mode)}

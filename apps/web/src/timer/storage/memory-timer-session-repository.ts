@@ -1,4 +1,4 @@
-import { WCA_EVENT_IDS } from '@cubegin/scramble-puzzle';
+import { WCA_EVENT_IDS } from '@cubegin/shared/wca';
 import {
   createDefaultSession,
   sortSessionsByCreatedDesc,
@@ -7,7 +7,7 @@ import {
   type SolveRecord,
   type SolveSession,
   type TimerSessionRepository,
-} from '@cubegin/timer-session';
+} from '@cubegin/shared/timer-session';
 
 export const createMemoryTimerSessionRepository = (): TimerSessionRepository => {
   const sessions = new Map<string, SolveSession>();

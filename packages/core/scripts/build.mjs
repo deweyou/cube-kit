@@ -38,6 +38,35 @@ const listFiles = (directory) => {
 
 const isValidSubpath = (subpath) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(subpath);
 
+const resolveSourceExportPath = (exportTarget) => {
+  const match = /^\.[/](.+?)[/]index\.mjs$/.exec(exportTarget);
+  return match ? `src/${match[1]}/index.ts` : undefined;
+};
+
+const getVendoredAliases = (vendoredPackage) => {
+  const aliases = {
+    [vendoredPackage.packageName]: toPosix(
+      resolve(vendorRoot, vendoredPackage.vendorSubpath, 'src/index.ts'),
+    ),
+  };
+
+  for (const [exportPath, exportTarget] of Object.entries(
+    vendoredPackage.packageJson.exports ?? {},
+  )) {
+    if (exportPath === '.' || exportPath === './package.json') continue;
+    if (typeof exportTarget !== 'string') continue;
+
+    const sourceExportPath = resolveSourceExportPath(exportTarget);
+    if (!sourceExportPath) continue;
+
+    aliases[`${vendoredPackage.packageName}/${exportPath.slice(2)}`] = toPosix(
+      resolve(vendorRoot, vendoredPackage.vendorSubpath, sourceExportPath),
+    );
+  }
+
+  return aliases;
+};
+
 const discoverWorkspacePackages = () => {
   return readdirSync(packagesRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && entry.name !== 'core')
@@ -64,9 +93,7 @@ const discoverPublicPackages = (workspacePackages) => {
     .filter(({ directoryName, publicSubpath }) => {
       if (!publicSubpath) return false;
       if (!isValidSubpath(publicSubpath)) {
-        throw new Error(
-          `Invalid cubegin.publicSubpath '${publicSubpath}' in ${directoryName}`,
-        );
+        throw new Error(`Invalid cubegin.publicSubpath '${publicSubpath}' in ${directoryName}`);
       }
       return true;
     })
@@ -75,10 +102,7 @@ const discoverPublicPackages = (workspacePackages) => {
 
 const collectVendoredPackages = (publicPackages, workspacePackages) => {
   const workspacePackageByName = new Map(
-    workspacePackages.map((workspacePackage) => [
-      workspacePackage.packageName,
-      workspacePackage,
-    ]),
+    workspacePackages.map((workspacePackage) => [workspacePackage.packageName, workspacePackage]),
   );
   const vendoredPackageByName = new Map();
 
@@ -153,12 +177,7 @@ const prepareBuildTree = (publicPackages, vendoredPackages) => {
     });
   }
 
-  const aliases = Object.fromEntries(
-    vendoredPackages.map(({ packageName, vendorSubpath }) => [
-      packageName,
-      toPosix(resolve(vendorRoot, vendorSubpath, 'src/index.ts')),
-    ]),
-  );
+  const aliases = Object.assign({}, ...vendoredPackages.map(getVendoredAliases));
   const entry = Object.fromEntries(
     publicPackages.map(({ publicSubpath }) => [
       publicSubpath,

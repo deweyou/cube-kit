@@ -1,4 +1,4 @@
-import type { TimerLocale } from '@cubegin/timer-session';
+import type { TimerLocale } from '@cubegin/shared/timer-session';
 
 export type { TimerLocale };
 

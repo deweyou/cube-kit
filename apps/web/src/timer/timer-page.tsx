@@ -2,8 +2,12 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@deweyou-design/react/button';
 import { Tooltip } from '@deweyou-design/react/tooltip';
 import { createDefaultScrambleGenerator, createMathRandomSource } from '@cubegin/scramble-core';
-import type { WcaEventId } from '@cubegin/scramble-puzzle';
-import type { SolvePenalty, SolveRecord, TimerSessionRepository } from '@cubegin/timer-session';
+import type { WcaEventId } from '@cubegin/shared/wca';
+import type {
+  SolvePenalty,
+  SolveRecord,
+  TimerSessionRepository,
+} from '@cubegin/shared/timer-session';
 import { useTimer } from './hooks/use-timer';
 import { useTimerGesture } from './hooks/use-timer-gesture';
 import { useTimerSessions } from './hooks/use-timer-sessions';

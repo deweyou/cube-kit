@@ -31,6 +31,7 @@
     "@cubegin/scramble-core": "workspace:*",
     "@cubegin/scramble-image": "workspace:*",
     "@cubegin/scramble-puzzle": "workspace:*",
+    "@cubegin/shared": "workspace:*",
     "@cubegin/solver": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",

@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@cubegin/scramble-puzzle": "workspace:*",
+    "@cubegin/shared": "workspace:*",
     "@cubegin/solver": "workspace:*"
   },
   "devDependencies": {

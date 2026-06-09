@@ -11,10 +11,10 @@ flowchart TD
     Apps --> ScrambleDocs["apps/scramble-docs VitePress learning site"]
     Apps --> Wx["apps/wx-app Taro shell"]
     Web --> TimerPage["TimerPage"]
-    TimerPage --> TimerPkg["@cubegin/timer"]
-    TimerPage --> TimerSessionPkg["@cubegin/timer-session"]
+    TimerPage --> SharedTimer["@cubegin/shared/timer"]
+    TimerPage --> SharedTimerSession["@cubegin/shared/timer-session"]
     Packages --> PublicCore["cubegin npm package"]
-    Packages --> TimerSessionPkg
+    Packages --> SharedPkg["@cubegin/shared"]
     Packages --> PuzzlePkg["@cubegin/scramble-puzzle"]
     Packages --> CorePkg["@cubegin/scramble-core"]
     Packages --> ImagePkg["@cubegin/scramble-image"]
@@ -28,15 +28,22 @@ flowchart TD
     ImagePath --> ImagePkg
     PuzzlePath --> PuzzlePkg
     IconPath --> EventIconsPkg
+    SharedPkg --> SharedWca["shared/wca"]
+    SharedPkg --> SharedTimer
+    SharedPkg --> SharedTimerSession
+    CorePkg --> SharedPkg
     CorePkg --> PuzzlePkg
+    ImagePkg --> SharedPkg
     ImagePkg --> PuzzlePkg
     SolverPkg --> PuzzlePkg
+    PuzzlePkg --> SharedPkg
+    TimerPage --> SharedPkg
     TimerPage --> CorePkg
     TimerPage --> ImagePkg
-    TimerPage --> PuzzlePkg
     Playground --> CorePkg
     Playground --> ImagePkg
     Playground --> PuzzlePkg
+    Playground --> SharedPkg
     Playground --> SolverPkg
     ScrambleDocs --> CorePkg
     ScrambleDocs --> ImagePkg
@@ -58,10 +65,9 @@ apps/web/              React 18 web/H5 app and timer UI
 apps/playground/       React scramble generator/image testing workbench
 apps/scramble-docs/    VitePress bilingual scramble learning site
 apps/wx-app/           Taro WeChat miniprogram shell
-packages/timer/        platform-agnostic timer state and formatting
-packages/timer-session/ platform-agnostic solve/session rules and record formatting
+packages/shared/       platform-agnostic WCA constants, timer state, and session rules
 packages/core/         public cubegin npm package subpath exports
-packages/scramble-puzzle/  TNoodle-compatible event ids, parsers, and states
+packages/scramble-puzzle/  TNoodle-compatible parsers, puzzle states, and registry helpers
 packages/scramble-core/    TNoodle-compatible WCA scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
 packages/event-icons/      Platform-agnostic WCA event SVG icons
@@ -80,8 +86,8 @@ scripts/               lightweight repository checks
 - [apps/web/src/app.tsx#L1](../apps/web/src/app.tsx#L1) wraps
   [TimerPage](../apps/web/src/timer/timer-page.tsx#L14) in the app shell.
 - `TimerPage` owns the page-level `scramble -> timing -> result` state, uses
-  IndexedDB for web solve persistence, and calls `@cubegin/timer`,
-  `@cubegin/timer-session`, `@cubegin/scramble-core`, and
+  IndexedDB for web solve persistence, and calls `@cubegin/shared/timer`,
+  `@cubegin/shared/timer-session`, `@cubegin/scramble-core`, and
   `@cubegin/scramble-image`.
 - Playground starts with `pnpm dev:playground` at
   [apps/playground/src/main.tsx#L1](../apps/playground/src/main.tsx#L1). Its
@@ -117,7 +123,9 @@ scripts/               lightweight repository checks
 - [apps/wx-app/config/index.ts#L3](../apps/wx-app/config/index.ts#L3) - Taro
   build configuration.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - web scripts build workspace dependencies before dev, test, typecheck, and build.
-- [packages/timer-session/src/index.ts#L1](../packages/timer-session/src/index.ts#L1) - platform-agnostic solve/session rule barrel.
+- [packages/shared/src/wca/index.ts#L1](../packages/shared/src/wca/index.ts#L1) - shared WCA event metadata barrel.
+- [packages/shared/src/timer/index.ts#L1](../packages/shared/src/timer/index.ts#L1) - platform-agnostic timer state and formatting barrel.
+- [packages/shared/src/timer-session/index.ts#L1](../packages/shared/src/timer-session/index.ts#L1) - platform-agnostic solve/session rule barrel.
 - [packages/scramble-puzzle/src/index.ts#L1](../packages/scramble-puzzle/src/index.ts#L1) - TNoodle-compatible puzzle domain barrel.
 - [packages/scramble-core/src/index.ts#L1](../packages/scramble-core/src/index.ts#L1) - TNoodle-compatible generator barrel.
 - [packages/scramble-image/src/index.ts#L1](../packages/scramble-image/src/index.ts#L1) - TNoodle-compatible SVG renderer barrel.
@@ -137,4 +145,4 @@ scripts/               lightweight repository checks
 
 ---
 
-_Last updated: 2026-06-09 | Reason: document event-icons package ownership and public facade path_
+_Last updated: 2026-06-09 | Reason: document event-icons and shared primitive package ownership_

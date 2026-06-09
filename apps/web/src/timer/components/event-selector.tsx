@@ -1,8 +1,8 @@
 import { type CSSProperties } from 'react';
 import { EVENT_ICON_SVGS } from '@cubegin/event-icons';
-import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/scramble-puzzle';
+import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/shared/wca';
 import { Select } from '@deweyou-design/react/select';
-import { getWcaEventLabel, type TimerLocale } from '@cubegin/timer-session';
+import { getWcaEventLabel, type TimerLocale } from '@cubegin/shared/timer-session';
 import styles from './event-selector.module.css';
 
 interface EventSelectorProps {

@@ -1,4 +1,4 @@
-import type { WcaEventId } from '@cubegin/scramble-puzzle';
+import type { WcaEventId } from '@cubegin/shared/wca';
 import { generateUniqueScrambleBatch } from './batch.js';
 import { generateClockScramble } from './generators/clock.js';
 import { generateCubeRandomTurnScramble } from './generators/cube-random-turns.js';
