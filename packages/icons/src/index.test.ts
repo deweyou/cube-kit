@@ -21,15 +21,24 @@ describe('Cubegin icon asset metadata', () => {
   it('exports the animated React icon component', () => {
     const hoverIcon = CubeginAnimatedIcon({ trigger: 'hover' });
     const loopIcon = CubeginAnimatedIcon({ trigger: 'loop' });
+    const loadingIcon = CubeginAnimatedIcon({ loading: true, trigger: 'loop' });
 
     expect(hoverIcon.props['data-trigger']).toBe('hover');
     expect(loopIcon.props['data-trigger']).toBe('loop');
+    expect(loadingIcon.props['data-loading']).toBe('true');
     expect(loopIcon.props.children).toContainEqual(
       expect.objectContaining({
         props: expect.objectContaining({
           children: expect.stringContaining(
             'animation:cubegin-beginspin 1.6s cubic-bezier(.16,.67,.27,1) infinite',
           ),
+        }),
+      }),
+    );
+    expect(loadingIcon.props.children).toContainEqual(
+      expect.objectContaining({
+        props: expect.objectContaining({
+          className: 'cubegin-animated-icon__piece cubegin-animated-icon__loading-piece',
         }),
       }),
     );

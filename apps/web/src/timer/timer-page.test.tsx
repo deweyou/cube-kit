@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ChangeEvent, CSSProperties, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -175,6 +175,22 @@ describe('TimerPage', () => {
     expect(screen.getByRole('combobox', { name: '魔方类型' })).not.toBeNull();
   });
 
+  it('only marks the stage as scrolled after the timer content scrolls down', async () => {
+    generate.mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" });
+
+    const { container } = render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    const stage = await screen.findByRole('main', { name: TIMER_MESSAGES['zh-CN'].timerPage });
+    const root = container.querySelector("[data-stage-scrolled='false']");
+
+    expect(root).not.toBeNull();
+
+    fireEvent.scroll(stage, { target: { scrollTop: 12 } });
+
+    expect(container.querySelector("[data-stage-scrolled='true']")).not.toBeNull();
+    expect(await screen.findAllByText("R U R' U'")).toHaveLength(2);
+  });
+
   it('loads the initial scramble and refreshes through the default scramble generator', async () => {
     generate
       .mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" })
@@ -189,6 +205,31 @@ describe('TimerPage', () => {
     expect(await screen.findAllByText("F R U R' U' F'")).toHaveLength(2);
     expect(generate).toHaveBeenNthCalledWith(1, '333', { multiBlindCubeCount: undefined });
     expect(generate).toHaveBeenNthCalledWith(2, '333', { multiBlindCubeCount: undefined });
+  });
+
+  it('uses a prefetched next scramble after finishing a solve', async () => {
+    const scrambles = ['R U', 'F R', 'L D'];
+    generate.mockImplementation((eventId: string) =>
+      Promise.resolve({
+        eventId,
+        scramble: eventId === '333' ? scrambles.shift() : `${eventId} idle`,
+      }),
+    );
+
+    render(
+      <TimerPage enableScramblePrefetch repository={createMemoryTimerSessionRepository()} />,
+    );
+
+    expect(await screen.findAllByText('R U')).toHaveLength(2);
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(2));
+
+    await userEvent.keyboard('{Enter}');
+    await userEvent.keyboard('{Enter}');
+    await screen.findByRole('button', { name: TIMER_MESSAGES['zh-CN'].continue });
+    await userEvent.keyboard('{Enter}');
+
+    expect(await screen.findAllByText('F R')).toHaveLength(2);
+    expect(screen.queryByText('R U')).toBeNull();
   });
 
   it('clears the previous scramble before rendering a newly selected event', async () => {
@@ -208,12 +249,14 @@ describe('TimerPage', () => {
 
   it('optimistically switches event controls while a slow scramble is loading', async () => {
     let resolveFourByFour: (result: { eventId: '444'; scramble: string }) => void = () => {};
-    generate.mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" }).mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          resolveFourByFour = resolve;
-        }),
-    );
+    generate
+      .mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" })
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFourByFour = resolve;
+          }),
+      );
 
     render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
 
@@ -274,7 +317,7 @@ describe('TimerPage', () => {
     await screen.findAllByText('R U');
     await userEvent.keyboard('{Enter}');
     await userEvent.keyboard('{Enter}');
-    await screen.findByRole('button', { name: TIMER_MESSAGES['zh-CN'].enterToContinue });
+    await screen.findByRole('button', { name: TIMER_MESSAGES['zh-CN'].continue });
 
     await userEvent.keyboard('{Enter}');
 
@@ -292,7 +335,7 @@ describe('TimerPage', () => {
     await screen.findAllByText('R U');
     await userEvent.keyboard('{Enter}');
     await userEvent.keyboard('{Enter}');
-    await screen.findByRole('button', { name: TIMER_MESSAGES['zh-CN'].enterToContinue });
+    await screen.findByRole('button', { name: TIMER_MESSAGES['zh-CN'].continue });
 
     fireEvent.keyDown(document, { code: 'Space' });
 

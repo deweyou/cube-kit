@@ -1,6 +1,10 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useTimerGesture } from './use-timer-gesture';
+
+afterEach(() => {
+  cleanup();
+});
 
 // jsdom does not implement Touch — provide a minimal polyfill
 if (typeof Touch === 'undefined') {
@@ -111,6 +115,28 @@ describe('useTimerGesture — desktop keyboard', () => {
     expect(onStart).not.toHaveBeenCalled();
   });
 
+  it('Space keydown when start is disabled does not prevent default', () => {
+    renderHook(() =>
+      useTimerGesture(false, {
+        isStartEnabled: false,
+        onStart: vi.fn(),
+        onStop: vi.fn(),
+        onCancel: vi.fn(),
+      }),
+    );
+
+    const event = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      code: 'Space',
+    });
+    act(() => {
+      document.dispatchEvent(event);
+    });
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
   it('Enter keydown when start is disabled does not mark ready or call onStart', () => {
     const onStart = vi.fn();
     const { result } = renderHook(() =>
@@ -182,45 +208,94 @@ describe('useTimerGesture — desktop keyboard', () => {
 });
 
 describe('useTimerGesture — H5 touch', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   const makeTouch = (clientY: number) =>
     new Touch({ identifier: 1, target: document.body, clientY, clientX: 100 });
 
-  it('touchstart held 300ms calls onStart', () => {
+  it('global touchstart does not mark ready or start timing', () => {
     const onStart = vi.fn();
-    renderHook(() => useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }));
+    const { result } = renderHook(() =>
+      useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }),
+    );
     act(() => {
       document.dispatchEvent(
         new TouchEvent('touchstart', { touches: [makeTouch(400)], bubbles: true }),
       );
     });
+    expect(result.current.isReady).toBe(false);
+    expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it('explicit prepareStart marks ready and startReady starts on release', () => {
+    const onStart = vi.fn();
+    const { result } = renderHook(() =>
+      useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }),
+    );
+
     act(() => {
-      vi.advanceTimersByTime(300);
+      result.current.prepareStart();
     });
+    expect(result.current.isReady).toBe(true);
+    expect(onStart).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.startReady();
+    });
+    expect(result.current.isReady).toBe(false);
     expect(onStart).toHaveBeenCalledOnce();
   });
 
-  it('touchend before 300ms does NOT call onStart', () => {
+  it('startReady without prepareStart does not call onStart', () => {
     const onStart = vi.fn();
-    renderHook(() => useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }));
+    const { result } = renderHook(() =>
+      useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }),
+    );
+
     act(() => {
-      document.dispatchEvent(
-        new TouchEvent('touchstart', { touches: [makeTouch(400)], bubbles: true }),
-      );
+      result.current.startReady();
     });
+    expect(result.current.isReady).toBe(false);
+    expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it('cancelReady clears explicit ready state so startReady does not start', () => {
+    const onStart = vi.fn();
+    const { result } = renderHook(() =>
+      useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }),
+    );
+
     act(() => {
-      vi.advanceTimersByTime(100);
+      result.current.prepareStart();
     });
+    expect(result.current.isReady).toBe(true);
+
     act(() => {
-      document.dispatchEvent(
-        new TouchEvent('touchend', { changedTouches: [makeTouch(400)], bubbles: true }),
-      );
+      result.current.cancelReady();
+    });
+    expect(result.current.isReady).toBe(false);
+
+    act(() => {
+      result.current.startReady();
+    });
+    expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it('prepareStart when start is disabled does not mark ready or call onStart', () => {
+    const onStart = vi.fn();
+    const { result } = renderHook(() =>
+      useTimerGesture(false, {
+        isStartEnabled: false,
+        onStart,
+        onStop: vi.fn(),
+        onCancel: vi.fn(),
+      }),
+    );
+    act(() => {
+      result.current.prepareStart();
+    });
+    expect(result.current.isReady).toBe(false);
+
+    act(() => {
+      result.current.startReady();
     });
     expect(onStart).not.toHaveBeenCalled();
   });
@@ -245,5 +320,23 @@ describe('useTimerGesture — H5 touch', () => {
       );
     });
     expect(onStop).toHaveBeenCalledOnce();
+  });
+
+  it('idle touchend does not cancel or start timing', () => {
+    const onStart = vi.fn();
+    const onStop = vi.fn();
+    const onCancel = vi.fn();
+    const { result } = renderHook(() => useTimerGesture(false, { onStart, onStop, onCancel }));
+
+    act(() => {
+      document.dispatchEvent(
+        new TouchEvent('touchend', { changedTouches: [makeTouch(400)], bubbles: true }),
+      );
+    });
+
+    expect(result.current.isReady).toBe(false);
+    expect(onStart).not.toHaveBeenCalled();
+    expect(onStop).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
   });
 });

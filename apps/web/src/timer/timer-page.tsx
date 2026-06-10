@@ -1,7 +1,6 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, type UIEvent } from 'react';
 import { Button } from '@deweyou-design/react/button';
 import { Tooltip } from '@deweyou-design/react/tooltip';
-import { createDefaultScrambleGenerator, createMathRandomSource } from '@cubegin/scramble-core';
 import type { WcaEventId } from '@cubegin/shared/wca';
 import type {
   SolvePenalty,
@@ -21,29 +20,49 @@ import { createIndexedDbTimerSessionRepository } from './storage/timer-session-d
 import { ScrambleView } from './views/scramble-view';
 import { TimingView } from './views/timing-view';
 import { ResultView } from './views/result-view';
+import { createTimerScrambleGenerator } from './scramble-worker-client';
+import {
+  createTimerScramblePrefetcher,
+  getTimerScrambleGenerateOptions,
+} from './scramble-prefetcher';
 import styles from './timer-page.module.css';
 
 type PageState = 'scramble' | 'timing' | 'result';
 type ThemeMode = 'light' | 'dark';
 
-const DEFAULT_MULTI_BLIND_CUBE_COUNT = 3;
 const THEME_STORAGE_KEY = 'cubegin-theme';
 const LANGUAGE_STORAGE_KEY = 'cubegin-language';
 const SIDEBAR_MOBILE_QUERY = '(max-width: 860px)';
+const SCRAMBLE_LOADING_PREVIEW_PARAM = 'scrambleLoading';
+const TOUCH_READY_OVERLAY_PREVIEW_PARAM = 'touchReadyOverlay';
 
 const waitForLoadingPaint = () =>
   new Promise<void>((resolve) => {
     window.setTimeout(resolve, 0);
   });
 
-const getMultiBlindCubeCount = (eventId: WcaEventId): number | undefined =>
-  eventId === '333mbld' ? DEFAULT_MULTI_BLIND_CUBE_COUNT : undefined;
+const isScrambleLoadingPreviewEnabled = () =>
+  import.meta.env.DEV &&
+  new URLSearchParams(window.location.search).has(SCRAMBLE_LOADING_PREVIEW_PARAM);
+
+const getTouchReadyOverlayPreview = (): 'cancel' | 'start' | undefined => {
+  if (!import.meta.env.DEV) return undefined;
+
+  const value = new URLSearchParams(window.location.search).get(TOUCH_READY_OVERLAY_PREVIEW_PARAM);
+  if (value === 'cancel') return 'cancel';
+  if (value !== null) return 'start';
+  return undefined;
+};
 
 interface TimerPageProps {
+  enableScramblePrefetch?: boolean;
   repository?: TimerSessionRepository;
 }
 
-export const TimerPage = ({ repository: injectedRepository }: TimerPageProps = {}) => {
+export const TimerPage = ({
+  enableScramblePrefetch = import.meta.env.MODE !== 'test' && !import.meta.env.VITEST,
+  repository: injectedRepository,
+}: TimerPageProps = {}) => {
   const [repository, setRepository] = useState<TimerSessionRepository | null>(
     injectedRepository ?? null,
   );
@@ -72,19 +91,28 @@ export const TimerPage = ({ repository: injectedRepository }: TimerPageProps = {
     return <div className={styles.loading}>{TIMER_MESSAGES['zh-CN'].loading}</div>;
   }
 
-  return <TimerPageContent repository={repository} storageError={storageError} />;
+  return (
+    <TimerPageContent
+      enableScramblePrefetch={enableScramblePrefetch}
+      repository={repository}
+      storageError={storageError}
+    />
+  );
 };
 
 interface TimerPageContentProps {
+  enableScramblePrefetch: boolean;
   repository: TimerSessionRepository;
   storageError?: string;
 }
 
-const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) => {
-  const generator = useMemo(
-    () => createDefaultScrambleGenerator({ random: createMathRandomSource() }),
-    [],
-  );
+const TimerPageContent = ({
+  enableScramblePrefetch,
+  repository,
+  storageError,
+}: TimerPageContentProps) => {
+  const generator = useMemo(() => createTimerScrambleGenerator(), []);
+  const scramblePrefetcher = useMemo(() => createTimerScramblePrefetcher(generator), [generator]);
   const sessionState = useTimerSessions({ repository });
   const latestScrambleRequestId = useRef(0);
   const [scramble, setScramble] = useState('');
@@ -106,11 +134,18 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
     if (storedLocale === 'zh-CN' || storedLocale === 'en-US') return storedLocale;
     return 'zh-CN';
   });
+  const [isStageScrolled, setIsStageScrolled] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
     () => window.matchMedia?.(SIDEBAR_MOBILE_QUERY).matches ?? false,
   );
+  const isScrambleLoadingPreview = isScrambleLoadingPreviewEnabled();
+  const touchReadyOverlayPreview = getTouchReadyOverlayPreview();
 
   const { elapsed, start, stop, reset } = useTimer();
+
+  useEffect(() => {
+    return () => scramblePrefetcher.dispose();
+  }, [scramblePrefetcher]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia?.(SIDEBAR_MOBILE_QUERY);
@@ -138,18 +173,25 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
     async (nextEventId: WcaEventId) => {
       const requestId = latestScrambleRequestId.current + 1;
       latestScrambleRequestId.current = requestId;
-      setIsScrambleLoading(true);
+      const hasReadyScramble = enableScramblePrefetch && scramblePrefetcher.hasReady(nextEventId);
+      setIsScrambleLoading(!hasReadyScramble);
       setScrambleError(undefined);
-      await waitForLoadingPaint();
-      if (latestScrambleRequestId.current !== requestId) return;
+      if (!hasReadyScramble) {
+        await waitForLoadingPaint();
+        if (latestScrambleRequestId.current !== requestId) return;
+      }
 
       try {
-        const result = await generator.generate(nextEventId, {
-          multiBlindCubeCount: getMultiBlindCubeCount(nextEventId),
-        });
+        const result = enableScramblePrefetch
+          ? await scramblePrefetcher.consume(nextEventId)
+          : await generator.generate(nextEventId, getTimerScrambleGenerateOptions(nextEventId));
 
         if (latestScrambleRequestId.current !== requestId) return;
         setScramble(result.scramble);
+        if (enableScramblePrefetch) {
+          void scramblePrefetcher.prefetch(nextEventId);
+          scramblePrefetcher.prefetchIdleEvents(nextEventId);
+        }
       } catch (error) {
         if (latestScrambleRequestId.current !== requestId) return;
         setScramble('');
@@ -160,7 +202,7 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
         }
       }
     },
-    [generator],
+    [enableScramblePrefetch, generator, scramblePrefetcher],
   );
 
   useEffect(() => {
@@ -226,6 +268,10 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
   const handleRefresh = useCallback(() => {
     void loadScramble(displayEventId);
   }, [displayEventId, loadScramble]);
+
+  const handleStageScroll = useCallback((event: UIEvent<HTMLElement>) => {
+    setIsStageScrolled(event.currentTarget.scrollTop > 0);
+  }, []);
 
   const handleEventChange = useCallback(
     async (id: WcaEventId) => {
@@ -307,12 +353,15 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
     [sessionState],
   );
 
-  const { cancelReady, isInCancelZone, isReady } = useTimerGesture(pageState === 'timing', {
-    isStartEnabled: pageState === 'scramble',
-    onStart: handleStart,
-    onStop: handleStop,
-    onCancel: handleCancel,
-  });
+  const { cancelReady, isInCancelZone, isReady, prepareStart, startReady } = useTimerGesture(
+    pageState === 'timing',
+    {
+      isStartEnabled: pageState === 'scramble',
+      onStart: handleStart,
+      onStop: handleStop,
+      onCancel: handleCancel,
+    },
+  );
 
   const selectedSolve = sessionState.solves.find((solve) => solve.id === selectedSolveId);
   const sidebarError = storageError ?? runtimeStorageError ?? sessionState.error;
@@ -326,6 +375,7 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
       className={styles.root}
       data-state={pageState}
       data-sidebar={isSidebarCollapsed ? 'collapsed' : 'expanded'}
+      data-stage-scrolled={isStageScrolled ? 'true' : 'false'}
     >
       <TimerSidebar
         sessions={sessionState.sessions}
@@ -391,17 +441,20 @@ const TimerPageContent = ({ repository, storageError }: TimerPageContentProps) =
           <Tooltip.Content>{toggleThemeLabel}</Tooltip.Content>
         </Tooltip.Root>
       </div>
-      <main className={styles.stage} aria-label={messages.timerPage}>
+      <main className={styles.stage} aria-label={messages.timerPage} onScroll={handleStageScroll}>
         {pageState === 'scramble' && (
           <ScrambleView
             eventId={displayEventId}
-            scramble={scramble}
-            error={scrambleError}
-            isLoading={isScrambleLoading || isEventTransitionPending}
+            scramble={isScrambleLoadingPreview ? '' : scramble}
+            error={isScrambleLoadingPreview ? undefined : scrambleError}
+            isLoading={isScrambleLoadingPreview || isScrambleLoading || isEventTransitionPending}
             isReady={isReady}
+            touchReadyOverlayPreview={touchReadyOverlayPreview}
             messages={messages}
             onCancelReady={cancelReady}
+            onPrepareStart={prepareStart}
             onRefresh={handleRefresh}
+            onStartReady={startReady}
           />
         )}
         {pageState === 'timing' && <TimingView elapsed={elapsed} isInCancelZone={isInCancelZone} />}

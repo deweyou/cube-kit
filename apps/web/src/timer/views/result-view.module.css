@@ -12,11 +12,15 @@
 
 .time {
   text-align: center;
+  transform: translateY(clamp(-72px, -8vh, -32px));
 }
 
 .footer {
   bottom: clamp(34px, 6vh, 72px);
   left: 50%;
+  max-width: calc(100vw - 32px);
   position: absolute;
   transform: translateX(-50%);
+  white-space: nowrap;
+  z-index: 20;
 }

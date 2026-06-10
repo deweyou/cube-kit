@@ -18,6 +18,62 @@
   padding-left: 0;
 }
 
+.root::before {
+  background:
+    radial-gradient(
+      circle at 68% 18%,
+      color-mix(in srgb, var(--ui-color-brand-text) 8%, transparent),
+      transparent 30%
+    ),
+    var(--ui-color-canvas);
+  content: '';
+  height: 72px;
+  left: 312px;
+  pointer-events: none;
+  position: fixed;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  transition: opacity 160ms ease;
+  z-index: 18;
+}
+
+.root::after {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--ui-color-canvas) 88%, transparent),
+    color-mix(in srgb, var(--ui-color-canvas) 58%, transparent) 42%,
+    transparent
+  );
+  content: '';
+  height: 34px;
+  left: 312px;
+  pointer-events: none;
+  position: fixed;
+  right: 0;
+  top: 72px;
+  opacity: 0;
+  transition: opacity 160ms ease;
+  z-index: 18;
+}
+
+.root[data-stage-scrolled='true']::after {
+  opacity: 1;
+}
+
+.root[data-stage-scrolled='true']::before {
+  opacity: 1;
+}
+
+.root[data-sidebar='collapsed']::before,
+.root[data-sidebar='collapsed']::after {
+  left: 0;
+}
+
+.root[data-sidebar='collapsed'] :global([class*='actionStack']) {
+  left: 50%;
+}
+
 .loading {
   background: var(--ui-color-canvas);
   color: var(--ui-color-text-muted);
@@ -27,12 +83,21 @@
 }
 
 .stage {
-  align-items: center;
+  align-items: stretch;
   display: grid;
-  height: 100%;
+  height: calc(100% - 72px);
+  margin-top: 72px;
+  min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   position: relative;
+  scrollbar-width: none;
+}
+
+.stage::-webkit-scrollbar {
+  display: none;
 }
 
 .pageActions {
@@ -106,7 +171,7 @@
 @media (max-width: 860px) {
   .root {
     grid-template-columns: minmax(0, 1fr);
-    overflow: auto;
+    overflow: hidden;
     padding-left: 0;
   }
 
@@ -126,7 +191,12 @@
     z-index: 18;
   }
 
+  .root[data-sidebar='expanded'] .stage {
+    pointer-events: none;
+    visibility: hidden;
+  }
+
   .stage {
-    min-height: 620px;
+    min-height: 0;
   }
 }
