@@ -3,6 +3,10 @@
 ```mermaid
 flowchart TD
     UI["apps/web Timer UI"] --> Core["@cubegin/scramble-core"]
+    UI --> Worker["timer scramble worker"]
+    UI --> Prefetch["scramble prefetcher"]
+    Prefetch --> Worker
+    Worker --> Core
     UI --> Image["@cubegin/scramble-image"]
     UI --> Shared["@cubegin/shared/wca"]
     Playground["apps/playground"] --> Core
@@ -35,13 +39,18 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 - Package-specific maintenance knowledge lives under `docs/packages/*`, while
   local package `AGENTS.md` files only route maintainers to those docs.
 - `@cubegin/scramble-core` exposes `createDefaultScrambleGenerator` for all 17
-  WCA events. The facade is async-shaped and can move behind a Web Worker later.
+  WCA events. The web timer calls it behind a Worker client so slow generation
+  does not block touch and timer UI.
 - `@cubegin/scramble-core` delegates full solver-backed generation to
   `@cubegin/solver`; Clock uses the solver package's linear state solver.
 - `@cubegin/scramble-image` exposes `renderScrambleImage(eventId, scramble)` and
   uses `scramble-puzzle` to apply moves before rendering SVG.
 - `apps/web` builds `@cubegin/shared` and the three scramble packages before
   dev, build, test, and typecheck so package `dist` exports are available.
+- `apps/web` prefetches at most one unused scramble per event. A scramble is
+  consumed once and never reused after display; after the active event has a
+  next scramble queued, idle time may prefetch other WCA events for faster event
+  switching.
 - `apps/playground` is a test workbench, not a production app migration. It
   imports the new packages directly, aliases Vite runtime resolution to package
   source, and runs `prepare:deps` before typecheck/build so package dist types
@@ -59,8 +68,9 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
   removed cstimer shim.
 - WeChat miniprogram support should be verified before wiring the package into
   `apps/wx-app`.
-- Heavy generators such as 4x4 threephase should still move behind a worker
-  boundary before the timer UI depends on them for latency-sensitive flows.
+- Heavy generators run behind the web timer Worker boundary. Keep an eye on
+  worker lifecycle and queue pressure on mobile devices when adding more
+  prefetch depth.
 - `apps/playground` runs generators on the main thread because it is a developer
   test workbench. Production UI should still move heavy generation behind a
   worker boundary.
@@ -68,6 +78,8 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 ## Key Files
 
 - [apps/web/src/timer/timer-page.tsx#L1](../apps/web/src/timer/timer-page.tsx#L1) - timer state and async scramble generation.
+- [apps/web/src/timer/scramble-worker-client.ts#L1](../apps/web/src/timer/scramble-worker-client.ts#L1) - browser Worker request/response boundary.
+- [apps/web/src/timer/scramble-prefetcher.ts#L1](../apps/web/src/timer/scramble-prefetcher.ts#L1) - one-use scramble queue and idle prefetch policy.
 - [apps/web/src/timer/views/scramble-view.tsx#L1](../apps/web/src/timer/views/scramble-view.tsx#L1) - web SVG rendering through `@cubegin/scramble-image`.
 - [apps/web/src/timer/components/event-selector.tsx#L1](../apps/web/src/timer/components/event-selector.tsx#L1) - WCA event list from `@cubegin/shared/wca`.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - `prepare:deps` for workspace package exports.
@@ -84,4 +96,4 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 
 ---
 
-_Last updated: 2026-06-09 | Reason: document solver runtime boundary and shared WCA metadata_
+_Last updated: 2026-06-11 | Reason: document web worker generation and one-use scramble prefetch_

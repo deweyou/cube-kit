@@ -7,6 +7,7 @@ export interface CubeginAnimatedIconProps extends Omit<
   'height' | 'viewBox' | 'width'
 > {
   readonly isPlaying?: boolean;
+  readonly loading?: boolean;
   readonly size?: number | string;
   readonly title?: string;
   readonly trigger?: CubeginAnimatedIconTrigger;
@@ -15,6 +16,7 @@ export interface CubeginAnimatedIconProps extends Omit<
 export const CubeginAnimatedIcon = ({
   className,
   isPlaying,
+  loading = false,
   size = 100,
   style,
   title,
@@ -29,6 +31,7 @@ export const CubeginAnimatedIcon = ({
       {...svgProps}
       aria-label={svgProps['aria-label'] ?? accessibleTitle}
       className={classNames}
+      data-loading={String(loading)}
       data-playing={String(isPlaying ?? trigger !== 'manual')}
       data-trigger={trigger}
       height={size}
@@ -44,7 +47,9 @@ export const CubeginAnimatedIcon = ({
       <rect x="50" y="22" width="28" height="28" rx="7" fill="#ec3b3b" />
       <rect x="22" y="50" width="28" height="28" rx="7" fill="#1eb877" />
       <rect
-        className="cubegin-animated-icon__piece"
+        className={`cubegin-animated-icon__piece${
+          loading ? ' cubegin-animated-icon__loading-piece' : ''
+        }`}
         x="50"
         y="50"
         width="28"
@@ -59,6 +64,7 @@ export const CubeginAnimatedIcon = ({
 const CUBEGIN_ANIMATED_ICON_STYLES = `
 .cubegin-animated-icon__piece{transform-box:fill-box;transform-origin:center}
 .cubegin-animated-icon .cubegin-animated-icon__piece{transform:rotate(18deg)}
+.cubegin-animated-icon[data-loading="true"] .cubegin-animated-icon__loading-piece{animation:cubegin-beginspin 1.6s cubic-bezier(.16,.67,.27,1) infinite}
 @media (prefers-reduced-motion:no-preference){
 .cubegin-animated-icon[data-trigger="auto"] .cubegin-animated-icon__piece{animation:cubegin-beginspin 1.1s cubic-bezier(.16,.67,.27,1) forwards}
 .cubegin-animated-icon[data-trigger="loop"] .cubegin-animated-icon__piece{animation:cubegin-beginspin 1.6s cubic-bezier(.16,.67,.27,1) infinite}

@@ -11,10 +11,15 @@ export interface TimerGestureOptions {
 export const useTimerGesture = (
   isRunning: boolean,
   { onStart, onStop, onCancel, cancelZoneHeight = 80, isStartEnabled = true }: TimerGestureOptions,
-): { cancelReady: () => void; isInCancelZone: boolean; isReady: boolean } => {
+): {
+  cancelReady: () => void;
+  isInCancelZone: boolean;
+  isReady: boolean;
+  prepareStart: () => void;
+  startReady: () => void;
+} => {
   const [isInCancelZone, setIsInCancelZone] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isRunningRef = useRef(isRunning);
   const isStartEnabledRef = useRef(isStartEnabled);
   const isReadyRef = useRef(false);
@@ -34,6 +39,21 @@ export const useTimerGesture = (
     setIsReady(false);
   }, []);
 
+  const prepareStart = useCallback(() => {
+    if (isRunningRef.current || !isStartEnabledRef.current) return;
+    isReadyRef.current = true;
+    setIsReady(true);
+  }, []);
+
+  const startReady = useCallback(() => {
+    if (!isReadyRef.current) return;
+    isReadyRef.current = false;
+    setIsReady(false);
+    if (!isRunningRef.current && isStartEnabledRef.current) {
+      onStartRef.current();
+    }
+  }, []);
+
   useEffect(() => {
     const isFormControlFocused = (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement)) return false;
@@ -45,10 +65,11 @@ export const useTimerGesture = (
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isFormControlFocused(e.target)) return;
       if (!['Enter', 'Space'].includes(e.code) || e.repeat) return;
+      if (!isRunningRef.current && !isStartEnabledRef.current) return;
       e.preventDefault();
       if (isRunningRef.current) {
         onStopRef.current();
-      } else if (isStartEnabledRef.current) {
+      } else {
         isReadyRef.current = true;
         setIsReady(true);
       }
@@ -57,22 +78,13 @@ export const useTimerGesture = (
     const handleKeyUp = (e: KeyboardEvent) => {
       if (isFormControlFocused(e.target)) return;
       if (!['Enter', 'Space'].includes(e.code)) return;
+      if (!isReadyRef.current) return;
       e.preventDefault();
-      if (isReadyRef.current) {
-        isReadyRef.current = false;
-        setIsReady(false);
-        if (!isRunningRef.current && isStartEnabledRef.current) {
-          onStartRef.current();
-        }
-      }
-    };
-
-    // ── H5: touch events ──────────────────────────
-    const handleTouchStart = (_e: TouchEvent) => {
-      if (isRunningRef.current) return;
-      longPressTimerRef.current = setTimeout(() => {
+      isReadyRef.current = false;
+      setIsReady(false);
+      if (!isRunningRef.current && isStartEnabledRef.current) {
         onStartRef.current();
-      }, 300);
+      }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
@@ -82,11 +94,7 @@ export const useTimerGesture = (
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      // Cancel pending long-press
-      if (longPressTimerRef.current !== null) {
-        clearTimeout(longPressTimerRef.current);
-        longPressTimerRef.current = null;
-      }
+      if (isReadyRef.current) cancelReady();
 
       if (!isRunningRef.current) return;
 
@@ -101,19 +109,18 @@ export const useTimerGesture = (
 
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
-    document.addEventListener('touchstart', handleTouchStart);
     document.addEventListener('touchmove', handleTouchMove);
     document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('touchcancel', cancelReady);
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
-      document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
-      if (longPressTimerRef.current !== null) clearTimeout(longPressTimerRef.current);
+      document.removeEventListener('touchcancel', cancelReady);
     };
-  }, [cancelZoneHeight]);
+  }, [cancelReady, cancelZoneHeight]);
 
-  return { cancelReady, isInCancelZone, isReady };
+  return { cancelReady, isInCancelZone, isReady, prepareStart, startReady };
 };
