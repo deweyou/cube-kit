@@ -8,6 +8,7 @@ import {
   type SolveSession,
   type TimerSessionRepository,
 } from '@cubegin/shared/timer-session';
+import { createClientId } from './client-id';
 
 export const createMemoryTimerSessionRepository = (): TimerSessionRepository => {
   const sessions = new Map<string, SolveSession>();
@@ -26,7 +27,7 @@ export const createMemoryTimerSessionRepository = (): TimerSessionRepository => 
     },
     async createSession(name, now, eventId) {
       const session: SolveSession = {
-        id: crypto.randomUUID(),
+        id: createClientId(now),
         name,
         eventId,
         isDefault: false,

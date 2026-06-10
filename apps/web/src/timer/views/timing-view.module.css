@@ -29,4 +29,5 @@
   justify-content: center;
   min-width: 0;
   padding: 0 48px;
+  transform: translateY(clamp(-72px, -8vh, -32px));
 }

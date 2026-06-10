@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react';
 import { ElapsedDisplay } from '../components/elapsed-display';
 import { ResultActions } from '../components/result-actions';
 import type { TimerMessages } from '../timer-i18n';
@@ -20,15 +21,20 @@ export const ResultView = ({
   onDnf,
   onDelete,
 }: ResultViewProps) => {
+  const handleRootClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target instanceof Element && event.target.closest(`.${styles.footer}`)) return;
+    onContinue();
+  };
+
   return (
-    <div className={styles.root}>
+    <div className={styles.root} onClick={handleRootClick}>
       <div className={styles.time}>
         <ElapsedDisplay ms={elapsed} decimals={3} />
       </div>
 
       <footer className={styles.footer}>
         <ResultActions
-          continueLabel={messages.enterToContinue}
+          continueLabel={messages.continue}
           deleteLabel={messages.delete}
           resultSelectionLabel={messages.resultSelection}
           onContinue={onContinue}

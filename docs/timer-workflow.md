@@ -3,7 +3,10 @@
 ```mermaid
 stateDiagram-v2
     [*] --> Scramble
-    Scramble --> Timing: start button or Enter
+    Scramble --> TouchReady: long press action button
+    TouchReady --> Timing: release outside cancel zone
+    TouchReady --> Scramble: slide to top cancel zone
+    Scramble --> Timing: Enter / Space ready flow
     Timing --> Result: Enter or touch stop
     Timing --> Scramble: cancel zone
     Result --> Scramble: continue / +2 / DNF saves
@@ -36,20 +39,29 @@ and web storage integration.
   [apps/web/src/timer/hooks/use-timer.ts#L5](../apps/web/src/timer/hooks/use-timer.ts#L5).
 - `useTimerGesture` owns browser input. Enter starts/stops when focus is not in
   a form control. Space keeps the existing ready-on-keydown, start-on-keyup
-  flow; touch starts after a 300 ms long press and can cancel in the top zone.
-  See [apps/web/src/timer/hooks/use-timer-gesture.ts#L29](../apps/web/src/timer/hooks/use-timer-gesture.ts#L29).
+  flow. Touch start is action-button scoped: the user must long-press, release
+  to start, or slide to the top cancel zone before releasing. Global page touch
+  should not start the timer. See
+  [apps/web/src/timer/hooks/use-timer-gesture.ts#L1](../apps/web/src/timer/hooks/use-timer-gesture.ts#L1)
+  and [apps/web/src/timer/views/scramble-view.tsx#L1](../apps/web/src/timer/views/scramble-view.tsx#L1).
 - Changing the WCA event switches to that event's protected default session.
   Changing a session switches the current event from the newest solve when
   present, from the default session event when the default session is empty, and
   leaves the event unchanged for an empty custom session.
 - Cancel returns to the same scramble for review. Continue, +2, and DNF save a
   solve before generating the next scramble; delete skips persistence and still
-  advances to the next scramble.
+  advances to the next scramble. Result actions must work on mobile touch, and
+  tapping blank result space continues with no penalty.
+- Web solve ids are client generated as a fixed-shape timestamp/random id so
+  Safari or LAN HTTP contexts without `crypto.randomUUID()` can still persist
+  results. See
+  [apps/web/src/timer/storage/client-id.ts#L1](../apps/web/src/timer/storage/client-id.ts#L1).
 
 ## Key Files
 
 - [apps/web/src/timer/timer-page.tsx#L10](../apps/web/src/timer/timer-page.tsx#L10) - page states.
 - [apps/web/src/timer/views/scramble-view.tsx#L15](../apps/web/src/timer/views/scramble-view.tsx#L15) - scramble UI and SVG rendering entry.
+- [apps/web/src/timer/components/result-actions.tsx#L1](../apps/web/src/timer/components/result-actions.tsx#L1) - result action touch/click boundary.
 - [apps/web/src/timer/hooks/use-timer-sessions.ts#L1](../apps/web/src/timer/hooks/use-timer-sessions.ts#L1) - React bridge around session storage and rules.
 - [apps/web/src/timer/storage/timer-session-db.ts#L1](../apps/web/src/timer/storage/timer-session-db.ts#L1) - IndexedDB adapter for web solve persistence.
 - [packages/shared/src/timer-session/session-rules.ts#L1](../packages/shared/src/timer-session/session-rules.ts#L1) - default/custom session and event/session transition rules.
@@ -63,4 +75,4 @@ and web storage integration.
 
 ---
 
-_Last updated: 2026-06-09 | Reason: move timer and session primitives into shared subpaths_
+_Last updated: 2026-06-11 | Reason: document mobile touch start, result actions, and client id persistence_

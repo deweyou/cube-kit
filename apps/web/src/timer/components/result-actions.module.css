@@ -3,18 +3,22 @@
   display: inline-flex;
   flex-direction: row;
   gap: 12px;
+  white-space: nowrap;
 }
 
 .continueButton {
+  align-items: center;
   border-radius: 0;
   color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
+  display: inline-flex;
   font-size: 0.86rem;
   font-weight: 400;
   line-height: 1.1;
-  min-height: auto;
+  min-height: 44px;
   padding: 0;
   text-decoration: none;
   text-underline-offset: 0.14em;
+  white-space: nowrap;
 }
 
 .continueButton:hover {
@@ -26,6 +30,7 @@
   align-items: center;
   display: inline-flex;
   gap: 12px;
+  white-space: nowrap;
 }
 
 .separator {
@@ -35,14 +40,17 @@
 
 .penaltyButton,
 .deleteButton {
+  align-items: center;
   color: color-mix(in srgb, var(--ui-color-text-muted) 82%, transparent);
+  display: inline-flex;
   font-size: 0.86rem;
   line-height: 1;
-  min-height: 32px;
+  min-height: 44px;
   min-width: auto;
-  padding-inline: 2px;
+  padding-inline: 4px;
   text-decoration: none;
   text-underline-offset: 0.18em;
+  white-space: nowrap;
 }
 
 .penaltyButton:hover,
@@ -53,4 +61,17 @@
 
 .deleteButton {
   color: color-mix(in srgb, var(--ui-color-danger-text) 84%, transparent);
+}
+
+@media (max-width: 520px) {
+  .root,
+  .penalties {
+    gap: 8px;
+  }
+
+  .continueButton,
+  .penaltyButton,
+  .deleteButton {
+    font-size: 0.9rem;
+  }
 }

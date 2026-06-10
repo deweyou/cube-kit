@@ -11,6 +11,7 @@ import {
   type SolveSession,
   type TimerSessionRepository,
 } from '@cubegin/shared/timer-session';
+import { createClientId } from '../storage/client-id';
 
 interface SaveSolveInput {
   eventId: WcaEventId;
@@ -22,11 +23,11 @@ interface SaveSolveInput {
 interface UseTimerSessionsOptions {
   repository: TimerSessionRepository;
   now?: () => number;
-  createId?: () => string;
+  createId?: (createdAt: number) => string;
 }
 
 const defaultNow = () => Date.now();
-const defaultCreateId = () => crypto.randomUUID();
+const defaultCreateId = () => createClientId();
 
 export const useTimerSessions = ({
   repository,
@@ -134,10 +135,11 @@ export const useTimerSessions = ({
 
   const saveSolve = useCallback(
     async (input: SaveSolveInput) => {
+      const createdAt = now();
       const record = await repository.addSolve({
-        id: createId(),
+        id: createId(createdAt),
         sessionId: activeSessionId,
-        createdAt: now(),
+        createdAt,
         ...input,
       });
       await refreshSolves(activeSessionId);

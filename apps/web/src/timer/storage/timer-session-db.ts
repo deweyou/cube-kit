@@ -8,6 +8,7 @@ import {
   type SolveSession,
   type TimerSessionRepository,
 } from '@cubegin/shared/timer-session';
+import { createClientId } from './client-id';
 
 const DB_NAME = 'cubegin-timer';
 const DB_VERSION = 1;
@@ -85,7 +86,7 @@ export const createIndexedDbTimerSessionRepository = async (): Promise<TimerSess
     },
     async createSession(name, now, eventId) {
       const session: SolveSession = {
-        id: crypto.randomUUID(),
+        id: createClientId(now),
         name,
         eventId,
         isDefault: false,

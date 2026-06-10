@@ -3,6 +3,7 @@ import type { TimerLocale } from '@cubegin/shared/timer-session';
 export type { TimerLocale };
 
 export interface TimerMessages {
+  cancel: string;
   cancelReady: string;
   close: string;
   confirmCreateSession: string;
@@ -22,7 +23,9 @@ export interface TimerMessages {
   noPenalty: string;
   noSolves: string;
   refreshScramble: string;
+  releaseToCancel: string;
   releaseToStart: string;
+  slideUpToCancel: string;
   resultSelection: string;
   statisticsAverage: string;
   statisticsBest: string;
@@ -47,11 +50,11 @@ export interface TimerMessages {
   waitingScramble: string;
   formulaLibrary: string;
   holdEnterToStart: string;
-  enterToContinue: string;
 }
 
 export const TIMER_MESSAGES: Record<TimerLocale, TimerMessages> = {
   'zh-CN': {
+    cancel: '取消',
     cancelReady: '取消准备',
     close: '关闭',
     confirmCreateSession: '确认新建列表',
@@ -71,7 +74,9 @@ export const TIMER_MESSAGES: Record<TimerLocale, TimerMessages> = {
     noPenalty: '无',
     noSolves: '暂无成绩',
     refreshScramble: '换一个打乱',
+    releaseToCancel: '松开取消',
     releaseToStart: '松开开始',
+    slideUpToCancel: '上滑取消',
     resultSelection: '选择结果',
     statisticsAverage: '平均',
     statisticsBest: '最好',
@@ -96,9 +101,9 @@ export const TIMER_MESSAGES: Record<TimerLocale, TimerMessages> = {
     waitingScramble: '等待打乱',
     formulaLibrary: '公式库',
     holdEnterToStart: '按住 Enter 开始',
-    enterToContinue: 'Enter 继续',
   },
   'en-US': {
+    cancel: 'Cancel',
     cancelReady: 'Cancel ready',
     close: 'Close',
     confirmCreateSession: 'Create session',
@@ -118,7 +123,9 @@ export const TIMER_MESSAGES: Record<TimerLocale, TimerMessages> = {
     noPenalty: 'None',
     noSolves: 'No solves yet',
     refreshScramble: 'New scramble',
+    releaseToCancel: 'Release to cancel',
     releaseToStart: 'Release to start',
+    slideUpToCancel: 'Slide up to cancel',
     resultSelection: 'Result actions',
     statisticsAverage: 'Average',
     statisticsBest: 'Best',
@@ -143,6 +150,5 @@ export const TIMER_MESSAGES: Record<TimerLocale, TimerMessages> = {
     waitingScramble: 'Waiting for scramble',
     formulaLibrary: 'Algorithms',
     holdEnterToStart: 'Hold Enter to start',
-    enterToContinue: 'Enter to continue',
   },
 };
