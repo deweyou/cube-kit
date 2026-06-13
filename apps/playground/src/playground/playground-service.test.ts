@@ -130,9 +130,7 @@ describe('createPlaygroundService', () => {
       'F2L-4',
     ]);
     expect(result.results[1]?.method).toBe('333-general');
-    expect(result.results[1]?.solutions.map((solution) => solution.targetLabel)).toEqual([
-      'Cross',
-    ]);
+    expect(result.results[1]?.solutions.map((solution) => solution.targetLabel)).toEqual(['Cross']);
     expect(result.diagnostics.resultCount).toBe(6);
     expect(result.error).toBeUndefined();
   });

@@ -12,6 +12,10 @@ const { generate, renderScrambleImage } = vi.hoisted(() => ({
   renderScrambleImage: vi.fn((_eventId: string, scramble: string) => `<svg>${scramble}</svg>`),
 }));
 
+type GenerateMockCall = [eventId: string, ...args: unknown[]];
+
+const generateCalls = () => generate.mock.calls as GenerateMockCall[];
+
 const setNarrowViewport = (matches: boolean) => {
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
@@ -221,7 +225,7 @@ describe('TimerPage', () => {
 
     expect(await screen.findAllByText('R U')).toHaveLength(2);
     await waitFor(() =>
-      expect(generate.mock.calls.filter(([eventId]) => eventId === '333')).toHaveLength(2),
+      expect(generateCalls().filter(([eventId]) => eventId === '333')).toHaveLength(2),
     );
 
     await userEvent.keyboard('{Enter}');
@@ -260,7 +264,7 @@ describe('TimerPage', () => {
 
     expect(generate).toHaveBeenNthCalledWith(1, '333', { multiBlindCubeCount: undefined });
     expect(generate).toHaveBeenNthCalledWith(2, '333', { multiBlindCubeCount: undefined });
-    expect(generate.mock.calls.map(([eventId]) => eventId)).toEqual([
+    expect(generateCalls().map(([eventId]) => eventId)).toEqual([
       '333',
       '333',
       ...WCA_EVENT_IDS.filter((eventId) => eventId !== '333'),
@@ -269,7 +273,7 @@ describe('TimerPage', () => {
     await userEvent.click(screen.getByRole('button', { name: '换一个打乱' }));
     await waitFor(() => expect(generate).toHaveBeenCalledTimes(WCA_EVENT_IDS.length + 2));
 
-    expect(generate.mock.calls.map(([eventId]) => eventId)).toEqual([
+    expect(generateCalls().map(([eventId]) => eventId)).toEqual([
       '333',
       '333',
       ...WCA_EVENT_IDS.filter((eventId) => eventId !== '333'),

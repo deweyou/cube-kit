@@ -4,8 +4,8 @@ import { createMathRandomSource } from './random-source.js';
 import type { RandomSource } from './random-source.js';
 
 const deterministicRandom: RandomSource = {
-  nextInt(maxExclusive) {
-    return Math.max(0, maxExclusive - 1);
+  nextInt(_maxExclusive) {
+    return Math.max(0, _maxExclusive - 1);
   },
 };
 
@@ -170,7 +170,7 @@ describe('createDefaultScrambleGenerator', () => {
     let calls = 0;
     const generator = createDefaultScrambleGenerator({
       random: {
-        nextInt(maxExclusive) {
+        nextInt(_maxExclusive) {
           calls += 1;
           return calls === 1 ? 1 : 0;
         },

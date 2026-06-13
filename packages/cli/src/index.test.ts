@@ -1,10 +1,11 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { runCli } from './index.js';
+import { isCliEntrypoint, runCli } from './index.js';
 
 describe('cubegin command tree', () => {
   const run = async (rawArgs: readonly string[]) => {
@@ -30,6 +31,36 @@ describe('cubegin command tree', () => {
     expect(process.exitCode).toBeUndefined();
   });
 
+  it('detects npm bin symlink execution as the CLI entrypoint', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'cubegin-cli-entry-'));
+    try {
+      const cliPath = join(directory, 'dist-cli.mjs');
+      const binPath = join(directory, 'cubegin');
+      writeFileSync(cliPath, '');
+      symlinkSync(cliPath, binPath);
+
+      expect(isCliEntrypoint(pathToFileURL(cliPath).href, binPath)).toBe(true);
+    } finally {
+      rmSync(directory, { force: true, recursive: true });
+    }
+  });
+
+  it('prints top-level usage without requiring a subcommand', async () => {
+    const lines = await run(['--help']);
+
+    expect(lines.join('\n')).toContain('COMMANDS');
+    expect(lines.join('\n')).toContain('scramble');
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it('prints nested usage without requiring a leaf command', async () => {
+    const lines = await run(['scramble', '--help']);
+
+    expect(lines.join('\n')).toContain('scramble events|generate|render');
+    expect(lines.join('\n')).toContain('Generate WCA scrambles');
+    expect(process.exitCode).toBeUndefined();
+  });
+
   it('prints a typed JSON error for command validation failures', async () => {
     const lines = await run(['solver', 'methods', '777x', '--json']);
 
@@ -42,6 +73,20 @@ describe('cubegin command tree', () => {
       },
     });
     expect(process.exitCode).toBe(3);
+  });
+
+  it('prints a typed JSON error for command parser failures', async () => {
+    const lines = await run(['scramble', 'generate', '--json']);
+
+    expect(JSON.parse(lines.at(-1) ?? '')).toEqual({
+      ok: false,
+      error: {
+        code: 'EARG',
+        message: 'Missing required positional argument: EVENT',
+        hints: [],
+      },
+    });
+    expect(process.exitCode).toBe(2);
   });
 
   it('prints skill metadata commands', async () => {
@@ -61,14 +106,14 @@ describe('cubegin command tree', () => {
   it('runs install dry-run through the command tree', async () => {
     const lines = await run(['install', '--yes', '--dry-run']);
 
-    expect(lines).toEqual([expect.stringMatching(/^npx skills add .+\/skills\/cubegin --copy -g$/)]);
+    expect(lines).toEqual([
+      expect.stringMatching(/^npx skills add .+\/skills\/cubegin --copy -g$/),
+    ]);
   });
 
   it('prints human-readable event and method lists', async () => {
     expect(await run(['scramble', 'events'])).toContain('333\t3x3x3 Cube');
-    expect(await run(['solver', 'events'])).toContain(
-      'skewb\tskewb-face',
-    );
+    expect(await run(['solver', 'events'])).toContain('skewb\tskewb-face');
     const eventsJson = await run(['solver', 'events', '--json']);
     expect(JSON.parse(eventsJson.at(-1) ?? '')).toMatchObject({
       ok: true,
@@ -165,7 +210,17 @@ describe('cubegin command tree', () => {
     expect(human[1]).toMatch(/^  .+: .+/);
   });
 
-  it('rethrows unexpected command failures', async () => {
-    await expect(runCli(['missing-command'])).rejects.toThrow();
+  it('prints a typed JSON error for unknown commands', async () => {
+    const lines = await run(['missing-command']);
+
+    expect(JSON.parse(lines.at(-1) ?? '')).toEqual({
+      ok: false,
+      error: {
+        code: 'E_UNKNOWN_COMMAND',
+        message: 'Unknown command missing-command',
+        hints: [],
+      },
+    });
+    expect(process.exitCode).toBe(2);
   });
 });

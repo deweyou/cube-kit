@@ -38,7 +38,9 @@ describe('min2phase cubie cube', () => {
 
   it('reports every cubie verification error code', () => {
     expect(new CubieCube([0, 1, 2, 3, 4, 5, 6, 7], [], [0, 0], []).verify()).toBe(-2);
-    expect(new CubieCube(undefined, undefined, undefined, [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).verify()).toBe(-3);
+    expect(
+      new CubieCube(undefined, undefined, undefined, [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).verify(),
+    ).toBe(-3);
     expect(new CubieCube([0, 0, 2, 3, 4, 5, 6, 7]).verify()).toBe(-4);
     expect(new CubieCube(undefined, [1, 0, 0, 0, 0, 0, 0, 0]).verify()).toBe(-5);
     expect(new CubieCube([1, 0, 2, 3, 4, 5, 6, 7]).verify()).toBe(-6);

@@ -1,11 +1,11 @@
 import { View, Text } from '@tarojs/components';
 
-function Index() {
+const Index = () => {
   return (
     <View>
       <Text>cubegin wx-app</Text>
     </View>
   );
-}
+};
 
 export default Index;

@@ -50,10 +50,7 @@ describe('3x3 assist facade', () => {
     });
 
     expect(result.method).toBe('333-general');
-    expect(result.solutions.map((solution) => solution.targetLabel)).toEqual([
-      'Cross',
-      'Corner',
-    ]);
+    expect(result.solutions.map((solution) => solution.targetLabel)).toEqual(['Cross', 'Corner']);
     expect(result.solutions.every((solution) => Number.isSafeInteger(solution.depth))).toBe(true);
   });
 

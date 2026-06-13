@@ -23,6 +23,7 @@
     "@cubegin/scramble-core": "workspace:*",
     "@cubegin/scramble-image": "workspace:*",
     "@cubegin/scramble-puzzle": "workspace:*",
+    "@cubegin/shared": "workspace:*",
     "@cubegin/solver": "workspace:*",
     "citty": "^0.2.2"
   },

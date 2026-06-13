@@ -5,6 +5,10 @@
     "moduleDetection": "force",
     "module": "preserve",
     "moduleResolution": "bundler",
+    "paths": {
+      "@cubegin/scramble-puzzle": ["../scramble-puzzle/src/index.ts"],
+      "@cubegin/shared/wca": ["../shared/src/wca/index.ts"]
+    },
     "resolveJsonModule": true,
     "types": ["node"],
     "strict": true,

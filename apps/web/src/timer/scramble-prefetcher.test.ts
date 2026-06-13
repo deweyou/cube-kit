@@ -9,6 +9,8 @@ const result = (eventId: ScrambleResult['eventId'], scramble: string): ScrambleR
   scramble,
 });
 
+type GenerateMockCall = Parameters<TimerScrambleGenerator['generate']>;
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });
@@ -65,7 +67,7 @@ describe('createTimerScramblePrefetcher', () => {
       .mockResolvedValue(result('333', 'foreground'));
     const backgroundGenerate = vi
       .fn<TimerScrambleGenerator['generate']>()
-      .mockImplementation((eventId) =>
+      .mockImplementation((eventId: GenerateMockCall[0]) =>
         Promise.resolve({
           eventId,
           scramble: `warm-${eventId}`,
@@ -85,7 +87,9 @@ describe('createTimerScramblePrefetcher', () => {
 
     const warmEventIds = WCA_EVENT_IDS.filter((eventId) => eventId !== '333');
     expect(foregroundGenerate).not.toHaveBeenCalled();
-    expect(backgroundGenerate.mock.calls.map(([eventId]) => eventId)).toEqual(warmEventIds);
+    expect(backgroundGenerate.mock.calls.map(([eventId]: GenerateMockCall) => eventId)).toEqual(
+      warmEventIds,
+    );
     expect(backgroundGenerate).toHaveBeenCalledWith('333mbld', { multiBlindCubeCount: 3 });
     await expect(prefetcher.consume('444')).resolves.toEqual(result('444', 'warm-444'));
     expect(foregroundGenerate).not.toHaveBeenCalled();
@@ -98,7 +102,7 @@ describe('createTimerScramblePrefetcher', () => {
       .mockResolvedValue(result('444', 'direct-444'));
     const backgroundGenerate = vi
       .fn<TimerScrambleGenerator['generate']>()
-      .mockImplementation((eventId) =>
+      .mockImplementation((eventId: GenerateMockCall[0]) =>
         Promise.resolve({
           eventId,
           scramble: `warm-${eventId}`,

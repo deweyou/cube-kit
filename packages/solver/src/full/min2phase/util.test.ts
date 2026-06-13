@@ -28,9 +28,9 @@ describe('min2phase util helpers', () => {
   });
 
   it('splits and inverts algorithms without normalizing move names', () => {
-    expect(splitAlgorithm('  R   U2  F\'  ')).toEqual(['R', 'U2', "F'"]);
+    expect(splitAlgorithm("  R   U2  F'  ")).toEqual(['R', 'U2', "F'"]);
     expect(splitAlgorithm('')).toEqual([]);
-    expect(invertAlgorithm("R U2 F'")).toBe('F U2 R\'');
+    expect(invertAlgorithm("R U2 F'")).toBe("F U2 R'");
   });
 
   it('validates random integer bounds', () => {

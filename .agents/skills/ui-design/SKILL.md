@@ -59,15 +59,15 @@ review against a design system.
 
 Read only the references needed for the task:
 
-| Reference | Use when |
-| --- | --- |
-| `references/ux-pattern-research-playbook.md` | The user asks how other products solve a flow, asks for UX references, or the answer depends on existing patterns. |
-| `references/interface-quality-playbook.md` | Designing or reviewing flows, states, accessibility, information hierarchy, responsive behavior, or practical UX/UI quality. |
-| `references/design-md-workflow.md` | The task involves project style, user style, visual direction, design-system persistence, `DESIGN.md`, component taste, tokens, typography, color, density, copy, or Sleek prompts. |
-| `references/ai-design-tool-playbook.md` | The user asks for Sleek prompts, AI-generated mobile app screens, design variations, generated-screen review, or implementation handoff from generated designs. |
-| `references/platform-implementation-playbook.md` | The task targets web, H5/mobile web, native mobile, HarmonyOS, mini programs, macOS, component libraries, or implementation verification. |
-| `references/component-library-snapshot.md` | Working with the current React component library or needing current component-system facts. |
-| `references/design-tokens.css` | Building standalone prototypes or examples that need portable CSS tokens. |
+| Reference                                        | Use when                                                                                                                                                                            |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `references/ux-pattern-research-playbook.md`     | The user asks how other products solve a flow, asks for UX references, or the answer depends on existing patterns.                                                                  |
+| `references/interface-quality-playbook.md`       | Designing or reviewing flows, states, accessibility, information hierarchy, responsive behavior, or practical UX/UI quality.                                                        |
+| `references/design-md-workflow.md`               | The task involves project style, user style, visual direction, design-system persistence, `DESIGN.md`, component taste, tokens, typography, color, density, copy, or Sleek prompts. |
+| `references/ai-design-tool-playbook.md`          | The user asks for Sleek prompts, AI-generated mobile app screens, design variations, generated-screen review, or implementation handoff from generated designs.                     |
+| `references/platform-implementation-playbook.md` | The task targets web, H5/mobile web, native mobile, HarmonyOS, mini programs, macOS, component libraries, or implementation verification.                                           |
+| `references/component-library-snapshot.md`       | Working with the current React component library or needing current component-system facts.                                                                                         |
+| `references/design-tokens.css`                   | Building standalone prototypes or examples that need portable CSS tokens.                                                                                                           |
 
 If the host repository has newer or more specific UI rules, follow the host
 repository first and use these references as portable fallback guidance.

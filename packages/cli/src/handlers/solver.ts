@@ -65,7 +65,10 @@ export const runSolverAssist = (
   scramble: string,
   methods: readonly string[],
   options: PuzzleAssistOptions = {},
-): { readonly eventId: PuzzleAssistEventId; readonly results: ReturnType<typeof solvePuzzleAssist> } => {
+): {
+  readonly eventId: PuzzleAssistEventId;
+  readonly results: ReturnType<typeof solvePuzzleAssist>;
+} => {
   const normalizedEventId = parseAssistEventId(eventId);
   const normalizedMethods = parseMethods(normalizedEventId, methods);
 

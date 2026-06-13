@@ -38,13 +38,7 @@ describe('min2phase tools', () => {
   });
 
   it('resolves a single unknown edge permutation against a random corner permutation', () => {
-    const facelets = randomState(
-      null,
-      [],
-      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1],
-      [],
-      zeroRandom,
-    );
+    const facelets = randomState(null, [], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1], [], zeroRandom);
 
     expect(CubieCube.fromFaceCube(facelets)?.verify()).toBe(0);
   });

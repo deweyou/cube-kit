@@ -53,10 +53,10 @@
   --ui-shadow-sm: 0 2px 8px rgba(24, 33, 29, 0.06);
   --ui-shadow-md: 0 8px 24px rgba(24, 33, 29, 0.1);
   --ui-shadow-lg: 0 18px 40px rgba(24, 33, 29, 0.12);
-  --ui-font-sans: 'Source Han Sans SC Web', 'PingFang SC', 'Heiti SC',
-    'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
-  --ui-font-serif: 'Source Han Serif CN Web', 'Songti SC', 'STSong', 'SimSun',
-    'NSimSun', serif;
+  --ui-font-sans:
+    'Source Han Sans SC Web', 'PingFang SC', 'Heiti SC', 'Microsoft YaHei', 'Noto Sans CJK SC',
+    sans-serif;
+  --ui-font-serif: 'Source Han Serif CN Web', 'Songti SC', 'STSong', 'SimSun', 'NSimSun', serif;
   --ui-font-body: var(--ui-font-sans);
   --ui-font-control: var(--ui-font-sans);
   --ui-font-content: var(--ui-font-serif);

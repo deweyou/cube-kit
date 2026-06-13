@@ -5,6 +5,9 @@
     "moduleDetection": "force",
     "module": "preserve",
     "moduleResolution": "bundler",
+    "paths": {
+      "@cubegin/shared/wca": ["../shared/src/wca/index.ts"]
+    },
     "resolveJsonModule": true,
     "types": ["node"],
     "strict": true,

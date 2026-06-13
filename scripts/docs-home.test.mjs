@@ -42,7 +42,7 @@ async function listRepositoryFiles(dir = repoRoot) {
   return files;
 }
 
-test('repository knowledge base lives under docs', async () => {
+void test('repository knowledge base lives under docs', async () => {
   assert.equal(await pathExists(path.join(repoRoot, 'knowledge')), false);
   assert.equal(await pathExists(path.join(repoRoot, 'AGENTS.md')), true);
   assert.equal(await pathExists(path.join(repoRoot, 'docs', 'project-structure.md')), true);
@@ -50,7 +50,7 @@ test('repository knowledge base lives under docs', async () => {
   assert.equal(await pathExists(path.join(repoRoot, 'docs', '.todo.md')), true);
 });
 
-test('tracked text files do not point agents at the legacy knowledge path', async () => {
+void test('tracked text files do not point agents at the legacy knowledge path', async () => {
   const legacyPathFragment = 'knowledge' + '/';
   const textExtensions = new Set(['.json', '.md', '.sh', '.ts', '.tsx', '.mts', '.mjs']);
   const files = await listRepositoryFiles();

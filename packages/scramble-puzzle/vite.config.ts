@@ -1,5 +1,9 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite-plus';
 import { defineConfig as definePackConfig } from 'vite-plus/pack';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   pack: definePackConfig({
@@ -10,6 +14,11 @@ export default defineConfig({
     },
     exports: true,
   }),
+  resolve: {
+    alias: {
+      '@cubegin/shared/wca': path.resolve(__dirname, '../../packages/shared/src/wca/index.ts'),
+    },
+  },
   test: {
     coverage: {
       provider: 'v8',
