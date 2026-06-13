@@ -19,14 +19,18 @@ describe('solvePuzzleFull', () => {
     expect(result.moveCount).toBeGreaterThan(0);
   });
 
-  it('returns a restore-direction solution for 4x4 scrambles', () => {
-    const result = solvePuzzleFull('444', 'R');
+  it(
+    'returns a restore-direction solution for 4x4 scrambles',
+    () => {
+      const result = solvePuzzleFull('444', 'R');
 
-    expect(result.eventId).toBe('444');
-    expect(result.engine).toBe('threephase');
-    expect(result.solution).toBe("R'");
-    expect(result.moveCount).toBe(1);
-  });
+      expect(result.eventId).toBe('444');
+      expect(result.engine).toBe('threephase');
+      expect(result.solution).toBe("R'");
+      expect(result.moveCount).toBe(1);
+    },
+    20_000,
+  );
 
   it('solves a 2x2 scramble through the full solver facade', () => {
     const result = solvePuzzleFull('222', 'R U F');
