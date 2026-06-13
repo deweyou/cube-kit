@@ -1,20 +1,63 @@
 # cubegin
 
-Public Cubegin npm entrypoints for TNoodle-compatible scramble generation,
-scramble SVG rendering, puzzle notation/state helpers, Cubegin icon assets,
-auxiliary solver helpers, and the `cubegin` CLI.
+Public Cubegin npm package for Rubik's cube tooling. It ships both the
+agent-friendly `cubegin` CLI and bundled package subpaths for
+TNoodle-compatible scramble generation, scramble SVG rendering, puzzle
+notation/state helpers, Cubegin icon assets, and auxiliary solver helpers.
 
-The package intentionally does not expose a root API. Import one of the
-published subpaths instead:
+## CLI Install And Usage
+
+Use the CLI directly with `npx`, or install it globally when you want repeated
+local use:
+
+```bash
+npx cubegin@latest scramble events --json
+npx cubegin@latest scramble generate 333 --count 5 --json
+npx cubegin@latest scramble render 333 "R U R' U'" --json
+npx cubegin@latest solver methods 333 --json
+```
+
+```bash
+npm install -g cubegin
+
+cubegin scramble events --json
+cubegin scramble generate 333 --count 5 --json
+```
+
+`npx cubegin@latest install` runs the installer flow. It can install the
+bundled `cubegin` agent skill globally by delegating to `npx skills add`, so
+compatible agents can discover the CLI workflow from the installed skill.
+
+## Package Install And Usage
+
+Install `cubegin` when you want to call the scramble, renderer, puzzle, icon, or
+solver APIs from JavaScript/TypeScript:
+
+```bash
+pnpm add cubegin
+```
+
+The package intentionally has no root API. Import one of the public subpaths:
 
 ```ts
-import { createDefaultScrambleGenerator } from 'cubegin/scramble-core';
-import { EVENT_ICON_333_SVG, EVENT_ICON_SVGS } from 'cubegin/icons/events';
-import { BRAND_ICON_CUBEGIN_MARK_SVG } from 'cubegin/icons/brand';
-import { CubeginAnimatedIcon } from 'cubegin/icons/react';
+import { createDefaultScrambleGenerator, createMathRandomSource } from 'cubegin/scramble-core';
 import { renderScrambleImage } from 'cubegin/scramble-image';
 import { WCA_EVENT_IDS } from 'cubegin/scramble-puzzle';
+import { EVENT_ICON_333_SVG } from 'cubegin/icons/events';
 import { solvePuzzleAssist } from 'cubegin/solver';
+
+const generator = createDefaultScrambleGenerator({
+  random: createMathRandomSource(),
+});
+const scramble = await generator.generate('333');
+const svg = renderScrambleImage('333', scramble.scramble);
+const [cross] = solvePuzzleAssist('333', ['cross'], scramble.scramble);
+
+console.log(WCA_EVENT_IDS);
+console.log(EVENT_ICON_333_SVG);
+console.log(scramble.scramble);
+console.log(svg);
+console.log(cross.solutions[0]?.solution);
 ```
 
 ## Entrypoints
@@ -30,19 +73,6 @@ import { solvePuzzleAssist } from 'cubegin/solver';
 - `cubegin` is the public CLI bin, emitted from `@cubegin/cli` source.
 
 The package root is reserved and not listed in `exports`.
-
-## CLI And Skill
-
-```bash
-npx cubegin@latest install
-cubegin scramble events --json
-cubegin scramble generate 333 --count 5 --json
-cubegin scramble render 333 "R U R' U'" --json
-cubegin solver methods 333 --json
-```
-
-`cubegin install` asks whether to install the bundled agent skill globally and
-then delegates to `npx skills add <bundled-skill-path> --copy -g`.
 
 ## Adding Entrypoints
 
