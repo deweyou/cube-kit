@@ -7,6 +7,7 @@ flowchart TD
     RepoLicense --> Icons["@cubegin/icons GPL-3.0-only"]
     NewPackages --> PublicPackage["cubegin package subpaths GPL-3.0-only"]
     Icons --> PublicPackage
+    Cli["packages/cli MIT dependency: citty"] --> PublicPackage
     NewPackages --> RepoLicense
     NewPackages --> Apps["apps/web and playground import TNoodle-compatible packages"]
     PublicPackage --> NpmConsumers["npm consumers import cubegin/scramble-*"]
@@ -38,6 +39,8 @@ decisions as licensing decisions, not only build decisions.
   license review.
 - Published scramble packages and the public `cubegin` aggregation package must
   ship GPL text and attribution through their `LICENSE` and `NOTICE` files.
+- `citty` is an MIT-licensed runtime dependency for the public `cubegin` CLI and
+  is not part of the TNoodle-compatible ported source.
 - Before adding any dependency to `deps.alwaysBundle`, `noExternal`, or another
   static bundling path, inspect its package license and shipped license file.
   Do not rely only on the package.json `license` field.
@@ -52,4 +55,4 @@ decisions as licensing decisions, not only build decisions.
 
 ---
 
-_Last updated: 2026-06-09 | Reason: add shared package to GPL WCA metadata boundary_
+_Last updated: 2026-06-13 | Reason: record citty CLI runtime dependency boundary_

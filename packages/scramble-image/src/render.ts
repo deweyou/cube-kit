@@ -99,4 +99,6 @@ export const renderScrambleImage = (
       return renderSquareOneState(state);
     }
   }
+
+  throw new Error(`@cubegin/scramble-image: unsupported event '${eventId}'`);
 };

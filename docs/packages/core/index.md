@@ -6,10 +6,16 @@ flowchart TD
     Core --> ScrambleImage["cubegin/scramble-image"]
     Core --> ScramblePuzzle["cubegin/scramble-puzzle"]
     Core --> Icons["cubegin/icons"]
+    Core --> Solver["cubegin/solver"]
+    Core --> Bin["bin: cubegin"]
+    Core --> Skill["skills/cubegin"]
     Icons --> IconsPkg["@cubegin/icons"]
     ScrambleCore --> CorePkg["@cubegin/scramble-core"]
     ScrambleImage --> ImagePkg["@cubegin/scramble-image"]
     ScramblePuzzle --> PuzzlePkg["@cubegin/scramble-puzzle"]
+    Solver --> SolverPkg["@cubegin/solver"]
+    Bin --> CliPkg["@cubegin/cli"]
+    Skill --> SkillSource["repo skills/cubegin"]
     CorePkg -. private vendored dependency .-> SharedPkg["@cubegin/shared"]
     ImagePkg -. private vendored dependency .-> SharedPkg
     PuzzlePkg -. private vendored dependency .-> SharedPkg
@@ -33,6 +39,20 @@ subpath.
 - `cubegin/icons/react`
 - `cubegin/scramble-image`
 - `cubegin/scramble-puzzle`
+- `cubegin/solver`
+- `cubegin` bin
+
+## CLI And Skills
+
+- [packages/cli](../../../packages/cli/src/index.ts#L1) owns the source for the
+  public `cubegin` bin. [packages/core/scripts/build.mjs](../../../packages/core/scripts/build.mjs#L1)
+  vendors it into `dist/cli.mjs` with executable permissions.
+- [skills/cubegin/SKILL.md](../../../skills/cubegin/SKILL.md#L1) is
+  copied into the public package so `cubegin install` can pass the bundled path
+  to `npx skills add <path> --copy -g`.
+- The public package may declare normal npm runtime dependencies required by the
+  bin, such as `citty`, but must not declare runtime dependencies on unpublished
+  `@cubegin/*` workspace packages.
 
 ## Verification
 
@@ -68,6 +88,8 @@ with the build script.
 - `packages/core/scripts/build.mjs` scans those markers, syncs the public
   `exports` map, vendors source into `.build/vendor`, and runs `vp pack` in
   `unbundle` mode so the published package keeps internal ESM module boundaries.
+- Keep `bin.cubegin` mapped to `./dist/cli.mjs`; do not point npm bin entries at
+  workspace sibling paths.
 - The build script also vendors workspace runtime dependencies required by those
   public packages without adding matching public `cubegin/*` exports.
 - The icons subpath also mirrors static SVG files such as
@@ -82,4 +104,4 @@ with the build script.
 
 ---
 
-_Last updated: 2026-06-09 | Reason: record clean-checkout static SVG release build boundary_
+_Last updated: 2026-06-13 | Reason: add CLI bin, solver subpath, and bundled skill distribution_

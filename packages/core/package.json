@@ -5,13 +5,18 @@
   "license": "GPL-3.0-only",
   "files": [
     "dist",
+    "skills",
     "CHANGELOG.md",
     "LICENSE",
     "NOTICE",
     "README.md"
   ],
+  "bin": {
+    "cubegin": "./dist/cli.mjs"
+  },
   "type": "module",
   "exports": {
+    "./cli": "./dist/cli.mjs",
     "./icons": "./dist/icons.mjs",
     "./icons/brand": "./dist/icons/brand.mjs",
     "./icons/events": "./dist/icons/events.mjs",
@@ -21,6 +26,7 @@
     "./scramble-core": "./dist/scramble-core.mjs",
     "./scramble-image": "./dist/scramble-image.mjs",
     "./scramble-puzzle": "./dist/scramble-puzzle.mjs",
+    "./solver": "./dist/solver.mjs",
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -30,7 +36,11 @@
     "test": "vp test",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "citty": "^0.2.2"
+  },
   "devDependencies": {
+    "@cubegin/cli": "workspace:*",
     "@cubegin/icons": "workspace:*",
     "@cubegin/scramble-core": "workspace:*",
     "@cubegin/scramble-image": "workspace:*",

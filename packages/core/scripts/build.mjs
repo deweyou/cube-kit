@@ -5,6 +5,7 @@ import {
   mkdirSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import { dirname, relative, resolve, sep } from 'node:path';
@@ -18,6 +19,8 @@ const buildRoot = resolve(packageRoot, '.build');
 const vendorRoot = resolve(buildRoot, 'vendor');
 const generatedConfigPath = resolve(buildRoot, 'public-pack.json');
 const packageJsonPath = resolve(packageRoot, 'package.json');
+const skillsSourceRoot = resolve(repoRoot, 'skills');
+const skillsDestinationRoot = resolve(packageRoot, 'skills');
 const watch = process.argv.includes('--watch');
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
@@ -198,6 +201,15 @@ const syncPackageExports = (publicPackages) => {
   }
 };
 
+const syncBundledSkills = () => {
+  rmSync(skillsDestinationRoot, { force: true, recursive: true });
+  if (!existsSync(skillsSourceRoot)) return;
+  if (!statSync(skillsSourceRoot).isDirectory()) {
+    throw new Error('skills must be a directory');
+  }
+  cpSync(skillsSourceRoot, skillsDestinationRoot, { recursive: true });
+};
+
 const prepareBuildTree = (publicPackages, vendoredPackages) => {
   rmSync(buildRoot, { force: true, recursive: true });
   mkdirSync(vendorRoot, { recursive: true });
@@ -347,8 +359,15 @@ const assertBundledOutput = (publicPackages) => {
   }
 
   const packageJson = readJson(packageJsonPath);
-  if (packageJson.dependencies && Object.keys(packageJson.dependencies).length > 0) {
-    throw new Error('cubegin package.json must not declare runtime dependencies');
+  const unpublishedDependencies = Object.keys(packageJson.dependencies ?? {}).filter((name) =>
+    name.startsWith('@cubegin/'),
+  );
+  if (unpublishedDependencies.length > 0) {
+    throw new Error(
+      `cubegin package.json must not declare runtime dependencies on unpublished packages:\n${unpublishedDependencies.join(
+        '\n',
+      )}`,
+    );
   }
   if (Object.hasOwn(packageJson.exports, '.')) {
     throw new Error('cubegin root export must stay private');
@@ -359,6 +378,7 @@ const workspacePackages = discoverWorkspacePackages();
 const publicPackages = discoverPublicPackages(workspacePackages);
 const vendoredPackages = collectVendoredPackages(publicPackages, workspacePackages);
 syncPackageExports(publicPackages);
+syncBundledSkills();
 prepareBuildTree(publicPackages, vendoredPackages);
 runPack();
 syncPackageExports(publicPackages);

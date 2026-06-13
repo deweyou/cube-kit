@@ -20,14 +20,21 @@ flowchart TD
     Packages --> ImagePkg["@cubegin/scramble-image"]
     Packages --> IconsPkg["@cubegin/icons"]
     Packages --> SolverPkg["@cubegin/solver"]
+    Packages --> CliPkg["@cubegin/cli"]
     PublicCore --> IconPath["cubegin/icons"]
     PublicCore --> CorePath["cubegin/scramble-core"]
     PublicCore --> ImagePath["cubegin/scramble-image"]
     PublicCore --> PuzzlePath["cubegin/scramble-puzzle"]
+    PublicCore --> SolverPath["cubegin/solver"]
+    PublicCore --> Bin["cubegin bin"]
+    PublicCore --> Skills["bundled skills/cubegin"]
     CorePath --> CorePkg
     ImagePath --> ImagePkg
     PuzzlePath --> PuzzlePkg
     IconPath --> IconsPkg
+    SolverPath --> SolverPkg
+    Bin --> CliPkg
+    Skills --> CliSkill["skills/cubegin/SKILL.md"]
     SharedPkg --> SharedWca["shared/wca"]
     SharedPkg --> SharedTimer
     SharedPkg --> SharedTimerSession
@@ -37,6 +44,10 @@ flowchart TD
     ImagePkg --> PuzzlePkg
     SolverPkg --> PuzzlePkg
     PuzzlePkg --> SharedPkg
+    CliPkg --> CorePkg
+    CliPkg --> ImagePkg
+    CliPkg --> PuzzlePkg
+    CliPkg --> SolverPkg
     TimerPage --> SharedPkg
     TimerPage --> CorePkg
     TimerPage --> ImagePkg
@@ -72,6 +83,8 @@ packages/scramble-core/    TNoodle-compatible WCA scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
 packages/icons/            Platform-agnostic Cubegin SVG icon assets
 packages/solver/           platform-agnostic auxiliary and full solver helpers
+packages/cli/              Source package for the public cubegin CLI
+skills/                    Agent skills copied into the public cubegin package
 docs/                  repository memory and Superpowers specs/plans
 docs/packages/         package-scoped knowledge for new scramble packages
 docs/apps/             app-scoped knowledge for playground and docs apps
@@ -104,6 +117,12 @@ scripts/               lightweight repository checks
 - WeChat starts from [apps/wx-app/src/app.ts#L1](../apps/wx-app/src/app.ts#L1)
   and currently renders the placeholder index page at
   [apps/wx-app/src/pages/index/index.tsx#L1](../apps/wx-app/src/pages/index/index.tsx#L1).
+- The public CLI is published as the `cubegin` bin from
+  [packages/core/package.json#L1](../packages/core/package.json#L1). Its source
+  lives in [packages/cli/src/index.ts#L1](../packages/cli/src/index.ts#L1), and
+  `cubegin install` forwards the bundled
+  [skills/cubegin/SKILL.md#L1](../skills/cubegin/SKILL.md#L1) path to
+  `npx skills add ... --copy -g`.
 
 ## Key Files
 
@@ -132,8 +151,10 @@ scripts/               lightweight repository checks
 - [packages/scramble-image/src/index.ts#L1](../packages/scramble-image/src/index.ts#L1) - TNoodle-compatible SVG renderer barrel.
 - [packages/icons/src/index.ts#L1](../packages/icons/src/index.ts#L1) - platform-agnostic Cubegin icon asset barrel.
 - [packages/core/package.json#L1](../packages/core/package.json#L1) - public
-  `cubegin` npm package with subpath-only exports for selected packages.
+  `cubegin` npm package with subpath exports, CLI bin, and bundled skills.
 - [packages/solver/src/index.ts#L1](../packages/solver/src/index.ts#L1) - auxiliary and full solver barrel.
+- [packages/cli/src/index.ts#L1](../packages/cli/src/index.ts#L1) - public CLI command tree.
+- [skills/cubegin/SKILL.md#L1](../skills/cubegin/SKILL.md#L1) - agent-facing CLI usage skill.
 - [docs/packages/core/index.md#L1](packages/core/index.md#L1) - public package
   ownership, subpaths, and verification.
 - [docs/packages/scramble-puzzle/index.md#L1](packages/scramble-puzzle/index.md#L1) - puzzle package ownership and verification.
@@ -141,9 +162,10 @@ scripts/               lightweight repository checks
 - [docs/packages/scramble-image/index.md#L1](packages/scramble-image/index.md#L1) - image renderer ownership and verification.
 - [docs/packages/icons/index.md#L1](packages/icons/index.md#L1) - icon asset ownership and verification.
 - [docs/packages/solver/index.md#L1](packages/solver/index.md#L1) - solver package ownership and verification.
+- [docs/packages/cli/index.md#L1](packages/cli/index.md#L1) - CLI ownership, JSON contract, and skill install boundary.
 - [docs/apps/playground/index.md#L1](apps/playground/index.md#L1) - playground ownership and diagnostics role.
 - [docs/tnoodle-implementation-notes.md#L1](tnoodle-implementation-notes.md#L1) - implementation notes and upgrade routing for the new packages.
 
 ---
 
-_Last updated: 2026-06-09 | Reason: document icons package ownership and static asset facade_
+_Last updated: 2026-06-13 | Reason: add public CLI and bundled agent skill distribution_

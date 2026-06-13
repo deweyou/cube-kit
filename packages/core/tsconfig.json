@@ -6,6 +6,7 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "paths": {
+      "@cubegin/cli": ["../cli/src/index.ts"],
       "@cubegin/icons": ["../icons/src/index.ts"],
       "@cubegin/icons/brand": ["../icons/src/brand/index.ts"],
       "@cubegin/icons/events": ["../icons/src/events/index.ts"],
