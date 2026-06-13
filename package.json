@@ -16,6 +16,7 @@
     "build": "vp run build -r",
     "test": "pnpm test:docs && vp run test -r",
     "test:docs": "node --test scripts/docs-home.test.mjs",
+    "sync:readmes": "node scripts/sync-package-readmes.mjs --write",
     "check": "vp check"
   },
   "devDependencies": {
