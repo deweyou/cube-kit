@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.0.3 - 2026-06-13
+
+- docs: align cubegin CLI and package README usage (#28) (7b9427c)
+
+<details>
+<summary>Release scope</summary>
+
+- Previous tag: cubegin@0.0.2
+- packages/cli
+- packages/core
+- packages/icons
+- packages/scramble-core
+- packages/scramble-image
+- packages/scramble-puzzle
+- packages/solver
+
+</details>
+
 ## 0.0.2 - 2026-06-13
 
 - ci: fix cubegin release version output (#25) (53a2480)
