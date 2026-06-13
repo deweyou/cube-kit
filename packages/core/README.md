@@ -1,7 +1,8 @@
 # cubegin
 
 Public Cubegin npm entrypoints for TNoodle-compatible scramble generation,
-scramble SVG rendering, puzzle notation/state helpers, and Cubegin icon assets.
+scramble SVG rendering, puzzle notation/state helpers, Cubegin icon assets,
+auxiliary solver helpers, and the `cubegin` CLI.
 
 The package intentionally does not expose a root API. Import one of the
 published subpaths instead:
@@ -13,6 +14,7 @@ import { BRAND_ICON_CUBEGIN_MARK_SVG } from 'cubegin/icons/brand';
 import { CubeginAnimatedIcon } from 'cubegin/icons/react';
 import { renderScrambleImage } from 'cubegin/scramble-image';
 import { WCA_EVENT_IDS } from 'cubegin/scramble-puzzle';
+import { solvePuzzleAssist } from 'cubegin/solver';
 ```
 
 ## Entrypoints
@@ -24,8 +26,23 @@ import { WCA_EVENT_IDS } from 'cubegin/scramble-puzzle';
 - `cubegin/scramble-core` bundles the `@cubegin/scramble-core` implementation.
 - `cubegin/scramble-image` bundles the `@cubegin/scramble-image` implementation.
 - `cubegin/scramble-puzzle` bundles the `@cubegin/scramble-puzzle` implementation.
+- `cubegin/solver` bundles the `@cubegin/solver` implementation.
+- `cubegin` is the public CLI bin, emitted from `@cubegin/cli` source.
 
 The package root is reserved and not listed in `exports`.
+
+## CLI And Skill
+
+```bash
+npx cubegin@latest install
+cubegin scramble events --json
+cubegin scramble generate 333 --count 5 --json
+cubegin scramble render 333 "R U R' U'" --json
+cubegin solver methods 333 --json
+```
+
+`cubegin install` asks whether to install the bundled agent skill globally and
+then delegates to `npx skills add <bundled-skill-path> --copy -g`.
 
 ## Adding Entrypoints
 

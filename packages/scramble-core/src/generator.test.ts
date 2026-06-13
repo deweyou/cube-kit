@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createScrambleGenerator } from './generator.js';
+import { createDefaultScrambleGenerator, createScrambleGenerator } from './generator.js';
 import { createMathRandomSource } from './random-source.js';
 import type { RandomSource } from './random-source.js';
 
@@ -131,6 +131,58 @@ describe('createScrambleGenerator', () => {
       '@cubegin/scramble-core: generated 1 unique scrambles after 100 attempts',
     );
     expect(calls).toBe(100);
+  });
+});
+
+describe('createDefaultScrambleGenerator', () => {
+  it('requires a cube count for multi-blind scrambles', async () => {
+    const generator = createDefaultScrambleGenerator({ random: deterministicRandom });
+
+    await expect(generator.generate('333mbld')).rejects.toThrow(
+      "@cubegin/scramble-core: event '333mbld' requires multiBlindCubeCount",
+    );
+  });
+
+  it('generates multi-blind scrambles with the requested cube count', async () => {
+    const generator = createDefaultScrambleGenerator({ random: deterministicRandom });
+
+    const scramble = await generator.generate('333mbld', { multiBlindCubeCount: 2 });
+
+    expect(scramble.eventId).toBe('333mbld');
+    expect(scramble.scramble.split(/\n/)).toHaveLength(2);
+  });
+
+  it('rejects invalid 5x5 blind orientation indexes from custom random sources', async () => {
+    const generator = createDefaultScrambleGenerator({
+      random: {
+        nextInt(maxExclusive) {
+          return maxExclusive;
+        },
+      },
+    });
+
+    await expect(generator.generate('555bld')).rejects.toThrow(
+      '@cubegin/scramble-core: random source returned 24 for max 24',
+    );
+  });
+
+  it('appends a 5x5 blind orientation sequence without repeating its axis at the tail', async () => {
+    let calls = 0;
+    const generator = createDefaultScrambleGenerator({
+      random: {
+        nextInt(maxExclusive) {
+          calls += 1;
+          return calls === 1 ? 1 : 0;
+        },
+      },
+    });
+
+    const scramble = await generator.generate('555bld');
+    const moves = scramble.scramble.split(/\s+/);
+
+    expect(scramble.eventId).toBe('555bld');
+    expect(moves.at(-1)).toBe('3Uw');
+    expect(moves.at(-2)).not.toMatch(/[UD]/);
   });
 });
 

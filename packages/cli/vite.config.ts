@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite-plus';
-import { defineConfig as definePackConfig } from 'vite-plus/pack';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vite-plus';
+import { defineConfig as definePackConfig } from 'vite-plus/pack';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workspacePackage = (packagePath: string) =>
@@ -14,14 +14,9 @@ export default defineConfig({
   }),
   resolve: {
     alias: {
+      '@cubegin/scramble-core': workspacePackage('scramble-core'),
+      '@cubegin/scramble-image': workspacePackage('scramble-image'),
       '@cubegin/scramble-puzzle': workspacePackage('scramble-puzzle'),
-      '@cubegin/shared/timer': path.resolve(__dirname, '../../packages/shared/src/timer/index.ts'),
-      '@cubegin/shared/timer-session': path.resolve(
-        __dirname,
-        '../../packages/shared/src/timer-session/index.ts',
-      ),
-      '@cubegin/shared/wca': path.resolve(__dirname, '../../packages/shared/src/wca/index.ts'),
-      '@cubegin/shared': workspacePackage('shared'),
       '@cubegin/solver': workspacePackage('solver'),
     },
   },

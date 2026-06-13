@@ -65,4 +65,12 @@ jobs:
         run: pnpm --filter './packages/*' build
 
       - name: Test packages
-        run: pnpm --filter './packages/*' test
+        run: |
+          pnpm --filter cubegin test
+          pnpm --filter @cubegin/cli test:coverage
+          pnpm --filter @cubegin/icons test:coverage
+          pnpm --filter @cubegin/shared test:coverage
+          pnpm --filter @cubegin/solver test:coverage
+          pnpm --filter @cubegin/scramble-core test:coverage
+          pnpm --filter @cubegin/scramble-image test:coverage
+          pnpm --filter @cubegin/scramble-puzzle test:coverage

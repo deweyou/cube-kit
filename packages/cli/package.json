@@ -1,7 +1,7 @@
 {
-  "name": "@cubegin/solver",
+  "name": "@cubegin/cli",
   "version": "0.0.0",
-  "description": "Platform-agnostic auxiliary solve helpers for Cubegin.",
+  "description": "Agent-friendly CLI for Cubegin scramble and solver tooling.",
   "license": "GPL-3.0-only",
   "files": [
     "dist",
@@ -20,17 +20,20 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cubegin/scramble-puzzle": "workspace:*"
+    "@cubegin/scramble-core": "workspace:*",
+    "@cubegin/scramble-image": "workspace:*",
+    "@cubegin/scramble-puzzle": "workspace:*",
+    "@cubegin/solver": "workspace:*",
+    "citty": "^0.2.2"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@vitest/coverage-v8": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "0.1.19",
     "vitest": "catalog:"
   },
   "cubegin": {
-    "publicSubpath": "solver"
+    "publicSubpath": "cli"
   }
 }
