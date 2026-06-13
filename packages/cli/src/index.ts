@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { defineCommand, runMain } from 'citty';
+import { defineCommand, runCommand } from 'citty';
 import { writeFileSync } from 'node:fs';
 
 import { isCliError } from './errors.js';
@@ -195,9 +195,9 @@ export const main = defineCommand({
   },
 });
 
-export const runCli = async (): Promise<void> => {
+export const runCli = async (rawArgs?: readonly string[]): Promise<void> => {
   try {
-    await runMain(main);
+    await runCommand(main, { rawArgs: [...(rawArgs ?? process.argv.slice(2))] });
   } catch (error) {
     if (isCliError(error)) {
       writeJson(jsonError(error.code, error.message, error.hints));
@@ -216,6 +216,7 @@ const splitList = (value: string | undefined): readonly string[] =>
         .map((part) => part.trim())
         .filter(Boolean);
 
+/* v8 ignore next 3 */
 if (process.argv[1] !== undefined && import.meta.url === new URL(process.argv[1], 'file:').href) {
   await runCli();
 }

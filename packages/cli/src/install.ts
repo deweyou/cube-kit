@@ -14,10 +14,10 @@ export interface SkillInstallCommand {
 export interface InstallOptions {
   readonly yes?: boolean;
   readonly dryRun?: boolean;
+  readonly skillPath?: string;
 }
 
-export const getBundledSkillPath = (): string => {
-  const start = dirname(fileURLToPath(import.meta.url));
+export const getBundledSkillPath = (start = dirname(fileURLToPath(import.meta.url))): string => {
   const found = findBundledSkillPath(start);
   return found ?? resolve(start, '../skills/cubegin');
 };
@@ -27,8 +27,11 @@ export const buildSkillInstallCommand = (skillPath = getBundledSkillPath()): Ski
   args: ['skills', 'add', skillPath, '--copy', '-g'],
 });
 
-export const runInstall = async ({ yes = false, dryRun = false }: InstallOptions = {}): Promise<void> => {
-  const skillPath = getBundledSkillPath();
+export const runInstall = async ({
+  yes = false,
+  dryRun = false,
+  skillPath = getBundledSkillPath(),
+}: InstallOptions = {}): Promise<void> => {
   if (!existsSync(skillPath)) {
     throw new CliError('SKILL_NOT_FOUND', `Bundled skill not found: ${skillPath}`, { exitCode: 1 });
   }

@@ -14,10 +14,15 @@ import {
   solveCross,
   solveEOLine,
   solveEOFC,
+  solveBlock222,
+  solveCfopF2L,
+  solveEODR,
   solvePetrusS1,
+  solvePetrusS2,
   solvePuzzleAssist,
   solvePuzzleFull,
   solvePyraminxV,
+  solveRouxS2,
   solveSkewbFace,
   solveSquareOneStateIn,
   solveRouxS1,
@@ -25,9 +30,11 @@ import {
   solveSquareOneShapeTwistMetric,
   solveThreeByThreeAssist,
   solveThreeByThreeGeneral,
+  solveThreeByThreeTwoPhase,
   solveTwoByTwoFace,
   solveTwoByTwoLayer,
   solveXCross,
+  solveZZF2L,
 } from './index.js';
 
 describe('@cubegin/solver public API', () => {
@@ -67,6 +74,25 @@ describe('@cubegin/solver public API', () => {
 
   it('exports the full solver facade', () => {
     expect(typeof solvePuzzleFull).toBe('function');
+  });
+
+  it('runs public 3x3 staged helper wrappers', () => {
+    const helpers = [
+      ['cfop-f2l', solveCfopF2L],
+      ['roux-s2', solveRouxS2],
+      ['petrus-s2', solvePetrusS2],
+      ['zz-f2l', solveZZF2L],
+      ['block-222', solveBlock222],
+      ['eo-dr', solveEODR],
+      ['333-two-phase', solveThreeByThreeTwoPhase],
+    ] as const;
+
+    for (const [method, helper] of helpers) {
+      const result = helper('');
+
+      expect(result.method).toBe(method);
+      expect(result.solutions.length).toBeGreaterThan(0);
+    }
   });
 
   it('exports solver-specific errors', () => {

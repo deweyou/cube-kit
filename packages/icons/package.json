@@ -20,6 +20,7 @@
     "build": "vp pack && node scripts/write-svg-files.mjs",
     "dev": "vp pack --watch",
     "test": "vp test && node --test scripts/*.node-test.mjs",
+    "test:coverage": "vp test --coverage && node --test scripts/*.node-test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { listSolverEvents, listSolverMethods } from './solver.js';
+import { listSolverEvents, listSolverMethods, runSolverAssist } from './solver.js';
 
 describe('solver handlers', () => {
   it('lists supported assist events', () => {
@@ -53,5 +53,32 @@ describe('solver handlers', () => {
         '333-general',
       ],
     });
+  });
+
+  it('defaults assist to all methods for the requested event', () => {
+    expect(runSolverAssist('skewb', 'R U', [])).toMatchObject({
+      eventId: 'skewb',
+      results: [{ method: 'skewb-face' }],
+    });
+  });
+
+  it('rejects unknown solver events with an agent hint', () => {
+    expect(() => listSolverMethods('777x')).toThrow(
+      expect.objectContaining({
+        code: 'UNKNOWN_SOLVER_EVENT',
+        exitCode: 3,
+        hints: ['Run `cubegin solver events --json`.'],
+      }),
+    );
+  });
+
+  it('rejects methods that are not supported by the event', () => {
+    expect(() => runSolverAssist('222', 'R U', ['cross'])).toThrow(
+      expect.objectContaining({
+        code: 'UNKNOWN_SOLVER_METHOD',
+        exitCode: 3,
+        hints: ['Run `cubegin solver methods 222 --json`.'],
+      }),
+    );
   });
 });

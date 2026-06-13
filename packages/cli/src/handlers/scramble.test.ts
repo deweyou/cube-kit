@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { listScrambleEvents, renderScrambleSvg } from './scramble.js';
+import { generateScrambles, listScrambleEvents, renderScrambleSvg } from './scramble.js';
 
 describe('scramble handlers', () => {
   it('lists WCA events in a stable agent-friendly shape', () => {
@@ -15,6 +15,21 @@ describe('scramble handlers', () => {
       eventId: '333',
       format: 'svg',
       svg: expect.stringContaining('<svg'),
+    });
+  });
+
+  it('rejects unknown events with an agent hint', async () => {
+    await expect(generateScrambles('777x')).rejects.toMatchObject({
+      code: 'UNKNOWN_EVENT',
+      exitCode: 3,
+      hints: ['Run `cubegin scramble events --json`.'],
+    });
+  });
+
+  it('rejects non-positive scramble counts', async () => {
+    await expect(generateScrambles('333', { count: 0 })).rejects.toMatchObject({
+      code: 'INVALID_COUNT',
+      exitCode: 2,
     });
   });
 });
