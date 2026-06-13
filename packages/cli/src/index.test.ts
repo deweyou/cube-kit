@@ -45,6 +45,13 @@ describe('cubegin command tree', () => {
     }
   });
 
+  it('does not treat missing or unresolved argv entries as CLI entrypoints', () => {
+    expect(isCliEntrypoint(pathToFileURL(import.meta.filename).href, undefined)).toBe(false);
+    expect(
+      isCliEntrypoint(pathToFileURL('/tmp/cubegin-missing-cli.mjs').href, '/tmp/cubegin'),
+    ).toBe(false);
+  });
+
   it('prints top-level usage without requiring a subcommand', async () => {
     const lines = await run(['--help']);
 
@@ -53,12 +60,26 @@ describe('cubegin command tree', () => {
     expect(process.exitCode).toBeUndefined();
   });
 
+  it('prints top-level usage for empty args and short help', async () => {
+    expect((await run([])).join('\n')).toContain('COMMANDS');
+    expect((await run(['-h'])).join('\n')).toContain('COMMANDS');
+  });
+
   it('prints nested usage without requiring a leaf command', async () => {
     const lines = await run(['scramble', '--help']);
 
     expect(lines.join('\n')).toContain('scramble events|generate|render');
     expect(lines.join('\n')).toContain('Generate WCA scrambles');
     expect(process.exitCode).toBeUndefined();
+  });
+
+  it('resolves help when option-like args or unknown nested args appear before help', async () => {
+    expect((await run(['scramble', '--json', '--help'])).join('\n')).toContain(
+      'scramble events|generate|render',
+    );
+    expect((await run(['scramble', 'events', 'extra', '--help'])).join('\n')).toContain(
+      'List supported WCA events',
+    );
   });
 
   it('prints a typed JSON error for command validation failures', async () => {
@@ -222,5 +243,13 @@ describe('cubegin command tree', () => {
       },
     });
     expect(process.exitCode).toBe(2);
+  });
+
+  it('rethrows unexpected command failures', async () => {
+    vi.spyOn(console, 'log').mockImplementationOnce(() => {
+      throw new Error('log failed');
+    });
+
+    await expect(runCli(['scramble', 'events'])).rejects.toThrow('log failed');
   });
 });
