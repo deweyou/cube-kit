@@ -1,5 +1,10 @@
 import type { GenerateOptions, ScrambleResult } from '@cubegin/scramble-core';
 import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/shared/wca';
+import {
+  getScrambleElapsedMs,
+  getScramblePerformanceNow,
+  logScramblePerformance,
+} from './scramble-performance-log';
 import type { TimerScrambleGenerator } from './scramble-worker-client';
 
 const DEFAULT_MULTI_BLIND_CUBE_COUNT = 3;
@@ -12,32 +17,23 @@ export const getTimerScrambleGenerateOptions = (eventId: WcaEventId): GenerateOp
   multiBlindCubeCount: getMultiBlindCubeCount(eventId),
 });
 
-const scheduleIdleTask = (task: () => void): (() => void) => {
-  if (typeof window === 'undefined') return () => {};
-
-  if (typeof window.requestIdleCallback === 'function') {
-    const handle = window.requestIdleCallback(task, { timeout: 2_000 });
-    return () => window.cancelIdleCallback?.(handle);
-  }
-
-  const handle = window.setTimeout(task, 250);
-  return () => window.clearTimeout(handle);
-};
-
 export interface TimerScramblePrefetcher {
   consume(eventId: WcaEventId): Promise<ScrambleResult>;
   dispose(): void;
   hasReady(eventId: WcaEventId): boolean;
   prefetch(eventId: WcaEventId): Promise<void>;
-  prefetchIdleEvents(activeEventId: WcaEventId): void;
+  prefetchWarmEvents(activeEventId: WcaEventId): Promise<void>;
 }
 
 export const createTimerScramblePrefetcher = (
   generator: TimerScrambleGenerator,
+  options: {
+    backgroundGenerator?: TimerScrambleGenerator;
+    shouldKeepWarmResult?: (eventId: WcaEventId) => boolean;
+  } = {},
 ): TimerScramblePrefetcher => {
   const queues = new Map<WcaEventId, ScrambleResult[]>();
   const inFlight = new Map<WcaEventId, Promise<void>>();
-  let cancelIdlePrefetch: (() => void) | undefined;
 
   const getQueue = (eventId: WcaEventId) => {
     const existing = queues.get(eventId);
@@ -48,20 +44,61 @@ export const createTimerScramblePrefetcher = (
     return queue;
   };
 
-  const prefetch = (eventId: WcaEventId) => {
+  const prefetchWithGenerator = (
+    eventId: WcaEventId,
+    prefetchGenerator: TimerScrambleGenerator,
+    reason: 'active' | 'warm',
+  ) => {
     const queue = getQueue(eventId);
-    if (queue.length >= PREFETCH_QUEUE_LIMIT) return Promise.resolve();
+    if (queue.length >= PREFETCH_QUEUE_LIMIT) {
+      logScramblePerformance('prefetch:skip-ready', { eventId, queueLength: queue.length, reason });
+      return Promise.resolve();
+    }
 
     const pending = inFlight.get(eventId);
-    if (pending) return pending;
+    if (pending) {
+      logScramblePerformance('prefetch:join-inflight', { eventId, reason });
+      return pending;
+    }
 
-    const request = generator
+    const startMs = getScramblePerformanceNow();
+    logScramblePerformance('prefetch:start', { eventId, reason });
+    const request = prefetchGenerator
       .generate(eventId, getTimerScrambleGenerateOptions(eventId))
       .then((result) => {
         const latestQueue = getQueue(eventId);
-        if (latestQueue.length < PREFETCH_QUEUE_LIMIT) latestQueue.push(result);
+        if (reason === 'warm' && options.shouldKeepWarmResult?.(eventId) === false) {
+          logScramblePerformance('prefetch:drop-active-warm', {
+            eventId,
+            totalMs: getScrambleElapsedMs(startMs),
+          });
+          return;
+        }
+
+        if (latestQueue.length < PREFETCH_QUEUE_LIMIT) {
+          latestQueue.push(result);
+          logScramblePerformance('prefetch:ready', {
+            eventId,
+            queueLength: latestQueue.length,
+            reason,
+            totalMs: getScrambleElapsedMs(startMs),
+          });
+        } else {
+          logScramblePerformance('prefetch:drop-full', {
+            eventId,
+            queueLength: latestQueue.length,
+            reason,
+            totalMs: getScrambleElapsedMs(startMs),
+          });
+        }
       })
-      .catch(() => {
+      .catch((cause) => {
+        logScramblePerformance('prefetch:error', {
+          error: cause instanceof Error ? cause.message : String(cause),
+          eventId,
+          reason,
+          totalMs: getScrambleElapsedMs(startMs),
+        });
         // Background prefetch should never surface as a user-visible error.
       })
       .finally(() => {
@@ -72,51 +109,65 @@ export const createTimerScramblePrefetcher = (
     return request;
   };
 
+  const prefetch = (eventId: WcaEventId) => prefetchWithGenerator(eventId, generator, 'active');
+
   const consume = async (eventId: WcaEventId) => {
     const queue = getQueue(eventId);
     const ready = queue.shift();
-    if (ready) return ready;
+    if (ready) {
+      logScramblePerformance('consume:ready-hit', { eventId, queueLength: queue.length });
+      return ready;
+    }
 
     const pending = inFlight.get(eventId);
     if (pending) {
+      const waitStartMs = getScramblePerformanceNow();
+      logScramblePerformance('consume:wait-inflight', { eventId });
       await pending;
       const prefetched = queue.shift();
-      if (prefetched) return prefetched;
+      if (prefetched) {
+        logScramblePerformance('consume:inflight-hit', {
+          eventId,
+          waitMs: getScrambleElapsedMs(waitStartMs),
+        });
+        return prefetched;
+      }
     }
 
-    return generator.generate(eventId, getTimerScrambleGenerateOptions(eventId));
+    const directStartMs = getScramblePerformanceNow();
+    logScramblePerformance('consume:direct-start', { eventId });
+    const generated = await generator.generate(eventId, getTimerScrambleGenerateOptions(eventId));
+    logScramblePerformance('consume:direct-success', {
+      eventId,
+      totalMs: getScrambleElapsedMs(directStartMs),
+    });
+    return generated;
   };
 
-  const prefetchIdleEvents = (activeEventId: WcaEventId) => {
-    cancelIdlePrefetch?.();
+  const getWarmEventIds = (activeEventId: WcaEventId) =>
+    WCA_EVENT_IDS.filter((eventId) => eventId !== activeEventId);
 
-    const eventIds = WCA_EVENT_IDS.filter((eventId) => eventId !== activeEventId);
-    let nextIndex = 0;
+  const prefetchWarmEvents = (activeEventId: WcaEventId) => {
+    const backgroundGenerator = options.backgroundGenerator;
+    if (!backgroundGenerator) return Promise.resolve();
 
-    const runNext = () => {
-      while (nextIndex < eventIds.length && getQueue(eventIds[nextIndex]).length > 0) {
-        nextIndex += 1;
-      }
-      const nextEventId = eventIds[nextIndex];
-      if (!nextEventId) return;
+    const eventIds = getWarmEventIds(activeEventId);
 
-      nextIndex += 1;
-      void prefetch(nextEventId).finally(() => {
-        cancelIdlePrefetch = scheduleIdleTask(runNext);
+    return Promise.all(
+      eventIds.map((eventId) => prefetchWithGenerator(eventId, backgroundGenerator, 'warm')),
+    ).then(() => {
+      backgroundGenerator.dispose?.();
+      logScramblePerformance('prefetch:warm-complete', {
+        eventCount: eventIds.length,
       });
-    };
-
-    cancelIdlePrefetch = scheduleIdleTask(runNext);
+    });
   };
 
   return {
     consume,
-    dispose: () => {
-      cancelIdlePrefetch?.();
-      cancelIdlePrefetch = undefined;
-    },
+    dispose: () => {},
     hasReady: (eventId) => getQueue(eventId).length > 0,
     prefetch,
-    prefetchIdleEvents,
+    prefetchWarmEvents,
   };
 };

@@ -90,6 +90,7 @@ describe('scramble layout CSS', () => {
     );
     expect(scrambleViewCss).toContain('.touchCancelZone');
     expect(scrambleViewCss).toContain('height: 128px;');
+    expect(scrambleViewCss).toContain('justify-content: center;');
     expect(scrambleViewCss).toContain('.touchCancelText');
     expect(scrambleViewCss).toContain('transform: translateY(0) scale(1);');
     expect(scrambleViewCss).toContain('transform: translateY(-2px) scale(1.12);');
@@ -99,6 +100,7 @@ describe('scramble layout CSS', () => {
     expect(scrambleViewCss).toContain(
       'bottom: calc(var(--action-stack-bottom) + var(--action-stack-height) + 24px);',
     );
+    expect(scrambleViewCss).toContain('left: 50%;');
   });
 
   it('uses the original full-screen mobile sidebar behavior', () => {

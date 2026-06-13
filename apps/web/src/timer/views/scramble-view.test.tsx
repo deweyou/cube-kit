@@ -135,6 +135,7 @@ describe('ScrambleView', () => {
       clientX: 100,
       clientY: 600,
       pointerId: 1,
+      pointerType: 'touch',
     });
     act(() => {
       vi.advanceTimersByTime(299);
@@ -144,11 +145,31 @@ describe('ScrambleView', () => {
       clientX: 100,
       clientY: 600,
       pointerId: 1,
+      pointerType: 'touch',
     });
 
     expect(callbacks.onPrepareStart).not.toHaveBeenCalled();
     expect(callbacks.onStartReady).not.toHaveBeenCalled();
     expect(callbacks.onCancelReady).toHaveBeenCalledOnce();
+  });
+
+  it('does not show the touch overlay from a mouse long press', () => {
+    const callbacks = renderScrambleView();
+    const actionStack = getActionStack();
+
+    fireEvent.pointerDown(actionStack, {
+      button: 0,
+      clientX: 100,
+      clientY: 600,
+      pointerId: 1,
+      pointerType: 'mouse',
+    });
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(callbacks.onPrepareStart).not.toHaveBeenCalled();
+    expect(screen.queryByText(messages.releaseToStart)).toBeNull();
   });
 
   it('prepares on long press and starts only after releasing the action pill', () => {
@@ -160,6 +181,7 @@ describe('ScrambleView', () => {
       clientX: 100,
       clientY: 600,
       pointerId: 1,
+      pointerType: 'touch',
     });
     act(() => {
       vi.advanceTimersByTime(300);
@@ -188,11 +210,13 @@ describe('ScrambleView', () => {
       clientX: 100,
       clientY: 600,
       pointerId: 1,
+      pointerType: 'touch',
     });
     fireEvent.pointerMove(actionStack, {
       clientX: 100,
       clientY: 616,
       pointerId: 1,
+      pointerType: 'touch',
     });
     act(() => {
       vi.advanceTimersByTime(300);
@@ -202,6 +226,7 @@ describe('ScrambleView', () => {
       clientX: 100,
       clientY: 616,
       pointerId: 1,
+      pointerType: 'touch',
     });
 
     expect(callbacks.onPrepareStart).not.toHaveBeenCalled();
@@ -218,6 +243,7 @@ describe('ScrambleView', () => {
       clientX: 100,
       clientY: 600,
       pointerId: 1,
+      pointerType: 'touch',
     });
     act(() => {
       vi.advanceTimersByTime(300);
@@ -227,6 +253,7 @@ describe('ScrambleView', () => {
       clientX: 100,
       clientY: 60,
       pointerId: 1,
+      pointerType: 'touch',
     });
 
     expect(screen.getByText(messages.releaseToCancel)).not.toBeNull();
@@ -236,6 +263,7 @@ describe('ScrambleView', () => {
       clientX: 100,
       clientY: 60,
       pointerId: 1,
+      pointerType: 'touch',
     });
 
     expect(callbacks.onPrepareStart).toHaveBeenCalledOnce();

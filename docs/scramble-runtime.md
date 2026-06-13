@@ -3,10 +3,13 @@
 ```mermaid
 flowchart TD
     UI["apps/web Timer UI"] --> Core["@cubegin/scramble-core"]
-    UI --> Worker["timer scramble worker"]
     UI --> Prefetch["scramble prefetcher"]
-    Prefetch --> Worker
-    Worker --> Core
+    UI --> ForegroundWorker["foreground scramble worker"]
+    UI --> BackgroundWorker["temporary background scramble worker"]
+    Prefetch --> ForegroundWorker
+    Prefetch --> BackgroundWorker
+    ForegroundWorker --> Core
+    BackgroundWorker --> Core
     UI --> Image["@cubegin/scramble-image"]
     UI --> Shared["@cubegin/shared/wca"]
     Playground["apps/playground"] --> Core
@@ -48,9 +51,11 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 - `apps/web` builds `@cubegin/shared` and the three scramble packages before
   dev, build, test, and typecheck so package `dist` exports are available.
 - `apps/web` prefetches at most one unused scramble per event. A scramble is
-  consumed once and never reused after display; after the active event has a
-  next scramble queued, idle time may prefetch other WCA events for faster event
-  switching.
+  consumed once and never reused after display. The foreground worker owns the
+  active event's displayed scramble and next active-event prefetch; a temporary
+  background worker warms one scramble for every non-active WCA event, drops a
+  warm result if that event becomes active before it resolves, and terminates
+  after the warm pass completes.
 - `apps/playground` is a test workbench, not a production app migration. It
   imports the new packages directly, aliases Vite runtime resolution to package
   source, and runs `prepare:deps` before typecheck/build so package dist types
@@ -68,9 +73,10 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
   removed cstimer shim.
 - WeChat miniprogram support should be verified before wiring the package into
   `apps/wx-app`.
-- Heavy generators run behind the web timer Worker boundary. Keep an eye on
-  worker lifecycle and queue pressure on mobile devices when adding more
-  prefetch depth.
+- Heavy generators run behind the web timer Worker boundary. Keep foreground
+  generation isolated from background warm queues so user-visible refreshes do
+  not wait behind cross-event prefetch work. Keep an eye on mobile CPU pressure
+  if background warm depth or worker count increases.
 - `apps/playground` runs generators on the main thread because it is a developer
   test workbench. Production UI should still move heavy generation behind a
   worker boundary.
@@ -79,7 +85,8 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 
 - [apps/web/src/timer/timer-page.tsx#L1](../apps/web/src/timer/timer-page.tsx#L1) - timer state and async scramble generation.
 - [apps/web/src/timer/scramble-worker-client.ts#L1](../apps/web/src/timer/scramble-worker-client.ts#L1) - browser Worker request/response boundary.
-- [apps/web/src/timer/scramble-prefetcher.ts#L1](../apps/web/src/timer/scramble-prefetcher.ts#L1) - one-use scramble queue and idle prefetch policy.
+- [apps/web/src/timer/scramble-prefetcher.ts#L1](../apps/web/src/timer/scramble-prefetcher.ts#L1) - one-use scramble queue plus foreground and background worker prefetch policy.
+- [apps/web/src/timer/scramble-performance-log.ts#L1](../apps/web/src/timer/scramble-performance-log.ts#L1) - dev-only scramble timing logs.
 - [apps/web/src/timer/views/scramble-view.tsx#L1](../apps/web/src/timer/views/scramble-view.tsx#L1) - web SVG rendering through `@cubegin/scramble-image`.
 - [apps/web/src/timer/components/event-selector.tsx#L1](../apps/web/src/timer/components/event-selector.tsx#L1) - WCA event list from `@cubegin/shared/wca`.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - `prepare:deps` for workspace package exports.
@@ -96,4 +103,4 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 
 ---
 
-_Last updated: 2026-06-11 | Reason: document web worker generation and one-use scramble prefetch_
+_Last updated: 2026-06-13 | Reason: document foreground/background worker scramble prefetch policy_

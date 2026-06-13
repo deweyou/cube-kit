@@ -59,9 +59,7 @@ describe('ResultView', () => {
       />,
     );
 
-    await userEvent.click(
-      screen.getByRole('button', { name: TIMER_MESSAGES['zh-CN'].continue }),
-    );
+    await userEvent.click(screen.getByRole('button', { name: TIMER_MESSAGES['zh-CN'].continue }));
     await userEvent.click(screen.getByRole('button', { name: '+2' }));
     await userEvent.click(screen.getByRole('button', { name: 'DNF' }));
     await userEvent.click(screen.getByRole('button', { name: '删除' }));

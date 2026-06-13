@@ -92,6 +92,7 @@ export const ScrambleView = ({
   const handleActionPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       if (!canStart || event.button !== 0) return;
+      if (event.pointerType !== 'touch') return;
       if (cancelActionRef.current?.contains(event.target as Node)) return;
 
       event.preventDefault();
