@@ -92,6 +92,19 @@ scripts/               lightweight repository checks
 .github/workflows/     GitHub Actions workflows
 ```
 
+## README Distribution
+
+`README.md` and `README_ZH.md` in the repository root are the only hand-edited
+public README sources. The public npm package copies are generated at
+`packages/core/README.md` and `packages/core/README_ZH.md` by
+`pnpm sync:readmes`; `pnpm test:docs` fails when the copies drift.
+`packages/core/scripts/build.mjs` also syncs both files before packing so the
+published `cubegin` package includes the current English and Chinese README
+files.
+
+When changing the English README, update `README_ZH.md` in the same change and
+rerun the sync script.
+
 ## Startup Path
 
 - Web starts at [apps/web/src/main.tsx#L1](../apps/web/src/main.tsx#L1), which
@@ -127,7 +140,11 @@ scripts/               lightweight repository checks
 ## Key Files
 
 - [package.json#L7](../package.json#L7) - root scripts for dev, build, test,
-  docs guard, and check.
+  docs guard, README sync, and check.
+- [README.md#L1](../README.md#L1) and
+  [README_ZH.md#L1](../README_ZH.md#L1) - canonical public README sources.
+- [scripts/sync-package-readmes.mjs#L1](../scripts/sync-package-readmes.mjs#L1) -
+  syncs canonical README files into `packages/core` for npm publishing.
 - [pnpm-workspace.yaml#L1](../pnpm-workspace.yaml#L1) - workspace packages and
   dependency catalog.
 - [.github/workflows/packages.yml#L1](../.github/workflows/packages.yml#L1) -
@@ -168,4 +185,4 @@ scripts/               lightweight repository checks
 
 ---
 
-_Last updated: 2026-06-13 | Reason: add public CLI and bundled agent skill distribution_
+_Last updated: 2026-06-13 | Reason: record README sync and bilingual npm package distribution_

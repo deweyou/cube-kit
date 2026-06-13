@@ -70,5 +70,8 @@ generation, scramble visualization, and a WeChat miniprogram shell.
   local [apps/scramble-docs/AGENTS.md](apps/scramble-docs/AGENTS.md).
 - If you add bundled dependencies, change package licenses, or alter published
   files, read [docs/dependency-licensing.md](docs/dependency-licensing.md) first.
+- If you update `README.md`, update `README_ZH.md` in the same change, then run
+  `pnpm sync:readmes` so `packages/core` receives the generated npm package
+  copies. `pnpm test:docs` verifies this stays in sync.
 - If you update repository memory, keep docs Mermaid-first, concise, and linked
   with relative paths plus `#L` anchors where useful.

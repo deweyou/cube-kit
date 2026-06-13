@@ -66,3 +66,12 @@ test('tracked text files do not point agents at the legacy knowledge path', asyn
 
   assert.deepEqual(offenders, []);
 });
+
+test('published package README files are synced from the root README files', async () => {
+  for (const fileName of ['README.md', 'README_ZH.md']) {
+    const rootReadme = await readFile(path.join(repoRoot, fileName), 'utf8');
+    const packageReadme = await readFile(path.join(repoRoot, 'packages/core', fileName), 'utf8');
+
+    assert.equal(packageReadme, rootReadme, `packages/core/${fileName} must match ${fileName}`);
+  }
+});

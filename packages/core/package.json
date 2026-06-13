@@ -14,7 +14,8 @@
     "CHANGELOG.md",
     "LICENSE",
     "NOTICE",
-    "README.md"
+    "README.md",
+    "README_ZH.md"
   ],
   "bin": {
     "cubegin": "dist/cli.mjs"

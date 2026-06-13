@@ -21,6 +21,7 @@ const generatedConfigPath = resolve(buildRoot, 'public-pack.json');
 const packageJsonPath = resolve(packageRoot, 'package.json');
 const skillsSourceRoot = resolve(repoRoot, 'skills');
 const skillsDestinationRoot = resolve(packageRoot, 'skills');
+const publicReadmeFiles = ['README.md', 'README_ZH.md'];
 const watch = process.argv.includes('--watch');
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
@@ -210,6 +211,12 @@ const syncBundledSkills = () => {
   cpSync(skillsSourceRoot, skillsDestinationRoot, { recursive: true });
 };
 
+const syncPublicReadmes = () => {
+  for (const file of publicReadmeFiles) {
+    cpSync(resolve(repoRoot, file), resolve(packageRoot, file));
+  }
+};
+
 const prepareBuildTree = (publicPackages, vendoredPackages) => {
   rmSync(buildRoot, { force: true, recursive: true });
   mkdirSync(vendorRoot, { recursive: true });
@@ -377,6 +384,7 @@ const assertBundledOutput = (publicPackages) => {
 const workspacePackages = discoverWorkspacePackages();
 const publicPackages = discoverPublicPackages(workspacePackages);
 const vendoredPackages = collectVendoredPackages(publicPackages, workspacePackages);
+syncPublicReadmes();
 syncPackageExports(publicPackages);
 syncBundledSkills();
 prepareBuildTree(publicPackages, vendoredPackages);
