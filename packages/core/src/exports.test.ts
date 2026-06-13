@@ -9,6 +9,11 @@ interface PackageJson {
   readonly bin?: Record<string, string>;
   readonly exports: Record<string, string>;
   readonly files?: readonly string[];
+  readonly repository?: {
+    readonly type?: string;
+    readonly url?: string;
+    readonly directory?: string;
+  };
 }
 
 const packageJson = JSON.parse(
@@ -48,6 +53,14 @@ describe('cubegin package exports', () => {
   it('publishes the cubegin binary and bundled agent skills', () => {
     expect(packageJson.bin).toEqual({ cubegin: 'dist/cli.mjs' });
     expect(packageJson.files).toContain('skills');
+  });
+
+  it('declares repository metadata that matches trusted publishing provenance', () => {
+    expect(packageJson.repository).toEqual({
+      type: 'git',
+      url: 'git+https://github.com/deweyou/cubegin.git',
+      directory: 'packages/core',
+    });
   });
 
   it('points every JavaScript export at an importable dist artifact', async () => {
