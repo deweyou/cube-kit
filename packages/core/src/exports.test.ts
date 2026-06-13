@@ -46,7 +46,7 @@ describe('cubegin package exports', () => {
   });
 
   it('publishes the cubegin binary and bundled agent skills', () => {
-    expect(packageJson.bin).toEqual({ cubegin: './dist/cli.mjs' });
+    expect(packageJson.bin).toEqual({ cubegin: 'dist/cli.mjs' });
     expect(packageJson.files).toContain('skills');
   });
 

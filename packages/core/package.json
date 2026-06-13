@@ -12,7 +12,7 @@
     "README.md"
   ],
   "bin": {
-    "cubegin": "./dist/cli.mjs"
+    "cubegin": "dist/cli.mjs"
   },
   "type": "module",
   "exports": {
