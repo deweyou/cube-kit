@@ -8,12 +8,12 @@ import { isCliError } from './errors.js';
 import { buildSkillInstallCommand, getBundledSkillPath, runInstall } from './install.js';
 import { generateScrambles, listScrambleEvents, renderScrambleSvg } from './handlers/scramble.js';
 import { listSolverEvents, listSolverMethods, runSolverAssist } from './handlers/solver.js';
-import { jsonError, jsonOk, writeJson } from './output.js';
+import { CLI_VERSION, jsonError, jsonOk, writeJson } from './output.js';
 
 export const main = defineCommand({
   meta: {
     name: 'cubegin',
-    version: '0.0.0',
+    version: CLI_VERSION,
     description: 'Cubegin scramble and solver tools.',
   },
   subCommands: {

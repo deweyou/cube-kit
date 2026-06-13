@@ -66,20 +66,20 @@ pnpm --filter cubegin build
 
 The manual `Release cubegin` GitHub Action accepts `patch`, `minor`, or
 `major`. It runs `packages/core/scripts/release.mjs`, validates the public
-package, creates an npm tarball artifact, and commits the updated
-`packages/core/package.json` version plus `packages/core/CHANGELOG.md` back to
-`main`. Publishing uses npm Trusted Publishing through GitHub Actions OIDC, so
-the workflow needs `id-token: write` and does not use an `NPM_TOKEN` secret.
-After npm publish succeeds, the workflow pushes a `cubegin@<version>` git tag so
-the next changelog only includes commits since the last published version.
+package, creates an npm tarball artifact, and commits synchronized
+`packages/*/package.json` versions plus `packages/core/CHANGELOG.md` back to
+`main`. Changelog entries link PR references such as `#29` to GitHub. Publishing
+uses npm Trusted Publishing through GitHub Actions OIDC, so the workflow needs
+`id-token: write` and does not use an `NPM_TOKEN` secret. After npm publish
+succeeds, the workflow pushes a `cubegin@<version>` git tag so the next
+changelog only includes commits since the last published version.
 
 Configure npm Trusted Publishing for `cubegin` with GitHub repository
 `deweyou/cube-kit`, workflow filename `release-cubegin.yml`, and the default
 branch `main`.
 
-The release script discovers changelog scope from `packages/core` and every
-package with `cubegin.publicSubpath`, keeping the public package workflow aligned
-with the build script.
+The release script discovers changelog scope from every workspace package under
+`packages/*`, keeping version metadata and bundled public package history aligned.
 
 ## Notes
 
