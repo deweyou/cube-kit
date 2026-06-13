@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.0.5 - 2026-06-13
+
+- chore(release): align package metadata and docs badges ([#30](https://github.com/deweyou/cube-kit/pull/30)) (4ad1cde)
+
+<details>
+<summary>Release scope</summary>
+
+- Previous tag: cubegin@0.0.4
+- packages/cli
+- packages/core
+- packages/icons
+- packages/scramble-core
+- packages/scramble-image
+- packages/scramble-puzzle
+- packages/shared
+- packages/solver
+
+</details>
+
 ## 0.0.4 - 2026-06-13
 
 - [codex] fix cubegin cli entry and checks ([#29](https://github.com/deweyou/cube-kit/pull/29)) (cef8b16)
