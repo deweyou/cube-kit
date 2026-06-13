@@ -46,33 +46,42 @@ description: One-sentence design identity.
 version: 1
 tokens:
   color:
-    canvas: "#..."
-    surface: "#..."
-    text: "#..."
-    border: "#..."
-    primary: "#..."
-    danger: "#..."
+    canvas: '#...'
+    surface: '#...'
+    text: '#...'
+    border: '#...'
+    primary: '#...'
+    danger: '#...'
   typography:
-    control: "..."
-    content: "..."
+    control: '...'
+    content: '...'
   spacing:
-    rhythm: "4px"
+    rhythm: '4px'
   radius:
-    sm: "..."
-    md: "..."
+    sm: '...'
+    md: '...'
 ---
 
 # Product Design System
 
 ## Design Thesis
+
 ## Principles
+
 ## Typography
+
 ## Color
+
 ## Layout
+
 ## Components
+
 ## Interaction
+
 ## Accessibility
+
 ## Do
+
 ## Don't
 ```
 

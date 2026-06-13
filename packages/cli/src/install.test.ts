@@ -45,7 +45,9 @@ describe('skill install helpers', () => {
   });
 
   it('fails clearly when the resolved bundled skill does not exist', async () => {
-    await expect(runInstall({ yes: true, skillPath: '/tmp/cubegin-missing-skill' })).rejects.toMatchObject({
+    await expect(
+      runInstall({ yes: true, skillPath: '/tmp/cubegin-missing-skill' }),
+    ).rejects.toMatchObject({
       code: 'SKILL_NOT_FOUND',
       exitCode: 1,
     });
@@ -103,7 +105,9 @@ describe('skill install helpers', () => {
 
   it('rethrows spawn errors from npx skills', async () => {
     const error = new Error('spawn failed');
-    vi.mocked(spawnSync).mockReturnValueOnce({ error, status: null } as ReturnType<typeof spawnSync>);
+    vi.mocked(spawnSync).mockReturnValueOnce({ error, status: null } as ReturnType<
+      typeof spawnSync
+    >);
 
     await expect(runInstall({ yes: true })).rejects.toBe(error);
   });

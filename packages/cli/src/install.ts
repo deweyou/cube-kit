@@ -22,7 +22,9 @@ export const getBundledSkillPath = (start = dirname(fileURLToPath(import.meta.ur
   return found ?? resolve(start, '../skills/cubegin');
 };
 
-export const buildSkillInstallCommand = (skillPath = getBundledSkillPath()): SkillInstallCommand => ({
+export const buildSkillInstallCommand = (
+  skillPath = getBundledSkillPath(),
+): SkillInstallCommand => ({
   command: 'npx',
   args: ['skills', 'add', skillPath, '--copy', '-g'],
 });

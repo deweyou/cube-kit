@@ -15,8 +15,14 @@ const applySquareOneAlgorithm = (algorithm: string) =>
     createSolvedSquareOneState(),
   );
 
-const applySquareOneAlgorithmToState = (state: ReturnType<typeof createSolvedSquareOneState>, algorithm: string) =>
-  parseSquareOneAlgorithm(algorithm).reduce((nextState, move) => applySquareOneMove(nextState, move), state);
+const applySquareOneAlgorithmToState = (
+  state: ReturnType<typeof createSolvedSquareOneState>,
+  algorithm: string,
+) =>
+  parseSquareOneAlgorithm(algorithm).reduce(
+    (nextState, move) => applySquareOneMove(nextState, move),
+    state,
+  );
 
 describe('Square-1 two-phase search', () => {
   it('returns an empty solution for solved cubes', () => {
@@ -34,7 +40,12 @@ describe('Square-1 two-phase search', () => {
 
     expect(solution).toBe(' / (-3,0)');
     expect(inverseSolution).toBe('(3,0) / ');
-    expect(areSquareOneStatesEqual(applySquareOneAlgorithmToState(scrambled, solution!), createSolvedSquareOneState())).toBe(true);
+    expect(
+      areSquareOneStatesEqual(
+        applySquareOneAlgorithmToState(scrambled, solution!),
+        createSolvedSquareOneState(),
+      ),
+    ).toBe(true);
   });
 
   it('validates optimal solve lengths', () => {
@@ -59,6 +70,11 @@ describe('Square-1 two-phase search', () => {
     const solution = solveSquareOneStateIn(unslashable, 3);
 
     expect(solution).toBe('(1,0)');
-    expect(areSquareOneStatesEqual(applySquareOneAlgorithmToState(unslashable, solution!), createSolvedSquareOneState())).toBe(true);
+    expect(
+      areSquareOneStatesEqual(
+        applySquareOneAlgorithmToState(unslashable, solution!),
+        createSolvedSquareOneState(),
+      ),
+    ).toBe(true);
   });
 });

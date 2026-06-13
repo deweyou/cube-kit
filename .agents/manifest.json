@@ -6,9 +6,7 @@
   },
   "cacheRoot": "/Users/deweyou/.deweyou/agents/assets",
   "assets": {
-    "skills": [
-      "ui-design"
-    ],
+    "skills": ["ui-design"],
     "rules": []
   },
   "assetSnapshot": {
@@ -21,9 +19,7 @@
     "rules": {}
   },
   "scope": "project",
-  "tools": [
-    "codex"
-  ],
+  "tools": ["codex"],
   "ruleWiring": "reference",
   "initializedAt": "2026-06-07T03:50:58.002Z"
 }

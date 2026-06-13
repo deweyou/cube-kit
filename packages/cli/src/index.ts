@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-import { defineCommand, runCommand } from 'citty';
-import { writeFileSync } from 'node:fs';
+import { defineCommand, runCommand, showUsage, type CommandDef } from 'citty';
+import { realpathSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { isCliError } from './errors.js';
 import { buildSkillInstallCommand, getBundledSkillPath, runInstall } from './install.js';
@@ -139,7 +141,8 @@ export const main = defineCommand({
               writeJson(jsonOk('solver.events', data));
               return;
             }
-            for (const event of data.events) console.log(`${event.id}\t${event.methods.join(', ')}`);
+            for (const event of data.events)
+              console.log(`${event.id}\t${event.methods.join(', ')}`);
           },
         }),
         methods: defineCommand({
@@ -196,15 +199,37 @@ export const main = defineCommand({
 });
 
 export const runCli = async (rawArgs?: readonly string[]): Promise<void> => {
+  const args = [...(rawArgs ?? process.argv.slice(2))];
+  const helpCommand = resolveHelpCommand(args);
+  if (helpCommand) {
+    await showUsage(helpCommand.command, helpCommand.parent);
+    return;
+  }
+
   try {
-    await runCommand(main, { rawArgs: [...(rawArgs ?? process.argv.slice(2))] });
+    await runCommand(main, { rawArgs: args });
   } catch (error) {
     if (isCliError(error)) {
       writeJson(jsonError(error.code, error.message, error.hints));
       process.exitCode = error.exitCode;
       return;
     }
+    if (isCommandParseError(error)) {
+      writeJson(jsonError(error.code, error.message));
+      process.exitCode = 2;
+      return;
+    }
     throw error;
+  }
+};
+
+export const isCliEntrypoint = (moduleUrl: string, argvEntry = process.argv[1]): boolean => {
+  if (argvEntry === undefined) return false;
+
+  try {
+    return realpathSync(fileURLToPath(moduleUrl)) === realpathSync(resolve(argvEntry));
+  } catch {
+    return false;
   }
 };
 
@@ -216,7 +241,45 @@ const splitList = (value: string | undefined): readonly string[] =>
         .map((part) => part.trim())
         .filter(Boolean);
 
+const resolveHelpCommand = (
+  args: readonly string[],
+): { readonly command: CommandDef; readonly parent?: CommandDef } | undefined => {
+  if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
+    return { command: main };
+  }
+  if (!(args.includes('--help') || args.includes('-h'))) return undefined;
+
+  let command: CommandDef = main;
+  let parent: CommandDef | undefined;
+  for (const arg of args) {
+    if (arg === '--help' || arg === '-h') break;
+    if (arg.startsWith('-')) continue;
+
+    const next = getSubCommand(command, arg);
+    if (!next) break;
+    parent = command;
+    command = next;
+  }
+
+  return { command, parent };
+};
+
+const getSubCommand = (command: CommandDef, name: string): CommandDef | undefined => {
+  const subCommands = command.subCommands;
+  if (!subCommands || typeof subCommands !== 'object') return undefined;
+  if ('then' in subCommands) return undefined;
+  return subCommands[name] as CommandDef | undefined;
+};
+
+const isCommandParseError = (
+  error: unknown,
+): error is { readonly code: string; readonly message: string } =>
+  error instanceof Error &&
+  'code' in error &&
+  typeof error.code === 'string' &&
+  error.code.startsWith('E');
+
 /* v8 ignore next 3 */
-if (process.argv[1] !== undefined && import.meta.url === new URL(process.argv[1], 'file:').href) {
+if (isCliEntrypoint(import.meta.url)) {
   await runCli();
 }

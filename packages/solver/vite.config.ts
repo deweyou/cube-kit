@@ -1,11 +1,23 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite-plus';
 import { defineConfig as definePackConfig } from 'vite-plus/pack';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const workspacePackage = (packagePath: string) =>
+  path.resolve(__dirname, '../../packages', packagePath, 'src/index.ts');
 
 export default defineConfig({
   pack: definePackConfig({
     dts: {},
     exports: true,
   }),
+  resolve: {
+    alias: {
+      '@cubegin/scramble-puzzle': workspacePackage('scramble-puzzle'),
+      '@cubegin/shared/wca': path.resolve(__dirname, '../../packages/shared/src/wca/index.ts'),
+    },
+  },
   test: {
     coverage: {
       provider: 'v8',

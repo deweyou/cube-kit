@@ -147,7 +147,7 @@ const fakeService = () => ({
       result: {
         eventId: input.eventId,
         scramble: input.scramble,
-        solution: "UR1- y2 DR1+",
+        solution: 'UR1- y2 DR1+',
         moveCount: 2,
         engine: 'clock-inverse' as const,
       },

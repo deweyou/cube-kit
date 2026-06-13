@@ -19,22 +19,20 @@ describe('solvePuzzleFull', () => {
     expect(result.moveCount).toBeGreaterThan(0);
   });
 
-  it(
-    'returns a restore-direction solution for 4x4 scrambles',
-    () => {
-      const result = solvePuzzleFull('444', 'R');
+  it('returns a restore-direction solution for 4x4 scrambles', () => {
+    const result = solvePuzzleFull('444', 'R');
 
-      expect(result.eventId).toBe('444');
-      expect(result.engine).toBe('threephase');
-      expect(result.solution).toBe("R'");
-      expect(result.moveCount).toBe(1);
-    },
-    20_000,
-  );
+    expect(result.eventId).toBe('444');
+    expect(result.engine).toBe('threephase');
+    expect(result.solution).toBe("R'");
+    expect(result.moveCount).toBe(1);
+  }, 20_000);
 
   it('solves a 2x2 scramble through the full solver facade', () => {
     const result = solvePuzzleFull('222', 'R U F');
-    const restored = new TwoByTwoSolver().stateFromScramble(`${result.scramble} ${result.solution}`);
+    const restored = new TwoByTwoSolver().stateFromScramble(
+      `${result.scramble} ${result.solution}`,
+    );
 
     expect(result.eventId).toBe('222');
     expect(result.engine).toBe('two-by-two-coordinate');
@@ -64,9 +62,7 @@ describe('solvePuzzleFull', () => {
       perm: 0,
       twst: 0,
     });
-    expect([pyraminx, skewb, squareOne, clock].every((result) => result.moveCount > 0)).toBe(
-      true,
-    );
+    expect([pyraminx, skewb, squareOne, clock].every((result) => result.moveCount > 0)).toBe(true);
   });
 
   it('rejects unsupported full-solver events with a typed solver error', () => {
