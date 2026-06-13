@@ -65,7 +65,9 @@ jobs:
 
       - name: Read package version
         id: package
-        run: echo "version=$(node -p \"require('./packages/core/package.json').version\")" >> "$GITHUB_OUTPUT"
+        run: |
+          version=$(node -p "require('./packages/core/package.json').version")
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Commit release metadata
         run: |
