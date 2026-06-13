@@ -51,14 +51,14 @@ jobs:
       - name: Prepare release
         run: pnpm --filter cubegin release:prepare -- ${{ inputs.version }}
 
+      - name: Build public package
+        run: pnpm --filter cubegin build
+
       - name: Test public package
         run: pnpm --filter cubegin test
 
       - name: Typecheck public package
         run: pnpm --filter cubegin typecheck
-
-      - name: Build public package
-        run: pnpm --filter cubegin build
 
       - name: Verify docs index
         run: pnpm test:docs
