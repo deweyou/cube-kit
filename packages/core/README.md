@@ -1,10 +1,13 @@
 # Cubegin
 
-A Rubik's cube tooling monorepo — timer, scramble generator, scramble visualizer, algorithm list, and practice apps — targeting web, H5, and WeChat miniprogram.
+Cubegin is a Rubik's cube toolkit for speedcubing apps, developer workflows,
+and AI agents. It provides WCA scramble generation, scramble SVG rendering,
+puzzle notation/state helpers, Cubegin icon assets, auxiliary solver helpers,
+and an agent-friendly CLI.
 
-The public npm package is `cubegin`. It ships both an agent-friendly CLI and
-bundled package subpaths for scramble generation, SVG rendering, puzzle
-notation/state helpers, icon assets, and solver helpers.
+The public npm package is `cubegin`. The repository also contains the Web/H5
+timer app, scramble playground, scramble learning site, and WeChat miniprogram
+shell that compose those shared packages.
 
 ## Use Cubegin
 

@@ -1,8 +1,11 @@
 # Cubegin
 
-Cubegin 是一个魔方工具 monorepo，覆盖计时器、打乱生成、打乱可视化、公式列表和练习应用，目标运行环境包括 Web、H5 和微信小程序。
+Cubegin 是一套面向速拧应用、开发者工作流和 AI agent 的魔方工具箱。它提供
+WCA 打乱生成、打乱 SVG 渲染、魔方记号/状态辅助、Cubegin 图标资产、辅助求解
+helpers，以及适合 agent 使用的 CLI。
 
-公开 npm 包是 `cubegin`。它同时提供适合 agent 使用的 CLI，以及用于打乱生成、SVG 渲染、魔方记号/状态辅助、图标资产和求解辅助能力的 `cubegin/*` 子路径。
+公开 npm 包是 `cubegin`。这个仓库还包含组合这些共享 packages 的 Web/H5
+计时器应用、打乱 playground、打乱学习站点和微信小程序 shell。
 
 ## 使用 Cubegin
 
