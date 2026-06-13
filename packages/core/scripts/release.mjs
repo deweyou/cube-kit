@@ -8,6 +8,7 @@ const repoRoot = resolve(packageRoot, '../..');
 const packagesRoot = resolve(repoRoot, 'packages');
 const packageJsonPath = resolve(packageRoot, 'package.json');
 const changelogPath = resolve(packageRoot, 'CHANGELOG.md');
+const repositoryUrl = 'https://github.com/deweyou/cube-kit';
 const increments = new Set(['major', 'minor', 'patch']);
 
 const args = process.argv.slice(2);
@@ -54,18 +55,18 @@ const bumpVersion = (version, increment) => {
   return `${major}.${minor}.${patch}`;
 };
 
-const discoverReleasePaths = () => {
-  const paths = ['packages/core'];
+const discoverWorkspacePackageJsonPaths = () => {
+  return readdirSync(packagesRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => resolve(packagesRoot, entry.name, 'package.json'))
+    .filter((path) => existsSync(path))
+    .sort();
+};
 
-  for (const entry of readdirSync(packagesRoot, { withFileTypes: true })) {
-    if (!entry.isDirectory() || entry.name === 'core') continue;
-    const packageJsonPath = resolve(packagesRoot, entry.name, 'package.json');
-    if (!existsSync(packageJsonPath)) continue;
-    const packageJson = readJson(packageJsonPath);
-    if (packageJson.cubegin?.publicSubpath) paths.push(`packages/${entry.name}`);
-  }
+const toRepoPath = (path) => relative(repoRoot, path);
 
-  return paths.sort();
+const discoverReleasePaths = (workspacePackageJsonPaths) => {
+  return workspacePackageJsonPaths.map((path) => dirname(toRepoPath(path))).sort();
 };
 
 const findPreviousTag = () => {
@@ -90,13 +91,18 @@ const readCommitEntries = (previousTag, releasePaths) => {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+const linkPullRequests = (subject) =>
+  subject.replaceAll(/(?<![\w/])#(\d+)\b/g, (_, pullRequestNumber) => {
+    return `[#${pullRequestNumber}](${repositoryUrl}/pull/${pullRequestNumber})`;
+  });
+
 const renderSection = (version, previousTag, releasePaths, entries) => {
   const lines = [`## ${version} - ${today()}`, ''];
   if (entries.length === 0) {
     lines.push('- Maintenance release.');
   } else {
     for (const entry of entries) {
-      lines.push(`- ${entry.subject} (${entry.shortSha})`);
+      lines.push(`- ${linkPullRequests(entry.subject)} (${entry.shortSha})`);
     }
   }
 
@@ -124,21 +130,30 @@ const updateChangelog = (section) => {
 
 const packageJson = readJson(packageJsonPath);
 const nextVersion = bumpVersion(packageJson.version, increment);
-const releasePaths = discoverReleasePaths();
+const workspacePackageJsonPaths = discoverWorkspacePackageJsonPaths();
+const releasePaths = discoverReleasePaths(workspacePackageJsonPaths);
 const previousTag = findPreviousTag();
 const commitEntries = readCommitEntries(previousTag, releasePaths);
 const changelogSection = renderSection(nextVersion, previousTag, releasePaths, commitEntries);
 
 if (dryRun) {
   console.log(`cubegin ${packageJson.version} -> ${nextVersion}`);
+  console.log(
+    `Version packages: ${workspacePackageJsonPaths.map((path) => toRepoPath(path)).join(', ')}`,
+  );
   console.log(`Release paths: ${releasePaths.join(', ')}`);
   console.log('');
   console.log(changelogSection.trimEnd());
 } else {
-  packageJson.version = nextVersion;
-  writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
+  for (const workspacePackageJsonPath of workspacePackageJsonPaths) {
+    const workspacePackageJson = readJson(workspacePackageJsonPath);
+    workspacePackageJson.version = nextVersion;
+    writeFileSync(workspacePackageJsonPath, `${JSON.stringify(workspacePackageJson, null, 2)}\n`);
+  }
   writeFileSync(changelogPath, updateChangelog(changelogSection));
   console.log(`Prepared cubegin ${nextVersion}`);
-  console.log(`Updated ${relative(repoRoot, packageJsonPath)}`);
+  for (const workspacePackageJsonPath of workspacePackageJsonPaths) {
+    console.log(`Updated ${toRepoPath(workspacePackageJsonPath)}`);
+  }
   console.log(`Updated ${relative(repoRoot, changelogPath)}`);
 }

@@ -1,3 +1,7 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 export interface JsonSuccess<Data> {
   readonly ok: true;
   readonly data: Data;
@@ -18,7 +22,31 @@ export interface JsonFailure {
 
 export type JsonOutput<Data> = JsonSuccess<Data> | JsonFailure;
 
-export const CLI_VERSION = '0.0.0';
+interface PackageMetadata {
+  readonly version?: unknown;
+}
+
+const readNearestPackageVersion = (
+  start = dirname(fileURLToPath(import.meta.url)),
+): string => {
+  let current = start;
+
+  for (let depth = 0; depth < 8; depth += 1) {
+    const packageJsonPath = resolve(current, 'package.json');
+    if (existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as PackageMetadata;
+      if (typeof packageJson.version === 'string') return packageJson.version;
+    }
+
+    const parent = dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+
+  return '0.0.0';
+};
+
+export const CLI_VERSION = readNearestPackageVersion();
 
 export const jsonOk = <Data>(command: string, data: Data): JsonSuccess<Data> => ({
   ok: true,

@@ -2,7 +2,7 @@
 
 ## 0.0.4 - 2026-06-13
 
-- [codex] fix cubegin cli entry and checks (#29) (cef8b16)
+- [codex] fix cubegin cli entry and checks ([#29](https://github.com/deweyou/cube-kit/pull/29)) (cef8b16)
 
 <details>
 <summary>Release scope</summary>
@@ -20,7 +20,7 @@
 
 ## 0.0.3 - 2026-06-13
 
-- docs: align cubegin CLI and package README usage (#28) (7b9427c)
+- docs: align cubegin CLI and package README usage ([#28](https://github.com/deweyou/cube-kit/pull/28)) (7b9427c)
 
 <details>
 <summary>Release scope</summary>
@@ -38,17 +38,17 @@
 
 ## 0.0.2 - 2026-06-13
 
-- ci: fix cubegin release version output (#25) (53a2480)
-- feat(cli): add agent-friendly cubegin CLI (#23) (8423ef9)
-- fix: build cubegin static icon assets (#20) (08675b8)
-- feat: improve mobile timer experience (#21) (651d393)
-- feat: expand cubegin icons package (#19) (29a40ce)
-- consolidate shared primitives (#18) (482f67a)
-- feat: add WCA event icons (#17) (7f2d2ef)
-- feat: add playground full solvers (#16) (d0a7afe)
+- ci: fix cubegin release version output ([#25](https://github.com/deweyou/cube-kit/pull/25)) (53a2480)
+- feat(cli): add agent-friendly cubegin CLI ([#23](https://github.com/deweyou/cube-kit/pull/23)) (8423ef9)
+- fix: build cubegin static icon assets ([#20](https://github.com/deweyou/cube-kit/pull/20)) (08675b8)
+- feat: improve mobile timer experience ([#21](https://github.com/deweyou/cube-kit/pull/21)) (651d393)
+- feat: expand cubegin icons package ([#19](https://github.com/deweyou/cube-kit/pull/19)) (29a40ce)
+- consolidate shared primitives ([#18](https://github.com/deweyou/cube-kit/pull/18)) (482f67a)
+- feat: add WCA event icons ([#17](https://github.com/deweyou/cube-kit/pull/17)) (7f2d2ef)
+- feat: add playground full solvers ([#16](https://github.com/deweyou/cube-kit/pull/16)) (d0a7afe)
 - Add cstimer 3x3 general mask solver (445f904)
 - Move full solvers into solver package (a87b19d)
-- feat: publish cubegin package (#12) (03ea8d0)
+- feat: publish cubegin package ([#12](https://github.com/deweyou/cube-kit/pull/12)) (03ea8d0)
 
 <details>
 <summary>Release scope</summary>

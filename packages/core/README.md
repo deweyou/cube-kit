@@ -1,5 +1,9 @@
 # Cubegin
 
+[![npm version](https://img.shields.io/npm/v/cubegin.svg)](https://www.npmjs.com/package/cubegin)
+
+[English](./README.md) | [简体中文](./README_ZH.md)
+
 Cubegin is a Rubik's cube toolkit for speedcubing apps, developer workflows,
 and AI agents. It provides WCA scramble generation, scramble SVG rendering,
 puzzle notation/state helpers, Cubegin icon assets, auxiliary solver helpers,

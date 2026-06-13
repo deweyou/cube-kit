@@ -1,5 +1,9 @@
 # Cubegin
 
+[![npm version](https://img.shields.io/npm/v/cubegin.svg)](https://www.npmjs.com/package/cubegin)
+
+[English](./README.md) | [简体中文](./README_ZH.md)
+
 Cubegin 是一套面向速拧应用、开发者工作流和 AI agent 的魔方工具箱。它提供
 WCA 打乱生成、打乱 SVG 渲染、魔方记号/状态辅助、Cubegin 图标资产、辅助求解
 helpers，以及适合 agent 使用的 CLI。
