@@ -1,6 +1,11 @@
 import { createDefaultScrambleGenerator, createMathRandomSource } from '@cubegin/scramble-core';
 import type { GenerateOptions, ScrambleResult } from '@cubegin/scramble-core';
 import type { WcaEventId } from '@cubegin/shared/wca';
+import {
+  getScrambleElapsedMs,
+  getScramblePerformanceNow,
+  logScramblePerformance,
+} from './scramble-performance-log';
 
 interface GenerateScrambleRequest {
   id: number;
@@ -10,63 +15,156 @@ interface GenerateScrambleRequest {
 
 type GenerateScrambleResponse =
   | {
+      type?: 'generate';
       id: number;
       ok: true;
       result: ScrambleResult;
+      workerDurationMs?: number;
     }
   | {
+      type?: 'generate';
       id: number;
       ok: false;
       error: string;
+      workerDurationMs?: number;
     };
 
+interface WorkerReadyMessage {
+  type: 'ready';
+}
+
+type ScrambleWorkerMessage = GenerateScrambleResponse | WorkerReadyMessage;
+
 export interface TimerScrambleGenerator {
+  dispose?(): void;
   generate(eventId: WcaEventId, options?: GenerateOptions): Promise<ScrambleResult>;
+  preload?(): Promise<void>;
 }
 
 const createWorkerScrambleGenerator = (): TimerScrambleGenerator => {
   let nextRequestId = 0;
+  let worker: Worker | undefined;
+  let readyPromise: Promise<void> | undefined;
+  let resolveReady: (() => void) | undefined;
+  const pendingRequests = new Map<
+    number,
+    {
+      reject: (error: Error) => void;
+      eventId: WcaEventId;
+      resolve: (result: ScrambleResult) => void;
+      startMs: number;
+    }
+  >();
+
+  const clearWorker = (error?: Error) => {
+    if (worker) {
+      worker.terminate();
+      worker = undefined;
+    }
+
+    if (error) {
+      for (const request of pendingRequests.values()) {
+        request.reject(error);
+      }
+    }
+    pendingRequests.clear();
+    readyPromise = undefined;
+    resolveReady = undefined;
+  };
+
+  const ensureWorker = () => {
+    if (worker) return { ready: readyPromise ?? Promise.resolve(), worker };
+
+    const createStartMs = getScramblePerformanceNow();
+    const nextWorker = new Worker(new URL('./scramble-worker.ts', import.meta.url), {
+      type: 'module',
+    });
+    logScramblePerformance('worker:create', {});
+    readyPromise = new Promise<void>((resolve) => {
+      resolveReady = resolve;
+    });
+
+    nextWorker.addEventListener('message', (event: MessageEvent<ScrambleWorkerMessage>) => {
+      const response = event.data;
+      if (response.type === 'ready') {
+        logScramblePerformance('worker:ready', {
+          startupMs: getScrambleElapsedMs(createStartMs),
+        });
+        resolveReady?.();
+        resolveReady = undefined;
+        return;
+      }
+
+      const request = pendingRequests.get(response.id);
+      if (!request) return;
+
+      pendingRequests.delete(response.id);
+      const details = {
+        eventId: request.eventId,
+        id: response.id,
+        pendingCount: pendingRequests.size,
+        roundtripMs: getScrambleElapsedMs(request.startMs),
+        workerDurationMs: response.workerDurationMs,
+      };
+      if (response.ok === true) {
+        logScramblePerformance('worker:response', details);
+        request.resolve(response.result);
+      } else {
+        logScramblePerformance('worker:error-response', { ...details, error: response.error });
+        request.reject(new Error(response.error));
+      }
+    });
+
+    nextWorker.addEventListener('error', (event) => {
+      clearWorker(event.error instanceof Error ? event.error : new Error(event.message));
+    });
+
+    worker = nextWorker;
+    return { ready: readyPromise, worker: nextWorker };
+  };
 
   return {
+    dispose() {
+      clearWorker();
+    },
     generate(eventId, options) {
       const requestId = ++nextRequestId;
-      const worker = new Worker(new URL('./scramble-worker.ts', import.meta.url), {
-        type: 'module',
-      });
+      const activeWorker = ensureWorker().worker;
 
       return new Promise<ScrambleResult>((resolve, reject) => {
-        const finish = () => worker.terminate();
-
-        worker.addEventListener('message', (event: MessageEvent<GenerateScrambleResponse>) => {
-          const response = event.data;
-          if (response.id !== requestId) return;
-
-          finish();
-          if (response.ok === true) {
-            resolve(response.result);
-          } else {
-            reject(new Error(response.error));
-          }
+        pendingRequests.set(requestId, {
+          eventId,
+          reject,
+          resolve,
+          startMs: getScramblePerformanceNow(),
         });
-
-        worker.addEventListener('error', (event) => {
-          finish();
-          reject(event.error instanceof Error ? event.error : new Error(event.message));
+        logScramblePerformance('worker:request', {
+          eventId,
+          id: requestId,
+          options,
+          pendingCount: pendingRequests.size,
         });
-
-        worker.postMessage({
+        activeWorker.postMessage({
           eventId,
           id: requestId,
           options,
         } satisfies GenerateScrambleRequest);
       });
     },
+    preload() {
+      return ensureWorker().ready;
+    },
   };
 };
 
 export const createTimerScrambleGenerator = (): TimerScrambleGenerator => {
   if (typeof Worker === 'undefined') {
-    return createDefaultScrambleGenerator({ random: createMathRandomSource() });
+    const generator = createDefaultScrambleGenerator({ random: createMathRandomSource() });
+    return {
+      dispose() {},
+      generate: (eventId, options) => generator.generate(eventId, options),
+      preload: () => Promise.resolve(),
+    };
   }
 
   return createWorkerScrambleGenerator();

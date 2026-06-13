@@ -288,7 +288,7 @@
   color: var(--ui-color-brand-text);
   font-size: 1.18rem;
   font-weight: 600;
-  left: calc(312px + (100vw - 312px) / 2);
+  left: 50%;
   line-height: 1;
   position: fixed;
   text-shadow: 0 1px 10px color-mix(in srgb, var(--ui-color-canvas) 78%, transparent);

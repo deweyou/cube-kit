@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { WCA_EVENT_IDS } from '@cubegin/shared/wca';
 import type { ChangeEvent, CSSProperties, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryTimerSessionRepository } from './storage/memory-timer-session-repository';
@@ -216,12 +217,12 @@ describe('TimerPage', () => {
       }),
     );
 
-    render(
-      <TimerPage enableScramblePrefetch repository={createMemoryTimerSessionRepository()} />,
-    );
+    render(<TimerPage enableScramblePrefetch repository={createMemoryTimerSessionRepository()} />);
 
     expect(await screen.findAllByText('R U')).toHaveLength(2);
-    await waitFor(() => expect(generate).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(generate.mock.calls.filter(([eventId]) => eventId === '333')).toHaveLength(2),
+    );
 
     await userEvent.keyboard('{Enter}');
     await userEvent.keyboard('{Enter}');
@@ -230,6 +231,50 @@ describe('TimerPage', () => {
 
     expect(await screen.findAllByText('F R')).toHaveLength(2);
     expect(screen.queryByText('R U')).toBeNull();
+  });
+
+  it('warms all inactive events once after the first loaded scramble', async () => {
+    const requestIdleCallback = vi.fn((callback: IdleRequestCallback) => {
+      callback({ didTimeout: false, timeRemaining: () => 50 });
+      return 1;
+    });
+    Object.defineProperty(window, 'requestIdleCallback', {
+      configurable: true,
+      value: requestIdleCallback,
+    });
+    Object.defineProperty(window, 'cancelIdleCallback', {
+      configurable: true,
+      value: vi.fn(),
+    });
+    generate.mockImplementation((eventId: string) =>
+      Promise.resolve({
+        eventId,
+        scramble: `${eventId} scramble`,
+      }),
+    );
+
+    render(<TimerPage enableScramblePrefetch repository={createMemoryTimerSessionRepository()} />);
+
+    expect(await screen.findAllByText('333 scramble')).toHaveLength(2);
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(WCA_EVENT_IDS.length + 1));
+
+    expect(generate).toHaveBeenNthCalledWith(1, '333', { multiBlindCubeCount: undefined });
+    expect(generate).toHaveBeenNthCalledWith(2, '333', { multiBlindCubeCount: undefined });
+    expect(generate.mock.calls.map(([eventId]) => eventId)).toEqual([
+      '333',
+      '333',
+      ...WCA_EVENT_IDS.filter((eventId) => eventId !== '333'),
+    ]);
+
+    await userEvent.click(screen.getByRole('button', { name: '换一个打乱' }));
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(WCA_EVENT_IDS.length + 2));
+
+    expect(generate.mock.calls.map(([eventId]) => eventId)).toEqual([
+      '333',
+      '333',
+      ...WCA_EVENT_IDS.filter((eventId) => eventId !== '333'),
+      '333',
+    ]);
   });
 
   it('clears the previous scramble before rendering a newly selected event', async () => {

@@ -25,6 +25,11 @@ import {
   createTimerScramblePrefetcher,
   getTimerScrambleGenerateOptions,
 } from './scramble-prefetcher';
+import {
+  getScrambleElapsedMs,
+  getScramblePerformanceNow,
+  logScramblePerformance,
+} from './scramble-performance-log';
 import styles from './timer-page.module.css';
 
 type PageState = 'scramble' | 'timing' | 'result';
@@ -40,6 +45,12 @@ const waitForLoadingPaint = () =>
   new Promise<void>((resolve) => {
     window.setTimeout(resolve, 0);
   });
+
+const logBackgroundError = (event: string, cause: unknown) => {
+  logScramblePerformance(event, {
+    error: cause instanceof Error ? cause.message : String(cause),
+  });
+};
 
 const isScrambleLoadingPreviewEnabled = () =>
   import.meta.env.DEV &&
@@ -111,9 +122,8 @@ const TimerPageContent = ({
   repository,
   storageError,
 }: TimerPageContentProps) => {
-  const generator = useMemo(() => createTimerScrambleGenerator(), []);
-  const scramblePrefetcher = useMemo(() => createTimerScramblePrefetcher(generator), [generator]);
   const sessionState = useTimerSessions({ repository });
+  const hasStartedInitialWarmPrefetch = useRef(false);
   const latestScrambleRequestId = useRef(0);
   const [scramble, setScramble] = useState('');
   const [scrambleError, setScrambleError] = useState<string>();
@@ -123,6 +133,18 @@ const TimerPageContent = ({
   const [selectedSolveId, setSelectedSolveId] = useState<string>();
   const [runtimeStorageError, setRuntimeStorageError] = useState<string>();
   const [displayEventId, setDisplayEventId] = useState<WcaEventId>('333');
+  const activeEventIdRef = useRef<WcaEventId>(displayEventId);
+  activeEventIdRef.current = displayEventId;
+  const generator = useMemo(() => createTimerScrambleGenerator(), []);
+  const backgroundGenerator = useMemo(() => createTimerScrambleGenerator(), []);
+  const scramblePrefetcher = useMemo(
+    () =>
+      createTimerScramblePrefetcher(generator, {
+        backgroundGenerator,
+        shouldKeepWarmResult: (eventId) => eventId !== activeEventIdRef.current,
+      }),
+    [backgroundGenerator, generator],
+  );
   const [isEventTransitionPending, setIsEventTransitionPending] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -144,8 +166,16 @@ const TimerPageContent = ({
   const { elapsed, start, stop, reset } = useTimer();
 
   useEffect(() => {
-    return () => scramblePrefetcher.dispose();
-  }, [scramblePrefetcher]);
+    return () => {
+      scramblePrefetcher.dispose();
+      backgroundGenerator.dispose?.();
+      generator.dispose?.();
+    };
+  }, [backgroundGenerator, generator, scramblePrefetcher]);
+
+  useEffect(() => {
+    generator.preload?.().catch((cause) => logBackgroundError('worker:preload-error', cause));
+  }, [generator]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia?.(SIDEBAR_MOBILE_QUERY);
@@ -172,13 +202,27 @@ const TimerPageContent = ({
   const loadScramble = useCallback(
     async (nextEventId: WcaEventId) => {
       const requestId = latestScrambleRequestId.current + 1;
+      const loadStartMs = getScramblePerformanceNow();
       latestScrambleRequestId.current = requestId;
       const hasReadyScramble = enableScramblePrefetch && scramblePrefetcher.hasReady(nextEventId);
+      logScramblePerformance('load:start', {
+        eventId: nextEventId,
+        hasReadyScramble,
+        prefetchEnabled: enableScramblePrefetch,
+        requestId,
+      });
       setIsScrambleLoading(!hasReadyScramble);
       setScrambleError(undefined);
       if (!hasReadyScramble) {
         await waitForLoadingPaint();
-        if (latestScrambleRequestId.current !== requestId) return;
+        if (latestScrambleRequestId.current !== requestId) {
+          logScramblePerformance('load:stale-after-paint', {
+            eventId: nextEventId,
+            requestId,
+            totalMs: getScrambleElapsedMs(loadStartMs),
+          });
+          return;
+        }
       }
 
       try {
@@ -186,16 +230,49 @@ const TimerPageContent = ({
           ? await scramblePrefetcher.consume(nextEventId)
           : await generator.generate(nextEventId, getTimerScrambleGenerateOptions(nextEventId));
 
-        if (latestScrambleRequestId.current !== requestId) return;
+        if (latestScrambleRequestId.current !== requestId) {
+          logScramblePerformance('load:stale-after-generate', {
+            eventId: nextEventId,
+            requestId,
+            totalMs: getScrambleElapsedMs(loadStartMs),
+          });
+          return;
+        }
         setScramble(result.scramble);
+        logScramblePerformance('load:success', {
+          eventId: nextEventId,
+          requestId,
+          scrambleLength: result.scramble.length,
+          totalMs: getScrambleElapsedMs(loadStartMs),
+        });
         if (enableScramblePrefetch) {
-          void scramblePrefetcher.prefetch(nextEventId);
-          scramblePrefetcher.prefetchIdleEvents(nextEventId);
+          scramblePrefetcher
+            .prefetch(nextEventId)
+            .catch((cause) => logBackgroundError('prefetch:active-unhandled-error', cause));
+          if (!hasStartedInitialWarmPrefetch.current) {
+            hasStartedInitialWarmPrefetch.current = true;
+            scramblePrefetcher
+              .prefetchWarmEvents(nextEventId)
+              .catch((cause) => logBackgroundError('prefetch:warm-unhandled-error', cause));
+          }
         }
       } catch (error) {
-        if (latestScrambleRequestId.current !== requestId) return;
+        if (latestScrambleRequestId.current !== requestId) {
+          logScramblePerformance('load:stale-error', {
+            eventId: nextEventId,
+            requestId,
+            totalMs: getScrambleElapsedMs(loadStartMs),
+          });
+          return;
+        }
         setScramble('');
         setScrambleError(error instanceof Error ? error.message : String(error));
+        logScramblePerformance('load:error', {
+          error: error instanceof Error ? error.message : String(error),
+          eventId: nextEventId,
+          requestId,
+          totalMs: getScrambleElapsedMs(loadStartMs),
+        });
       } finally {
         if (latestScrambleRequestId.current === requestId) {
           setIsScrambleLoading(false);
