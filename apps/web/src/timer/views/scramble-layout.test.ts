@@ -26,7 +26,7 @@ describe('scramble layout CSS', () => {
     expect(timerPageCss).not.toContain(".root[data-stage-scrolled='true']::before");
     expect(timerPageCss).not.toContain('linear-gradient');
     expect(timerPageCss).toContain(".root[data-sidebar='expanded'] .stage");
-    expect(timerPageCss).toContain(".root[data-sidebar='expanded']::before");
+    expect(timerPageCss).toContain('.sidebarBackdrop');
     expect(timerPageCss).toContain('pointer-events: none;');
     expect(timerPageCss).toContain('visibility: hidden;');
   });
@@ -118,12 +118,13 @@ describe('scramble layout CSS', () => {
     expect(scrambleViewCss).toContain('left: 50%;');
   });
 
-  it('uses the original full-screen mobile sidebar behavior', () => {
-    expect(timerSidebarCss).toContain('width: 100vw;');
-    expect(timerSidebarCss).toContain('width: min(360px, 100vw);');
+  it('uses a compact mobile sidebar drawer behavior', () => {
+    expect(timerSidebarCss).toContain('width: min(360px, calc(100vw - 48px));');
+    expect(timerSidebarCss).toContain(
+      'box-shadow: 18px 0 48px color-mix(in srgb, black 18%, transparent);',
+    );
     expect(timerSidebarCss).toContain('z-index: 20;');
     expect(timerSidebarCss).not.toContain('height: 100dvh;');
-    expect(timerSidebarCss).not.toContain('--ui-touch-target-min: 44px;');
   });
 });
 

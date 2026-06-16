@@ -109,6 +109,30 @@ export const ChartNavIcon = ({ size = 18 }: TimerIconProps) => (
   </svg>
 );
 
+export const FormulaNavIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="M5 5h14M7 9h10M9 13h6M7 19l4-4M11 19l-4-4M15 19l2-4 2 4"
+      stroke="currentColor"
+      strokeLinecap="square"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
+export const SettingsNavIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 3v3M12 18v3M4.2 7.5l2.6 1.5M17.2 15l2.6 1.5M4.2 16.5 6.8 15M17.2 9l2.6-1.5"
+      stroke="currentColor"
+      strokeLinecap="square"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
 export const SunIcon = ({ size = 18 }: TimerIconProps) => (
   <svg {...iconProps(size)}>
     <path

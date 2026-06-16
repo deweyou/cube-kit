@@ -87,3 +87,9 @@
 .collapsedEventSelector {
   min-width: 0;
 }
+
+@media (max-width: 860px) {
+  .actionButton[data-utility='true'] {
+    display: none;
+  }
+}

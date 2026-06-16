@@ -8,9 +8,12 @@ import type {
 import { useTimer } from './hooks/use-timer';
 import { useTimerGesture } from './hooks/use-timer-gesture';
 import { useTimerSessions } from './hooks/use-timer-sessions';
+import { SolveList } from './components/solve-list';
 import { SolveDetail } from './components/solve-detail';
+import { SolveStatisticsPanel } from './components/solve-statistics-panel';
+import { StorageAlert } from './components/storage-alert';
 import { TimerHeader } from './components/timer-header';
-import { TimerSidebar } from './components/timer-sidebar';
+import { TimerSidebar, type TimerNavItemId } from './components/timer-sidebar';
 import { TIMER_MESSAGES, type TimerLocale } from './timer-i18n';
 import { createMemoryTimerSessionRepository } from './storage/memory-timer-session-repository';
 import { createIndexedDbTimerSessionRepository } from './storage/timer-session-db';
@@ -181,6 +184,10 @@ const TimerPageContent = ({
   });
   const [isStageScrolled, setIsStageScrolled] = useState(false);
   const stageRef = useRef<HTMLElement | null>(null);
+  const [isMobileShell, setIsMobileShell] = useState(
+    () => window.matchMedia?.(SIDEBAR_MOBILE_QUERY).matches ?? false,
+  );
+  const [activeNavItem, setActiveNavItem] = useState<TimerNavItemId>('timer');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
     () => window.matchMedia?.(SIDEBAR_MOBILE_QUERY).matches ?? false,
   );
@@ -214,12 +221,14 @@ const TimerPageContent = ({
     if (!mediaQuery) return;
 
     const handleViewportChange = (event: MediaQueryListEvent) => {
+      setIsMobileShell(event.matches);
       if (event.matches) setIsSidebarCollapsed(true);
+      if (!event.matches && activeNavItem === 'results') setActiveNavItem('timer');
     };
 
     mediaQuery.addEventListener('change', handleViewportChange);
     return () => mediaQuery.removeEventListener('change', handleViewportChange);
-  }, []);
+  }, [activeNavItem]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = themeMode;
@@ -543,6 +552,9 @@ const TimerPageContent = ({
   const toggleThemeLabel =
     themeMode === 'dark' ? messages.toggleThemeLight : messages.toggleThemeDark;
   const toggleSidebarLabel = isSidebarCollapsed ? messages.sidebarExpand : messages.sidebarCollapse;
+  const visibleNavItem = activeNavItem;
+  const shouldShowTimerStage =
+    activeNavItem === 'timer' || (!isMobileShell && activeNavItem === 'results');
 
   return (
     <div
@@ -554,21 +566,39 @@ const TimerPageContent = ({
       <TimerSidebar
         sessions={sessionState.sessions}
         activeSessionId={sessionState.activeSessionId}
+        activeNavItem={visibleNavItem}
         eventId={displayEventId}
         error={sidebarError}
         isCollapsed={isSidebarCollapsed}
+        isMobileShell={isMobileShell}
         solves={sessionState.solves}
         themeMode={themeMode}
         onCreateSession={(name) => void handleCreateSession(name)}
         onDeleteSession={(sessionId) => void sessionState.deleteSession(sessionId)}
         onEventChange={(id) => void handleEventChange(id)}
+        onLocaleToggle={() =>
+          setLocale((currentLocale) => (currentLocale === 'zh-CN' ? 'en-US' : 'zh-CN'))
+        }
+        onNavItemChange={setActiveNavItem}
         onSelectSession={(sessionId) => void handleSessionChange(sessionId)}
         onSelectSolve={handleSelectSolve}
+        onThemeToggle={() =>
+          setThemeMode((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
+        }
         onToggleSidebar={() => setIsSidebarCollapsed((isCollapsed) => !isCollapsed)}
         locale={locale}
         messages={messages}
         toggleSidebarLabel={toggleSidebarLabel}
+        toggleThemeLabel={toggleThemeLabel}
       />
+      {!isSidebarCollapsed && isMobileShell && (
+        <button
+          type="button"
+          className={styles.sidebarBackdrop}
+          onClick={() => setIsSidebarCollapsed(true)}
+          aria-label={messages.sidebarBackdrop}
+        />
+      )}
       <TimerHeader
         eventId={displayEventId}
         isScrolled={isStageScrolled}
@@ -591,7 +621,7 @@ const TimerPageContent = ({
         aria-label={messages.timerPage}
         onScroll={handleStageScroll}
       >
-        {pageState === 'scramble' && (
+        {shouldShowTimerStage && pageState === 'scramble' && (
           <ScrambleView
             eventId={displayEventId}
             scramble={isScrambleLoadingPreview ? '' : scramble}
@@ -609,8 +639,10 @@ const TimerPageContent = ({
             onStartReady={startReady}
           />
         )}
-        {pageState === 'timing' && <TimingView elapsed={elapsed} isInCancelZone={isInCancelZone} />}
-        {pageState === 'result' && (
+        {shouldShowTimerStage && pageState === 'timing' && (
+          <TimingView elapsed={elapsed} isInCancelZone={isInCancelZone} />
+        )}
+        {shouldShowTimerStage && pageState === 'result' && (
           <ResultView
             elapsed={finalElapsed}
             isAutoDnf={
@@ -627,6 +659,40 @@ const TimerPageContent = ({
             onDnf={(multiBlindSolvedCount) => void finishResult('dnf', multiBlindSolvedCount)}
             onDelete={() => void finishResult()}
           />
+        )}
+        {!shouldShowTimerStage && activeNavItem === 'results' && (
+          <section className={styles.secondaryPage} aria-label={messages.solves}>
+            <header className={styles.secondaryHeader}>
+              <div>
+                <span className={styles.secondaryKicker}>{messages.sessionList}</span>
+                <h1>{messages.solves}</h1>
+              </div>
+              <span className={styles.secondaryCount}>{sessionState.solves.length}</span>
+            </header>
+            {sidebarError && (
+              <StorageAlert message={sidebarError} formatMessage={messages.storageError} />
+            )}
+            <div className={styles.mobileResultsLayout}>
+              <section className={styles.mobileSolveList} aria-label={messages.solves}>
+                <SolveList
+                  solves={sessionState.solves}
+                  emptyText={messages.noSolves}
+                  onSelectSolve={handleSelectSolve}
+                />
+              </section>
+              <SolveStatisticsPanel messages={messages} solves={sessionState.solves} />
+            </div>
+          </section>
+        )}
+        {!shouldShowTimerStage && activeNavItem !== 'results' && (
+          <section className={styles.secondaryPage} aria-label={messages.timerPage}>
+            <header className={styles.secondaryHeader}>
+              <div>
+                <span className={styles.secondaryKicker}>{messages.mobilePageUnavailable}</span>
+                <h1>{activeNavItem === 'formula' ? messages.formulaLibrary : messages.settings}</h1>
+              </div>
+            </header>
+          </section>
         )}
         {selectedSolve && (
           <SolveDetail

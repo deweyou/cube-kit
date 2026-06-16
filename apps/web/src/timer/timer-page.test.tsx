@@ -195,6 +195,54 @@ describe('TimerPage', () => {
     expect(screen.getByRole('combobox', { name: '魔方类型' })).not.toBeNull();
   });
 
+  it('opens results as a separate mobile page from the drawer navigation', async () => {
+    setNarrowViewport(true);
+    generate.mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" });
+
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    await screen.findAllByText("R U R' U'");
+    await userEvent.click(screen.getByRole('button', { name: '展开侧栏' }));
+
+    const sidebar = screen.getByRole('complementary', { name: '练习列表' });
+    await userEvent.click(within(sidebar).getByRole('button', { name: '成绩' }));
+
+    expect(screen.getByRole('heading', { name: '成绩' })).not.toBeNull();
+    expect(screen.getByRole('button', { name: '展开侧栏' })).not.toBeNull();
+  });
+
+  it('keeps mobile drawer focused on navigation and global utilities', async () => {
+    setNarrowViewport(true);
+    generate.mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" });
+
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    await screen.findAllByText("R U R' U'");
+    await userEvent.click(screen.getByRole('button', { name: '展开侧栏' }));
+
+    const sidebar = screen.getByRole('complementary', { name: '练习列表' });
+    expect(within(sidebar).queryByRole('button', { name: '成绩列表' })).toBeNull();
+    expect(within(sidebar).getByRole('button', { name: 'Switch to English' })).not.toBeNull();
+    expect(within(sidebar).getByRole('button', { name: '切换深色模式' })).not.toBeNull();
+    expect(within(sidebar).queryByText('Switch to English')).toBeNull();
+    expect(within(sidebar).queryByText('切换深色模式')).toBeNull();
+  });
+
+  it('collapses the mobile drawer when the backdrop is clicked', async () => {
+    setNarrowViewport(true);
+    generate.mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" });
+
+    render(<TimerPage repository={createMemoryTimerSessionRepository()} />);
+
+    await screen.findAllByText("R U R' U'");
+    await userEvent.click(screen.getByRole('button', { name: '展开侧栏' }));
+
+    await userEvent.click(screen.getByRole('button', { name: '关闭侧栏遮罩' }));
+
+    expect(screen.getByRole('button', { name: '展开侧栏' })).not.toBeNull();
+    expect(screen.queryByRole('button', { name: '关闭侧栏遮罩' })).toBeNull();
+  });
+
   it('only marks the stage as scrolled after the timer content scrolls down', async () => {
     generate.mockResolvedValueOnce({ eventId: '333', scramble: "R U R' U'" });
 

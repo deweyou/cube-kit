@@ -15,9 +15,11 @@ export interface TimerMessages {
   deleteSessionAria: (name: string) => string;
   deleteSolve: string;
   eventSelectorLabel: string;
+  globalActions: string;
   imageRenderFailed: (message: string) => string;
   loading: string;
   mainNav: string;
+  mobilePageUnavailable: string;
   multiBlindCubeCount: string;
   multiBlindAutoDnf: string;
   multiBlindSolvedCount: string;
@@ -41,7 +43,9 @@ export interface TimerMessages {
   scrambleLoading: string;
   sessionList: string;
   sessionSettings: string;
+  settings: string;
   sidebar: string;
+  sidebarBackdrop: string;
   sidebarCollapse: string;
   sidebarExpand: string;
   solveDetail: string;
@@ -73,9 +77,11 @@ export const TIMER_MESSAGES: Record<TimerLocale, TimerMessages> = {
     deleteSessionAria: (name) => `删除${name}`,
     deleteSolve: '删除',
     eventSelectorLabel: '魔方类型',
+    globalActions: '全局操作',
     imageRenderFailed: (message) => `打乱图渲染失败：${message}`,
     loading: '载入成绩中...',
     mainNav: '主导航',
+    mobilePageUnavailable: '即将开放',
     multiBlindAutoDnf: '超过 1 小时，保存时会自动记为 DNF',
     multiBlindCubeCount: '数量',
     multiBlindSolvedCount: '成功数量',
@@ -99,7 +105,9 @@ export const TIMER_MESSAGES: Record<TimerLocale, TimerMessages> = {
     scrambleLoading: '生成打乱中...',
     sessionList: '成绩列表',
     sessionSettings: '列表设置',
+    settings: '设置',
     sidebar: '练习列表',
+    sidebarBackdrop: '关闭侧栏遮罩',
     sidebarCollapse: '收起侧栏',
     sidebarExpand: '展开侧栏',
     solveDetail: '成绩详情',
@@ -129,9 +137,11 @@ export const TIMER_MESSAGES: Record<TimerLocale, TimerMessages> = {
     deleteSessionAria: (name) => `Delete ${name}`,
     deleteSolve: 'Delete',
     eventSelectorLabel: 'Cube event',
+    globalActions: 'Global actions',
     imageRenderFailed: (message) => `Scramble image failed: ${message}`,
     loading: 'Loading solves...',
     mainNav: 'Main navigation',
+    mobilePageUnavailable: 'Coming soon',
     multiBlindAutoDnf: 'Over 1 hour, this will be saved as DNF',
     multiBlindCubeCount: 'Count',
     multiBlindSolvedCount: 'Solved',
@@ -156,7 +166,9 @@ export const TIMER_MESSAGES: Record<TimerLocale, TimerMessages> = {
     scrambleLoading: 'Generating scramble...',
     sessionList: 'Session list',
     sessionSettings: 'Session settings',
+    settings: 'Settings',
     sidebar: 'Practice list',
+    sidebarBackdrop: 'Close sidebar overlay',
     sidebarCollapse: 'Collapse sidebar',
     sidebarExpand: 'Expand sidebar',
     solveDetail: 'Solve detail',

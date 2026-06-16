@@ -53,6 +53,7 @@ export const TimerHeader = ({
         <Tooltip.Trigger>
           <Button.Icon
             className={styles.actionButton}
+            data-utility="true"
             variant="ghost"
             color="neutral"
             size="sm"
@@ -67,6 +68,7 @@ export const TimerHeader = ({
         <Tooltip.Trigger>
           <Button.Icon
             className={styles.actionButton}
+            data-utility="true"
             variant="ghost"
             color="neutral"
             size="sm"
