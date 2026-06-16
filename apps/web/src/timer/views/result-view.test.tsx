@@ -109,6 +109,89 @@ describe('ResultView', () => {
     expect(onContinue).not.toHaveBeenCalled();
   });
 
+  it('captures multi-blind solved count before continuing', async () => {
+    const onContinue = vi.fn();
+
+    render(
+      <ResultView
+        elapsed={1234}
+        messages={TIMER_MESSAGES['zh-CN']}
+        multiBlindAttemptedCount={10}
+        onContinue={onContinue}
+        onPlusTwo={vi.fn()}
+        onDnf={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const solvedInput = screen.getByRole('textbox', { name: '成功数量' });
+    fireEvent.change(solvedInput, { target: { value: '8' } });
+
+    await userEvent.click(screen.getByRole('button', { name: TIMER_MESSAGES['zh-CN'].continue }));
+
+    expect(onContinue).toHaveBeenCalledWith(8);
+    expect(screen.queryByRole('button', { name: '+2' })).toBeNull();
+  });
+
+  it('blocks multi-blind solved counts above the attempted count', async () => {
+    const onContinue = vi.fn();
+    const onDnf = vi.fn();
+
+    render(
+      <ResultView
+        elapsed={3_600_001}
+        isAutoDnf
+        messages={TIMER_MESSAGES['zh-CN']}
+        multiBlindAttemptedCount={3}
+        onContinue={onContinue}
+        onPlusTwo={vi.fn()}
+        onDnf={onDnf}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    const solvedInput = screen.getByRole('textbox', { name: '成功数量' });
+    fireEvent.change(solvedInput, { target: { value: '9' } });
+
+    await userEvent.click(screen.getByRole('button', { name: TIMER_MESSAGES['zh-CN'].continue }));
+    await userEvent.click(screen.getByRole('button', { name: 'DNF' }));
+
+    expect(screen.getByText('超过 1 小时，保存时会自动记为 DNF')).not.toBeNull();
+    expect(screen.getByText('请输入 0 到 3 的整数')).not.toBeNull();
+    expect(
+      screen.getByRole<HTMLButtonElement>('button', {
+        name: TIMER_MESSAGES['zh-CN'].continue,
+      }).disabled,
+    ).toBe(true);
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'DNF' }).disabled).toBe(true);
+    expect(onContinue).not.toHaveBeenCalled();
+    expect(onDnf).not.toHaveBeenCalled();
+  });
+
+  it('passes the multi-blind solved count when saving DNF', async () => {
+    const onDnf = vi.fn();
+
+    render(
+      <ResultView
+        elapsed={1234}
+        messages={TIMER_MESSAGES['zh-CN']}
+        multiBlindAttemptedCount={10}
+        onContinue={vi.fn()}
+        onPlusTwo={vi.fn()}
+        onDnf={onDnf}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByRole('textbox', { name: '成功数量' }), {
+      target: { value: '6' },
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'DNF' }));
+
+    expect(onDnf).toHaveBeenCalledWith(6);
+  });
+
   it('fires result actions from touch pointerup without waiting for synthetic click', () => {
     const onPlusTwo = vi.fn();
 

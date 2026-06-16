@@ -8,6 +8,15 @@ export interface TimerGestureOptions {
   isStartEnabled?: boolean;
 }
 
+export type TimerReadyTrigger =
+  | {
+      keyLabel: 'Space';
+      type: 'keyboard';
+    }
+  | {
+      type: 'touch';
+    };
+
 export const useTimerGesture = (
   isRunning: boolean,
   { onStart, onStop, onCancel, cancelZoneHeight = 80, isStartEnabled = true }: TimerGestureOptions,
@@ -16,13 +25,16 @@ export const useTimerGesture = (
   isInCancelZone: boolean;
   isReady: boolean;
   prepareStart: () => void;
+  readyTrigger?: TimerReadyTrigger;
   startReady: () => void;
 } => {
   const [isInCancelZone, setIsInCancelZone] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [readyTrigger, setReadyTrigger] = useState<TimerReadyTrigger>();
   const isRunningRef = useRef(isRunning);
   const isStartEnabledRef = useRef(isStartEnabled);
   const isReadyRef = useRef(false);
+  const readyKeyCodeRef = useRef<'Space' | null>(null);
   const onStartRef = useRef(onStart);
   const onStopRef = useRef(onStop);
   const onCancelRef = useRef(onCancel);
@@ -36,52 +48,80 @@ export const useTimerGesture = (
 
   const cancelReady = useCallback(() => {
     isReadyRef.current = false;
+    readyKeyCodeRef.current = null;
     setIsReady(false);
+    setReadyTrigger(undefined);
   }, []);
 
   const prepareStart = useCallback(() => {
     if (isRunningRef.current || !isStartEnabledRef.current) return;
     isReadyRef.current = true;
+    readyKeyCodeRef.current = null;
     setIsReady(true);
+    setReadyTrigger({ type: 'touch' });
   }, []);
 
   const startReady = useCallback(() => {
     if (!isReadyRef.current) return;
     isReadyRef.current = false;
+    readyKeyCodeRef.current = null;
     setIsReady(false);
+    setReadyTrigger(undefined);
     if (!isRunningRef.current && isStartEnabledRef.current) {
       onStartRef.current();
     }
   }, []);
 
   useEffect(() => {
-    const isFormControlFocused = (target: EventTarget | null) => {
+    const isInteractiveTarget = (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement)) return false;
-      if (target.isContentEditable) return true;
-      return ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+      const interactiveElement = target.closest(
+        'input, textarea, select, button, a[href], [contenteditable="true"], [role="button"], [role="combobox"], [role="listbox"], [role="option"], [data-timer-ignore-space]',
+      );
+      return interactiveElement !== null;
+    };
+
+    const isInteractiveFocused = (target: EventTarget | null) => {
+      if (isInteractiveTarget(target)) return true;
+      return isInteractiveTarget(document.activeElement);
     };
 
     // ── Desktop: keyboard ───────────────────────
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isFormControlFocused(e.target)) return;
-      if (!['Enter', 'Space'].includes(e.code) || e.repeat) return;
+      if (e.code === 'Escape' && isReadyRef.current) {
+        e.preventDefault();
+        cancelReady();
+        return;
+      }
+
+      if (isInteractiveFocused(e.target)) return;
+      if (e.code !== 'Space' || e.repeat) return;
       if (!isRunningRef.current && !isStartEnabledRef.current) return;
       e.preventDefault();
       if (isRunningRef.current) {
         onStopRef.current();
       } else {
+        const keyCode = e.code as 'Space';
         isReadyRef.current = true;
+        readyKeyCodeRef.current = keyCode;
         setIsReady(true);
+        setReadyTrigger({
+          keyLabel: 'Space',
+          type: 'keyboard',
+        });
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (isFormControlFocused(e.target)) return;
-      if (!['Enter', 'Space'].includes(e.code)) return;
+      if (isInteractiveFocused(e.target)) return;
+      if (e.code !== 'Space') return;
       if (!isReadyRef.current) return;
+      if (readyKeyCodeRef.current !== e.code) return;
       e.preventDefault();
       isReadyRef.current = false;
+      readyKeyCodeRef.current = null;
       setIsReady(false);
+      setReadyTrigger(undefined);
       if (!isRunningRef.current && isStartEnabledRef.current) {
         onStartRef.current();
       }
@@ -122,5 +162,5 @@ export const useTimerGesture = (
     };
   }, [cancelReady, cancelZoneHeight]);
 
-  return { cancelReady, isInCancelZone, isReady, prepareStart, startReady };
+  return { cancelReady, isInCancelZone, isReady, prepareStart, readyTrigger, startReady };
 };

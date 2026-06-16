@@ -15,8 +15,9 @@ import { createClientId } from '../storage/client-id';
 
 interface SaveSolveInput {
   eventId: WcaEventId;
-  scramble: string;
+  scramble: SolveRecord['scramble'];
   elapsedMs: number;
+  multiBlind?: SolveRecord['multiBlind'];
   penalty: SolvePenalty;
 }
 

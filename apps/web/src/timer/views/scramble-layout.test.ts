@@ -12,53 +12,65 @@ describe('scramble layout CSS', () => {
     expect(timerPageCss).toContain('display: none;');
     expect(timerPageCss).toContain('height: calc(100% - 72px);');
     expect(timerPageCss).toContain('margin-top: 72px;');
-    expect(timerPageCss).toContain('.root::before');
-    expect(timerPageCss).toContain('height: 72px;');
-    expect(timerPageCss).toContain('background: var(--ui-color-canvas);');
-    expect(timerPageCss).toContain('circle at 68% 18%');
-    expect(timerPageCss).toContain('.root::after');
-    expect(timerPageCss).toContain('top: 72px;');
-    expect(timerPageCss).toContain('linear-gradient');
-    expect(timerPageCss).toContain('opacity: 0;');
-    expect(timerPageCss).toContain(".root[data-stage-scrolled='true']::after");
-    expect(timerPageCss).toContain(".root[data-stage-scrolled='true']::before");
-    expect(timerPageCss).toContain('opacity: 1;');
+    expect(timerHeaderCss).toContain('height: 72px;');
+    expect(timerHeaderCss).toContain('top: 0;');
+    expect(timerHeaderCss).toContain('background: transparent;');
+    expect(timerHeaderCss).toContain('border-bottom: 1px solid transparent;');
+    expect(timerHeaderCss).toContain(".root[data-scrolled='true']");
+    expect(timerHeaderCss).toContain('border-bottom-color: color-mix');
+    expect(timerHeaderCss).toContain('z-index: 18;');
+    expect(timerSidebarCss).toContain('z-index: 20;');
+    expect(timerHeaderCss).not.toContain('backdrop-filter');
+    expect(timerHeaderCss).not.toContain('.root::before');
+    expect(timerPageCss).not.toContain('.root::after');
+    expect(timerPageCss).not.toContain(".root[data-stage-scrolled='true']::before");
+    expect(timerPageCss).not.toContain('linear-gradient');
     expect(timerPageCss).toContain(".root[data-sidebar='expanded'] .stage");
+    expect(timerPageCss).toContain('.sidebarBackdrop');
     expect(timerPageCss).toContain('pointer-events: none;');
     expect(timerPageCss).toContain('visibility: hidden;');
   });
 
   it('places scramble content from the upper stage and leaves room to scroll', () => {
-    expect(scrambleViewCss).toContain('justify-content: center;');
-    expect(scrambleViewCss).toContain('justify-content: safe center;');
+    expect(scrambleViewCss).toContain('height: 100%;');
     expect(scrambleViewCss).toContain('min-height: 100%;');
-    expect(scrambleViewCss).toContain('overflow: visible;');
-    expect(scrambleViewCss).toContain('--action-stack-bottom: clamp(20px, 4vh, 52px);');
+    expect(scrambleViewCss).toContain('overflow: hidden;');
+    expect(scrambleViewCss).toContain('--action-stack-bottom: clamp(18px, 3.5vh, 40px);');
     expect(scrambleViewCss).toContain('--action-stack-gap: 10px;');
     expect(scrambleViewCss).toContain('--action-stack-height: 56px;');
+    expect(scrambleViewCss).toContain('--scramble-content-gap: clamp(20px, 3.2vh, 40px);');
+    expect(scrambleViewCss).toContain('grid-template-rows: minmax(0, 1fr) auto;');
     expect(scrambleViewCss).toContain(
-      '--action-stack-clearance: calc(\n    var(--action-stack-bottom) + var(--action-stack-height) + var(--action-stack-gap)\n  );',
+      'padding: clamp(28px, 7vh, 84px) clamp(48px, 7vw, 96px) var(--action-stack-bottom);',
     );
-    expect(scrambleViewCss).toContain('padding: clamp(72px, 12vh, 144px)');
-    expect(scrambleViewCss).toContain('justify-content: center;');
-    expect(scrambleViewCss).toContain('clamp(180px, 20vh, 240px)');
-    expect(scrambleViewCss).toContain('padding: 16px 16px clamp(96px, 11vh, 140px);');
-    expect(scrambleViewCss).toContain('--action-stack-bottom: 18px;');
-    expect(scrambleViewCss).toContain('align-content: safe center;');
+    expect(scrambleViewCss).toContain('padding: clamp(8px, 2vh, 20px) 16px 0;');
+    expect(scrambleViewCss).toContain('overflow-y: auto;');
+    expect(scrambleViewCss).toContain('.startSurface::-webkit-scrollbar');
+    expect(scrambleViewCss).toContain('position: relative;');
+    expect(scrambleViewCss).toContain('.toolbarButton');
+    expect(scrambleViewCss).toContain('min-height: 40px;');
+    expect(scrambleViewCss).toContain('min-width: 40px;');
+    expect(scrambleViewCss).toContain('--action-stack-bottom: 10px;');
     expect(scrambleViewCss).toContain('display: grid;');
     expect(scrambleViewCss).toContain('justify-items: center;');
-    expect(scrambleViewCss).toContain('padding: 0 16px;');
-    expect(scrambleViewCss).toContain('align-self: safe center;');
-    expect(scrambleViewCss).toContain('padding: 0 0 var(--action-stack-clearance);');
-    expect(scrambleViewCss).toContain('min-height: clamp(500px, 58vh, 660px);');
-    expect(scrambleViewCss).toContain('min-height: auto;');
+    expect(scrambleViewCss).toContain('box-sizing: border-box;');
+    expect(scrambleViewCss).toContain('align-self: stretch;');
+    expect(scrambleViewCss).toContain(
+      'padding: clamp(18px, 5vh, 48px) 16px calc(10px + env(safe-area-inset-bottom));',
+    );
+    expect(scrambleViewCss).toContain('@media (max-height: 760px)');
+    expect(scrambleViewCss).toContain('--scramble-content-gap: clamp(14px, 2.6vh, 24px);');
+    expect(scrambleViewCss).toContain('padding-top: clamp(16px, 4vh, 36px);');
+    expect(scrambleViewCss).toContain('min-height: 0;');
+    expect(scrambleViewCss).toContain('margin-top: 0;');
+    expect(scrambleViewCss).toContain('position: static;');
     expect(scrambleViewCss).toContain('position: fixed;');
-    expect(scrambleViewCss).toContain('inline-size: clamp(196px, 56vw, 260px);');
+    expect(scrambleViewCss).toContain('inline-size: clamp(180px, 48vw, 260px);');
     expect(scrambleViewCss).toContain('min-width: 0;');
     expect(scrambleViewCss).toContain('left: calc(312px + (100vw - 312px) / 2);');
     expect(scrambleViewCss).toContain('z-index: 17;');
     expect(timerPageCss).toContain(
-      ".root[data-sidebar='collapsed'] :global([class*='actionStack'])",
+      ".root[data-sidebar='collapsed'] :global([class*='actionStack'][data-ready='true'])",
     );
     expect(scrambleViewCss).toContain('bottom: var(--action-stack-bottom);');
     expect(scrambleViewCss).toContain('background: color-mix');
@@ -97,18 +109,34 @@ describe('scramble layout CSS', () => {
     expect(scrambleViewCss).toContain('.touchReleaseHint');
     expect(scrambleViewCss).toContain('font-size: 1.18rem;');
     expect(scrambleViewCss).toContain('text-shadow: 0 1px 10px');
+    expect(scrambleImageCss).toContain('height: auto;');
+    expect(scrambleImageCss).toContain('width: clamp(260px, 38vw, 520px);');
+    expect(scrambleImageCss).toContain('width: clamp(260px, 66vw, 420px);');
+    expect(scrambleImageCss).toContain('width: clamp(230px, 56vw, 360px);');
+    expect(scrambleImageCss).toContain(".root[data-event='sq1']");
+    expect(scrambleImageCss).toContain('width: clamp(150px, 18vw, 240px);');
+    expect(scrambleImageCss).toContain('width: clamp(150px, 40vw, 220px);');
+    expect(scrambleImageCss).toContain('width: clamp(140px, 35vw, 190px);');
+    expect(scrambleImageCss).toContain(".root[data-event='clock']");
+    expect(scrambleImageCss).toContain(".root[data-event='minx']");
+    expect(scrambleImageCss).toContain('width: clamp(300px, 42vw, 560px);');
+    expect(scrambleImageCss).toContain('width: clamp(280px, 76vw, 440px);');
+    expect(scrambleImageCss).toContain('width: clamp(260px, 70vw, 400px);');
+    expect(scrambleImageCss).not.toContain('border: 1px solid');
+    expect(scrambleImageCss).not.toContain('padding: clamp(10px');
     expect(scrambleViewCss).toContain(
       'bottom: calc(var(--action-stack-bottom) + var(--action-stack-height) + 24px);',
     );
     expect(scrambleViewCss).toContain('left: 50%;');
   });
 
-  it('uses the original full-screen mobile sidebar behavior', () => {
-    expect(timerSidebarCss).toContain('width: 100vw;');
-    expect(timerSidebarCss).toContain('width: min(360px, 100vw);');
+  it('uses a compact mobile sidebar drawer behavior', () => {
+    expect(timerSidebarCss).toContain('width: min(360px, calc(100vw - 48px));');
+    expect(timerSidebarCss).toContain(
+      'box-shadow: 18px 0 48px color-mix(in srgb, black 18%, transparent);',
+    );
     expect(timerSidebarCss).toContain('z-index: 20;');
     expect(timerSidebarCss).not.toContain('height: 100dvh;');
-    expect(timerSidebarCss).not.toContain('--ui-touch-target-min: 44px;');
   });
 });
 
@@ -117,8 +145,18 @@ const timerPageCss = readFileSync(
   'utf8',
 );
 
+const timerHeaderCss = readFileSync(
+  resolve(process.cwd(), 'src/timer/components/timer-header.module.css'),
+  'utf8',
+);
+
 const scrambleViewCss = readFileSync(
   resolve(process.cwd(), 'src/timer/views/scramble-view.module.css'),
+  'utf8',
+);
+
+const scrambleImageCss = readFileSync(
+  resolve(process.cwd(), 'src/timer/components/scramble-image.module.css'),
   'utf8',
 );
 

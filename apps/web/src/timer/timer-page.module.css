@@ -18,59 +18,7 @@
   padding-left: 0;
 }
 
-.root::before {
-  background:
-    radial-gradient(
-      circle at 68% 18%,
-      color-mix(in srgb, var(--ui-color-brand-text) 8%, transparent),
-      transparent 30%
-    ),
-    var(--ui-color-canvas);
-  content: '';
-  height: 72px;
-  left: 312px;
-  pointer-events: none;
-  position: fixed;
-  right: 0;
-  top: 0;
-  opacity: 0;
-  transition: opacity 160ms ease;
-  z-index: 18;
-}
-
-.root::after {
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--ui-color-canvas) 88%, transparent),
-    color-mix(in srgb, var(--ui-color-canvas) 58%, transparent) 42%,
-    transparent
-  );
-  content: '';
-  height: 34px;
-  left: 312px;
-  pointer-events: none;
-  position: fixed;
-  right: 0;
-  top: 72px;
-  opacity: 0;
-  transition: opacity 160ms ease;
-  z-index: 18;
-}
-
-.root[data-stage-scrolled='true']::after {
-  opacity: 1;
-}
-
-.root[data-stage-scrolled='true']::before {
-  opacity: 1;
-}
-
-.root[data-sidebar='collapsed']::before,
-.root[data-sidebar='collapsed']::after {
-  left: 0;
-}
-
-.root[data-sidebar='collapsed'] :global([class*='actionStack']) {
+.root[data-sidebar='collapsed'] :global([class*='actionStack'][data-ready='true']) {
   left: 50%;
 }
 
@@ -100,72 +48,68 @@
   display: none;
 }
 
-.pageActions {
-  align-items: center;
-  display: inline-flex;
-  gap: 16px;
-  min-height: 32px;
-  position: fixed;
-  right: 18px;
-  top: 18px;
-  z-index: 40;
+.sidebarBackdrop {
+  display: none;
 }
 
-.collapsedEventSelectorSlot {
-  align-items: center;
-  display: inline-flex;
-  height: 32px;
-  justify-content: center;
-  width: 32px;
-}
-
-.collapsedEventSelectorSlot > :global(div) {
-  align-items: center;
-  display: inline-flex;
-  height: 32px;
-  justify-content: center;
-}
-
-.collapsedEventSelectorSlot :global(label) {
-  border: 0;
-  clip: rect(0 0 0 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  white-space: nowrap;
-  width: 1px;
-}
-
-.pageActionButton {
-  --button-ghost-background-active: transparent;
-  --button-ghost-background-hover: transparent;
-  --button-height: 32px;
-  --button-square-size: 32px;
-  --ui-touch-target-min: 32px;
-  background: transparent;
-  border-color: transparent;
-  border-radius: var(--ui-radius-pill);
-  color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
-  height: 32px;
-  padding: 0;
-  width: 32px;
-}
-
-.pageActionButton:hover {
-  background: transparent;
-  color: var(--ui-color-brand-text);
-}
-
-.pageActionButton :global(svg) {
-  display: block;
-  height: 20px;
-  width: 20px;
-}
-
-.collapsedEventSelector {
+.secondaryPage {
+  align-self: stretch;
+  box-sizing: border-box;
+  display: grid;
+  gap: 18px;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100%;
   min-width: 0;
+  padding: clamp(88px, 12vh, 124px) clamp(18px, 5vw, 56px) 28px;
+  width: 100%;
+}
+
+.secondaryHeader {
+  align-items: end;
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-color-border) 58%, transparent);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding-bottom: 14px;
+}
+
+.secondaryHeader h1 {
+  color: var(--ui-color-text);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.secondaryKicker {
+  color: var(--ui-color-text-muted);
+  display: block;
+  font-size: 0.78rem;
+  margin-bottom: 6px;
+}
+
+.secondaryCount {
+  color: var(--ui-color-text-muted);
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  padding-bottom: 3px;
+}
+
+.mobileResultsLayout {
+  display: grid;
+  gap: 18px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+}
+
+.mobileSolveList {
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-color-border) 58%, transparent);
+  display: grid;
+  min-height: 0;
+  overflow: hidden;
+  padding-bottom: 10px;
 }
 
 @media (max-width: 860px) {
@@ -179,16 +123,16 @@
     padding-left: 0;
   }
 
-  .root[data-sidebar='expanded']::before {
+  .sidebarBackdrop {
+    appearance: none;
     background: color-mix(in srgb, var(--ui-color-canvas) 62%, transparent);
-    content: '';
+    border: 0;
+    cursor: default;
+    display: block;
     inset: 0;
+    padding: 0;
     position: fixed;
     z-index: 19;
-  }
-
-  .root[data-sidebar='expanded'] .pageActions {
-    z-index: 18;
   }
 
   .root[data-sidebar='expanded'] .stage {
@@ -198,5 +142,9 @@
 
   .stage {
     min-height: 0;
+  }
+
+  .secondaryPage {
+    padding: calc(76px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
   }
 }

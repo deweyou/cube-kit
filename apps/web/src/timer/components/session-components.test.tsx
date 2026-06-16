@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SessionSelector } from './session-selector';
 import { SolveDetail } from './solve-detail';
 import { SolveList } from './solve-list';
@@ -43,8 +43,9 @@ const solves = [
   {
     id: 'old',
     sessionId: 'custom',
-    eventId: '222' as const,
-    scramble: 'R U R',
+    eventId: '333mbld' as const,
+    multiBlind: { attemptedCount: 10, solvedCount: 8 },
+    scramble: ["R U R' U'", "F R U R' U' F'"],
     elapsedMs: 1000,
     penalty: 'none' as const,
     createdAt: 1000,
@@ -53,6 +54,10 @@ const solves = [
 
 describe('session components', () => {
   const messages = TIMER_MESSAGES['zh-CN'];
+
+  afterEach(() => {
+    cleanup();
+  });
 
   it('selects and creates sessions', async () => {
     const onSelect = vi.fn();
@@ -80,29 +85,48 @@ describe('session components', () => {
     render(<SolveList emptyText={messages.noSolves} solves={solves} onSelectSolve={vi.fn()} />);
 
     expect(screen.queryByText('#2')).not.toBeNull();
-    expect(screen.queryByText('3.234')).not.toBeNull();
+    expect(screen.queryByText('3.234+')).not.toBeNull();
     expect(screen.queryByText('+2')).toBeNull();
+    expect(screen.queryByText('(8 / 10)')).not.toBeNull();
     expect(screen.queryByText('#1')).not.toBeNull();
   });
 
   it('edits penalty and deletes from detail', async () => {
     const onPenalty = vi.fn();
     const onDelete = vi.fn();
+    const onClose = vi.fn();
     render(
       <SolveDetail
         locale="zh-CN"
         messages={messages}
         solve={solves[0]!}
-        onClose={vi.fn()}
+        onClose={onClose}
         onDelete={onDelete}
         onPenaltyChange={onPenalty}
       />,
     );
 
     await userEvent.click(screen.getByRole('button', { name: 'DNF' }));
-    await userEvent.click(screen.getByRole('button', { name: '删除成绩' }));
+    await userEvent.click(screen.getByRole('button', { name: '删除' }));
 
     expect(onPenalty).toHaveBeenCalledWith('new', 'dnf');
     expect(onDelete).toHaveBeenCalledWith('new');
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('renders one scramble image per multi-blind scramble in detail', () => {
+    render(
+      <SolveDetail
+        locale="zh-CN"
+        messages={messages}
+        solve={solves[1]!}
+        onClose={vi.fn()}
+        onDelete={vi.fn()}
+        onPenaltyChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByText('8 / 10').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('dialog').querySelectorAll('[data-scramble-image]')).toHaveLength(2);
   });
 });

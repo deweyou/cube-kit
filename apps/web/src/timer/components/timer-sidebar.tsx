@@ -7,12 +7,16 @@ import { CubeginAnimatedIcon } from '@cubegin/icons/react';
 import type { WcaEventId } from '@cubegin/shared/wca';
 import {
   AddIcon,
-  ChartNavIcon,
   ChevronDownIcon,
   DeleteIcon,
+  FormulaNavIcon,
   HistoryNavIcon,
+  LanguageIcon,
+  SettingsNavIcon,
   SidebarCollapseIcon,
   SidebarExpandIcon,
+  SunIcon,
+  ThemeMoonIcon,
   TimerNavIcon,
 } from './timer-icons';
 import type { SolveRecord, SolveSession } from '@cubegin/shared/timer-session';
@@ -24,15 +28,22 @@ import { StorageAlert } from './storage-alert';
 import type { TimerLocale, TimerMessages } from '../timer-i18n';
 import styles from './timer-sidebar.module.css';
 
+export type TimerNavItemId = 'timer' | 'results' | 'formula' | 'settings';
+
 interface TimerSidebarProps {
   activeSessionId: string;
+  activeNavItem: TimerNavItemId;
   eventId: WcaEventId;
   error?: string;
+  isMobileShell: boolean;
   onCreateSession: (name: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onEventChange: (id: WcaEventId) => void;
+  onLocaleToggle: () => void;
+  onNavItemChange: (id: TimerNavItemId) => void;
   onSelectSession: (sessionId: string) => void;
   onSelectSolve: (solve: SolveRecord) => void;
+  onThemeToggle: () => void;
   onToggleSidebar: () => void;
   locale: TimerLocale;
   messages: TimerMessages;
@@ -41,17 +52,23 @@ interface TimerSidebarProps {
   solves: SolveRecord[];
   themeMode: 'light' | 'dark';
   toggleSidebarLabel: string;
+  toggleThemeLabel: string;
 }
 
 export const TimerSidebar = ({
   activeSessionId,
+  activeNavItem,
   eventId,
   error,
+  isMobileShell,
   onCreateSession,
   onDeleteSession,
   onEventChange,
+  onLocaleToggle,
+  onNavItemChange,
   onSelectSession,
   onSelectSolve,
+  onThemeToggle,
   onToggleSidebar,
   locale,
   messages,
@@ -60,6 +77,7 @@ export const TimerSidebar = ({
   solves,
   themeMode,
   toggleSidebarLabel,
+  toggleThemeLabel,
 }: TimerSidebarProps) => {
   const [name, setName] = useState('');
   const [isSessionMenuOpen, setIsSessionMenuOpen] = useState(false);
@@ -79,8 +97,9 @@ export const TimerSidebar = ({
     BRAND_ICON_SVGS[themeMode === 'dark' ? 'cubegin-wordmark-dark' : 'cubegin-wordmark'];
   const navItems = [
     { id: 'timer', label: messages.timer, icon: <TimerNavIcon /> },
-    { id: 'formula', label: messages.formulaLibrary, icon: <HistoryNavIcon /> },
-    { id: 'stats', label: messages.stats, icon: <ChartNavIcon /> },
+    { id: 'results', label: messages.solves, icon: <HistoryNavIcon /> },
+    { id: 'formula', label: messages.formulaLibrary, icon: <FormulaNavIcon /> },
+    { id: 'settings', label: messages.settings, icon: <SettingsNavIcon /> },
   ] as const;
 
   useEffect(() => {
@@ -108,8 +127,18 @@ export const TimerSidebar = ({
     if (sessionId === activeSessionId) setIsSessionMenuOpen(false);
   };
 
+  const handleNavItemClick = (id: TimerNavItemId) => {
+    onNavItemChange(id);
+    if (isMobileShell) onToggleSidebar();
+  };
+
   return (
-    <aside className={styles.root} data-collapsed={isCollapsed} aria-label={messages.sidebar}>
+    <aside
+      className={styles.root}
+      data-collapsed={isCollapsed}
+      data-shell={isMobileShell ? 'mobile' : 'desktop'}
+      aria-label={messages.sidebar}
+    >
       <header className={styles.header}>
         <div className={styles.brandRow}>
           <strong
@@ -159,134 +188,168 @@ export const TimerSidebar = ({
         <div className={styles.navRow}>
           <nav className={styles.nav} aria-label={messages.mainNav}>
             {navItems.map((item) => (
-              <Tooltip.Root key={item.id} placement="bottom">
-                <Tooltip.Trigger>
-                  <Button.Icon
-                    className={item.id === 'timer' ? styles.navButtonActive : styles.navButton}
-                    variant="ghost"
-                    color="neutral"
-                    size="xs"
-                    icon={item.icon}
-                    disabled={item.id !== 'timer'}
-                    aria-label={item.label}
-                  />
-                </Tooltip.Trigger>
-                <Tooltip.Content>{item.label}</Tooltip.Content>
-              </Tooltip.Root>
+              <button
+                key={item.id}
+                type="button"
+                className={styles.navButton}
+                data-active={activeNavItem === item.id}
+                onClick={() => handleNavItemClick(item.id)}
+                aria-current={activeNavItem === item.id ? 'page' : undefined}
+              >
+                <span className={styles.navIcon}>{item.icon}</span>
+                <span className={styles.navLabel}>{item.label}</span>
+              </button>
             ))}
           </nav>
         </div>
       </header>
 
-      <section
-        className={styles.controls}
-        aria-label={messages.sessionSettings}
-        aria-hidden={isCollapsed}
-      >
-        <div className={styles.sessionMenu}>
-          <button
-            type="button"
-            className={styles.sessionTrigger}
-            onClick={() => setIsSessionMenuOpen((isOpen) => !isOpen)}
-            aria-expanded={isSessionMenuOpen}
-            aria-label={messages.sessionList}
-          >
-            <span className={styles.sessionTriggerText}>{activeSessionName}</span>
-            <ChevronDownIcon size={12} />
-          </button>
-          {isSessionMenuOpen && (
-            <div className={styles.sessionPanel} role="menu">
-              {defaultSession && (
-                <button
-                  type="button"
-                  className={styles.sessionItem}
-                  data-active={activeSessionId === defaultSession.id}
-                  onClick={() => handleSelectSession(defaultSession.id)}
-                  role="menuitem"
-                >
-                  <span>{messages.defaultSession}</span>
-                </button>
-              )}
-              {customSessions.map((session) => (
-                <div
-                  key={session.id}
-                  className={styles.sessionItemRow}
-                  data-active={activeSessionId === session.id}
-                >
+      {!isMobileShell && (
+        <section
+          className={styles.controls}
+          aria-label={messages.sessionSettings}
+          aria-hidden={isCollapsed}
+        >
+          <div className={styles.sessionMenu}>
+            <button
+              type="button"
+              className={styles.sessionTrigger}
+              onClick={() => setIsSessionMenuOpen((isOpen) => !isOpen)}
+              aria-expanded={isSessionMenuOpen}
+              aria-label={messages.sessionList}
+            >
+              <span className={styles.sessionTriggerText}>{activeSessionName}</span>
+              <ChevronDownIcon size={12} />
+            </button>
+            {isSessionMenuOpen && (
+              <div className={styles.sessionPanel} role="menu">
+                {defaultSession && (
                   <button
                     type="button"
                     className={styles.sessionItem}
-                    onClick={() => handleSelectSession(session.id)}
+                    data-active={activeSessionId === defaultSession.id}
+                    onClick={() => handleSelectSession(defaultSession.id)}
                     role="menuitem"
                   >
-                    <span>{session.name}</span>
-                  </button>
-                  <Tooltip.Root placement="right">
-                    <Tooltip.Trigger>
-                      <Button.Icon
-                        className={styles.sessionDeleteButton}
-                        variant="ghost"
-                        color="danger"
-                        size="xs"
-                        icon={<DeleteIcon />}
-                        onClick={() => handleDeleteSession(session.id)}
-                        aria-label={messages.deleteSessionAria(session.name)}
-                      />
-                    </Tooltip.Trigger>
-                    <Tooltip.Content>{messages.deleteSession}</Tooltip.Content>
-                  </Tooltip.Root>
-                </div>
-              ))}
-              <div className={styles.sessionCreate}>
-                {isCreatingSession ? (
-                  <>
-                    <Input
-                      aria-label={messages.newSessionName}
-                      value={name}
-                      onChange={(event) => setName(event.target.value)}
-                      placeholder={messages.newSessionFallback}
-                      size="sm"
-                    />
-                    <Button.Icon
-                      variant="ghost"
-                      color="neutral"
-                      size="xs"
-                      icon={<AddIcon />}
-                      onClick={handleCreate}
-                      aria-label={messages.confirmCreateSession}
-                    />
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    className={styles.createSessionButton}
-                    onClick={() => setIsCreatingSession(true)}
-                  >
-                    <AddIcon size={16} />
-                    <span>{messages.createSession}</span>
+                    <span>{messages.defaultSession}</span>
                   </button>
                 )}
+                {customSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className={styles.sessionItemRow}
+                    data-active={activeSessionId === session.id}
+                  >
+                    <button
+                      type="button"
+                      className={styles.sessionItem}
+                      onClick={() => handleSelectSession(session.id)}
+                      role="menuitem"
+                    >
+                      <span>{session.name}</span>
+                    </button>
+                    <Tooltip.Root placement="right">
+                      <Tooltip.Trigger>
+                        <Button.Icon
+                          className={styles.sessionDeleteButton}
+                          variant="ghost"
+                          color="danger"
+                          size="xs"
+                          icon={<DeleteIcon />}
+                          onClick={() => handleDeleteSession(session.id)}
+                          aria-label={messages.deleteSessionAria(session.name)}
+                        />
+                      </Tooltip.Trigger>
+                      <Tooltip.Content>{messages.deleteSession}</Tooltip.Content>
+                    </Tooltip.Root>
+                  </div>
+                ))}
+                <div className={styles.sessionCreate}>
+                  {isCreatingSession ? (
+                    <>
+                      <Input
+                        aria-label={messages.newSessionName}
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        placeholder={messages.newSessionFallback}
+                        size="sm"
+                      />
+                      <Button.Icon
+                        variant="ghost"
+                        color="neutral"
+                        size="xs"
+                        icon={<AddIcon />}
+                        onClick={handleCreate}
+                        aria-label={messages.confirmCreateSession}
+                      />
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className={styles.createSessionButton}
+                      onClick={() => setIsCreatingSession(true)}
+                    >
+                      <AddIcon size={16} />
+                      <span>{messages.createSession}</span>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </section>
+            )}
+          </div>
+        </section>
+      )}
 
-      <section className={styles.scores} aria-label={messages.solves} aria-hidden={isCollapsed}>
-        <div className={styles.scoreHeader}>
-          <span className={styles.scoreTitle}>{messages.solves}</span>
-          <span className={styles.scoreCount}>{solves.length}</span>
-        </div>
-        <SolveList solves={solves} emptyText={messages.noSolves} onSelectSolve={onSelectSolve} />
-      </section>
+      {!isMobileShell && (
+        <section className={styles.scores} aria-label={messages.solves} aria-hidden={isCollapsed}>
+          <div className={styles.scoreHeader}>
+            <span className={styles.scoreTitle}>{messages.solves}</span>
+            <span className={styles.scoreCount}>{solves.length}</span>
+          </div>
+          <SolveList solves={solves} emptyText={messages.noSolves} onSelectSolve={onSelectSolve} />
+        </section>
+      )}
 
-      <div className={styles.statistics} aria-hidden={isCollapsed}>
-        <SolveStatisticsPanel messages={messages} solves={solves} />
-      </div>
+      {!isMobileShell && (
+        <div className={styles.statistics} aria-hidden={isCollapsed}>
+          <SolveStatisticsPanel messages={messages} solves={solves} />
+        </div>
+      )}
 
       {error && !isCollapsed && (
         <div className={styles.alert}>
           <StorageAlert message={error} formatMessage={messages.storageError} />
+        </div>
+      )}
+
+      {!isCollapsed && isMobileShell && (
+        <div className={styles.utilities} aria-label={messages.globalActions}>
+          <Tooltip.Root placement="top">
+            <Tooltip.Trigger>
+              <button
+                type="button"
+                className={styles.utilityButton}
+                onClick={onLocaleToggle}
+                aria-label={messages.toggleLanguage}
+              >
+                <LanguageIcon size={18} />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{messages.toggleLanguage}</Tooltip.Content>
+          </Tooltip.Root>
+          <Tooltip.Root placement="top">
+            <Tooltip.Trigger>
+              <button
+                type="button"
+                className={styles.utilityButton}
+                onClick={onThemeToggle}
+                aria-label={toggleThemeLabel}
+              >
+                {themeMode === 'dark' ? <SunIcon size={18} /> : <ThemeMoonIcon size={18} />}
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{toggleThemeLabel}</Tooltip.Content>
+          </Tooltip.Root>
         </div>
       )}
     </aside>

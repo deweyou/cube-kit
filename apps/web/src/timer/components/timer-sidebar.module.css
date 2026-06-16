@@ -3,7 +3,7 @@
   background: transparent;
   border-right: 0;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
   min-height: 0;
   padding: 0;
   bottom: 0;
@@ -37,7 +37,8 @@
 .controls,
 .scores,
 .statistics,
-.alert {
+.alert,
+.utilities {
   position: relative;
   z-index: 1;
 }
@@ -131,53 +132,61 @@
   align-items: center;
   display: flex;
   justify-content: flex-start;
+  width: 100%;
 }
 
 .nav {
-  align-items: center;
-  display: inline-flex;
-  gap: 16px;
+  align-items: stretch;
+  display: grid;
+  gap: 2px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
 }
 
-.navButton,
-.navButtonActive {
-  --button-ghost-background-active: transparent;
-  --button-ghost-background-hover: transparent;
-  --button-height: 32px;
-  --button-square-size: 32px;
-  --ui-touch-target-min: 32px;
+.navButton {
+  align-items: center;
+  appearance: none;
   background: transparent;
-  border-color: transparent;
+  border: 0;
   border-radius: var(--ui-radius-pill);
   color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
-  height: 32px;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 7px;
+  justify-content: center;
+  min-height: 34px;
   padding: 0;
-  width: 32px;
+  width: 100%;
 }
 
-.navButtonActive {
-  background: transparent;
+.navButton[data-active='true'] {
   color: var(--ui-color-brand-text);
 }
 
-.navButton:hover,
-.navButtonActive:hover {
-  background: transparent;
+.navButton:hover {
+  background: color-mix(in srgb, var(--ui-color-text) 6%, transparent);
   color: var(--ui-color-brand-text);
 }
 
-.navButton:disabled,
-.navButtonActive:disabled {
-  background: transparent;
-  color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
-  opacity: 1;
+.navButton:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
 }
 
-.navButton :global(svg),
-.navButtonActive :global(svg) {
+.navIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.navIcon :global(svg) {
   display: block;
-  height: 20px;
-  width: 20px;
+}
+
+.navLabel {
+  display: none;
+  font-size: 0.78rem;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .controls {
@@ -361,6 +370,41 @@
     transform 180ms var(--ui-motion-ease-standard);
 }
 
+.utilities {
+  border-top: 1px solid color-mix(in srgb, var(--ui-color-border) 58%, transparent);
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  padding: 12px var(--sidebar-inline-padding) calc(16px + env(safe-area-inset-bottom));
+}
+
+.utilityButton {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  color: color-mix(in srgb, var(--ui-color-text-muted) 88%, transparent);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font: inherit;
+  height: 40px;
+  justify-content: center;
+  padding: 0;
+  width: 40px;
+}
+
+.utilityButton:hover {
+  background: color-mix(in srgb, var(--ui-color-text) 6%, transparent);
+  color: var(--ui-color-text);
+}
+
+.utilityButton:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+}
+
 .sidebarToggleButton {
   --button-ghost-background-active: transparent;
   --button-ghost-background-hover: transparent;
@@ -482,12 +526,13 @@
 
   .root:not([data-collapsed='true']) {
     background: var(--ui-color-surface);
-    width: 100vw;
+    box-shadow: 18px 0 48px color-mix(in srgb, black 18%, transparent);
+    width: min(360px, calc(100vw - 48px));
   }
 
   .root:not([data-collapsed='true'])::before {
     background: var(--ui-color-surface);
-    width: 100vw;
+    width: min(360px, calc(100vw - 48px));
   }
 
   .root[data-collapsed='true'] {
@@ -496,5 +541,37 @@
     border-top: 0;
     pointer-events: none;
     width: 312px;
+  }
+
+  .root[data-shell='mobile']:not([data-collapsed='true']) {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .root[data-shell='mobile']:not([data-collapsed='true']) .nav {
+    gap: 6px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .root[data-shell='mobile']:not([data-collapsed='true']) .navButton {
+    border-radius: var(--ui-radius-rect);
+    justify-content: flex-start;
+    min-height: 48px;
+    padding: 0 6px;
+  }
+
+  .root[data-shell='mobile']:not([data-collapsed='true']) .navLabel {
+    display: inline;
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  .root[data-shell='mobile']:not([data-collapsed='true']) .scores,
+  .root[data-shell='mobile']:not([data-collapsed='true']) .statistics,
+  .root[data-shell='mobile']:not([data-collapsed='true']) .controls {
+    display: none;
+  }
+
+  .root[data-shell='mobile']:not([data-collapsed='true']) .utilities {
+    align-self: end;
   }
 }

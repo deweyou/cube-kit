@@ -53,6 +53,11 @@ export const SolveList = ({ emptyText, solves, onSelectSolve }: SolveListProps) 
                   #{getReverseSequenceNumber(solves.length, solveIndex)}
                 </span>
                 <span className={styles.time}>
+                  {solve.multiBlind && (
+                    <span className={styles.multiBlindResult}>
+                      ({solve.multiBlind.solvedCount} / {solve.multiBlind.attemptedCount})
+                    </span>
+                  )}
                   {getSolveDisplayText(solve.elapsedMs, solve.penalty)}
                 </span>
               </button>

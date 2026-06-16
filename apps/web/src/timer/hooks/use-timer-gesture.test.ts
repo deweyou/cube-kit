@@ -29,7 +29,7 @@ if (typeof Touch === 'undefined') {
 }
 
 describe('useTimerGesture — desktop keyboard', () => {
-  it('Enter keydown when not running marks ready, then keyup calls onStart', () => {
+  it('Enter keydown when not running does not mark ready or start', () => {
     const onStart = vi.fn();
     const { result } = renderHook(() =>
       useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }),
@@ -38,17 +38,58 @@ describe('useTimerGesture — desktop keyboard', () => {
     act(() => {
       document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter', bubbles: true }));
     });
+    expect(result.current.isReady).toBe(false);
+    expect(result.current.readyTrigger).toBeUndefined();
+    expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it('Escape cancels keyboard ready so Space keyup does not start', () => {
+    const onStart = vi.fn();
+    const { result } = renderHook(() =>
+      useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }),
+    );
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', bubbles: true }));
+    });
+    expect(result.current.isReady).toBe(true);
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', bubbles: true }));
+    });
+    expect(result.current.isReady).toBe(false);
+    expect(result.current.readyTrigger).toBeUndefined();
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', bubbles: true }));
+    });
+    expect(onStart).not.toHaveBeenCalled();
+  });
+
+  it('Enter keyup does not start a Space ready state', () => {
+    const onStart = vi.fn();
+    const { result } = renderHook(() =>
+      useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }),
+    );
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', bubbles: true }));
+    });
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keyup', { code: 'Enter', bubbles: true }));
+    });
+
     expect(result.current.isReady).toBe(true);
     expect(onStart).not.toHaveBeenCalled();
 
     act(() => {
-      document.dispatchEvent(new KeyboardEvent('keyup', { code: 'Enter', bubbles: true }));
+      document.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', bubbles: true }));
     });
     expect(result.current.isReady).toBe(false);
     expect(onStart).toHaveBeenCalledOnce();
   });
 
-  it('Enter keydown when running calls onStop', () => {
+  it('Enter keydown when running does not call onStop', () => {
     const onStop = vi.fn();
     renderHook(() => useTimerGesture(true, { onStart: vi.fn(), onStop, onCancel: vi.fn() }));
 
@@ -56,7 +97,7 @@ describe('useTimerGesture — desktop keyboard', () => {
       document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter', bubbles: true }));
     });
 
-    expect(onStop).toHaveBeenCalledOnce();
+    expect(onStop).not.toHaveBeenCalled();
   });
 
   it('Enter keydown inside form controls does not start timing', () => {
@@ -75,6 +116,52 @@ describe('useTimerGesture — desktop keyboard', () => {
     input.remove();
   });
 
+  it('Space keydown inside interactive controls does not start timing or prevent default', () => {
+    const onStart = vi.fn();
+    const button = document.createElement('button');
+    document.body.append(button);
+    button.focus();
+
+    renderHook(() => useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }));
+
+    const event = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      code: 'Space',
+    });
+    act(() => {
+      button.dispatchEvent(event);
+    });
+
+    expect(onStart).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    button.remove();
+  });
+
+  it('Space keydown inside an open listbox does not start timing or prevent default', () => {
+    const onStart = vi.fn();
+    const listbox = document.createElement('div');
+    listbox.setAttribute('role', 'listbox');
+    listbox.tabIndex = -1;
+    document.body.append(listbox);
+    listbox.focus();
+
+    renderHook(() => useTimerGesture(false, { onStart, onStop: vi.fn(), onCancel: vi.fn() }));
+
+    const event = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      code: 'Space',
+    });
+    act(() => {
+      listbox.dispatchEvent(event);
+    });
+
+    expect(onStart).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    listbox.remove();
+  });
+
   it('Space keydown when not running marks ready, then keyup calls onStart', () => {
     const onStart = vi.fn();
     const { result } = renderHook(() =>
@@ -84,6 +171,7 @@ describe('useTimerGesture — desktop keyboard', () => {
       document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', bubbles: true }));
     });
     expect(result.current.isReady).toBe(true);
+    expect(result.current.readyTrigger).toEqual({ keyLabel: 'Space', type: 'keyboard' });
     expect(onStart).not.toHaveBeenCalled();
 
     act(() => {
@@ -235,6 +323,7 @@ describe('useTimerGesture — H5 touch', () => {
       result.current.prepareStart();
     });
     expect(result.current.isReady).toBe(true);
+    expect(result.current.readyTrigger).toEqual({ type: 'touch' });
     expect(onStart).not.toHaveBeenCalled();
 
     act(() => {
