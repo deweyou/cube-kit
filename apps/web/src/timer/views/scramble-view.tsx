@@ -391,7 +391,7 @@ export const ScrambleView = ({
                   </Tooltip.Root>
                 )}
               </div>
-              <ScrambleImage svg={svg} />
+              <ScrambleImage eventId={eventId} svg={svg} />
             </div>
           </div>
         ) : (
@@ -428,7 +428,7 @@ export const ScrambleView = ({
                 </Tooltip.Root>
               </div>
             )}
-            {!isLoading && <ScrambleImage svg={svg} />}
+            {!isLoading && <ScrambleImage eventId={eventId} svg={svg} />}
           </>
         )}
       </div>

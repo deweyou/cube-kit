@@ -104,7 +104,7 @@ export const SolveDetail = ({
                 {item.error ? (
                   <p className={styles.imageError}>{messages.imageRenderFailed(item.error)}</p>
                 ) : (
-                  <ScrambleImage svg={item.svg} />
+                  <ScrambleImage eventId={solve.eventId} svg={item.svg} />
                 )}
                 <p className={styles.scrambleText}>{item.scramble}</p>
               </li>

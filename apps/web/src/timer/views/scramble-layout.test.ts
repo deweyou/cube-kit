@@ -32,34 +32,35 @@ describe('scramble layout CSS', () => {
   });
 
   it('places scramble content from the upper stage and leaves room to scroll', () => {
+    expect(scrambleViewCss).toContain('height: 100%;');
     expect(scrambleViewCss).toContain('min-height: 100%;');
-    expect(scrambleViewCss).toContain('overflow: visible;');
-    expect(scrambleViewCss).toContain('--action-stack-bottom: clamp(20px, 4vh, 52px);');
+    expect(scrambleViewCss).toContain('overflow: hidden;');
+    expect(scrambleViewCss).toContain('--action-stack-bottom: clamp(18px, 3.5vh, 40px);');
     expect(scrambleViewCss).toContain('--action-stack-gap: 10px;');
     expect(scrambleViewCss).toContain('--action-stack-height: 56px;');
+    expect(scrambleViewCss).toContain('--scramble-content-gap: clamp(20px, 3.2vh, 40px);');
+    expect(scrambleViewCss).toContain('grid-template-rows: minmax(0, 1fr) auto;');
     expect(scrambleViewCss).toContain(
-      '--action-stack-clearance: calc(\n    var(--action-stack-bottom) + var(--action-stack-height) + var(--action-stack-gap)\n  );',
+      'padding: clamp(28px, 7vh, 84px) clamp(48px, 7vw, 96px) var(--action-stack-bottom);',
     );
-    expect(scrambleViewCss).toContain('grid-template-rows: minmax(min-content, 1fr) auto;');
-    expect(scrambleViewCss).toContain('padding: clamp(32px, 8vh, 96px)');
-    expect(scrambleViewCss).toContain('clamp(18px, 3vh, 40px)');
-    expect(scrambleViewCss).toContain('padding: 16px;');
+    expect(scrambleViewCss).toContain('padding: clamp(8px, 2vh, 20px) 16px 0;');
+    expect(scrambleViewCss).toContain('overflow-y: auto;');
+    expect(scrambleViewCss).toContain('.startSurface::-webkit-scrollbar');
     expect(scrambleViewCss).toContain('position: relative;');
     expect(scrambleViewCss).toContain('.toolbarButton');
     expect(scrambleViewCss).toContain('min-height: 40px;');
     expect(scrambleViewCss).toContain('min-width: 40px;');
-    expect(scrambleViewCss).toContain('--action-stack-bottom: 18px;');
-    expect(scrambleViewCss).toContain('align-content: flex-start;');
+    expect(scrambleViewCss).toContain('--action-stack-bottom: 10px;');
     expect(scrambleViewCss).toContain('display: grid;');
     expect(scrambleViewCss).toContain('justify-items: center;');
     expect(scrambleViewCss).toContain('box-sizing: border-box;');
     expect(scrambleViewCss).toContain('align-self: stretch;');
     expect(scrambleViewCss).toContain(
-      'padding: clamp(24px, 7vh, 72px) 16px clamp(18px, 4vh, 40px);',
+      'padding: clamp(18px, 5vh, 48px) 16px calc(10px + env(safe-area-inset-bottom));',
     );
-    expect(scrambleViewCss).toContain('min-height: auto;');
     expect(scrambleViewCss).toContain('@media (max-height: 760px)');
-    expect(scrambleViewCss).toContain('padding-top: clamp(20px, 5vh, 48px);');
+    expect(scrambleViewCss).toContain('--scramble-content-gap: clamp(14px, 2.6vh, 24px);');
+    expect(scrambleViewCss).toContain('padding-top: clamp(16px, 4vh, 36px);');
     expect(scrambleViewCss).toContain('min-height: 0;');
     expect(scrambleViewCss).toContain('margin-top: 0;');
     expect(scrambleViewCss).toContain('position: static;');
@@ -109,7 +110,18 @@ describe('scramble layout CSS', () => {
     expect(scrambleViewCss).toContain('font-size: 1.18rem;');
     expect(scrambleViewCss).toContain('text-shadow: 0 1px 10px');
     expect(scrambleImageCss).toContain('height: auto;');
-    expect(scrambleImageCss).toContain('width: clamp(220px, 32vw, 420px);');
+    expect(scrambleImageCss).toContain('width: clamp(260px, 38vw, 520px);');
+    expect(scrambleImageCss).toContain('width: clamp(260px, 66vw, 420px);');
+    expect(scrambleImageCss).toContain('width: clamp(230px, 56vw, 360px);');
+    expect(scrambleImageCss).toContain(".root[data-event='sq1']");
+    expect(scrambleImageCss).toContain('width: clamp(150px, 18vw, 240px);');
+    expect(scrambleImageCss).toContain('width: clamp(150px, 40vw, 220px);');
+    expect(scrambleImageCss).toContain('width: clamp(140px, 35vw, 190px);');
+    expect(scrambleImageCss).toContain(".root[data-event='clock']");
+    expect(scrambleImageCss).toContain(".root[data-event='minx']");
+    expect(scrambleImageCss).toContain('width: clamp(300px, 42vw, 560px);');
+    expect(scrambleImageCss).toContain('width: clamp(280px, 76vw, 440px);');
+    expect(scrambleImageCss).toContain('width: clamp(260px, 70vw, 400px);');
     expect(scrambleImageCss).not.toContain('border: 1px solid');
     expect(scrambleImageCss).not.toContain('padding: clamp(10px');
     expect(scrambleViewCss).toContain(
