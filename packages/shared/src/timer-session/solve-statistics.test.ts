@@ -31,6 +31,20 @@ describe('solve statistics', () => {
     expect(stats.averageMs).toBeNull();
   });
 
+  it('accepts multi-blind solve records with scramble arrays', () => {
+    const stats = calculateSolveStatistics([
+      {
+        ...solve(3_000, 1),
+        eventId: '333mbld',
+        multiBlind: { attemptedCount: 3, solvedCount: 2 },
+        scramble: ['cube 1', 'cube 2', 'cube 3'],
+      },
+    ]);
+
+    expect(stats.validCount).toBe(1);
+    expect(stats.bestMs).toBe(3_000);
+  });
+
   it('trims best and worst for session averages once there are at least five solves', () => {
     const stats = calculateSolveStatistics([
       solve(5000, 5, 'dnf'),

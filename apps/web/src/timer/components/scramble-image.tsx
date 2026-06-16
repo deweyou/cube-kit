@@ -5,5 +5,5 @@ interface ScrambleImageProps {
 }
 
 export const ScrambleImage = ({ svg }: ScrambleImageProps) => (
-  <div className={styles.root} dangerouslySetInnerHTML={{ __html: svg }} />
+  <div className={styles.root} data-scramble-image dangerouslySetInnerHTML={{ __html: svg }} />
 );

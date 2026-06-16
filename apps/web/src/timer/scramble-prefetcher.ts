@@ -17,11 +17,16 @@ export const getTimerScrambleGenerateOptions = (eventId: WcaEventId): GenerateOp
   multiBlindCubeCount: getMultiBlindCubeCount(eventId),
 });
 
+const getPrefetchKey = (eventId: WcaEventId, options: GenerateOptions = {}) => {
+  if (eventId !== '333mbld') return eventId;
+  return `${eventId}:${options.multiBlindCubeCount ?? DEFAULT_MULTI_BLIND_CUBE_COUNT}`;
+};
+
 export interface TimerScramblePrefetcher {
-  consume(eventId: WcaEventId): Promise<ScrambleResult>;
+  consume(eventId: WcaEventId, options?: GenerateOptions): Promise<ScrambleResult>;
   dispose(): void;
-  hasReady(eventId: WcaEventId): boolean;
-  prefetch(eventId: WcaEventId): Promise<void>;
+  hasReady(eventId: WcaEventId, options?: GenerateOptions): boolean;
+  prefetch(eventId: WcaEventId, options?: GenerateOptions): Promise<void>;
   prefetchWarmEvents(activeEventId: WcaEventId): Promise<void>;
 }
 
@@ -32,15 +37,15 @@ export const createTimerScramblePrefetcher = (
     shouldKeepWarmResult?: (eventId: WcaEventId) => boolean;
   } = {},
 ): TimerScramblePrefetcher => {
-  const queues = new Map<WcaEventId, ScrambleResult[]>();
-  const inFlight = new Map<WcaEventId, Promise<void>>();
+  const queues = new Map<string, ScrambleResult[]>();
+  const inFlight = new Map<string, Promise<void>>();
 
-  const getQueue = (eventId: WcaEventId) => {
-    const existing = queues.get(eventId);
+  const getQueue = (key: string) => {
+    const existing = queues.get(key);
     if (existing) return existing;
 
     const queue: ScrambleResult[] = [];
-    queues.set(eventId, queue);
+    queues.set(key, queue);
     return queue;
   };
 
@@ -48,14 +53,16 @@ export const createTimerScramblePrefetcher = (
     eventId: WcaEventId,
     prefetchGenerator: TimerScrambleGenerator,
     reason: 'active' | 'warm',
+    generateOptions = getTimerScrambleGenerateOptions(eventId),
   ) => {
-    const queue = getQueue(eventId);
+    const key = getPrefetchKey(eventId, generateOptions);
+    const queue = getQueue(key);
     if (queue.length >= PREFETCH_QUEUE_LIMIT) {
       logScramblePerformance('prefetch:skip-ready', { eventId, queueLength: queue.length, reason });
       return Promise.resolve();
     }
 
-    const pending = inFlight.get(eventId);
+    const pending = inFlight.get(key);
     if (pending) {
       logScramblePerformance('prefetch:join-inflight', { eventId, reason });
       return pending;
@@ -64,9 +71,9 @@ export const createTimerScramblePrefetcher = (
     const startMs = getScramblePerformanceNow();
     logScramblePerformance('prefetch:start', { eventId, reason });
     const request = prefetchGenerator
-      .generate(eventId, getTimerScrambleGenerateOptions(eventId))
+      .generate(eventId, generateOptions)
       .then((result) => {
-        const latestQueue = getQueue(eventId);
+        const latestQueue = getQueue(key);
         if (reason === 'warm' && options.shouldKeepWarmResult?.(eventId) === false) {
           logScramblePerformance('prefetch:drop-active-warm', {
             eventId,
@@ -102,24 +109,29 @@ export const createTimerScramblePrefetcher = (
         // Background prefetch should never surface as a user-visible error.
       })
       .finally(() => {
-        inFlight.delete(eventId);
+        inFlight.delete(key);
       });
 
-    inFlight.set(eventId, request);
+    inFlight.set(key, request);
     return request;
   };
 
-  const prefetch = (eventId: WcaEventId) => prefetchWithGenerator(eventId, generator, 'active');
+  const prefetch = (eventId: WcaEventId, options = getTimerScrambleGenerateOptions(eventId)) =>
+    prefetchWithGenerator(eventId, generator, 'active', options);
 
-  const consume = async (eventId: WcaEventId) => {
-    const queue = getQueue(eventId);
+  const consume = async (
+    eventId: WcaEventId,
+    options = getTimerScrambleGenerateOptions(eventId),
+  ) => {
+    const key = getPrefetchKey(eventId, options);
+    const queue = getQueue(key);
     const ready = queue.shift();
     if (ready) {
       logScramblePerformance('consume:ready-hit', { eventId, queueLength: queue.length });
       return ready;
     }
 
-    const pending = inFlight.get(eventId);
+    const pending = inFlight.get(key);
     if (pending) {
       const waitStartMs = getScramblePerformanceNow();
       logScramblePerformance('consume:wait-inflight', { eventId });
@@ -136,7 +148,7 @@ export const createTimerScramblePrefetcher = (
 
     const directStartMs = getScramblePerformanceNow();
     logScramblePerformance('consume:direct-start', { eventId });
-    const generated = await generator.generate(eventId, getTimerScrambleGenerateOptions(eventId));
+    const generated = await generator.generate(eventId, options);
     logScramblePerformance('consume:direct-success', {
       eventId,
       totalMs: getScrambleElapsedMs(directStartMs),
@@ -166,7 +178,8 @@ export const createTimerScramblePrefetcher = (
   return {
     consume,
     dispose: () => {},
-    hasReady: (eventId) => getQueue(eventId).length > 0,
+    hasReady: (eventId, options = getTimerScrambleGenerateOptions(eventId)) =>
+      getQueue(getPrefetchKey(eventId, options)).length > 0,
     prefetch,
     prefetchWarmEvents,
   };

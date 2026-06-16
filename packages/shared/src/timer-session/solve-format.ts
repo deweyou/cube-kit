@@ -1,4 +1,10 @@
-import type { SolvePenalty } from './types';
+import type { SolvePenalty, SolveRecord } from './types';
+
+export const getSolveScrambles = (solve: Pick<SolveRecord, 'scramble'>): string[] =>
+  Array.isArray(solve.scramble) ? solve.scramble : [solve.scramble];
+
+export const getPrimarySolveScramble = (solve: Pick<SolveRecord, 'scramble'>): string =>
+  getSolveScrambles(solve)[0] ?? '';
 
 export const getDisplayedElapsedMs = (elapsedMs: number, penalty: SolvePenalty): number | null => {
   if (penalty === 'dnf') return null;
@@ -10,7 +16,9 @@ export const formatMilliseconds = (ms: number): string => (ms / 1000).toFixed(3)
 
 export const getSolveDisplayText = (elapsedMs: number, penalty: SolvePenalty): string => {
   const displayedMs = getDisplayedElapsedMs(elapsedMs, penalty);
-  return displayedMs === null ? 'DNF' : formatMilliseconds(displayedMs);
+  if (displayedMs === null) return 'DNF';
+  const text = formatMilliseconds(displayedMs);
+  return penalty === '+2' ? `${text}+` : text;
 };
 
 export const getReverseSequenceNumber = (total: number, descendingIndex: number): number =>

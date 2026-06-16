@@ -34,9 +34,45 @@ export const ChevronDownIcon = ({ size = 14 }: TimerIconProps) => (
   </svg>
 );
 
+export const ChevronLeftIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="m15 6-6 6 6 6"
+      stroke="currentColor"
+      strokeLinecap="square"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
+export const ChevronRightIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="m9 6 6 6-6 6"
+      stroke="currentColor"
+      strokeLinecap="square"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
 export const CancelIcon = ({ size = 18 }: TimerIconProps) => (
   <svg {...iconProps(size)}>
     <path d="m7 7 10 10M17 7 7 17" stroke="currentColor" strokeLinecap="square" strokeWidth="2" />
+  </svg>
+);
+
+export const CheckIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="m5 12 4 4 10-10"
+      stroke="currentColor"
+      strokeLinecap="square"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
   </svg>
 );
 

@@ -1,6 +1,4 @@
 import { useState, useCallback, useEffect, useMemo, useRef, type UIEvent } from 'react';
-import { Button } from '@deweyou-design/react/button';
-import { Tooltip } from '@deweyou-design/react/tooltip';
 import type { WcaEventId } from '@cubegin/shared/wca';
 import type {
   SolvePenalty,
@@ -10,10 +8,9 @@ import type {
 import { useTimer } from './hooks/use-timer';
 import { useTimerGesture } from './hooks/use-timer-gesture';
 import { useTimerSessions } from './hooks/use-timer-sessions';
-import { EventSelector } from './components/event-selector';
 import { SolveDetail } from './components/solve-detail';
+import { TimerHeader } from './components/timer-header';
 import { TimerSidebar } from './components/timer-sidebar';
-import { LanguageIcon, SunIcon, ThemeMoonIcon } from './components/timer-icons';
 import { TIMER_MESSAGES, type TimerLocale } from './timer-i18n';
 import { createMemoryTimerSessionRepository } from './storage/memory-timer-session-repository';
 import { createIndexedDbTimerSessionRepository } from './storage/timer-session-db';
@@ -37,9 +34,14 @@ type ThemeMode = 'light' | 'dark';
 
 const THEME_STORAGE_KEY = 'cubegin-theme';
 const LANGUAGE_STORAGE_KEY = 'cubegin-language';
+const MULTI_BLIND_CUBE_COUNT_STORAGE_KEY = 'cubegin-multi-blind-cube-count';
 const SIDEBAR_MOBILE_QUERY = '(max-width: 860px)';
 const SCRAMBLE_LOADING_PREVIEW_PARAM = 'scrambleLoading';
 const TOUCH_READY_OVERLAY_PREVIEW_PARAM = 'touchReadyOverlay';
+const DEFAULT_MULTI_BLIND_CUBE_COUNT = 3;
+const MIN_MULTI_BLIND_CUBE_COUNT = 2;
+const MAX_MULTI_BLIND_CUBE_COUNT = 99;
+const MULTI_BLIND_DNF_LIMIT_MS = 60 * 60 * 1000;
 
 const waitForLoadingPaint = () =>
   new Promise<void>((resolve) => {
@@ -64,6 +66,24 @@ const getTouchReadyOverlayPreview = (): 'cancel' | 'start' | undefined => {
   if (value !== null) return 'start';
   return undefined;
 };
+
+const sanitizeMultiBlindCubeCount = (count: number) =>
+  Math.min(MAX_MULTI_BLIND_CUBE_COUNT, Math.max(MIN_MULTI_BLIND_CUBE_COUNT, count));
+
+const readStoredMultiBlindCubeCount = () => {
+  const storedValue = localStorage.getItem(MULTI_BLIND_CUBE_COUNT_STORAGE_KEY);
+  if (storedValue === null) return DEFAULT_MULTI_BLIND_CUBE_COUNT;
+
+  const storedCount = Number(storedValue);
+  if (!Number.isSafeInteger(storedCount)) return DEFAULT_MULTI_BLIND_CUBE_COUNT;
+  return sanitizeMultiBlindCubeCount(storedCount);
+};
+
+const getMultiBlindScrambleLines = (value: string) =>
+  value
+    .split(/\n/u)
+    .map((line) => line.trim())
+    .filter(Boolean);
 
 interface TimerPageProps {
   enableScramblePrefetch?: boolean;
@@ -133,6 +153,9 @@ const TimerPageContent = ({
   const [selectedSolveId, setSelectedSolveId] = useState<string>();
   const [runtimeStorageError, setRuntimeStorageError] = useState<string>();
   const [displayEventId, setDisplayEventId] = useState<WcaEventId>('333');
+  const [multiBlindCubeCount, setMultiBlindCubeCount] = useState(readStoredMultiBlindCubeCount);
+  const multiBlindCubeCountRef = useRef(multiBlindCubeCount);
+  multiBlindCubeCountRef.current = multiBlindCubeCount;
   const activeEventIdRef = useRef<WcaEventId>(displayEventId);
   activeEventIdRef.current = displayEventId;
   const generator = useMemo(() => createTimerScrambleGenerator(), []);
@@ -157,6 +180,7 @@ const TimerPageContent = ({
     return 'zh-CN';
   });
   const [isStageScrolled, setIsStageScrolled] = useState(false);
+  const stageRef = useRef<HTMLElement | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
     () => window.matchMedia?.(SIDEBAR_MOBILE_QUERY).matches ?? false,
   );
@@ -164,6 +188,14 @@ const TimerPageContent = ({
   const touchReadyOverlayPreview = getTouchReadyOverlayPreview();
 
   const { elapsed, start, stop, reset } = useTimer();
+
+  const getDisplayGenerateOptions = useCallback(
+    (eventId: WcaEventId) =>
+      eventId === '333mbld'
+        ? { multiBlindCubeCount: multiBlindCubeCountRef.current }
+        : getTimerScrambleGenerateOptions(eventId),
+    [],
+  );
 
   useEffect(() => {
     return () => {
@@ -199,12 +231,21 @@ const TimerPageContent = ({
     localStorage.setItem(LANGUAGE_STORAGE_KEY, locale);
   }, [locale]);
 
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    setIsStageScrolled(stage.scrollTop > 0);
+  }, []);
+
   const loadScramble = useCallback(
     async (nextEventId: WcaEventId) => {
       const requestId = latestScrambleRequestId.current + 1;
       const loadStartMs = getScramblePerformanceNow();
       latestScrambleRequestId.current = requestId;
-      const hasReadyScramble = enableScramblePrefetch && scramblePrefetcher.hasReady(nextEventId);
+      const generateOptions = getDisplayGenerateOptions(nextEventId);
+      const hasReadyScramble =
+        enableScramblePrefetch && scramblePrefetcher.hasReady(nextEventId, generateOptions);
       logScramblePerformance('load:start', {
         eventId: nextEventId,
         hasReadyScramble,
@@ -227,8 +268,8 @@ const TimerPageContent = ({
 
       try {
         const result = enableScramblePrefetch
-          ? await scramblePrefetcher.consume(nextEventId)
-          : await generator.generate(nextEventId, getTimerScrambleGenerateOptions(nextEventId));
+          ? await scramblePrefetcher.consume(nextEventId, generateOptions)
+          : await generator.generate(nextEventId, generateOptions);
 
         if (latestScrambleRequestId.current !== requestId) {
           logScramblePerformance('load:stale-after-generate', {
@@ -247,7 +288,7 @@ const TimerPageContent = ({
         });
         if (enableScramblePrefetch) {
           scramblePrefetcher
-            .prefetch(nextEventId)
+            .prefetch(nextEventId, generateOptions)
             .catch((cause) => logBackgroundError('prefetch:active-unhandled-error', cause));
           if (!hasStartedInitialWarmPrefetch.current) {
             hasStartedInitialWarmPrefetch.current = true;
@@ -279,7 +320,7 @@ const TimerPageContent = ({
         }
       }
     },
-    [enableScramblePrefetch, generator, scramblePrefetcher],
+    [enableScramblePrefetch, generator, getDisplayGenerateOptions, scramblePrefetcher],
   );
 
   useEffect(() => {
@@ -319,14 +360,30 @@ const TimerPageContent = ({
   }, [reset]);
 
   const finishResult = useCallback(
-    async (penalty?: SolvePenalty) => {
+    async (penalty?: SolvePenalty, multiBlindSolvedCount?: number) => {
       if (penalty) {
+        const isMultiBlindResult = sessionState.eventId === '333mbld';
+        const multiBlindScrambles = isMultiBlindResult ? getMultiBlindScrambleLines(scramble) : [];
+        const attemptedCount = multiBlindScrambles.length;
+        const solvedCount =
+          typeof multiBlindSolvedCount === 'number'
+            ? Math.min(Math.max(multiBlindSolvedCount, 0), attemptedCount)
+            : attemptedCount;
+        const resolvedPenalty =
+          isMultiBlindResult && finalElapsed > MULTI_BLIND_DNF_LIMIT_MS ? 'dnf' : penalty;
+
         try {
           await sessionState.saveSolve({
             eventId: sessionState.eventId,
-            scramble,
+            scramble: isMultiBlindResult ? multiBlindScrambles : scramble,
             elapsedMs: finalElapsed,
-            penalty,
+            multiBlind: isMultiBlindResult
+              ? {
+                  attemptedCount,
+                  solvedCount,
+                }
+              : undefined,
+            penalty: resolvedPenalty,
           });
           setRuntimeStorageError(undefined);
         } catch (cause) {
@@ -345,6 +402,48 @@ const TimerPageContent = ({
   const handleRefresh = useCallback(() => {
     void loadScramble(displayEventId);
   }, [displayEventId, loadScramble]);
+
+  const handleMultiBlindCubeCountChange = useCallback(
+    (nextCount: number) => {
+      const committedCount = sanitizeMultiBlindCubeCount(nextCount);
+      setMultiBlindCubeCount(committedCount);
+      multiBlindCubeCountRef.current = committedCount;
+      localStorage.setItem(MULTI_BLIND_CUBE_COUNT_STORAGE_KEY, String(committedCount));
+
+      if (displayEventId !== '333mbld') return;
+
+      const currentScrambleLines = getMultiBlindScrambleLines(scramble);
+      if (currentScrambleLines.length === 0 || currentScrambleLines.length === committedCount) {
+        return;
+      }
+
+      if (currentScrambleLines.length > committedCount) {
+        setScramble(currentScrambleLines.slice(0, committedCount).join('\n'));
+        setScrambleError(undefined);
+        return;
+      }
+
+      const requestId = latestScrambleRequestId.current + 1;
+      latestScrambleRequestId.current = requestId;
+      setScrambleError(undefined);
+      void generator
+        .generate('333mbld', {
+          multiBlindCubeCount: committedCount - currentScrambleLines.length,
+        })
+        .then((result) => {
+          if (latestScrambleRequestId.current !== requestId) return;
+          const appendedLines = getMultiBlindScrambleLines(result.scramble);
+          setScramble(
+            [...currentScrambleLines, ...appendedLines].slice(0, committedCount).join('\n'),
+          );
+        })
+        .catch((cause) => {
+          if (latestScrambleRequestId.current !== requestId) return;
+          setScrambleError(cause instanceof Error ? cause.message : String(cause));
+        });
+    },
+    [displayEventId, generator, scramble],
+  );
 
   const handleStageScroll = useCallback((event: UIEvent<HTMLElement>) => {
     setIsStageScrolled(event.currentTarget.scrollTop > 0);
@@ -430,15 +529,13 @@ const TimerPageContent = ({
     [sessionState],
   );
 
-  const { cancelReady, isInCancelZone, isReady, prepareStart, startReady } = useTimerGesture(
-    pageState === 'timing',
-    {
+  const { cancelReady, isInCancelZone, isReady, prepareStart, readyTrigger, startReady } =
+    useTimerGesture(pageState === 'timing', {
       isStartEnabled: pageState === 'scramble',
       onStart: handleStart,
       onStop: handleStop,
       onCancel: handleCancel,
-    },
-  );
+    });
 
   const selectedSolve = sessionState.solves.find((solve) => solve.id === selectedSolveId);
   const sidebarError = storageError ?? runtimeStorageError ?? sessionState.error;
@@ -472,53 +569,28 @@ const TimerPageContent = ({
         messages={messages}
         toggleSidebarLabel={toggleSidebarLabel}
       />
-      <div className={styles.pageActions}>
-        {isSidebarCollapsed && (
-          <div className={styles.collapsedEventSelectorSlot}>
-            <EventSelector
-              className={styles.collapsedEventSelector}
-              isIconOnly
-              label={messages.eventSelectorLabel}
-              locale={locale}
-              value={displayEventId}
-              onChange={(id) => void handleEventChange(id)}
-            />
-          </div>
-        )}
-        <Tooltip.Root placement="bottom">
-          <Tooltip.Trigger>
-            <Button.Icon
-              className={styles.pageActionButton}
-              variant="ghost"
-              color="neutral"
-              size="sm"
-              icon={<LanguageIcon />}
-              onClick={() =>
-                setLocale((currentLocale) => (currentLocale === 'zh-CN' ? 'en-US' : 'zh-CN'))
-              }
-              aria-label={messages.toggleLanguage}
-            />
-          </Tooltip.Trigger>
-          <Tooltip.Content>{messages.toggleLanguage}</Tooltip.Content>
-        </Tooltip.Root>
-        <Tooltip.Root placement="bottom">
-          <Tooltip.Trigger>
-            <Button.Icon
-              className={styles.pageActionButton}
-              variant="ghost"
-              color="neutral"
-              size="sm"
-              icon={themeMode === 'dark' ? <SunIcon /> : <ThemeMoonIcon />}
-              onClick={() =>
-                setThemeMode((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
-              }
-              aria-label={toggleThemeLabel}
-            />
-          </Tooltip.Trigger>
-          <Tooltip.Content>{toggleThemeLabel}</Tooltip.Content>
-        </Tooltip.Root>
-      </div>
-      <main className={styles.stage} aria-label={messages.timerPage} onScroll={handleStageScroll}>
+      <TimerHeader
+        eventId={displayEventId}
+        isScrolled={isStageScrolled}
+        isSidebarCollapsed={isSidebarCollapsed}
+        locale={locale}
+        messages={messages}
+        themeMode={themeMode}
+        toggleThemeLabel={toggleThemeLabel}
+        onEventChange={(id) => void handleEventChange(id)}
+        onLocaleToggle={() =>
+          setLocale((currentLocale) => (currentLocale === 'zh-CN' ? 'en-US' : 'zh-CN'))
+        }
+        onThemeToggle={() =>
+          setThemeMode((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
+        }
+      />
+      <main
+        ref={stageRef}
+        className={styles.stage}
+        aria-label={messages.timerPage}
+        onScroll={handleStageScroll}
+      >
         {pageState === 'scramble' && (
           <ScrambleView
             eventId={displayEventId}
@@ -526,11 +598,14 @@ const TimerPageContent = ({
             error={isScrambleLoadingPreview ? undefined : scrambleError}
             isLoading={isScrambleLoadingPreview || isScrambleLoading || isEventTransitionPending}
             isReady={isReady}
+            multiBlindCubeCount={multiBlindCubeCount}
             touchReadyOverlayPreview={touchReadyOverlayPreview}
             messages={messages}
             onCancelReady={cancelReady}
+            onMultiBlindCubeCountChange={handleMultiBlindCubeCountChange}
             onPrepareStart={prepareStart}
             onRefresh={handleRefresh}
+            readyTrigger={readyTrigger}
             onStartReady={startReady}
           />
         )}
@@ -538,10 +613,18 @@ const TimerPageContent = ({
         {pageState === 'result' && (
           <ResultView
             elapsed={finalElapsed}
+            isAutoDnf={
+              sessionState.eventId === '333mbld' && finalElapsed > MULTI_BLIND_DNF_LIMIT_MS
+            }
             messages={messages}
-            onContinue={() => void finishResult('none')}
+            multiBlindAttemptedCount={
+              sessionState.eventId === '333mbld'
+                ? getMultiBlindScrambleLines(scramble).length
+                : undefined
+            }
+            onContinue={(multiBlindSolvedCount) => void finishResult('none', multiBlindSolvedCount)}
             onPlusTwo={() => void finishResult('+2')}
-            onDnf={() => void finishResult('dnf')}
+            onDnf={(multiBlindSolvedCount) => void finishResult('dnf', multiBlindSolvedCount)}
             onDelete={() => void finishResult()}
           />
         )}

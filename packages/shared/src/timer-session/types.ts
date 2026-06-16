@@ -2,13 +2,19 @@ import type { WcaEventId } from '../wca';
 
 export type SolvePenalty = 'none' | '+2' | 'dnf';
 
+export interface MultiBlindSolveResult {
+  attemptedCount: number;
+  solvedCount: number;
+}
+
 export interface SolveRecord {
   id: string;
   sessionId: string;
   eventId: WcaEventId;
-  scramble: string;
+  scramble: string | string[];
   elapsedMs: number;
   penalty: SolvePenalty;
+  multiBlind?: MultiBlindSolveResult;
   createdAt: number;
 }
 

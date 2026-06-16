@@ -12,25 +12,26 @@ describe('scramble layout CSS', () => {
     expect(timerPageCss).toContain('display: none;');
     expect(timerPageCss).toContain('height: calc(100% - 72px);');
     expect(timerPageCss).toContain('margin-top: 72px;');
-    expect(timerPageCss).toContain('.root::before');
-    expect(timerPageCss).toContain('height: 72px;');
-    expect(timerPageCss).toContain('background: var(--ui-color-canvas);');
-    expect(timerPageCss).toContain('circle at 68% 18%');
-    expect(timerPageCss).toContain('.root::after');
-    expect(timerPageCss).toContain('top: 72px;');
-    expect(timerPageCss).toContain('linear-gradient');
-    expect(timerPageCss).toContain('opacity: 0;');
-    expect(timerPageCss).toContain(".root[data-stage-scrolled='true']::after");
-    expect(timerPageCss).toContain(".root[data-stage-scrolled='true']::before");
-    expect(timerPageCss).toContain('opacity: 1;');
+    expect(timerHeaderCss).toContain('height: 72px;');
+    expect(timerHeaderCss).toContain('top: 0;');
+    expect(timerHeaderCss).toContain('background: transparent;');
+    expect(timerHeaderCss).toContain('border-bottom: 1px solid transparent;');
+    expect(timerHeaderCss).toContain(".root[data-scrolled='true']");
+    expect(timerHeaderCss).toContain('border-bottom-color: color-mix');
+    expect(timerHeaderCss).toContain('z-index: 18;');
+    expect(timerSidebarCss).toContain('z-index: 20;');
+    expect(timerHeaderCss).not.toContain('backdrop-filter');
+    expect(timerHeaderCss).not.toContain('.root::before');
+    expect(timerPageCss).not.toContain('.root::after');
+    expect(timerPageCss).not.toContain(".root[data-stage-scrolled='true']::before");
+    expect(timerPageCss).not.toContain('linear-gradient');
     expect(timerPageCss).toContain(".root[data-sidebar='expanded'] .stage");
+    expect(timerPageCss).toContain(".root[data-sidebar='expanded']::before");
     expect(timerPageCss).toContain('pointer-events: none;');
     expect(timerPageCss).toContain('visibility: hidden;');
   });
 
   it('places scramble content from the upper stage and leaves room to scroll', () => {
-    expect(scrambleViewCss).toContain('justify-content: center;');
-    expect(scrambleViewCss).toContain('justify-content: safe center;');
     expect(scrambleViewCss).toContain('min-height: 100%;');
     expect(scrambleViewCss).toContain('overflow: visible;');
     expect(scrambleViewCss).toContain('--action-stack-bottom: clamp(20px, 4vh, 52px);');
@@ -39,26 +40,36 @@ describe('scramble layout CSS', () => {
     expect(scrambleViewCss).toContain(
       '--action-stack-clearance: calc(\n    var(--action-stack-bottom) + var(--action-stack-height) + var(--action-stack-gap)\n  );',
     );
-    expect(scrambleViewCss).toContain('padding: clamp(72px, 12vh, 144px)');
-    expect(scrambleViewCss).toContain('justify-content: center;');
-    expect(scrambleViewCss).toContain('clamp(180px, 20vh, 240px)');
-    expect(scrambleViewCss).toContain('padding: 16px 16px clamp(96px, 11vh, 140px);');
+    expect(scrambleViewCss).toContain('grid-template-rows: minmax(min-content, 1fr) auto;');
+    expect(scrambleViewCss).toContain('padding: clamp(32px, 8vh, 96px)');
+    expect(scrambleViewCss).toContain('clamp(18px, 3vh, 40px)');
+    expect(scrambleViewCss).toContain('padding: 16px;');
+    expect(scrambleViewCss).toContain('position: relative;');
+    expect(scrambleViewCss).toContain('.toolbarButton');
+    expect(scrambleViewCss).toContain('min-height: 40px;');
+    expect(scrambleViewCss).toContain('min-width: 40px;');
     expect(scrambleViewCss).toContain('--action-stack-bottom: 18px;');
-    expect(scrambleViewCss).toContain('align-content: safe center;');
+    expect(scrambleViewCss).toContain('align-content: flex-start;');
     expect(scrambleViewCss).toContain('display: grid;');
     expect(scrambleViewCss).toContain('justify-items: center;');
-    expect(scrambleViewCss).toContain('padding: 0 16px;');
-    expect(scrambleViewCss).toContain('align-self: safe center;');
-    expect(scrambleViewCss).toContain('padding: 0 0 var(--action-stack-clearance);');
-    expect(scrambleViewCss).toContain('min-height: clamp(500px, 58vh, 660px);');
+    expect(scrambleViewCss).toContain('box-sizing: border-box;');
+    expect(scrambleViewCss).toContain('align-self: stretch;');
+    expect(scrambleViewCss).toContain(
+      'padding: clamp(24px, 7vh, 72px) 16px clamp(18px, 4vh, 40px);',
+    );
     expect(scrambleViewCss).toContain('min-height: auto;');
+    expect(scrambleViewCss).toContain('@media (max-height: 760px)');
+    expect(scrambleViewCss).toContain('padding-top: clamp(20px, 5vh, 48px);');
+    expect(scrambleViewCss).toContain('min-height: 0;');
+    expect(scrambleViewCss).toContain('margin-top: 0;');
+    expect(scrambleViewCss).toContain('position: static;');
     expect(scrambleViewCss).toContain('position: fixed;');
-    expect(scrambleViewCss).toContain('inline-size: clamp(196px, 56vw, 260px);');
+    expect(scrambleViewCss).toContain('inline-size: clamp(180px, 48vw, 260px);');
     expect(scrambleViewCss).toContain('min-width: 0;');
     expect(scrambleViewCss).toContain('left: calc(312px + (100vw - 312px) / 2);');
     expect(scrambleViewCss).toContain('z-index: 17;');
     expect(timerPageCss).toContain(
-      ".root[data-sidebar='collapsed'] :global([class*='actionStack'])",
+      ".root[data-sidebar='collapsed'] :global([class*='actionStack'][data-ready='true'])",
     );
     expect(scrambleViewCss).toContain('bottom: var(--action-stack-bottom);');
     expect(scrambleViewCss).toContain('background: color-mix');
@@ -97,6 +108,10 @@ describe('scramble layout CSS', () => {
     expect(scrambleViewCss).toContain('.touchReleaseHint');
     expect(scrambleViewCss).toContain('font-size: 1.18rem;');
     expect(scrambleViewCss).toContain('text-shadow: 0 1px 10px');
+    expect(scrambleImageCss).toContain('height: auto;');
+    expect(scrambleImageCss).toContain('width: clamp(220px, 32vw, 420px);');
+    expect(scrambleImageCss).not.toContain('border: 1px solid');
+    expect(scrambleImageCss).not.toContain('padding: clamp(10px');
     expect(scrambleViewCss).toContain(
       'bottom: calc(var(--action-stack-bottom) + var(--action-stack-height) + 24px);',
     );
@@ -117,8 +132,18 @@ const timerPageCss = readFileSync(
   'utf8',
 );
 
+const timerHeaderCss = readFileSync(
+  resolve(process.cwd(), 'src/timer/components/timer-header.module.css'),
+  'utf8',
+);
+
 const scrambleViewCss = readFileSync(
   resolve(process.cwd(), 'src/timer/views/scramble-view.module.css'),
+  'utf8',
+);
+
+const scrambleImageCss = readFileSync(
+  resolve(process.cwd(), 'src/timer/components/scramble-image.module.css'),
   'utf8',
 );
 

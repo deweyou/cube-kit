@@ -56,9 +56,25 @@ describe('createTimerScramblePrefetcher', () => {
       .mockResolvedValue(result('333mbld', 'multi'));
     const prefetcher = createTimerScramblePrefetcher({ generate });
 
-    await prefetcher.consume('333mbld');
+    await prefetcher.consume('333mbld', { multiBlindCubeCount: 7 });
 
-    expect(generate).toHaveBeenCalledWith('333mbld', { multiBlindCubeCount: 3 });
+    expect(generate).toHaveBeenCalledWith('333mbld', { multiBlindCubeCount: 7 });
+  });
+
+  it('does not reuse a ready multi-blind scramble generated for a different cube count', async () => {
+    const generate = vi
+      .fn<TimerScrambleGenerator['generate']>()
+      .mockResolvedValueOnce(result('333mbld', 'three-cubes'))
+      .mockResolvedValueOnce(result('333mbld', 'five-cubes'));
+    const prefetcher = createTimerScramblePrefetcher({ generate });
+
+    await prefetcher.prefetch('333mbld', { multiBlindCubeCount: 3 });
+
+    expect(prefetcher.hasReady('333mbld', { multiBlindCubeCount: 3 })).toBe(true);
+    expect(prefetcher.hasReady('333mbld', { multiBlindCubeCount: 5 })).toBe(false);
+    await expect(prefetcher.consume('333mbld', { multiBlindCubeCount: 5 })).resolves.toEqual(
+      result('333mbld', 'five-cubes'),
+    );
   });
 
   it('prefetches warm event switches with the background generator', async () => {

@@ -5,7 +5,10 @@ import styles from './result-actions.module.css';
 interface ResultActionsProps {
   continueLabel: string;
   deleteLabel: string;
+  isContinueDisabled?: boolean;
+  isDnfDisabled?: boolean;
   resultSelectionLabel: string;
+  showPlusTwo?: boolean;
   onContinue: () => void;
   onPlusTwo: () => void;
   onDnf: () => void;
@@ -15,7 +18,10 @@ interface ResultActionsProps {
 export const ResultActions = ({
   continueLabel,
   deleteLabel,
+  isContinueDisabled = false,
+  isDnfDisabled = false,
   resultSelectionLabel,
+  showPlusTwo = true,
   onContinue,
   onPlusTwo,
   onDnf,
@@ -73,11 +79,28 @@ export const ResultActions = ({
         color="neutral"
         size="sm"
         aria-label={continueLabel}
+        disabled={isContinueDisabled}
         {...bindAction(onContinue)}
       >
         {continueLabel}
       </Button>
       <div className={styles.penalties} aria-label={resultSelectionLabel}>
+        {showPlusTwo && (
+          <>
+            <span className={styles.separator} aria-hidden>
+              ·
+            </span>
+            <Button
+              className={styles.penaltyButton}
+              variant="link"
+              color="neutral"
+              size="sm"
+              {...bindAction(onPlusTwo)}
+            >
+              +2
+            </Button>
+          </>
+        )}
         <span className={styles.separator} aria-hidden>
           ·
         </span>
@@ -86,18 +109,7 @@ export const ResultActions = ({
           variant="link"
           color="neutral"
           size="sm"
-          {...bindAction(onPlusTwo)}
-        >
-          +2
-        </Button>
-        <span className={styles.separator} aria-hidden>
-          ·
-        </span>
-        <Button
-          className={styles.penaltyButton}
-          variant="link"
-          color="neutral"
-          size="sm"
+          disabled={isDnfDisabled}
           {...bindAction(onDnf)}
         >
           DNF
