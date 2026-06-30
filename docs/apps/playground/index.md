@@ -22,7 +22,7 @@ solver packages without wiring them into production apps.
   integration.
 - The Solvers tab has Assist and Full modes. Assist keeps method/target
   diagnostics; Full calls `solvePuzzleFull` for 3x3, 4x4, 2x2, Pyraminx,
-  Skewb, Square-1, and Clock restore checks.
+  Skewb, Square-1, Clock, and FTO restore checks.
 - In the Solvers tab, changing the solver event resets event-specific method and
   target defaults and auto-generates a scramble for the selected event.
 - The 3x3 solver method list includes the cstimer-style staged helpers,
@@ -33,7 +33,7 @@ solver packages without wiring them into production apps.
   net renderer; `3D` requests the optional isometric `scramble-image` renderer
   and naturally falls back for unsupported event families.
 - The Icons tab previews `@cubegin/icons` brand SVG assets, animated React
-  components, and WCA event SVG assets with shared size and background controls.
+  components, and event SVG assets with shared size and background controls.
 
 ## Verify
 
@@ -53,4 +53,4 @@ pnpm --filter playground build
 
 ---
 
-_Last updated: 2026-06-09 | Reason: document full solver playground mode_
+_Last updated: 2026-06-30 | Reason: document FTO full solver and event icon scope_

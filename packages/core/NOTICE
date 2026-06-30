@@ -7,5 +7,6 @@ This package re-exports Cubegin TNoodle-compatible scramble packages:
 - @cubegin/scramble-puzzle
 
 Those packages port behavior from thewca/tnoodle-lib lib-scrambles v0.19.2,
-which is distributed under GPL-v3.0. Cubegin is not an official WCA scramble
+which is distributed under GPL-v3.0. FTO puzzle-state behavior also references
+GPL-v3.0 source from cs0x7f/cstimer. Cubegin is not an official WCA scramble
 program.

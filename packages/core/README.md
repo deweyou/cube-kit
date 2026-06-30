@@ -5,7 +5,7 @@
 [English](./README.md) | [简体中文](./README_ZH.md)
 
 Cubegin is a Rubik's cube toolkit for speedcubing apps, developer workflows,
-and AI agents. It provides WCA scramble generation, scramble SVG rendering,
+and AI agents. It provides scramble generation, scramble SVG rendering,
 puzzle notation/state helpers, Cubegin icon assets, auxiliary solver helpers,
 and an agent-friendly CLI.
 
@@ -52,7 +52,7 @@ The package intentionally has no root API. Import one of the public subpaths:
 ```ts
 import { createDefaultScrambleGenerator, createMathRandomSource } from 'cubegin/scramble-core';
 import { renderScrambleImage } from 'cubegin/scramble-image';
-import { WCA_EVENT_IDS } from 'cubegin/scramble-puzzle';
+import { EVENT_IDS } from 'cubegin/scramble-puzzle';
 import { EVENT_ICON_333_SVG } from 'cubegin/icons/events';
 import { solvePuzzleAssist } from 'cubegin/solver';
 
@@ -63,7 +63,7 @@ const scramble = await generator.generate('333');
 const svg = renderScrambleImage('333', scramble.scramble);
 const [cross] = solvePuzzleAssist('333', ['cross'], scramble.scramble);
 
-console.log(WCA_EVENT_IDS);
+console.log(EVENT_IDS);
 console.log(EVENT_ICON_333_SVG);
 console.log(scramble.scramble);
 console.log(svg);
@@ -94,8 +94,8 @@ cubegin/
 │   ├── core/             # public cubegin npm package and bundled entrypoints
 │   ├── cli/              # cubegin CLI source
 │   ├── icons/            # Cubegin brand and event icon assets
-│   ├── scramble-puzzle/  # shared WCA notation, parser, and state contracts
-│   ├── scramble-core/    # TNoodle-compatible WCA scramble generation
+│   ├── scramble-puzzle/  # shared notation, parser, and state contracts
+│   ├── scramble-core/    # TNoodle-compatible scramble generation
 │   ├── scramble-image/   # DOM-free SVG rendering for scramble states
 │   └── solver/           # auxiliary and full solver helpers
 └── docs/                 # repository memory and Superpowers specs/plans
@@ -140,14 +140,14 @@ All build / test / lint commands go through [vite-plus](https://github.com/voidz
 
 ### [`@cubegin/scramble-puzzle`](./packages/scramble-puzzle) - Puzzle contracts
 
-Shared WCA event metadata, parsers, state transitions, and puzzle definitions
-for cube, Clock, Megaminx, Pyraminx, Skewb, and Square-1.
+Shared event metadata, parsers, state transitions, and puzzle definitions for
+cube, Clock, Megaminx, Pyraminx, Skewb, Square-1, and FTO.
 
 ### [`@cubegin/scramble-core`](./packages/scramble-core) - Scramble generation
 
-TNoodle-compatible WCA scramble generation across the 17 supported event ids,
+TNoodle-compatible scramble generation across the 18 supported event ids,
 including minimum-distance filters, BLD no-inspection orientation moves,
-Fewest Moves padding, and multiline `333mbld` output.
+Fewest Moves padding, multiline `333mbld` output, and FTO notation.
 
 ### [`@cubegin/scramble-image`](./packages/scramble-image) - SVG previews
 
@@ -183,7 +183,7 @@ manual render, SVG download, and lightweight diagnostics.
 
 ### [`apps/scramble-docs`](./apps/scramble-docs) - Learning site
 
-VitePress site for studying WCA scramble generation and scramble image rendering
+VitePress site for studying scramble generation and scramble image rendering
 principles in English and Chinese. It is content-only and focuses on rules,
 event-specific generation strategies, state transition, and SVG rendering.
 

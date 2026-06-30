@@ -6,6 +6,8 @@ export { renderClockState } from './renderers/clock.js';
 export { renderCubeIsometric } from './renderers/cube-isometric.js';
 export type { CubeIsometricColorScheme } from './renderers/cube-isometric.js';
 export { renderCubeNet } from './renderers/cube-net.js';
+export { renderFtoState } from './renderers/fto.js';
+export type { FtoColorScheme } from './renderers/fto.js';
 export { renderMegaminxIsometricState } from './renderers/megaminx-isometric.js';
 export type { MegaminxIsometricColorScheme } from './renderers/megaminx-isometric.js';
 export { renderMegaminxState } from './renderers/megaminx.js';

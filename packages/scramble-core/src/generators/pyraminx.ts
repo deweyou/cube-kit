@@ -3,8 +3,8 @@ import { PyraminxSolver } from '@cubegin/solver';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 const SCRAMBLE_LENGTH = 11;
-const WCA_MIN_SCRAMBLE_DISTANCE = 6;
-const MAX_WCA_ATTEMPTS = 100;
+const MIN_SCRAMBLE_DISTANCE = 6;
+const MAX_ATTEMPTS = 100;
 
 export interface PyraminxScrambleOptions {
   random: RandomSource;
@@ -13,10 +13,10 @@ export interface PyraminxScrambleOptions {
 export const generatePyraminxScramble = ({ random }: PyraminxScrambleOptions): string => {
   const solver = new PyraminxSolver();
 
-  for (let attempt = 0; attempt < MAX_WCA_ATTEMPTS; attempt += 1) {
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
     const state = solver.randomState(random);
     const isTooCloseToSolved =
-      solver.solveIn(state, WCA_MIN_SCRAMBLE_DISTANCE - 1, true, random) !== null;
+      solver.solveIn(state, MIN_SCRAMBLE_DISTANCE - 1, true, random) !== null;
 
     if (isTooCloseToSolved) continue;
 
@@ -24,6 +24,6 @@ export const generatePyraminxScramble = ({ random }: PyraminxScrambleOptions): s
   }
 
   throw new Error(
-    `${ERROR_PREFIX}: could not generate a Pyraminx WCA scramble after ${MAX_WCA_ATTEMPTS} attempts`,
+    `${ERROR_PREFIX}: could not generate a Pyraminx scramble after ${MAX_ATTEMPTS} attempts`,
   );
 };

@@ -1,8 +1,8 @@
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import styles from './scramble-image.module.css';
 
 interface ScrambleImageProps {
-  eventId?: WcaEventId;
+  eventId?: EventId;
   svg: string;
 }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   NoSolverSolutionError,
+  FtoSolver,
   PyraminxSolver,
   SkewbSolver,
   SolverError,
@@ -63,6 +64,16 @@ describe('solvePuzzleFull', () => {
       twst: 0,
     });
     expect([pyraminx, skewb, squareOne, clock].every((result) => result.moveCount > 0)).toBe(true);
+  });
+
+  it('solves FTO scrambles through the full solver facade', () => {
+    const result = solvePuzzleFull('fto', "U D F B L R BL BR U' BR'");
+    const restored = new FtoSolver().stateFromScramble(`${result.scramble} ${result.solution}`);
+
+    expect(result.eventId).toBe('fto');
+    expect(result.engine).toBe('fto-inverse');
+    expect(result.solution).toBe("BR U BR' BL' R' L' B' F' D' U'");
+    expect(restored).toEqual(new FtoSolver().stateFromScramble(''));
   });
 
   it('rejects unsupported full-solver events with a typed solver error', () => {

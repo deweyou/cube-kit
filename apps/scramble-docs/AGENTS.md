@@ -1,7 +1,7 @@
 # Scramble Docs
 
-This app is the bilingual VitePress learning site for WCA scramble generation
-and scramble image rendering principles.
+This app is the bilingual VitePress learning site for scramble generation and
+scramble image rendering principles.
 
 ## Read First
 

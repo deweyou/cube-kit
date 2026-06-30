@@ -8,6 +8,8 @@ export {
   generateFourByFourScramble,
 } from './generators/four-by-four.js';
 export type { FourByFourScrambleOptions } from './generators/four-by-four.js';
+export { generateFtoScramble } from './generators/fto.js';
+export type { FtoScrambleOptions } from './generators/fto.js';
 export { generateMegaminxScramble } from './generators/megaminx.js';
 export type { MegaminxScrambleOptions } from './generators/megaminx.js';
 export { generatePyraminxScramble } from './generators/pyraminx.js';

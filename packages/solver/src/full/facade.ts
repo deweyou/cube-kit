@@ -10,6 +10,7 @@ import {
   type ClockMove,
 } from '@cubegin/scramble-puzzle';
 import { NoSolverSolutionError, SolverError, UnsupportedSolverMoveError } from '../errors.js';
+import { FtoSolver } from './fto-solver.js';
 import { SearchWCA } from './min2phase/search-wca.js';
 import { fromScramble } from './min2phase/tools.js';
 import { PyraminxSolver } from './pyraminx-solver.js';
@@ -64,6 +65,8 @@ export const solvePuzzleFull = <EventId extends PuzzleFullEventId>(
       );
     case 'clock':
       return createResult(eventId, scramble, solveClock(scramble), 'clock-inverse');
+    case 'fto':
+      return createResult(eventId, scramble, solveFto(scramble), 'fto-inverse');
     default:
       throw new SolverError(`unsupported full solver event: ${String(eventId)}`);
   }
@@ -174,6 +177,8 @@ const solveClock = (scramble: string): string => {
     .flatMap((move) => formatInverseClockMove(move))
     .join(' ');
 };
+
+const solveFto = (scramble: string): string => new FtoSolver().solve(scramble);
 
 const validateThreeByThreeScramble = (scramble: string): void => {
   for (const token of splitAlgorithm(scramble)) {

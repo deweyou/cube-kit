@@ -20,7 +20,7 @@ export default defineConfig({
       '@cubegin/icons': workspaceSource('icons/src/index.ts'),
       '@cubegin/scramble-image': workspacePackage('scramble-image'),
       '@cubegin/scramble-puzzle': workspacePackage('scramble-puzzle'),
-      '@cubegin/shared/wca': workspaceSource('shared/src/wca/index.ts'),
+      '@cubegin/shared/events': workspaceSource('shared/src/events/index.ts'),
       '@cubegin/solver': workspacePackage('solver'),
     },
   },

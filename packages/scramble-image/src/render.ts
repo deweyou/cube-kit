@@ -1,15 +1,17 @@
 import {
   createClockDefinition,
   createCubeDefinition,
+  createFtoDefinition,
   createMegaminxDefinition,
   createPyraminxDefinition,
   createSkewbDefinition,
   createSquareOneDefinition,
 } from '@cubegin/scramble-puzzle';
-import { WCA_EVENT_INFO, type WcaEventId } from '@cubegin/shared/wca';
+import { EVENT_INFO, type EventId } from '@cubegin/shared/events';
 import { renderClockState } from './renderers/clock.js';
 import { renderCubeIsometric } from './renderers/cube-isometric.js';
 import { renderCubeNet } from './renderers/cube-net.js';
+import { renderFtoState } from './renderers/fto.js';
 import { renderMegaminxIsometricState } from './renderers/megaminx-isometric.js';
 import { renderMegaminxState } from './renderers/megaminx.js';
 import { renderPyraminxIsometricState } from './renderers/pyraminx-isometric.js';
@@ -31,7 +33,7 @@ const CUBE_SIZE_BY_EVENT = {
   '555bld': 5,
   '666': 6,
   '777': 7,
-} as Partial<Record<WcaEventId, number>>;
+} as Partial<Record<EventId, number>>;
 
 export type ScrambleImageView = 'net' | 'isometric';
 
@@ -40,11 +42,11 @@ export interface ScrambleImageOptions {
 }
 
 export const renderScrambleImage = (
-  eventId: WcaEventId,
+  eventId: EventId,
   scramble: string,
   options: ScrambleImageOptions = {},
 ): string => {
-  const eventInfo = WCA_EVENT_INFO[eventId];
+  const eventInfo = EVENT_INFO[eventId];
   if (!eventInfo) {
     throw new Error(`@cubegin/scramble-image: event '${eventId}' is not renderable yet`);
   }
@@ -97,6 +99,12 @@ export const renderScrambleImage = (
       const state = squareOne.applyAlgorithm(squareOne.createSolvedState(), scramble);
 
       return renderSquareOneState(state);
+    }
+    case 'face-turning-octahedron': {
+      const fto = createFtoDefinition();
+      const state = fto.applyAlgorithm(fto.createSolvedState(), scramble);
+
+      return renderFtoState(state);
     }
   }
 

@@ -1,7 +1,7 @@
 {
   "name": "@cubegin/scramble-core",
   "version": "0.0.0",
-  "description": "TNoodle-compatible WCA scramble generation for Cubegin.",
+  "description": "TNoodle-compatible scramble generation for Cubegin.",
   "license": "GPL-3.0-only",
   "files": [
     "dist",

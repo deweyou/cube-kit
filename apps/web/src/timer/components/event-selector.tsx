@@ -1,8 +1,8 @@
 import { type CSSProperties } from 'react';
 import { EVENT_ICON_SVGS } from '@cubegin/icons/events';
-import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/shared/wca';
+import { EVENT_IDS, type EventId } from '@cubegin/shared/events';
 import { Select } from '@deweyou-design/react/select';
-import { getWcaEventLabel, type TimerLocale } from '@cubegin/shared/timer-session';
+import { getEventLabel, type TimerLocale } from '@cubegin/shared/timer-session';
 import styles from './event-selector.module.css';
 
 interface EventSelectorProps {
@@ -10,8 +10,8 @@ interface EventSelectorProps {
   isIconOnly?: boolean;
   label: string;
   locale: TimerLocale;
-  value: WcaEventId;
-  onChange: (id: WcaEventId) => void;
+  value: EventId;
+  onChange: (id: EventId) => void;
 }
 
 type EventIconStyle = CSSProperties & {
@@ -23,10 +23,10 @@ const createEventIconMask = (iconSvg: string): string => {
 };
 
 const eventIconMasks = Object.fromEntries(
-  WCA_EVENT_IDS.map((eventId) => [eventId, createEventIconMask(EVENT_ICON_SVGS[eventId])]),
-) as Record<WcaEventId, string>;
+  EVENT_IDS.map((eventId) => [eventId, createEventIconMask(EVENT_ICON_SVGS[eventId])]),
+) as Record<EventId, string>;
 
-const createEventIconStyle = (eventId: WcaEventId): EventIconStyle => ({
+const createEventIconStyle = (eventId: EventId): EventIconStyle => ({
   '--event-icon-mask': eventIconMasks[eventId],
 });
 
@@ -50,18 +50,18 @@ export const EventSelector = ({
       value={[value]}
       onValueChange={(nextValue) => {
         const nextEventId = nextValue[0];
-        if (nextEventId) onChange(nextEventId as WcaEventId);
+        if (nextEventId) onChange(nextEventId as EventId);
       }}
     >
       <Select.Trigger className={isIconOnly ? styles.iconTrigger : undefined} />
       <Select.Content className={styles.content}>
-        {WCA_EVENT_IDS.map((eventId) => (
+        {EVENT_IDS.map((eventId) => (
           <Select.Item
             key={eventId}
             className={styles.item}
             style={createEventIconStyle(eventId)}
             value={eventId}
-            label={getWcaEventLabel(eventId, locale)}
+            label={getEventLabel(eventId, locale)}
           />
         ))}
       </Select.Content>

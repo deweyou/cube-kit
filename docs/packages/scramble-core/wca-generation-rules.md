@@ -9,9 +9,10 @@ flowchart TD
     Core --> MultiBlind["333mbld multiline attempt"]
 ```
 
-`@cubegin/scramble-core` implements the testable WCA generation rules used by the
-17 supported WCA event ids. The tests assert structure and minimum-distance
-filters; they do not attempt statistical proof of randomness.
+`@cubegin/scramble-core` implements the testable WCA generation rules used by
+TNoodle-compatible event ids. The tests assert structure and minimum-distance
+filters; they do not attempt statistical proof of randomness. FTO is outside
+this TNoodle baseline and is covered by its own random-turn generator tests.
 
 ## Key Rules
 
@@ -36,4 +37,4 @@ filters; they do not attempt statistical proof of randomness.
 
 ---
 
-_Last updated: 2026-05-26 | Reason: document scramble-core WCA generation rules_
+_Last updated: 2026-06-30 | Reason: clarify TNoodle-compatible rule scope and FTO boundary_

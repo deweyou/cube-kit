@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef, type UIEvent } from 'react';
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import type {
   SolvePenalty,
   SolveRecord,
@@ -155,11 +155,11 @@ const TimerPageContent = ({
   const [finalElapsed, setFinalElapsed] = useState(0);
   const [selectedSolveId, setSelectedSolveId] = useState<string>();
   const [runtimeStorageError, setRuntimeStorageError] = useState<string>();
-  const [displayEventId, setDisplayEventId] = useState<WcaEventId>('333');
+  const [displayEventId, setDisplayEventId] = useState<EventId>('333');
   const [multiBlindCubeCount, setMultiBlindCubeCount] = useState(readStoredMultiBlindCubeCount);
   const multiBlindCubeCountRef = useRef(multiBlindCubeCount);
   multiBlindCubeCountRef.current = multiBlindCubeCount;
-  const activeEventIdRef = useRef<WcaEventId>(displayEventId);
+  const activeEventIdRef = useRef<EventId>(displayEventId);
   activeEventIdRef.current = displayEventId;
   const generator = useMemo(() => createTimerScrambleGenerator(), []);
   const backgroundGenerator = useMemo(() => createTimerScrambleGenerator(), []);
@@ -197,7 +197,7 @@ const TimerPageContent = ({
   const { elapsed, start, stop, reset } = useTimer();
 
   const getDisplayGenerateOptions = useCallback(
-    (eventId: WcaEventId) =>
+    (eventId: EventId) =>
       eventId === '333mbld'
         ? { multiBlindCubeCount: multiBlindCubeCountRef.current }
         : getTimerScrambleGenerateOptions(eventId),
@@ -248,7 +248,7 @@ const TimerPageContent = ({
   }, []);
 
   const loadScramble = useCallback(
-    async (nextEventId: WcaEventId) => {
+    async (nextEventId: EventId) => {
       const requestId = latestScrambleRequestId.current + 1;
       const loadStartMs = getScramblePerformanceNow();
       latestScrambleRequestId.current = requestId;
@@ -459,7 +459,7 @@ const TimerPageContent = ({
   }, []);
 
   const handleEventChange = useCallback(
-    async (id: WcaEventId) => {
+    async (id: EventId) => {
       setPageState('scramble');
       setSelectedSolveId(undefined);
       setDisplayEventId(id);

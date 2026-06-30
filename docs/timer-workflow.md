@@ -44,7 +44,7 @@ and web storage integration.
   should not start the timer. See
   [apps/web/src/timer/hooks/use-timer-gesture.ts#L1](../apps/web/src/timer/hooks/use-timer-gesture.ts#L1)
   and [apps/web/src/timer/views/scramble-view.tsx#L1](../apps/web/src/timer/views/scramble-view.tsx#L1).
-- Changing the WCA event switches to that event's protected default session.
+- Changing the event switches to that event's protected default session.
   Changing a session switches the current event from the newest solve when
   present, from the default session event when the default session is empty, and
   leaves the event unchanged for an empty custom session.
@@ -75,4 +75,4 @@ and web storage integration.
 
 ---
 
-_Last updated: 2026-06-11 | Reason: document mobile touch start, result actions, and client id persistence_
+_Last updated: 2026-06-30 | Reason: event metadata renamed_

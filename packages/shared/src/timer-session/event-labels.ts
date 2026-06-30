@@ -1,14 +1,14 @@
-import type { WcaEventId } from '../wca';
+import type { EventId } from '../events';
 
 export type TimerLocale = 'zh-CN' | 'en-US';
 
-export interface WcaEventLabelSet {
+export interface EventLabelSet {
   short: string;
   zh: string;
   en: string;
 }
 
-export const WCA_EVENT_LABELS: Record<WcaEventId, WcaEventLabelSet> = {
+export const EVENT_LABELS: Record<EventId, EventLabelSet> = {
   '333': { short: '3x3x3', zh: '三阶速拧', en: '3x3x3' },
   '222': { short: '2x2x2', zh: '二阶速拧', en: '2x2x2' },
   '444': { short: '4x4x4', zh: '四阶速拧', en: '4x4x4' },
@@ -26,12 +26,12 @@ export const WCA_EVENT_LABELS: Record<WcaEventId, WcaEventLabelSet> = {
   '444bld': { short: '4x4x4 BLD', zh: '四阶盲拧', en: '4x4x4 BLD' },
   '555bld': { short: '5x5x5 BLD', zh: '五阶盲拧', en: '5x5x5 BLD' },
   '333mbld': { short: '3x3x3 MBLD', zh: '三阶多盲', en: '3x3x3 MBLD' },
+  fto: { short: 'FTO', zh: 'FTO', en: 'Face-Turning Octahedron' },
 };
 
-export const getWcaEventLabel = (eventId: WcaEventId, locale: TimerLocale = 'zh-CN'): string => {
-  const labels = WCA_EVENT_LABELS[eventId];
+export const getEventLabel = (eventId: EventId, locale: TimerLocale = 'zh-CN'): string => {
+  const labels = EVENT_LABELS[eventId];
   return locale === 'en-US' ? labels.en : labels.zh;
 };
 
-export const getWcaEventShortLabel = (eventId: WcaEventId): string =>
-  WCA_EVENT_LABELS[eventId].short;
+export const getEventShortLabel = (eventId: EventId): string => EVENT_LABELS[eventId].short;

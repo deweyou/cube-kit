@@ -1,17 +1,17 @@
 import { UnregisteredPuzzleError } from './errors.js';
-import type { WcaEventId } from './events.js';
+import type { EventId } from './events.js';
 import type { PuzzleDefinition } from './puzzle-definition.js';
 
 export type AnyPuzzleDefinition<State = unknown, Move = unknown> = PuzzleDefinition<State, Move>;
 
 export interface PuzzleRegistry<Definition extends AnyPuzzleDefinition = never> {
-  getByEventId(eventId: WcaEventId): Definition;
+  getByEventId(eventId: EventId): Definition;
 }
 
 export const createPuzzleRegistry = <Definition extends AnyPuzzleDefinition>(
   definitions: readonly Definition[],
 ): PuzzleRegistry<Definition> => {
-  const definitionsByEventId = new Map<WcaEventId, Definition>();
+  const definitionsByEventId = new Map<EventId, Definition>();
 
   for (const definition of definitions) {
     for (const eventId of definition.eventIds) {

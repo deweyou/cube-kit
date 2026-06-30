@@ -1,7 +1,7 @@
 {
   "name": "@cubegin/scramble-puzzle",
   "version": "0.0.0",
-  "description": "Puzzle notation, state transitions, and shared WCA puzzle definitions for Cubegin.",
+  "description": "Puzzle notation, state transitions, and shared event puzzle definitions for Cubegin.",
   "license": "GPL-3.0-only",
   "files": [
     "dist",

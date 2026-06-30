@@ -21,7 +21,7 @@ http://localhost:5173/?seed=42
 
 ## What It Covers
 
-- WCA event selection across all supported event ids.
+- event selection across all supported event ids.
 - Batch generation through `scramble-core`.
 - `333mbld` cube count and one displayed row per cube.
 - SVG preview and manual render through `scramble-image`.

@@ -11,7 +11,7 @@ flowchart TD
     ForegroundWorker --> Core
     BackgroundWorker --> Core
     UI --> Image["@cubegin/scramble-image"]
-    UI --> Shared["@cubegin/shared/wca"]
+    UI --> Shared["@cubegin/shared/events"]
     Playground["apps/playground"] --> Core
     Playground --> Image
     Playground --> Shared
@@ -22,14 +22,14 @@ flowchart TD
     Core --> Puzzle
     Image --> Shared
     Image --> Puzzle
-    Core --> Generators["WCA generator dispatch"]
+    Core --> Generators["event generator dispatch"]
     Image --> Renderers["SVG renderer dispatch"]
 ```
 
 The web timer now consumes the TNoodle-compatible scramble packages directly.
-`@cubegin/shared/wca` owns WCA event ids and puzzle routing metadata,
+`@cubegin/shared/events` owns supported event ids and puzzle routing metadata,
 `@cubegin/scramble-puzzle` owns puzzle parsing and state transitions,
-`@cubegin/scramble-core` owns async-shaped WCA scramble generation, and
+`@cubegin/scramble-core` owns async-shaped scramble generation, and
 `@cubegin/scramble-image` owns DOM-free SVG rendering. The removed
 `packages/scramble` cstimer wrapper and browser shim must not be restored.
 
@@ -41,8 +41,8 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
   `@cubegin/scramble-image` for SVG renderers.
 - Package-specific maintenance knowledge lives under `docs/packages/*`, while
   local package `AGENTS.md` files only route maintainers to those docs.
-- `@cubegin/scramble-core` exposes `createDefaultScrambleGenerator` for all 17
-  WCA events. The web timer calls it behind a Worker client so slow generation
+- `@cubegin/scramble-core` exposes `createDefaultScrambleGenerator` for all 18
+  supported events. The web timer calls it behind a Worker client so slow generation
   does not block touch and timer UI.
 - `@cubegin/scramble-core` delegates full solver-backed generation to
   `@cubegin/solver`; Clock uses the solver package's linear state solver.
@@ -53,7 +53,7 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 - `apps/web` prefetches at most one unused scramble per event. A scramble is
   consumed once and never reused after display. The foreground worker owns the
   active event's displayed scramble and next active-event prefetch; a temporary
-  background worker warms one scramble for every non-active WCA event, drops a
+  background worker warms one scramble for every non-active event, drops a
   warm result if that event becomes active before it resolves, and terminates
   after the warm pass completes.
 - `apps/playground` is a test workbench, not a production app migration. It
@@ -88,12 +88,12 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 - [apps/web/src/timer/scramble-prefetcher.ts#L1](../apps/web/src/timer/scramble-prefetcher.ts#L1) - one-use scramble queue plus foreground and background worker prefetch policy.
 - [apps/web/src/timer/scramble-performance-log.ts#L1](../apps/web/src/timer/scramble-performance-log.ts#L1) - dev-only scramble timing logs.
 - [apps/web/src/timer/views/scramble-view.tsx#L1](../apps/web/src/timer/views/scramble-view.tsx#L1) - web SVG rendering through `@cubegin/scramble-image`.
-- [apps/web/src/timer/components/event-selector.tsx#L1](../apps/web/src/timer/components/event-selector.tsx#L1) - WCA event list from `@cubegin/shared/wca`.
+- [apps/web/src/timer/components/event-selector.tsx#L1](../apps/web/src/timer/components/event-selector.tsx#L1) - event list from `@cubegin/shared/events`.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - `prepare:deps` for workspace package exports.
-- [packages/shared/src/wca/events.ts#L1](../packages/shared/src/wca/events.ts#L1) - canonical 17-event WCA list for the new packages.
-- [packages/scramble-core/src/generator.ts#L1](../packages/scramble-core/src/generator.ts#L1) - async generator facade and default WCA event dispatch.
+- [packages/shared/src/events/events.ts#L1](../packages/shared/src/events/events.ts#L1) - canonical supported event list for the packages.
+- [packages/scramble-core/src/generator.ts#L1](../packages/scramble-core/src/generator.ts#L1) - async generator facade and default event dispatch.
 - [packages/solver/src/full/clock-solver.ts#L1](../packages/solver/src/full/clock-solver.ts#L1) - Clock random-state solver used by scramble generation.
-- [packages/scramble-image/src/render.ts#L1](../packages/scramble-image/src/render.ts#L1) - WCA event dispatch for SVG rendering.
+- [packages/scramble-image/src/render.ts#L1](../packages/scramble-image/src/render.ts#L1) - event dispatch for SVG rendering.
 - [docs/packages/scramble-puzzle/index.md#L1](packages/scramble-puzzle/index.md#L1) - puzzle package knowledge.
 - [docs/packages/scramble-core/wca-generation-rules.md#L1](packages/scramble-core/wca-generation-rules.md#L1) - WCA generation rule mapping.
 - [docs/packages/scramble-image/renderer-contracts.md#L1](packages/scramble-image/renderer-contracts.md#L1) - renderer contracts.

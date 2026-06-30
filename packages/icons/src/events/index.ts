@@ -15,9 +15,11 @@ type EventIconId =
   | 'sq1'
   | '444bld'
   | '555bld'
-  | '333mbld';
+  | '333mbld'
+  | 'fto';
 type SvgShape = string;
 type SvgPoint = readonly [number, number];
+type SvgTriangle = readonly [SvgPoint, SvgPoint, SvgPoint];
 type PolygonCornerCommand =
   | {
       readonly end: SvgPoint;
@@ -473,6 +475,285 @@ const megaminxIcon = (): string =>
     ]),
   ]);
 
+const FTO_STICKER_TRIANGLES = [
+  [
+    [8, 8],
+    [12, 12],
+    [16, 8],
+  ],
+  [
+    [4, 4],
+    [8, 8],
+    [12, 4],
+  ],
+  [
+    [0, 0],
+    [4, 4],
+    [8, 0],
+  ],
+  [
+    [16, 8],
+    [20, 4],
+    [12, 4],
+  ],
+  [
+    [12, 4],
+    [16, 0],
+    [8, 0],
+  ],
+  [
+    [20, 4],
+    [24, 0],
+    [16, 0],
+  ],
+  [
+    [16, 8],
+    [12, 4],
+    [8, 8],
+  ],
+  [
+    [12, 4],
+    [8, 0],
+    [4, 4],
+  ],
+  [
+    [20, 4],
+    [16, 0],
+    [12, 4],
+  ],
+  [
+    [16, 16],
+    [12, 12],
+    [8, 16],
+  ],
+  [
+    [16, 16],
+    [8, 16],
+    [12, 20],
+  ],
+  [
+    [20, 20],
+    [12, 20],
+    [16, 24],
+  ],
+  [
+    [8, 16],
+    [4, 20],
+    [12, 20],
+  ],
+  [
+    [12, 20],
+    [4, 20],
+    [8, 24],
+  ],
+  [
+    [4, 20],
+    [0, 24],
+    [8, 24],
+  ],
+  [
+    [20, 20],
+    [16, 16],
+    [12, 20],
+  ],
+  [
+    [8, 24],
+    [16, 24],
+    [12, 20],
+  ],
+  [
+    [24, 24],
+    [20, 20],
+    [16, 24],
+  ],
+  [
+    [8, 16],
+    [12, 12],
+    [8, 8],
+  ],
+  [
+    [4, 20],
+    [8, 16],
+    [4, 12],
+  ],
+  [
+    [0, 24],
+    [4, 20],
+    [0, 16],
+  ],
+  [
+    [4, 12],
+    [8, 16],
+    [8, 8],
+  ],
+  [
+    [0, 16],
+    [4, 20],
+    [4, 12],
+  ],
+  [
+    [0, 8],
+    [4, 12],
+    [4, 4],
+  ],
+  [
+    [8, 8],
+    [4, 4],
+    [4, 12],
+  ],
+  [
+    [4, 12],
+    [0, 8],
+    [0, 16],
+  ],
+  [
+    [4, 4],
+    [0, 0],
+    [0, 8],
+  ],
+  [
+    [16, 8],
+    [12, 12],
+    [16, 16],
+  ],
+  [
+    [16, 16],
+    [20, 20],
+    [20, 12],
+  ],
+  [
+    [20, 20],
+    [24, 24],
+    [24, 16],
+  ],
+  [
+    [16, 8],
+    [16, 16],
+    [20, 12],
+  ],
+  [
+    [20, 20],
+    [24, 16],
+    [20, 12],
+  ],
+  [
+    [20, 4],
+    [20, 12],
+    [24, 8],
+  ],
+  [
+    [20, 4],
+    [16, 8],
+    [20, 12],
+  ],
+  [
+    [24, 16],
+    [24, 8],
+    [20, 12],
+  ],
+  [
+    [24, 0],
+    [20, 4],
+    [24, 8],
+  ],
+] as const satisfies readonly SvgTriangle[];
+
+const FTO_FACE_GAP = 0.62;
+const FTO_STICKER_GAP = FTO_FACE_GAP / 2;
+const FTO_STICKER_CORNER_RADIUS = 0.65;
+const FTO_STICKER_ROUNDED_INDEXES = new Set([0, 1, 2]);
+
+const ftoIcon = (): string =>
+  svg(FTO_STICKER_TRIANGLES.map((points) => roundedFtoStickerPath(points)));
+
+const roundedFtoStickerPath = (points: SvgTriangle): SvgShape =>
+  roundedPolygonPath({
+    points: insetFtoStickerTriangle(points),
+    radius: FTO_STICKER_CORNER_RADIUS,
+    roundedIndexes: FTO_STICKER_ROUNDED_INDEXES,
+  });
+
+const insetFtoStickerTriangle = (points: SvgTriangle): SvgTriangle => {
+  const centroid = triangleCentroid(points);
+  const insetLines = points.map((pointValue, index) => {
+    const nextPoint = points[(index + 1) % points.length];
+    return offsetEdgeTowardCentroid(
+      pointValue,
+      nextPoint,
+      centroid,
+      ftoEdgeInset(pointValue, nextPoint),
+    );
+  });
+
+  return [
+    intersectLines(insetLines[2], insetLines[0]),
+    intersectLines(insetLines[0], insetLines[1]),
+    intersectLines(insetLines[1], insetLines[2]),
+  ];
+};
+
+const triangleCentroid = (points: SvgTriangle): SvgPoint => [
+  (points[0][0] + points[1][0] + points[2][0]) / 3,
+  (points[0][1] + points[1][1] + points[2][1]) / 3,
+];
+
+const ftoEdgeInset = (from: SvgPoint, to: SvgPoint): number => {
+  if (isFtoOuterEdge(from, to)) return 0;
+  if (isFtoFaceSeamEdge(from, to)) return FTO_FACE_GAP / 2;
+
+  return FTO_STICKER_GAP / 2;
+};
+
+const isFtoOuterEdge = ([fromX, fromY]: SvgPoint, [toX, toY]: SvgPoint): boolean =>
+  (sameNumber(fromX, toX) && (sameNumber(fromX, 0) || sameNumber(fromX, 24))) ||
+  (sameNumber(fromY, toY) && (sameNumber(fromY, 0) || sameNumber(fromY, 24)));
+
+const isFtoFaceSeamEdge = ([fromX, fromY]: SvgPoint, [toX, toY]: SvgPoint): boolean =>
+  (sameNumber(fromX - fromY, 0) && sameNumber(toX - toY, 0)) ||
+  (sameNumber(fromX + fromY, 24) && sameNumber(toX + toY, 24));
+
+const sameNumber = (first: number, second: number): boolean => Math.abs(first - second) < 0.001;
+
+interface OffsetLine {
+  readonly direction: SvgPoint;
+  readonly point: SvgPoint;
+}
+
+const offsetEdgeTowardCentroid = (
+  from: SvgPoint,
+  to: SvgPoint,
+  centroid: SvgPoint,
+  inset: number,
+): OffsetLine => {
+  const [fromX, fromY] = from;
+  const [toX, toY] = to;
+  const deltaX = toX - fromX;
+  const deltaY = toY - fromY;
+  const length = Math.hypot(deltaX, deltaY);
+  const normal: SvgPoint = [-deltaY / length, deltaX / length];
+  const midpoint: SvgPoint = [(fromX + toX) / 2, (fromY + toY) / 2];
+  const centroidDirection =
+    (centroid[0] - midpoint[0]) * normal[0] + (centroid[1] - midpoint[1]) * normal[1];
+  const inwardNormal: SvgPoint = centroidDirection >= 0 ? normal : [-normal[0], -normal[1]];
+
+  return {
+    direction: [deltaX, deltaY],
+    point: [fromX + inwardNormal[0] * inset, fromY + inwardNormal[1] * inset],
+  };
+};
+
+const intersectLines = (first: OffsetLine, second: OffsetLine): SvgPoint => {
+  const cross = first.direction[0] * second.direction[1] - first.direction[1] * second.direction[0];
+  const deltaX = second.point[0] - first.point[0];
+  const deltaY = second.point[1] - first.point[1];
+  const offset = (deltaX * second.direction[1] - deltaY * second.direction[0]) / cross;
+
+  return [
+    round(first.point[0] + first.direction[0] * offset),
+    round(first.point[1] + first.direction[1] * offset),
+  ];
+};
+
 export const EVENT_ICON_333_SVG = cubeGridIcon(3);
 export const EVENT_ICON_222_SVG = cubeGridIcon(2);
 export const EVENT_ICON_444_SVG = cubeGridIcon(4);
@@ -535,6 +816,7 @@ export const EVENT_ICON_SQ1_SVG = svg([
 export const EVENT_ICON_444BLD_SVG = blindfoldIcon(4);
 export const EVENT_ICON_555BLD_SVG = blindfoldIcon(5);
 export const EVENT_ICON_333MBLD_SVG = blindfoldIcon(3, 'xN');
+export const EVENT_ICON_FTO_SVG = ftoIcon();
 
 export const EVENT_ICON_SVGS = Object.freeze({
   '333': EVENT_ICON_333_SVG,
@@ -554,4 +836,5 @@ export const EVENT_ICON_SVGS = Object.freeze({
   '444bld': EVENT_ICON_444BLD_SVG,
   '555bld': EVENT_ICON_555BLD_SVG,
   '333mbld': EVENT_ICON_333MBLD_SVG,
+  fto: EVENT_ICON_FTO_SVG,
 } satisfies Record<EventIconId, string>);

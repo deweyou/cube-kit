@@ -1,11 +1,11 @@
 # @cubegin/scramble-puzzle
 
-Puzzle notation, parser, state-transition, and WCA event metadata for Cubegin's
+Puzzle notation, parser, state-transition, and event metadata for Cubegin's
 TNoodle-compatible scramble packages.
 
 This package is the shared foundation for `@cubegin/scramble-core` and
 `@cubegin/scramble-image`. It owns the meaning of a move string, how that move
-changes a puzzle state, and which WCA event ids map to which puzzle family.
+changes a puzzle state, and which event ids map to which puzzle family.
 
 ## Install
 
@@ -18,24 +18,24 @@ pnpm install
 ## Quick Start
 
 ```ts
-import { WCA_EVENT_IDS, createCubeDefinition } from '@cubegin/scramble-puzzle';
+import { EVENT_IDS, createCubeDefinition } from '@cubegin/scramble-puzzle';
 
 const cube = createCubeDefinition(3, ['333']);
 const solved = cube.createSolvedState();
 const afterSexyMove = cube.applyAlgorithm(solved, "R U R' U'");
 
-console.log(WCA_EVENT_IDS);
+console.log(EVENT_IDS);
 console.log(cube.isSolved(afterSexyMove));
 ```
 
 ## API Surface
 
-- `WCA_EVENT_IDS`, `WCA_EVENT_INFO`, `WcaEventId`, and `PuzzleId` describe the
-  17 supported WCA event ids.
+- `EVENT_IDS`, `EVENT_INFO`, `EventId`, and `PuzzleId` describe the
+  18 supported event ids.
 - `splitAlgorithm` and `applyAlgorithm` provide common algorithm sequencing.
 - `createCubeDefinition`, `createClockDefinition`, `createMegaminxDefinition`,
-  `createPyraminxDefinition`, `createSkewbDefinition`, and
-  `createSquareOneDefinition` expose puzzle-specific parser/state contracts.
+  `createPyraminxDefinition`, `createSkewbDefinition`, `createSquareOneDefinition`,
+  and `createFtoDefinition` expose puzzle-specific parser/state contracts.
 - Puzzle-specific parser and state helpers are exported for targeted tests and
   renderer integration.
 - `./test-support` exports TNoodle fixture helpers for package tests only.

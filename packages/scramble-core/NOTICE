@@ -4,7 +4,7 @@ Copyright (C) 2026 The Cubegin authors
 This package is licensed under the GNU General Public License version 3 only.
 See the LICENSE file in this directory for the full text.
 
-This package ports WCA scramble-generation behavior compatible with:
+This package ports TNoodle-compatible scramble-generation behavior from:
 
     Name:       TNoodle lib-scrambles
     Version:    0.19.2

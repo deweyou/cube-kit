@@ -13,7 +13,7 @@ import { Button } from '@deweyou-design/react/button';
 import { Tooltip } from '@deweyou-design/react/tooltip';
 import { CubeginAnimatedIcon } from '@cubegin/icons/react';
 import { renderScrambleImage } from '@cubegin/scramble-image';
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import {
   CancelIcon,
   CheckIcon,
@@ -28,7 +28,7 @@ import type { TimerMessages } from '../timer-i18n';
 import styles from './scramble-view.module.css';
 
 interface ScrambleViewProps {
-  eventId: WcaEventId;
+  eventId: EventId;
   scramble: string;
   error?: string;
   isLoading?: boolean;

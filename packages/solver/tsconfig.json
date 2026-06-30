@@ -7,7 +7,7 @@
     "moduleResolution": "bundler",
     "paths": {
       "@cubegin/scramble-puzzle": ["../scramble-puzzle/src/index.ts"],
-      "@cubegin/shared/wca": ["../shared/src/wca/index.ts"]
+      "@cubegin/shared/events": ["../shared/src/events/index.ts"]
     },
     "resolveJsonModule": true,
     "types": ["node"],

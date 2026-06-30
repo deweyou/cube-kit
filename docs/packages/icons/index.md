@@ -2,7 +2,7 @@
 
 ```mermaid
 flowchart TD
-    Icons["@cubegin/icons"] --> Events["events: WCA currentColor glyphs"]
+    Icons["@cubegin/icons"] --> Events["events: currentColor glyphs"]
     Icons --> Brand["brand: Cubegin logo, lockup, app icons"]
     Icons --> React["react: animated Cubegin mark components"]
     Icons --> StaticFiles["dist/<group>/svg/*.svg"]
@@ -18,7 +18,7 @@ interactive Cubegin mark animation behavior.
 ## Public API
 
 - `@cubegin/icons/events` exports `EVENT_ICON_<EVENT_ID>_SVG` constants and
-  `EVENT_ICON_SVGS` for the 17 WCA events.
+  `EVENT_ICON_SVGS` for the 18 supported events.
 - `@cubegin/icons/brand` exports `BRAND_ICON_<ID>_SVG` constants and
   `BRAND_ICON_SVGS` for Cubegin marks, lockups, wordmarks, and app icons.
 - `@cubegin/icons/react` exports `CubeginAnimatedIcon` with `auto`, `hover`,

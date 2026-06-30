@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 
 describe('renderScrambleImage dispatch', () => {
   afterEach(() => {
-    vi.doUnmock('@cubegin/shared/wca');
+    vi.doUnmock('@cubegin/shared/events');
     vi.resetModules();
   });
 
@@ -44,13 +44,13 @@ describe('renderScrambleImage dispatch', () => {
 
   it('rejects a known cube event when no cube net size is configured for it', async () => {
     vi.resetModules();
-    vi.doMock('@cubegin/shared/wca', async (importOriginal) => {
-      const actual = await importOriginal<typeof import('@cubegin/shared/wca')>();
+    vi.doMock('@cubegin/shared/events', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('@cubegin/shared/events')>();
 
       return {
         ...actual,
-        WCA_EVENT_INFO: {
-          ...actual.WCA_EVENT_INFO,
+        EVENT_INFO: {
+          ...actual.EVENT_INFO,
           '999': { id: '999', label: 'Future Cube', puzzleId: 'cube' },
         },
       };
@@ -58,7 +58,7 @@ describe('renderScrambleImage dispatch', () => {
 
     const { renderScrambleImage } = await import('./render.js');
 
-    expect(() => renderScrambleImage('999' as WcaEventId, '')).toThrow(
+    expect(() => renderScrambleImage('999' as EventId, '')).toThrow(
       "@cubegin/scramble-image: event '999' is not renderable yet",
     );
   });

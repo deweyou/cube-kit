@@ -6,7 +6,7 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "paths": {
-      "@cubegin/shared/wca": ["../shared/src/wca/index.ts"]
+      "@cubegin/shared/events": ["../shared/src/events/index.ts"]
     },
     "resolveJsonModule": true,
     "types": ["node"],

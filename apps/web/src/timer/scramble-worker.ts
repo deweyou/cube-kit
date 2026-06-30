@@ -1,6 +1,6 @@
 import { createDefaultScrambleGenerator, createMathRandomSource } from '@cubegin/scramble-core';
 import type { GenerateOptions, ScrambleResult } from '@cubegin/scramble-core';
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import {
   getScrambleElapsedMs,
   getScramblePerformanceNow,
@@ -9,7 +9,7 @@ import {
 
 interface GenerateScrambleRequest {
   id: number;
-  eventId: WcaEventId;
+  eventId: EventId;
   options?: GenerateOptions;
 }
 

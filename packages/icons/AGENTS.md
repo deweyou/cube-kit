@@ -21,4 +21,4 @@ pnpm --filter @cubegin/icons build
 - Keep `src/` platform-agnostic.
 - Keep event icons single-color with `currentColor` and `viewBox="0 0 24 24"`.
 - Keep React-only animation behavior isolated under `src/react`.
-- Keep the event icon set aligned with `WCA_EVENT_IDS`.
+- Keep the event icon set aligned with `EVENT_IDS`.

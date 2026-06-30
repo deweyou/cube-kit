@@ -4,7 +4,7 @@ import { Input } from '@deweyou-design/react/input';
 import { Tooltip } from '@deweyou-design/react/tooltip';
 import { BRAND_ICON_SVGS } from '@cubegin/icons/brand';
 import { CubeginAnimatedIcon } from '@cubegin/icons/react';
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import {
   AddIcon,
   ChevronDownIcon,
@@ -33,12 +33,12 @@ export type TimerNavItemId = 'timer' | 'results' | 'formula' | 'settings';
 interface TimerSidebarProps {
   activeSessionId: string;
   activeNavItem: TimerNavItemId;
-  eventId: WcaEventId;
+  eventId: EventId;
   error?: string;
   isMobileShell: boolean;
   onCreateSession: (name: string) => void;
   onDeleteSession: (sessionId: string) => void;
-  onEventChange: (id: WcaEventId) => void;
+  onEventChange: (id: EventId) => void;
   onLocaleToggle: () => void;
   onNavItemChange: (id: TimerNavItemId) => void;
   onSelectSession: (sessionId: string) => void;

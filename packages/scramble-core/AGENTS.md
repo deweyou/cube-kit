@@ -1,7 +1,7 @@
 # @cubegin/scramble-core
 
-This package owns TNoodle-compatible WCA scramble generation, solver boundaries,
-random sources, and unique batch generation.
+This package owns event-based scramble generation, TNoodle-compatible solver
+boundaries, random sources, and unique batch generation.
 
 ## Read First
 
@@ -19,6 +19,6 @@ pnpm --filter @cubegin/scramble-core typecheck
 
 ## Constraints
 
-- Keep generator behavior aligned with WCA rule tests.
+- Keep TNoodle-compatible generator behavior aligned with WCA rule tests.
 - Do not wire this package into production apps without a separate worker/runtime
   migration task.

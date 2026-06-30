@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { WCA_EVENT_IDS, WCA_EVENT_INFO } from './events.js';
+import { EVENT_IDS, EVENT_INFO } from './events.js';
 
-describe('WCA event metadata', () => {
-  it('contains exactly the 17 supported WCA events', () => {
-    expect(WCA_EVENT_IDS).toEqual([
+describe('event metadata', () => {
+  it('contains exactly the 18 supported Cubegin events', () => {
+    expect(EVENT_IDS).toEqual([
       '333',
       '222',
       '444',
@@ -21,17 +21,18 @@ describe('WCA event metadata', () => {
       '444bld',
       '555bld',
       '333mbld',
+      'fto',
     ]);
   });
 
   it('maps every event to a puzzle id', () => {
-    for (const eventId of WCA_EVENT_IDS) {
-      expect(WCA_EVENT_INFO[eventId].puzzleId).toMatch(/^[a-z0-9-]+$/);
+    for (const eventId of EVENT_IDS) {
+      expect(EVENT_INFO[eventId].puzzleId).toMatch(/^[a-z0-9-]+$/);
     }
   });
 
-  it('keeps WCA labels and puzzle routing stable', () => {
-    expect(WCA_EVENT_INFO).toEqual({
+  it('keeps event labels and puzzle routing stable', () => {
+    expect(EVENT_INFO).toEqual({
       '333': { id: '333', label: '3x3x3 Cube', puzzleId: 'cube' },
       '222': { id: '222', label: '2x2x2 Cube', puzzleId: 'cube' },
       '444': { id: '444', label: '4x4x4 Cube', puzzleId: 'cube' },
@@ -49,8 +50,13 @@ describe('WCA event metadata', () => {
       '444bld': { id: '444bld', label: '4x4 Blindfolded', puzzleId: 'cube' },
       '555bld': { id: '555bld', label: '5x5 Blindfolded', puzzleId: 'cube' },
       '333mbld': { id: '333mbld', label: '3x3 Multi-Blind', puzzleId: 'cube' },
+      fto: {
+        id: 'fto',
+        label: 'Face-Turning Octahedron',
+        puzzleId: 'face-turning-octahedron',
+      },
     });
-    expect(WCA_EVENT_IDS.map((eventId) => WCA_EVENT_INFO[eventId].id)).toEqual(WCA_EVENT_IDS);
-    expect(Object.isFrozen(WCA_EVENT_INFO)).toBe(true);
+    expect(EVENT_IDS.map((eventId) => EVENT_INFO[eventId].id)).toEqual(EVENT_IDS);
+    expect(Object.isFrozen(EVENT_INFO)).toBe(true);
   });
 });

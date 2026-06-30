@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ScrambleResult } from '@cubegin/scramble-core';
-import { WCA_EVENT_IDS } from '@cubegin/shared/wca';
+import { EVENT_IDS } from '@cubegin/shared/events';
 import { createTimerScramblePrefetcher } from './scramble-prefetcher';
 import type { TimerScrambleGenerator } from './scramble-worker-client';
 
@@ -96,12 +96,10 @@ describe('createTimerScramblePrefetcher', () => {
     );
 
     const warmPrefetch = prefetcher.prefetchWarmEvents('333');
-    await vi.waitFor(() =>
-      expect(backgroundGenerate).toHaveBeenCalledTimes(WCA_EVENT_IDS.length - 1),
-    );
+    await vi.waitFor(() => expect(backgroundGenerate).toHaveBeenCalledTimes(EVENT_IDS.length - 1));
     await warmPrefetch;
 
-    const warmEventIds = WCA_EVENT_IDS.filter((eventId) => eventId !== '333');
+    const warmEventIds = EVENT_IDS.filter((eventId) => eventId !== '333');
     expect(foregroundGenerate).not.toHaveBeenCalled();
     expect(backgroundGenerate.mock.calls.map(([eventId]: GenerateMockCall) => eventId)).toEqual(
       warmEventIds,

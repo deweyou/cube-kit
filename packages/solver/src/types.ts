@@ -31,7 +31,7 @@ export type PuzzleAssistMethod =
 
 export type PuzzleAssistEventId = '333' | '222' | 'sq1' | 'pyram' | 'skewb';
 
-export type PuzzleFullEventId = '333' | '444' | '222' | 'pyram' | 'skewb' | 'sq1' | 'clock';
+export type PuzzleFullEventId = '333' | '444' | '222' | 'pyram' | 'skewb' | 'sq1' | 'clock' | 'fto';
 
 export type PuzzleFullEngine =
   | 'min2phase'
@@ -40,7 +40,8 @@ export type PuzzleFullEngine =
   | 'pyraminx-coordinate'
   | 'skewb-coordinate'
   | 'square-one-two-phase'
-  | 'clock-inverse';
+  | 'clock-inverse'
+  | 'fto-inverse';
 
 export interface PuzzleAssistOptions {
   readonly targets?: readonly string[];

@@ -2,7 +2,7 @@
 
 DOM-free SVG rendering for TNoodle-compatible scramble states.
 
-This package parses a WCA scramble through `@cubegin/scramble-puzzle`, applies it
+This package parses a scramble through `@cubegin/scramble-puzzle`, applies it
 to a solved puzzle state, and renders a standalone SVG string. It is intended for
 tests, diagnostics, playground previews, and future worker-backed app flows.
 
@@ -26,10 +26,11 @@ console.log(svg.startsWith('<svg'));
 
 ## API Surface
 
-- `renderScrambleImage(eventId, scramble)` dispatches WCA event ids to the right
+- `renderScrambleImage(eventId, scramble)` dispatches event ids to the right
   puzzle parser and renderer.
 - `renderCubeNet`, `renderClockState`, `renderMegaminxState`,
-  `renderPyraminxState`, `renderSkewbState`, and `renderSquareOneState` are
+  `renderPyraminxState`, `renderSkewbState`, `renderSquareOneState`, and
+  `renderFtoState` are
   exported for focused renderer tests.
 - `createSvgDocument`, `rect`, `path`, `circle`, `text`, and `group` expose the
   small internal SVG builder used by all renderers.
