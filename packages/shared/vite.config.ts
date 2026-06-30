@@ -5,7 +5,7 @@ export default defineConfig({
   pack: definePackConfig({
     dts: {},
     entry: {
-      'wca/index': 'src/wca/index.ts',
+      'events/index': 'src/events/index.ts',
       'timer/index': 'src/timer/index.ts',
       'timer-session/index': 'src/timer-session/index.ts',
     },

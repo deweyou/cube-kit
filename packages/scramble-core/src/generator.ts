@@ -1,4 +1,4 @@
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import { generateUniqueScrambleBatch } from './batch.js';
 import { generateClockScramble } from './generators/clock.js';
 import { generateCubeRandomTurnScramble } from './generators/cube-random-turns.js';
@@ -6,6 +6,7 @@ import {
   generateFourByFourNoInspectionScramble,
   generateFourByFourScramble,
 } from './generators/four-by-four.js';
+import { generateFtoScramble } from './generators/fto.js';
 import { generateMegaminxScramble } from './generators/megaminx.js';
 import { generatePyraminxScramble } from './generators/pyraminx.js';
 import { generateSkewbScramble } from './generators/skewb.js';
@@ -27,7 +28,7 @@ export interface GenerateOptions {
 }
 
 export interface ScrambleResult {
-  eventId: WcaEventId;
+  eventId: EventId;
   scramble: string;
 }
 
@@ -37,7 +38,7 @@ export type EventScrambleGenerator = (
 
 export interface ScrambleGeneratorOptions {
   random: RandomSource;
-  generators: Partial<Record<WcaEventId, EventScrambleGenerator>>;
+  generators: Partial<Record<EventId, EventScrambleGenerator>>;
 }
 
 export interface DefaultScrambleGeneratorOptions {
@@ -45,9 +46,9 @@ export interface DefaultScrambleGeneratorOptions {
 }
 
 export interface ScrambleGenerator {
-  generate(eventId: WcaEventId, options?: GenerateOptions): Promise<ScrambleResult>;
+  generate(eventId: EventId, options?: GenerateOptions): Promise<ScrambleResult>;
   generateBatch(
-    eventId: WcaEventId,
+    eventId: EventId,
     count: number,
     options?: GenerateOptions,
   ): Promise<readonly ScrambleResult[]>;
@@ -106,7 +107,8 @@ const DEFAULT_GENERATORS = {
       generateMultiBlindScramble({ random, cubeCount: multiBlindCubeCount }),
     );
   },
-} satisfies Record<WcaEventId, EventScrambleGenerator>;
+  fto: ({ random }) => result('fto', generateFtoScramble({ random })),
+} satisfies Record<EventId, EventScrambleGenerator>;
 
 const FIVE_BY_FIVE_NO_INSPECTION_ORIENTATION_SEQUENCES = [
   [],
@@ -196,7 +198,7 @@ const axisForMove = (move: string): number | undefined => {
   }
 };
 
-const result = (eventId: WcaEventId, scramble: string): ScrambleResult => ({
+const result = (eventId: EventId, scramble: string): ScrambleResult => ({
   eventId,
   scramble,
 });

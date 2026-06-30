@@ -4,7 +4,7 @@ import { renderScrambleImage } from '@cubegin/scramble-image';
 import {
   getSolveDisplayText,
   getSolveScrambles,
-  getWcaEventLabel,
+  getEventLabel,
   type SolvePenalty,
   type SolveRecord,
 } from '@cubegin/shared/timer-session';
@@ -75,8 +75,7 @@ export const SolveDetail = ({
               {getSolveDisplayText(solve.elapsedMs, solve.penalty)}
             </strong>
             <span className={styles.meta}>
-              {getWcaEventLabel(solve.eventId, locale)} ·{' '}
-              {new Date(solve.createdAt).toLocaleString()}
+              {getEventLabel(solve.eventId, locale)} · {new Date(solve.createdAt).toLocaleString()}
             </span>
             {solve.multiBlind && (
               <span className={styles.multiBlindMeta}>

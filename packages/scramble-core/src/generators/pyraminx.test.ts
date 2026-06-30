@@ -40,7 +40,7 @@ describe('generatePyraminxScramble', () => {
 
   it('throws clearly when no sampled state reaches WCA minimum distance', () => {
     expect(() => generatePyraminxScramble({ random: zeroRandom })).toThrow(
-      '@cubegin/scramble-core: could not generate a Pyraminx WCA scramble after 100 attempts',
+      '@cubegin/scramble-core: could not generate a Pyraminx scramble after 100 attempts',
     );
   });
 

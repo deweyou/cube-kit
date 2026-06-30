@@ -1,7 +1,7 @@
-import type { WcaEventId } from '../events.js';
+import type { EventId } from '../events.js';
 
 export interface TnoodleScrambleFixture {
-  readonly eventId: WcaEventId;
+  readonly eventId: EventId;
   readonly scramble: string;
   readonly note: string;
 }

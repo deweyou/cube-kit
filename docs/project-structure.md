@@ -35,7 +35,7 @@ flowchart TD
     SolverPath --> SolverPkg
     Bin --> CliPkg
     Skills --> CliSkill["skills/cubegin/SKILL.md"]
-    SharedPkg --> SharedWca["shared/wca"]
+    SharedPkg --> SharedEvents["shared/events"]
     SharedPkg --> SharedTimer
     SharedPkg --> SharedTimerSession
     CorePkg --> SharedPkg
@@ -76,10 +76,10 @@ apps/web/              React 18 web/H5 app and timer UI
 apps/playground/       React scramble generator/image testing workbench
 apps/scramble-docs/    VitePress bilingual scramble learning site
 apps/wx-app/           Taro WeChat miniprogram shell
-packages/shared/       platform-agnostic WCA constants, timer state, and session rules
+packages/shared/       platform-agnostic event constants, timer state, and session rules
 packages/core/         public cubegin npm package subpath exports
 packages/scramble-puzzle/  TNoodle-compatible parsers, puzzle states, and registry helpers
-packages/scramble-core/    TNoodle-compatible WCA scramble generators
+packages/scramble-core/    TNoodle-compatible scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
 packages/icons/            Platform-agnostic Cubegin SVG icon assets
 packages/solver/           platform-agnostic auxiliary and full solver helpers
@@ -121,7 +121,7 @@ rerun the sync script.
   `scramble-image`, and `solver` packages through
   [usePlayground](../apps/playground/src/playground/use-playground.ts#L1).
 - The playground Icons tab consumes `@cubegin/icons` to inspect brand SVG
-  assets, animated React components, and WCA event SVG assets from one UI
+  assets, animated React components, and event SVG assets from one UI
   surface.
 - Scramble Docs starts with `pnpm dev:scramble-docs` at
   [apps/scramble-docs/docs/index.md#L1](../apps/scramble-docs/docs/index.md#L1).
@@ -160,7 +160,7 @@ rerun the sync script.
 - [apps/wx-app/config/index.ts#L3](../apps/wx-app/config/index.ts#L3) - Taro
   build configuration.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - web scripts build workspace dependencies before dev, test, typecheck, and build.
-- [packages/shared/src/wca/index.ts#L1](../packages/shared/src/wca/index.ts#L1) - shared WCA event metadata barrel.
+- [packages/shared/src/events/index.ts#L1](../packages/shared/src/events/index.ts#L1) - shared event metadata barrel.
 - [packages/shared/src/timer/index.ts#L1](../packages/shared/src/timer/index.ts#L1) - platform-agnostic timer state and formatting barrel.
 - [packages/shared/src/timer-session/index.ts#L1](../packages/shared/src/timer-session/index.ts#L1) - platform-agnostic solve/session rule barrel.
 - [packages/scramble-puzzle/src/index.ts#L1](../packages/scramble-puzzle/src/index.ts#L1) - TNoodle-compatible puzzle domain barrel.

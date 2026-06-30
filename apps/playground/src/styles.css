@@ -318,8 +318,9 @@ button {
 }
 
 .svg-preview svg {
-  max-width: 100%;
-  height: auto;
+  display: block;
+  width: min(100%, var(--scramble-svg-preview-width, 320px));
+  height: var(--scramble-svg-preview-height, 240px);
 }
 
 .empty-state {

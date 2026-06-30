@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WCA_EVENT_IDS } from '@cubegin/shared/wca';
+import { EVENT_IDS } from '@cubegin/shared/events';
 import { createDefaultScrambleGenerator } from './generator.js';
 import type { RandomSource } from './random-source.js';
 
@@ -17,10 +17,10 @@ const cyclingRandom = (): RandomSource => {
 };
 
 describe('default scramble generator', () => {
-  it('generates a non-empty scramble for every WCA event', async () => {
+  it('generates a non-empty scramble for every event', async () => {
     const generator = createDefaultScrambleGenerator({ random: cyclingRandom() });
 
-    for (const eventId of WCA_EVENT_IDS) {
+    for (const eventId of EVENT_IDS) {
       const result = await generator.generate(
         eventId,
         eventId === '333mbld' ? { multiBlindCubeCount: 3 } : undefined,

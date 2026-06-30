@@ -69,7 +69,7 @@ describe('cubegin command tree', () => {
     const lines = await run(['scramble', '--help']);
 
     expect(lines.join('\n')).toContain('scramble events|generate|render');
-    expect(lines.join('\n')).toContain('Generate WCA scrambles');
+    expect(lines.join('\n')).toContain('Generate scrambles');
     expect(process.exitCode).toBeUndefined();
   });
 
@@ -78,7 +78,7 @@ describe('cubegin command tree', () => {
       'scramble events|generate|render',
     );
     expect((await run(['scramble', 'events', 'extra', '--help'])).join('\n')).toContain(
-      'List supported WCA events',
+      'List supported events',
     );
   });
 

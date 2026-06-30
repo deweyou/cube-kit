@@ -2,7 +2,7 @@
 
 ```mermaid
 flowchart TD
-    Events["WCA events"] --> Cubes["NxN cubes"]
+    Events["events"] --> Cubes["NxN cubes"]
     Events --> Clock["Clock"]
     Events --> Minx["Megaminx"]
     Events --> Pyra["Pyraminx"]

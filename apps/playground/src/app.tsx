@@ -2,7 +2,7 @@ import { type CSSProperties, useState } from 'react';
 import { BRAND_ICON_SVGS, type BrandIconId } from '@cubegin/icons/brand';
 import { EVENT_ICON_SVGS } from '@cubegin/icons/events';
 import { CubeginAnimatedIcon, type CubeginAnimatedIconTrigger } from '@cubegin/icons/react';
-import { WCA_EVENT_IDS, WCA_EVENT_INFO, type WcaEventId } from '@cubegin/shared/wca';
+import { EVENT_IDS, EVENT_INFO, type EventId } from '@cubegin/shared/events';
 import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleFullEventId } from '@cubegin/solver';
 import { writeScramblesToClipboard } from './playground/copy';
 import { createSvgDownloadName } from './playground/download';
@@ -86,6 +86,7 @@ const FULL_SOLVER_EVENTS: readonly {
   { eventId: 'skewb', label: 'Skewb' },
   { eventId: 'sq1', label: 'Square-1' },
   { eventId: 'clock', label: 'Clock' },
+  { eventId: 'fto', label: 'FTO' },
 ];
 
 const SOLVER_METHODS: Record<
@@ -139,6 +140,7 @@ const FULL_SOLVER_EVENT_TITLES = {
   skewb: 'Skewb full restore',
   sq1: 'Square-1 full restore',
   clock: 'Clock full restore',
+  fto: 'FTO full restore',
 } satisfies Record<PuzzleFullEventId, string>;
 
 const SOLVER_TARGET_OPTIONS = {
@@ -210,11 +212,22 @@ const EMPTY_FULL_SOLVER_TEXT = {
   skewb: 'Run the Skewb full solver to inspect restore output.',
   sq1: 'Run the Square-1 full solver to inspect restore output.',
   clock: 'Run the Clock full solver to inspect restore output.',
+  fto: 'Run the FTO full solver to inspect restore output.',
 } satisfies Record<PuzzleFullEventId, string>;
 
 export interface AppProps {
   readonly service?: PlaygroundService;
 }
+
+const SVG_PREVIEW_STYLE = {
+  '--scramble-svg-preview-width': '320px',
+  '--scramble-svg-preview-height': '240px',
+} as CSSProperties;
+
+const COMPACT_SVG_PREVIEW_STYLE = {
+  '--scramble-svg-preview-width': '240px',
+  '--scramble-svg-preview-height': '180px',
+} as CSSProperties;
 
 export const App = ({ service }: AppProps = {}) => {
   const playground = usePlayground({ service });
@@ -320,10 +333,10 @@ const IconsPage = () => {
     svg: BRAND_ICON_SVGS[iconId],
     variant: iconId.includes('lockup') || iconId.includes('wordmark') ? 'wide' : undefined,
   })) satisfies IconPreviewAsset[];
-  const eventIcons = WCA_EVENT_IDS.map((eventId) => ({
+  const eventIcons = EVENT_IDS.map((eventId) => ({
     id: eventId,
-    label: `${eventId} - ${WCA_EVENT_INFO[eventId].label}`,
-    meta: WCA_EVENT_INFO[eventId].puzzleId,
+    label: `${eventId} - ${EVENT_INFO[eventId].label}`,
+    meta: EVENT_INFO[eventId].puzzleId,
     svg: EVENT_ICON_SVGS[eventId],
   })) satisfies IconPreviewAsset[];
 
@@ -386,7 +399,7 @@ const IconsPage = () => {
 
         <IconAssetSection assets={brandIcons} heading="Brand assets" testIdPrefix="brand-icon" />
         <AnimatedIconSection />
-        <IconAssetSection assets={eventIcons} heading="WCA event icons" testIdPrefix="event-icon" />
+        <IconAssetSection assets={eventIcons} heading="event icons" testIdPrefix="event-icon" />
       </section>
     </section>
   );
@@ -482,11 +495,11 @@ const ScramblePage = ({
           <span>Event</span>
           <select
             value={playground.eventId}
-            onChange={(event) => playground.setEventId(event.currentTarget.value as WcaEventId)}
+            onChange={(event) => playground.setEventId(event.currentTarget.value as EventId)}
           >
-            {WCA_EVENT_IDS.map((eventId) => (
+            {EVENT_IDS.map((eventId) => (
               <option key={eventId} value={eventId}>
-                {eventId} - {WCA_EVENT_INFO[eventId].label}
+                {eventId} - {EVENT_INFO[eventId].label}
               </option>
             ))}
           </select>
@@ -621,6 +634,7 @@ const ScramblePage = ({
         <div
           className="svg-preview"
           data-testid="svg-preview"
+          style={SVG_PREVIEW_STYLE}
           dangerouslySetInnerHTML={{ __html: playground.svg }}
         />
 
@@ -678,6 +692,7 @@ const ScramblePage = ({
         <div
           className="svg-preview compact"
           data-testid="manual-svg-preview"
+          style={COMPACT_SVG_PREVIEW_STYLE}
           dangerouslySetInnerHTML={{ __html: playground.manualSvg }}
         />
       </div>

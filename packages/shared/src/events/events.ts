@@ -1,4 +1,4 @@
-export const WCA_EVENT_IDS = [
+export const EVENT_IDS = [
   '333',
   '222',
   '444',
@@ -16,19 +16,27 @@ export const WCA_EVENT_IDS = [
   '444bld',
   '555bld',
   '333mbld',
+  'fto',
 ] as const;
 
-export type WcaEventId = (typeof WCA_EVENT_IDS)[number];
+export type EventId = (typeof EVENT_IDS)[number];
 
-export type PuzzleId = 'cube' | 'clock' | 'megaminx' | 'pyraminx' | 'skewb' | 'square1';
+export type PuzzleId =
+  | 'cube'
+  | 'clock'
+  | 'megaminx'
+  | 'pyraminx'
+  | 'skewb'
+  | 'square1'
+  | 'face-turning-octahedron';
 
-export interface WcaEventInfo {
-  readonly id: WcaEventId;
+export interface EventInfo {
+  readonly id: EventId;
   readonly label: string;
   readonly puzzleId: PuzzleId;
 }
 
-export const WCA_EVENT_INFO = Object.freeze({
+export const EVENT_INFO = Object.freeze({
   '333': { id: '333', label: '3x3x3 Cube', puzzleId: 'cube' },
   '222': { id: '222', label: '2x2x2 Cube', puzzleId: 'cube' },
   '444': { id: '444', label: '4x4x4 Cube', puzzleId: 'cube' },
@@ -46,4 +54,9 @@ export const WCA_EVENT_INFO = Object.freeze({
   '444bld': { id: '444bld', label: '4x4 Blindfolded', puzzleId: 'cube' },
   '555bld': { id: '555bld', label: '5x5 Blindfolded', puzzleId: 'cube' },
   '333mbld': { id: '333mbld', label: '3x3 Multi-Blind', puzzleId: 'cube' },
-} satisfies Record<WcaEventId, WcaEventInfo>);
+  fto: {
+    id: 'fto',
+    label: 'Face-Turning Octahedron',
+    puzzleId: 'face-turning-octahedron',
+  },
+} satisfies Record<EventId, EventInfo>);

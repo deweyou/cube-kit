@@ -1,4 +1,4 @@
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import type {
   PuzzleAssistEventId,
   PuzzleAssistMethod,
@@ -12,7 +12,7 @@ export type PlaygroundImageView = ScrambleImageView;
 
 export interface PlaygroundScramble {
   readonly id: string;
-  readonly eventId: WcaEventId;
+  readonly eventId: EventId;
   readonly scramble: string;
 }
 
@@ -28,14 +28,14 @@ export interface PlaygroundRenderDiagnostics {
 }
 
 export interface PlaygroundGenerateInput {
-  readonly eventId: WcaEventId;
+  readonly eventId: EventId;
   readonly count: number;
   readonly multiBlindCubeCount: number;
   readonly imageView: PlaygroundImageView;
 }
 
 export interface PlaygroundManualRenderInput {
-  readonly eventId: WcaEventId;
+  readonly eventId: EventId;
   readonly scramble: string;
   readonly imageView: PlaygroundImageView;
 }

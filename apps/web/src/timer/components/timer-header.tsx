@@ -1,20 +1,20 @@
 import { Button } from '@deweyou-design/react/button';
 import { Tooltip } from '@deweyou-design/react/tooltip';
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import { EventSelector } from './event-selector';
 import { LanguageIcon, SunIcon, ThemeMoonIcon } from './timer-icons';
 import type { TimerLocale, TimerMessages } from '../timer-i18n';
 import styles from './timer-header.module.css';
 
 interface TimerHeaderProps {
-  eventId: WcaEventId;
+  eventId: EventId;
   isScrolled: boolean;
   isSidebarCollapsed: boolean;
   locale: TimerLocale;
   messages: TimerMessages;
   themeMode: 'light' | 'dark';
   toggleThemeLabel: string;
-  onEventChange: (id: WcaEventId) => void;
+  onEventChange: (id: EventId) => void;
   onLocaleToggle: () => void;
   onThemeToggle: () => void;
 }

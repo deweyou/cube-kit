@@ -40,9 +40,7 @@ describe('generateSquareOneScramble', () => {
       generateSquareOneScramble({
         random: createRepeatingSequenceRandom(solvedFullCubeRandomSequence),
       }),
-    ).toThrow(
-      '@cubegin/scramble-core: could not generate a Square-1 WCA scramble after 100 attempts',
-    );
+    ).toThrow('@cubegin/scramble-core: could not generate a Square-1 scramble after 100 attempts');
   });
 });
 

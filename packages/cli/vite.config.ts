@@ -17,7 +17,10 @@ export default defineConfig({
       '@cubegin/scramble-core': workspacePackage('scramble-core'),
       '@cubegin/scramble-image': workspacePackage('scramble-image'),
       '@cubegin/scramble-puzzle': workspacePackage('scramble-puzzle'),
-      '@cubegin/shared/wca': path.resolve(__dirname, '../../packages/shared/src/wca/index.ts'),
+      '@cubegin/shared/events': path.resolve(
+        __dirname,
+        '../../packages/shared/src/events/index.ts',
+      ),
       '@cubegin/solver': workspacePackage('solver'),
     },
   },

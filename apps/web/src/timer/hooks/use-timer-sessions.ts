@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import {
   canDeleteSession,
   getDefaultSessionId,
@@ -14,7 +14,7 @@ import {
 import { createClientId } from '../storage/client-id';
 
 interface SaveSolveInput {
-  eventId: WcaEventId;
+  eventId: EventId;
   scramble: SolveRecord['scramble'];
   elapsedMs: number;
   multiBlind?: SolveRecord['multiBlind'];
@@ -37,7 +37,7 @@ export const useTimerSessions = ({
 }: UseTimerSessionsOptions) => {
   const [sessions, setSessions] = useState<SolveSession[]>([]);
   const [solves, setSolves] = useState<SolveRecord[]>([]);
-  const [eventId, setEventId] = useState<WcaEventId>('333');
+  const [eventId, setEventId] = useState<EventId>('333');
   const [activeSessionId, setActiveSessionId] = useState(getDefaultSessionId('333'));
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string>();
@@ -83,7 +83,7 @@ export const useTimerSessions = ({
   }, [now, repository]);
 
   const selectEvent = useCallback(
-    async (nextEventId: WcaEventId): Promise<SessionTransition> => {
+    async (nextEventId: EventId): Promise<SessionTransition> => {
       const transition = resolveEventChange(nextEventId);
       setEventId(transition.eventId);
       setActiveSessionId(transition.sessionId);

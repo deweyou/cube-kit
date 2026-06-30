@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/shared/wca';
+import { EVENT_IDS, type EventId } from '@cubegin/shared/events';
 import { renderScrambleImage } from './render.js';
 
 interface SvgRootContract {
@@ -29,7 +29,8 @@ const SAMPLE_SCRAMBLES = {
   '444bld': 'Rw U x',
   '555bld': 'Rw U x',
   '333mbld': 'R U',
-} as const satisfies Record<WcaEventId, string>;
+  fto: "U D F B L R BL BR U' BR'",
+} as const satisfies Record<EventId, string>;
 
 const cubeRootContract = (size: number): SvgRootContract => {
   const unit = size * 10;
@@ -62,12 +63,13 @@ const SVG_ROOT_CONTRACTS = {
   pyram: { width: 200, height: 170, rects: 0, paths: 36, circles: 0, texts: 0 },
   skewb: { width: 217, height: 187, rects: 0, paths: 30, circles: 0, texts: 0 },
   sq1: { width: 122, height: 244, rects: 4, paths: 40, circles: 0, texts: 0 },
-} as const satisfies Record<WcaEventId, SvgRootContract>;
+  fto: { width: 320, height: 160, rects: 0, paths: 72, circles: 0, texts: 0 },
+} as const satisfies Record<EventId, SvgRootContract>;
 
 const countElements = (svg: string, elementName: string): number =>
   svg.match(new RegExp(`<${elementName}\\b`, 'g'))?.length ?? 0;
 
-const isometricPathCountFor = (eventId: WcaEventId): number | undefined => {
+const isometricPathCountFor = (eventId: EventId): number | undefined => {
   switch (eventId) {
     case '222':
       return 25;
@@ -93,6 +95,8 @@ const isometricPathCountFor = (eventId: WcaEventId): number | undefined => {
       return 37;
     case 'skewb':
       return 31;
+    case 'fto':
+      return undefined;
     case 'clock':
     case 'sq1':
       return undefined;
@@ -100,8 +104,8 @@ const isometricPathCountFor = (eventId: WcaEventId): number | undefined => {
 };
 
 describe('renderScrambleImage', () => {
-  it('renders every WCA event with its renderer root SVG shape', () => {
-    for (const eventId of WCA_EVENT_IDS) {
+  it('renders every event with its renderer root SVG shape', () => {
+    for (const eventId of EVENT_IDS) {
       const svg = renderScrambleImage(eventId, SAMPLE_SCRAMBLES[eventId]);
       const root = SVG_ROOT_CONTRACTS[eventId];
 
@@ -118,7 +122,7 @@ describe('renderScrambleImage', () => {
   });
 
   it('renders optional isometric SVGs and falls back for Clock and Square-1', () => {
-    for (const eventId of WCA_EVENT_IDS) {
+    for (const eventId of EVENT_IDS) {
       const net = renderScrambleImage(eventId, SAMPLE_SCRAMBLES[eventId]);
       const isometric = renderScrambleImage(eventId, SAMPLE_SCRAMBLES[eventId], {
         view: 'isometric',

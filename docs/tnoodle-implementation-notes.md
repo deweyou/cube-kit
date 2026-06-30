@@ -21,14 +21,14 @@ not be restored.
 
 ## Implemented Packages
 
-- `packages/scramble-puzzle` owns WCA event metadata, puzzle registries,
-  notation parsers, state transitions, and shared fixture helpers. See
+- `packages/scramble-puzzle` owns event metadata, puzzle registries, notation
+  parsers, state transitions, and shared fixture helpers. See
   [docs/packages/scramble-puzzle/index.md](packages/scramble-puzzle/index.md).
-- `packages/scramble-core` owns random sources, batch uniqueness, WCA event
+- `packages/scramble-core` owns random sources, batch uniqueness, event
   generator dispatch, and the solver/random-turn implementations. See
   [docs/packages/scramble-core/index.md](packages/scramble-core/index.md).
-- `packages/scramble-image` owns DOM-free SVG serialization and WCA event
-  renderer dispatch. See
+- `packages/scramble-image` owns DOM-free SVG serialization and event renderer
+  dispatch. See
   [docs/packages/scramble-image/index.md](packages/scramble-image/index.md).
 
 ## Baseline
@@ -83,4 +83,4 @@ which puzzle family changed.
 
 ---
 
-_Last updated: 2026-05-31 | Reason: web app migrated to TNoodle-compatible packages_
+_Last updated: 2026-06-30 | Reason: event metadata renamed and FTO support added_

@@ -57,10 +57,10 @@ export const main = defineCommand({
       },
     }),
     scramble: defineCommand({
-      meta: { name: 'scramble', description: 'Generate and inspect WCA scrambles.' },
+      meta: { name: 'scramble', description: 'Generate and inspect scrambles.' },
       subCommands: {
         events: defineCommand({
-          meta: { name: 'events', description: 'List supported WCA events.' },
+          meta: { name: 'events', description: 'List supported events.' },
           args: {
             json: { type: 'boolean', description: 'Print stable JSON output.' },
           },
@@ -74,9 +74,9 @@ export const main = defineCommand({
           },
         }),
         generate: defineCommand({
-          meta: { name: 'generate', description: 'Generate WCA scrambles.' },
+          meta: { name: 'generate', description: 'Generate scrambles.' },
           args: {
-            event: { type: 'positional', description: 'WCA event id.', required: true },
+            event: { type: 'positional', description: 'event id.', required: true },
             count: { type: 'string', description: 'Number of scrambles.', default: '1' },
             'multi-blind-cube-count': {
               type: 'string',
@@ -102,7 +102,7 @@ export const main = defineCommand({
         render: defineCommand({
           meta: { name: 'render', description: 'Render a scramble as SVG.' },
           args: {
-            event: { type: 'positional', description: 'WCA event id.', required: true },
+            event: { type: 'positional', description: 'event id.', required: true },
             scramble: { type: 'positional', description: 'Scramble string.', required: true },
             output: { type: 'string', alias: ['o'], description: 'Write SVG to a file.' },
             json: { type: 'boolean', description: 'Print stable JSON output.' },

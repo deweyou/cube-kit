@@ -39,7 +39,7 @@ describe('generateSkewbScramble', () => {
 
   it('throws clearly when no sampled state reaches WCA minimum distance', () => {
     expect(() => generateSkewbScramble({ random: zeroRandom })).toThrow(
-      '@cubegin/scramble-core: could not generate a Skewb WCA scramble after 100 attempts',
+      '@cubegin/scramble-core: could not generate a Skewb scramble after 100 attempts',
     );
   });
 });

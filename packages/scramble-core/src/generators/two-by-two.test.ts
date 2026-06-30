@@ -58,7 +58,7 @@ describe('generateTwoByTwoScramble', () => {
 
   it('throws clearly when no sampled state reaches the WCA 4-move minimum', () => {
     expect(() => generateTwoByTwoScramble({ random: zeroRandom })).toThrow(
-      '@cubegin/scramble-core: could not generate a 2x2 WCA scramble after 100 attempts',
+      '@cubegin/scramble-core: could not generate a 2x2 scramble after 100 attempts',
     );
   });
 });

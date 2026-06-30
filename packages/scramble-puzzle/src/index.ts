@@ -1,5 +1,5 @@
-export { WCA_EVENT_IDS, WCA_EVENT_INFO } from './events.js';
-export type { PuzzleId, WcaEventId, WcaEventInfo } from './events.js';
+export { EVENT_IDS, EVENT_INFO } from './events.js';
+export type { EventId, EventInfo, PuzzleId } from './events.js';
 export { splitAlgorithm, applyAlgorithm } from './algorithm.js';
 export { createCubeDefinition } from './cube/cube-definition.js';
 export { parseCubeAlgorithm, parseCubeMove } from './cube/cube-parser.js';
@@ -9,6 +9,7 @@ export { createMegaminxDefinition } from './megaminx/megaminx-definition.js';
 export { createPyraminxDefinition } from './pyraminx/pyraminx-definition.js';
 export { createSkewbDefinition } from './skewb/skewb-definition.js';
 export { createSquareOneDefinition } from './square1/square1-definition.js';
+export { createFtoDefinition } from './fto/fto-definition.js';
 export {
   MEGAMINX_FACES,
   parseMegaminxAlgorithm,
@@ -26,6 +27,7 @@ export {
   parseSkewbAlgorithm,
   parseSkewbMove,
 } from './skewb/skewb-parser.js';
+export { FTO_FACES, FTO_MOVE_FACES, parseFtoAlgorithm, parseFtoMove } from './fto/fto-parser.js';
 export {
   getSquareOneMoveCost,
   getSquareOneSlashabilityMoveCost,
@@ -53,6 +55,7 @@ export {
   areSkewbStatesEqual,
   createSolvedSkewbState,
 } from './skewb/skewb-state.js';
+export { applyFtoMove, areFtoStatesEqual, createSolvedFtoState } from './fto/fto-state.js';
 export {
   applySquareOneMove,
   areSquareOneStatesEqual,
@@ -91,6 +94,7 @@ export type {
   PyraminxTurnMove,
 } from './pyraminx/pyraminx-parser.js';
 export type { SkewbAxis, SkewbMove, SkewbMoveAmount } from './skewb/skewb-parser.js';
+export type { FtoFace, FtoMove, FtoMoveAmount, FtoMoveFace } from './fto/fto-parser.js';
 export type {
   SquareOneMove,
   SquareOneSlashMove,
@@ -111,6 +115,7 @@ export type {
   SkewbImage,
   SkewbState,
 } from './skewb/skewb-state.js';
+export type { FtoFacelet, FtoFaceState, FtoImage, FtoState } from './fto/fto-state.js';
 export type {
   SquareOnePiece,
   SquareOnePieces,

@@ -20,7 +20,10 @@ export default defineConfig({
         __dirname,
         '../../packages/shared/src/timer-session/index.ts',
       ),
-      '@cubegin/shared/wca': path.resolve(__dirname, '../../packages/shared/src/wca/index.ts'),
+      '@cubegin/shared/events': path.resolve(
+        __dirname,
+        '../../packages/shared/src/events/index.ts',
+      ),
       '@cubegin/shared': workspacePackage('shared'),
       '@cubegin/solver': workspacePackage('solver'),
     },

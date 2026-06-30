@@ -45,7 +45,7 @@ pnpm --filter @cubegin/scramble-image typecheck
 
 ## Key Files
 
-- [packages/scramble-image/src/render.ts#L1](../../../packages/scramble-image/src/render.ts#L1) - WCA event dispatch.
+- [packages/scramble-image/src/render.ts#L1](../../../packages/scramble-image/src/render.ts#L1) - event dispatch.
 - [packages/scramble-image/src/renderers/cube-isometric.ts#L1](../../../packages/scramble-image/src/renderers/cube-isometric.ts#L1) - cube fixed-view isometric renderer.
 - [packages/scramble-image/src/svg/svg-serialize.ts#L1](../../../packages/scramble-image/src/svg/svg-serialize.ts#L1) - SVG escaping and serialization.
 - [docs/packages/scramble-image/renderer-contracts.md](renderer-contracts.md) - renderer contracts.
@@ -53,4 +53,4 @@ pnpm --filter @cubegin/scramble-image typecheck
 
 ---
 
-_Last updated: 2026-06-06 | Reason: document optional isometric renderers_
+_Last updated: 2026-06-30 | Reason: event metadata renamed and FTO net renderer added_

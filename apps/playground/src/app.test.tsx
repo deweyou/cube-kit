@@ -1,4 +1,5 @@
 import { cleanup, render, screen } from '@testing-library/react';
+import { EVENT_IDS } from '@cubegin/shared/events';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { App } from './app';
@@ -41,6 +42,18 @@ describe('App', () => {
     expect(preview.querySelectorAll('rect')).toHaveLength(0);
   });
 
+  it('uses fixed fit boxes for scramble SVG previews', () => {
+    renderTestApp();
+
+    const generatedPreviewStyle = screen.getByTestId('svg-preview').getAttribute('style') ?? '';
+    const manualPreviewStyle = screen.getByTestId('manual-svg-preview').getAttribute('style') ?? '';
+
+    expect(generatedPreviewStyle).toContain('--scramble-svg-preview-width: 320px');
+    expect(generatedPreviewStyle).toContain('--scramble-svg-preview-height: 240px');
+    expect(manualPreviewStyle).toContain('--scramble-svg-preview-width: 240px');
+    expect(manualPreviewStyle).toContain('--scramble-svg-preview-height: 180px');
+  });
+
   it('shows MultiBLD cube count only for 333mbld', async () => {
     renderTestApp();
 
@@ -51,7 +64,7 @@ describe('App', () => {
     expect(screen.getByLabelText('MultiBLD cubes')).toBeTruthy();
   });
 
-  it('shows Cubegin brand, animated React, and WCA event icons in the playground gallery', async () => {
+  it('shows Cubegin brand, animated React, and event icons in the playground gallery', async () => {
     renderTestApp();
 
     await userEvent.click(screen.getByRole('tab', { name: 'Icons' }));
@@ -59,7 +72,7 @@ describe('App', () => {
     expect(screen.getByRole('tabpanel', { name: 'Icons' })).toBeTruthy();
     expect(screen.getAllByTestId(/^brand-icon-svg-/)).toHaveLength(8);
     expect(screen.getAllByTestId(/^animated-icon-svg-/)).toHaveLength(2);
-    expect(screen.getAllByTestId(/^event-icon-svg-/)).toHaveLength(17);
+    expect(screen.getAllByTestId(/^event-icon-svg-/)).toHaveLength(EVENT_IDS.length);
     expect(screen.getByTestId('brand-icon-svg-cubegin-mark').querySelector('svg')).toBeTruthy();
     const entranceHoverIcon = screen
       .getByTestId('animated-icon-svg-cubegin-entrance-hover')
@@ -73,6 +86,7 @@ describe('App', () => {
     expect(screen.getByText('333 - 3x3x3 Cube')).toBeTruthy();
     expect(screen.getByTestId('event-icon-svg-333').querySelector('svg')).toBeTruthy();
     expect(screen.getByTestId('event-icon-333mbld').textContent).toContain('333mbld');
+    expect(screen.getByTestId('event-icon-fto').textContent).toContain('fto');
   });
 
   it('changes icon preview size from the icons gallery', async () => {

@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { WCA_EVENT_IDS } from '@cubegin/shared/wca';
+import { EVENT_IDS } from '@cubegin/shared/events';
 import type { ChangeEvent, CSSProperties, ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryTimerSessionRepository } from './storage/memory-timer-session-repository';
@@ -325,23 +325,23 @@ describe('TimerPage', () => {
     render(<TimerPage enableScramblePrefetch repository={createMemoryTimerSessionRepository()} />);
 
     expect(await screen.findAllByText('333 scramble')).toHaveLength(2);
-    await waitFor(() => expect(generate).toHaveBeenCalledTimes(WCA_EVENT_IDS.length + 1));
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(EVENT_IDS.length + 1));
 
     expect(generate).toHaveBeenNthCalledWith(1, '333', { multiBlindCubeCount: undefined });
     expect(generate).toHaveBeenNthCalledWith(2, '333', { multiBlindCubeCount: undefined });
     expect(generateCalls().map(([eventId]) => eventId)).toEqual([
       '333',
       '333',
-      ...WCA_EVENT_IDS.filter((eventId) => eventId !== '333'),
+      ...EVENT_IDS.filter((eventId) => eventId !== '333'),
     ]);
 
     await userEvent.click(screen.getByRole('button', { name: '换一个打乱' }));
-    await waitFor(() => expect(generate).toHaveBeenCalledTimes(WCA_EVENT_IDS.length + 2));
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(EVENT_IDS.length + 2));
 
     expect(generateCalls().map(([eventId]) => eventId)).toEqual([
       '333',
       '333',
-      ...WCA_EVENT_IDS.filter((eventId) => eventId !== '333'),
+      ...EVENT_IDS.filter((eventId) => eventId !== '333'),
       '333',
     ]);
   });

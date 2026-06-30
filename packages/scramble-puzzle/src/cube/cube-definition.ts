@@ -1,5 +1,5 @@
 import { applyAlgorithm } from '../algorithm.js';
-import type { WcaEventId } from '../events.js';
+import type { EventId } from '../events.js';
 import type { PuzzleDefinition } from '../puzzle-definition.js';
 import type { CubeMove } from './cube-move.js';
 import { parseCubeAlgorithm } from './cube-parser.js';
@@ -12,7 +12,7 @@ import {
 
 export const createCubeDefinition = (
   size: number,
-  eventIds: readonly WcaEventId[],
+  eventIds: readonly EventId[],
 ): PuzzleDefinition<CubeState, CubeMove> => {
   const definition: PuzzleDefinition<CubeState, CubeMove> = {
     id: `cube-${size}`,

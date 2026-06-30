@@ -55,7 +55,7 @@ describe('renderScrambleImage', () => {
     expect(svg.match(/<rect/g)?.length).toBe(54);
   });
 
-  it('renders non-cube WCA events through the public image renderer', () => {
+  it('renders non-cube events through the public image renderer', () => {
     expect(renderScrambleImage('clock', '')).toContain('viewBox=');
   });
 

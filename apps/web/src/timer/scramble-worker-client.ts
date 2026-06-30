@@ -1,6 +1,6 @@
 import { createDefaultScrambleGenerator, createMathRandomSource } from '@cubegin/scramble-core';
 import type { GenerateOptions, ScrambleResult } from '@cubegin/scramble-core';
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import {
   getScrambleElapsedMs,
   getScramblePerformanceNow,
@@ -9,7 +9,7 @@ import {
 
 interface GenerateScrambleRequest {
   id: number;
-  eventId: WcaEventId;
+  eventId: EventId;
   options?: GenerateOptions;
 }
 
@@ -37,7 +37,7 @@ type ScrambleWorkerMessage = GenerateScrambleResponse | WorkerReadyMessage;
 
 export interface TimerScrambleGenerator {
   dispose?(): void;
-  generate(eventId: WcaEventId, options?: GenerateOptions): Promise<ScrambleResult>;
+  generate(eventId: EventId, options?: GenerateOptions): Promise<ScrambleResult>;
   preload?(): Promise<void>;
 }
 
@@ -50,7 +50,7 @@ const createWorkerScrambleGenerator = (): TimerScrambleGenerator => {
     number,
     {
       reject: (error: Error) => void;
-      eventId: WcaEventId;
+      eventId: EventId;
       resolve: (result: ScrambleResult) => void;
       startMs: number;
     }

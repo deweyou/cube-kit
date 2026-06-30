@@ -1,4 +1,4 @@
-import { WCA_EVENT_IDS } from '@cubegin/shared/wca';
+import { EVENT_IDS } from '@cubegin/shared/events';
 import {
   createDefaultSession,
   sortSessionsByCreatedDesc,
@@ -16,7 +16,7 @@ export const createMemoryTimerSessionRepository = (): TimerSessionRepository => 
 
   return {
     async initializeDefaultSessions(now) {
-      WCA_EVENT_IDS.forEach((eventId, index) => {
+      EVENT_IDS.forEach((eventId, index) => {
         const session = createDefaultSession(eventId, now + index);
         if (!sessions.has(session.id)) sessions.set(session.id, session);
       });

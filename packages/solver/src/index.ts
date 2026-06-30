@@ -31,6 +31,7 @@ export type { RandomSource } from './random-source.js';
 export { solvePuzzleFull } from './full/facade.js';
 export { ClockSolver } from './full/clock-solver.js';
 export type { ClockSolverSolution } from './full/clock-solver.js';
+export { FtoSolver } from './full/fto-solver.js';
 export { SearchWCA } from './full/min2phase/search-wca.js';
 export { Search as Min2PhaseSearch } from './full/min2phase/search.js';
 export { randomCube, randomState as randomThreeByThreeState } from './full/min2phase/tools.js';

@@ -2,20 +2,22 @@
 
 ```mermaid
 flowchart TD
-    Facade["createDefaultScrambleGenerator"] --> Dispatch["WCA event dispatch"]
+    Facade["createDefaultScrambleGenerator"] --> Dispatch["event dispatch"]
     Dispatch --> RandomState["Random-state generators"]
     Dispatch --> RandomTurns["Random-turn generators"]
     Dispatch --> Batch["Unique batch wrapper"]
     RandomState --> Puzzle["@cubegin/scramble-puzzle"]
 ```
 
-`@cubegin/scramble-core` owns TNoodle-compatible WCA scramble generation. Its
-public facade is async-shaped so generation can move behind a worker boundary
-without changing callers.
+`@cubegin/scramble-core` owns event-based scramble generation. TNoodle-compatible
+events use TNoodle-derived random-state and random-turn implementations, while
+FTO currently uses Cubegin's FTO random-turn generator. The public facade is
+async-shaped so generation can move behind a worker boundary without changing
+callers.
 
 ## Key Rules
 
-- All 17 WCA events are dispatched from
+- All supported events are dispatched from
   [packages/scramble-core/src/generator.ts#L1](../../../packages/scramble-core/src/generator.ts#L1).
 - `333mbld` returns one multi-line attempt containing one 3x3 no-inspection
   scramble per cube.
@@ -40,4 +42,4 @@ pnpm --filter @cubegin/scramble-core typecheck
 
 ---
 
-_Last updated: 2026-05-26 | Reason: add package-scoped knowledge for scramble-core_
+_Last updated: 2026-06-30 | Reason: event metadata renamed and FTO support added_

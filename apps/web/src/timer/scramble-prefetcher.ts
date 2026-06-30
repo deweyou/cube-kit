@@ -1,5 +1,5 @@
 import type { GenerateOptions, ScrambleResult } from '@cubegin/scramble-core';
-import { WCA_EVENT_IDS, type WcaEventId } from '@cubegin/shared/wca';
+import { EVENT_IDS, type EventId } from '@cubegin/shared/events';
 import {
   getScrambleElapsedMs,
   getScramblePerformanceNow,
@@ -10,31 +10,31 @@ import type { TimerScrambleGenerator } from './scramble-worker-client';
 const DEFAULT_MULTI_BLIND_CUBE_COUNT = 3;
 const PREFETCH_QUEUE_LIMIT = 1;
 
-const getMultiBlindCubeCount = (eventId: WcaEventId): number | undefined =>
+const getMultiBlindCubeCount = (eventId: EventId): number | undefined =>
   eventId === '333mbld' ? DEFAULT_MULTI_BLIND_CUBE_COUNT : undefined;
 
-export const getTimerScrambleGenerateOptions = (eventId: WcaEventId): GenerateOptions => ({
+export const getTimerScrambleGenerateOptions = (eventId: EventId): GenerateOptions => ({
   multiBlindCubeCount: getMultiBlindCubeCount(eventId),
 });
 
-const getPrefetchKey = (eventId: WcaEventId, options: GenerateOptions = {}) => {
+const getPrefetchKey = (eventId: EventId, options: GenerateOptions = {}) => {
   if (eventId !== '333mbld') return eventId;
   return `${eventId}:${options.multiBlindCubeCount ?? DEFAULT_MULTI_BLIND_CUBE_COUNT}`;
 };
 
 export interface TimerScramblePrefetcher {
-  consume(eventId: WcaEventId, options?: GenerateOptions): Promise<ScrambleResult>;
+  consume(eventId: EventId, options?: GenerateOptions): Promise<ScrambleResult>;
   dispose(): void;
-  hasReady(eventId: WcaEventId, options?: GenerateOptions): boolean;
-  prefetch(eventId: WcaEventId, options?: GenerateOptions): Promise<void>;
-  prefetchWarmEvents(activeEventId: WcaEventId): Promise<void>;
+  hasReady(eventId: EventId, options?: GenerateOptions): boolean;
+  prefetch(eventId: EventId, options?: GenerateOptions): Promise<void>;
+  prefetchWarmEvents(activeEventId: EventId): Promise<void>;
 }
 
 export const createTimerScramblePrefetcher = (
   generator: TimerScrambleGenerator,
   options: {
     backgroundGenerator?: TimerScrambleGenerator;
-    shouldKeepWarmResult?: (eventId: WcaEventId) => boolean;
+    shouldKeepWarmResult?: (eventId: EventId) => boolean;
   } = {},
 ): TimerScramblePrefetcher => {
   const queues = new Map<string, ScrambleResult[]>();
@@ -50,7 +50,7 @@ export const createTimerScramblePrefetcher = (
   };
 
   const prefetchWithGenerator = (
-    eventId: WcaEventId,
+    eventId: EventId,
     prefetchGenerator: TimerScrambleGenerator,
     reason: 'active' | 'warm',
     generateOptions = getTimerScrambleGenerateOptions(eventId),
@@ -116,13 +116,10 @@ export const createTimerScramblePrefetcher = (
     return request;
   };
 
-  const prefetch = (eventId: WcaEventId, options = getTimerScrambleGenerateOptions(eventId)) =>
+  const prefetch = (eventId: EventId, options = getTimerScrambleGenerateOptions(eventId)) =>
     prefetchWithGenerator(eventId, generator, 'active', options);
 
-  const consume = async (
-    eventId: WcaEventId,
-    options = getTimerScrambleGenerateOptions(eventId),
-  ) => {
+  const consume = async (eventId: EventId, options = getTimerScrambleGenerateOptions(eventId)) => {
     const key = getPrefetchKey(eventId, options);
     const queue = getQueue(key);
     const ready = queue.shift();
@@ -156,10 +153,10 @@ export const createTimerScramblePrefetcher = (
     return generated;
   };
 
-  const getWarmEventIds = (activeEventId: WcaEventId) =>
-    WCA_EVENT_IDS.filter((eventId) => eventId !== activeEventId);
+  const getWarmEventIds = (activeEventId: EventId) =>
+    EVENT_IDS.filter((eventId) => eventId !== activeEventId);
 
-  const prefetchWarmEvents = (activeEventId: WcaEventId) => {
+  const prefetchWarmEvents = (activeEventId: EventId) => {
     const backgroundGenerator = options.backgroundGenerator;
     if (!backgroundGenerator) return Promise.resolve();
 

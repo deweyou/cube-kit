@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { WcaEventId } from '@cubegin/shared/wca';
+import type { EventId } from '@cubegin/shared/events';
 import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleFullEventId } from '@cubegin/solver';
 import { getBrowserSeed } from './browser-seed';
 import { createPlaygroundService } from './playground-service';
@@ -43,7 +43,7 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     () => service ?? createPlaygroundService({ seed: getBrowserSeed() }),
     [service],
   );
-  const [eventId, setEventId] = useState<WcaEventId>('333');
+  const [eventId, setEventId] = useState<EventId>('333');
   const [count, setCount] = useState(5);
   const [multiBlindCubeCount, setMultiBlindCubeCount] = useState(3);
   const [imageView, setImageViewState] = useState<PlaygroundImageView>('net');

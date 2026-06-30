@@ -30,7 +30,7 @@ the Cubegin mark.
 - Mirror static asset exports through `cubegin/icons/<group>/svg/<id>.svg` using
   `cubegin.staticAssetExports` metadata.
 - Keep `@cubegin/scramble-puzzle` out of runtime dependencies. It is only a dev
-  dependency for tests that assert the event icon set matches `WCA_EVENT_IDS`.
+  dependency for tests that assert the event icon set matches `EVENT_IDS`.
 - Keep React behavior in `@cubegin/icons/react`; do not duplicate Cubegin mark
   geometry in standalone animated SVG assets.
 
@@ -60,7 +60,7 @@ the Cubegin mark.
 - `333oh` reuses the `333` grid with the imported hand silhouette transformed
   into filled currentColor plus cutout stroke detail. Adjust position/scale, not
   the hand anatomy.
-- `clock`, `minx`, `pyram`, `skewb`, and `sq1` should follow the same
+- `clock`, `minx`, `pyram`, `skewb`, `sq1`, and `fto` should follow the same
   full-viewBox, single-color, cutout-safe rules as cube events.
 
 ## Verification
@@ -86,7 +86,7 @@ npm pack --dry-run --json
 
 ## Key Files
 
-- [packages/icons/src/events/index.ts#L1](../../../packages/icons/src/events/index.ts#L1) - WCA event SVG source and exports.
+- [packages/icons/src/events/index.ts#L1](../../../packages/icons/src/events/index.ts#L1) - event SVG source and exports.
 - [packages/icons/src/brand/index.ts#L1](../../../packages/icons/src/brand/index.ts#L1) - Cubegin brand SVG string exports.
 - [packages/icons/src/react/index.tsx#L1](../../../packages/icons/src/react/index.tsx#L1) - animated Cubegin mark React components.
 - [packages/icons/scripts/write-svg-files.mjs#L1](../../../packages/icons/scripts/write-svg-files.mjs#L1) - static SVG writer and copier.

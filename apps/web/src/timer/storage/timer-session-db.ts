@@ -1,4 +1,4 @@
-import { WCA_EVENT_IDS } from '@cubegin/shared/wca';
+import { EVENT_IDS } from '@cubegin/shared/events';
 import {
   createDefaultSession,
   sortSessionsByCreatedDesc,
@@ -71,7 +71,7 @@ export const createIndexedDbTimerSessionRepository = async (): Promise<TimerSess
       const existing = new Set((await getAllSessions()).map((session) => session.id));
       await runTransaction(SESSION_STORE, 'readwrite', async (store) => {
         await Promise.all(
-          WCA_EVENT_IDS.map((eventId, index) => {
+          EVENT_IDS.map((eventId, index) => {
             const session = createDefaultSession(eventId, now + index);
             return existing.has(session.id)
               ? Promise.resolve(session.id)

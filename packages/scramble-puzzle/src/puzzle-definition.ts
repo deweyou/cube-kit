@@ -1,8 +1,8 @@
-import type { WcaEventId } from './events.js';
+import type { EventId } from './events.js';
 
 export interface PuzzleDefinition<State, Move> {
   readonly id: string;
-  readonly eventIds: readonly WcaEventId[];
+  readonly eventIds: readonly EventId[];
   createSolvedState(): State;
   parseAlgorithm(algorithm: string): readonly Move[];
   applyMove(state: State, move: Move): State;

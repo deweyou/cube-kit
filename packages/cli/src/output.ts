@@ -26,9 +26,7 @@ interface PackageMetadata {
   readonly version?: unknown;
 }
 
-const readNearestPackageVersion = (
-  start = dirname(fileURLToPath(import.meta.url)),
-): string => {
+const readNearestPackageVersion = (start = dirname(fileURLToPath(import.meta.url))): string => {
   let current = start;
 
   for (let depth = 0; depth < 8; depth += 1) {

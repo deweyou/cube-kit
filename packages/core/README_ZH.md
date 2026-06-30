@@ -5,7 +5,7 @@
 [English](./README.md) | [简体中文](./README_ZH.md)
 
 Cubegin 是一套面向速拧应用、开发者工作流和 AI agent 的魔方工具箱。它提供
-WCA 打乱生成、打乱 SVG 渲染、魔方记号/状态辅助、Cubegin 图标资产、辅助求解
+打乱生成、打乱 SVG 渲染、魔方记号/状态辅助、Cubegin 图标资产、辅助求解
 helpers，以及适合 agent 使用的 CLI。
 
 公开 npm 包是 `cubegin`。这个仓库还包含组合这些共享 packages 的 Web/H5
@@ -49,7 +49,7 @@ pnpm add cubegin
 ```ts
 import { createDefaultScrambleGenerator, createMathRandomSource } from 'cubegin/scramble-core';
 import { renderScrambleImage } from 'cubegin/scramble-image';
-import { WCA_EVENT_IDS } from 'cubegin/scramble-puzzle';
+import { EVENT_IDS } from 'cubegin/scramble-puzzle';
 import { EVENT_ICON_333_SVG } from 'cubegin/icons/events';
 import { solvePuzzleAssist } from 'cubegin/solver';
 
@@ -60,7 +60,7 @@ const scramble = await generator.generate('333');
 const svg = renderScrambleImage('333', scramble.scramble);
 const [cross] = solvePuzzleAssist('333', ['cross'], scramble.scramble);
 
-console.log(WCA_EVENT_IDS);
+console.log(EVENT_IDS);
 console.log(EVENT_ICON_333_SVG);
 console.log(scramble.scramble);
 console.log(svg);
@@ -90,8 +90,8 @@ cubegin/
 │   ├── core/             # public cubegin npm package and bundled entrypoints
 │   ├── cli/              # cubegin CLI source
 │   ├── icons/            # Cubegin brand and event icon assets
-│   ├── scramble-puzzle/  # shared WCA notation, parser, and state contracts
-│   ├── scramble-core/    # TNoodle-compatible WCA scramble generation
+│   ├── scramble-puzzle/  # shared notation, parser, and state contracts
+│   ├── scramble-core/    # TNoodle-compatible scramble generation
 │   ├── scramble-image/   # DOM-free SVG rendering for scramble states
 │   └── solver/           # auxiliary and full solver helpers
 └── docs/                 # repository memory and Superpowers specs/plans
@@ -135,11 +135,11 @@ pnpm build:scramble-docs
 
 ### [`@cubegin/scramble-puzzle`](./packages/scramble-puzzle) - Puzzle contracts
 
-共享 WCA 项目元数据、parser、状态转换和 puzzle definition，覆盖 cube、Clock、Megaminx、Pyraminx、Skewb 和 Square-1。
+共享 event 元数据、parser、状态转换和 puzzle definition，覆盖 cube、Clock、Megaminx、Pyraminx、Skewb、Square-1 和 FTO。
 
 ### [`@cubegin/scramble-core`](./packages/scramble-core) - Scramble generation
 
-TNoodle-compatible 的 WCA 打乱生成，覆盖 17 个支持的 event id，包括最短距离过滤、BLD no-inspection orientation moves、Fewest Moves padding，以及多行 `333mbld` 输出。
+TNoodle-compatible 的打乱生成，覆盖 18 个支持的 event id，包括最短距离过滤、BLD no-inspection orientation moves、Fewest Moves padding、多行 `333mbld` 输出，以及 FTO 记号。
 
 ### [`@cubegin/scramble-image`](./packages/scramble-image) - SVG previews
 
@@ -167,7 +167,7 @@ React Web/H5 计时器 UI。它直接消费 `@cubegin/timer`、`@cubegin/scrambl
 
 ### [`apps/scramble-docs`](./apps/scramble-docs) - Learning site
 
-用于学习 WCA 打乱生成和打乱图渲染原理的中英双语 VitePress 站点。它是内容型应用，聚焦规则、各项目生成策略、状态转换和 SVG 渲染。
+用于学习打乱生成和打乱图渲染原理的中英双语 VitePress 站点。它是内容型应用，聚焦规则、各项目生成策略、状态转换和 SVG 渲染。
 
 ## Agent memory
 
