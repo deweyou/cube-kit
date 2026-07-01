@@ -7,6 +7,7 @@ flowchart TD
     Core --> ScramblePuzzle["cubegin/scramble-puzzle"]
     Core --> Icons["cubegin/icons"]
     Core --> Solver["cubegin/solver"]
+    Core --> Player["cubegin/player"]
     Core --> Bin["bin: cubegin"]
     Core --> Skill["skills/cubegin"]
     Icons --> IconsPkg["@cubegin/icons"]
@@ -14,12 +15,14 @@ flowchart TD
     ScrambleImage --> ImagePkg["@cubegin/scramble-image"]
     ScramblePuzzle --> PuzzlePkg["@cubegin/scramble-puzzle"]
     Solver --> SolverPkg["@cubegin/solver"]
+    Player --> PlayerPkg["@cubegin/player"]
     Bin --> CliPkg["@cubegin/cli"]
     Skill --> SkillSource["repo skills/cubegin"]
     CorePkg -. private vendored dependency .-> SharedPkg["@cubegin/shared"]
     ImagePkg -. private vendored dependency .-> SharedPkg
     PuzzlePkg -. private vendored dependency .-> SharedPkg
     CorePkg -. private vendored dependency .-> SolverPkg["@cubegin/solver"]
+    PlayerPkg -. external runtime dependency .-> Three["three"]
     Icons -. static SVG mirror .-> StaticSvg["cubegin/icons/<group>/svg/*.svg"]
 ```
 
@@ -37,6 +40,8 @@ subpath.
 - `cubegin/icons/events`
 - `cubegin/icons/events/svg/<eventId>.svg`
 - `cubegin/icons/react`
+- `cubegin/player`
+- `cubegin/player/react`
 - `cubegin/scramble-image`
 - `cubegin/scramble-puzzle`
 - `cubegin/solver`
@@ -50,9 +55,10 @@ subpath.
 - [skills/cubegin/SKILL.md](../../../skills/cubegin/SKILL.md#L1) is
   copied into the public package so `cubegin install` can pass the bundled path
   to `npx skills add <path> --copy -g`.
-- The public package may declare normal npm runtime dependencies required by the
-  bin, such as `citty`, but must not declare runtime dependencies on unpublished
-  `@cubegin/*` workspace packages.
+- The public package may declare normal npm runtime dependencies required by
+  exported paths, such as `citty` for the CLI and `three` for the player, but
+  must not declare runtime dependencies on unpublished `@cubegin/*` workspace
+  packages.
 
 ## Verification
 
@@ -104,4 +110,4 @@ The release script discovers changelog scope from every workspace package under
 
 ---
 
-_Last updated: 2026-06-13 | Reason: add CLI bin, solver subpath, and bundled skill distribution_
+_Last updated: 2026-07-01 | Reason: add player subpaths and Three.js runtime dependency_

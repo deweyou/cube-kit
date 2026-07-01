@@ -20,6 +20,7 @@ flowchart TD
     Packages --> ImagePkg["@cubegin/scramble-image"]
     Packages --> IconsPkg["@cubegin/icons"]
     Packages --> SolverPkg["@cubegin/solver"]
+    Packages --> PlayerPkg["@cubegin/player"]
     Packages --> CliPkg["@cubegin/cli"]
     PublicCore --> IconPath["cubegin/icons"]
     PublicCore --> CorePath["cubegin/scramble-core"]
@@ -33,6 +34,8 @@ flowchart TD
     PuzzlePath --> PuzzlePkg
     IconPath --> IconsPkg
     SolverPath --> SolverPkg
+    PublicCore --> PlayerPath["cubegin/player"]
+    PlayerPath --> PlayerPkg
     Bin --> CliPkg
     Skills --> CliSkill["skills/cubegin/SKILL.md"]
     SharedPkg --> SharedEvents["shared/events"]
@@ -43,6 +46,7 @@ flowchart TD
     ImagePkg --> SharedPkg
     ImagePkg --> PuzzlePkg
     SolverPkg --> PuzzlePkg
+    PlayerPkg --> PuzzlePkg
     PuzzlePkg --> SharedPkg
     CliPkg --> CorePkg
     CliPkg --> ImagePkg
@@ -56,6 +60,7 @@ flowchart TD
     Playground --> PuzzlePkg
     Playground --> SharedPkg
     Playground --> SolverPkg
+    Playground --> PlayerPkg
     ScrambleDocs --> CorePkg
     ScrambleDocs --> ImagePkg
     ScrambleDocs --> Docs
@@ -83,6 +88,7 @@ packages/scramble-core/    TNoodle-compatible scramble generators
 packages/scramble-image/   DOM-free TNoodle-compatible SVG renderers
 packages/icons/            Platform-agnostic Cubegin SVG icon assets
 packages/solver/           platform-agnostic auxiliary and full solver helpers
+packages/player/           Three.js formula playback package
 packages/cli/              Source package for the public cubegin CLI
 skills/                    Agent skills copied into the public cubegin package
 docs/                  repository memory and Superpowers specs/plans
@@ -120,6 +126,9 @@ rerun the sync script.
   [App](../apps/playground/src/app.tsx#L1) calls the new `scramble-core`,
   `scramble-image`, and `solver` packages through
   [usePlayground](../apps/playground/src/playground/use-playground.ts#L1).
+- The playground Player tab imports `@cubegin/player/react` and uses generated
+  scrambles plus optional `scramble-image` previews to manually compare 3D
+  playback against static references.
 - The playground Icons tab consumes `@cubegin/icons` to inspect brand SVG
   assets, animated React components, and event SVG assets from one UI
   surface.
@@ -167,6 +176,8 @@ rerun the sync script.
 - [packages/scramble-core/src/index.ts#L1](../packages/scramble-core/src/index.ts#L1) - TNoodle-compatible generator barrel.
 - [packages/scramble-image/src/index.ts#L1](../packages/scramble-image/src/index.ts#L1) - TNoodle-compatible SVG renderer barrel.
 - [packages/icons/src/index.ts#L1](../packages/icons/src/index.ts#L1) - platform-agnostic Cubegin icon asset barrel.
+- [packages/player/src/index.ts#L1](../packages/player/src/index.ts#L1) - Three.js player public API barrel.
+- [packages/player/src/react/player.tsx#L1](../packages/player/src/react/player.tsx#L1) - React player wrapper used by the playground.
 - [packages/core/package.json#L1](../packages/core/package.json#L1) - public
   `cubegin` npm package with subpath exports, CLI bin, and bundled skills.
 - [packages/solver/src/index.ts#L1](../packages/solver/src/index.ts#L1) - auxiliary and full solver barrel.
@@ -179,10 +190,11 @@ rerun the sync script.
 - [docs/packages/scramble-image/index.md#L1](packages/scramble-image/index.md#L1) - image renderer ownership and verification.
 - [docs/packages/icons/index.md#L1](packages/icons/index.md#L1) - icon asset ownership and verification.
 - [docs/packages/solver/index.md#L1](packages/solver/index.md#L1) - solver package ownership and verification.
+- [docs/packages/player/index.md#L1](packages/player/index.md#L1) - Three.js player package ownership and verification.
 - [docs/packages/cli/index.md#L1](packages/cli/index.md#L1) - CLI ownership, JSON contract, and skill install boundary.
 - [docs/apps/playground/index.md#L1](apps/playground/index.md#L1) - playground ownership and diagnostics role.
 - [docs/tnoodle-implementation-notes.md#L1](tnoodle-implementation-notes.md#L1) - implementation notes and upgrade routing for the new packages.
 
 ---
 
-_Last updated: 2026-06-13 | Reason: record README sync and bilingual npm package distribution_
+_Last updated: 2026-07-01 | Reason: add the Three.js player package and playground Player tab_

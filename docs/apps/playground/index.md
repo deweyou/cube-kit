@@ -7,6 +7,9 @@ flowchart TD
     Service --> Image["@cubegin/scramble-image"]
     Service --> Solver["@cubegin/solver"]
     Service --> Diagnostics["diagnostics"]
+    PlayerTab["Player tab"] --> Player["@cubegin/player/react"]
+    PlayerTab --> Service
+    PlayerTab --> Image
 ```
 
 `apps/playground` is a developer test workbench for exercising the scramble and
@@ -32,6 +35,12 @@ solver packages without wiring them into production apps.
 - The SVG preview includes a `2D` / `3D` image-view switch. `2D` is the default
   net renderer; `3D` requests the optional isometric `scramble-image` renderer
   and naturally falls back for unsupported event families.
+- The Player tab imports `@cubegin/player/react`, loads generated scrambles as
+  default formulas for supported events, and keeps a static scramble-image
+  preview beside the 3D player for visual comparison.
+- Player support currently covers cube-family events, Pyraminx, Skewb, FTO, and
+  Megaminx. Clock and Square-1 stay visible as unsupported player events until
+  dedicated adapters exist.
 - The Icons tab previews `@cubegin/icons` brand SVG assets, animated React
   components, and event SVG assets with shared size and background controls.
 
@@ -49,8 +58,9 @@ pnpm --filter playground build
 - [apps/playground/src/playground/use-playground.ts#L1](../../../apps/playground/src/playground/use-playground.ts#L1) - React state boundary.
 - [apps/playground/src/app.tsx#L1](../../../apps/playground/src/app.tsx#L1) - Scrambles and Solvers tab composition.
 - [packages/solver/src/index.ts#L1](../../../packages/solver/src/index.ts#L1) - auxiliary and full solver APIs used by the Solvers tab.
+- [packages/player/src/react/player.tsx#L1](../../../packages/player/src/react/player.tsx#L1) - Three.js player wrapper used by the Player tab.
 - [docs/apps/playground/diagnostics-and-e2e.md](diagnostics-and-e2e.md) - diagnostics and E2E guidance.
 
 ---
 
-_Last updated: 2026-06-30 | Reason: document FTO full solver and event icon scope_
+_Last updated: 2026-07-01 | Reason: document the Player tab and 3D playback package_

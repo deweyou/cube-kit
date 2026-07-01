@@ -87,6 +87,34 @@ describe('createPlaygroundService', () => {
     expect(result.error).toBeUndefined();
   });
 
+  it('generates a single scramble formula for player events', async () => {
+    const requestedBatches: unknown[] = [];
+    const service = createPlaygroundService({
+      generator: {
+        async generate() {
+          throw new Error('generate should not be called');
+        },
+        async generateBatch(eventId, count, options) {
+          requestedBatches.push({ eventId, count, options });
+
+          return [{ eventId, scramble: "R U R' U'" }];
+        },
+      },
+    });
+
+    const result = await service.generatePlayerScramble('333mbld');
+
+    expect(result.eventId).toBe('333mbld');
+    expect(result.scramble).toBe("R U R' U'");
+    expect(result.svg).toContain('<svg');
+    expect(result.render.scrambleLength).toBe(9);
+    expect(result.render.svgBytes).toBeGreaterThan(100);
+    expect(result.error).toBeUndefined();
+    expect(requestedBatches).toEqual([
+      { eventId: '333mbld', count: 1, options: { multiBlindCubeCount: 1 } },
+    ]);
+  });
+
   it('solves non-3x3 helper methods through the playground service', () => {
     const service = createPlaygroundService({ seed: 42, now: fixedClock([1, 5]) });
 

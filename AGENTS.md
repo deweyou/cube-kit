@@ -17,6 +17,7 @@ generation, scramble visualization, and a WeChat miniprogram shell.
 | [docs/packages/scramble-image/index.md](docs/packages/scramble-image/index.md)   | SVG renderer contracts and package boundary               |
 | [docs/packages/icons/index.md](docs/packages/icons/index.md)                     | Cubegin icon asset and React animation boundary           |
 | [docs/packages/solver/index.md](docs/packages/solver/index.md)                   | Auxiliary/full solver API and package boundary            |
+| [docs/packages/player/index.md](docs/packages/player/index.md)                   | Three.js formula player package boundary                  |
 | [docs/packages/cli/index.md](docs/packages/cli/index.md)                         | Public CLI, JSON contract, and bundled agent skill        |
 | [docs/apps/playground/index.md](docs/apps/playground/index.md)                   | Scramble playground diagnostics and E2E role              |
 | [docs/apps/scramble-docs/index.md](docs/apps/scramble-docs/index.md)             | VitePress scramble learning site ownership                |
@@ -58,6 +59,10 @@ generation, scramble visualization, and a WeChat miniprogram shell.
 - If you change `packages/solver`, read
   [docs/packages/solver/index.md](docs/packages/solver/index.md) and the local
   [packages/solver/AGENTS.md](packages/solver/AGENTS.md).
+- If you change `packages/player`, read
+  [docs/packages/player/index.md](docs/packages/player/index.md), the local
+  [packages/player/AGENTS.md](packages/player/AGENTS.md), and
+  [docs/dependency-licensing.md](docs/dependency-licensing.md).
 - If you change `packages/cli`, the public `cubegin` bin, or bundled agent skill
   assets, read [docs/packages/cli/index.md](docs/packages/cli/index.md), local
   [packages/cli/AGENTS.md](packages/cli/AGENTS.md), and

@@ -69,6 +69,7 @@ jobs:
           pnpm --filter cubegin test
           pnpm --filter @cubegin/cli test:coverage
           pnpm --filter @cubegin/icons test:coverage
+          pnpm --filter @cubegin/player test
           pnpm --filter @cubegin/shared test:coverage
           pnpm --filter @cubegin/solver test:coverage
           pnpm --filter @cubegin/scramble-core test:coverage

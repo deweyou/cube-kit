@@ -2,6 +2,8 @@ import { type CSSProperties, useState } from 'react';
 import { BRAND_ICON_SVGS, type BrandIconId } from '@cubegin/icons/brand';
 import { EVENT_ICON_SVGS } from '@cubegin/icons/events';
 import { CubeginAnimatedIcon, type CubeginAnimatedIconTrigger } from '@cubegin/icons/react';
+import { getPlayerPuzzleSupport } from '@cubegin/player';
+import { CubeginPlayer } from '@cubegin/player/react';
 import { EVENT_IDS, EVENT_INFO, type EventId } from '@cubegin/shared/events';
 import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleFullEventId } from '@cubegin/solver';
 import { writeScramblesToClipboard } from './playground/copy';
@@ -13,6 +15,10 @@ type PlaygroundState = ReturnType<typeof usePlayground>;
 
 const ICON_PREVIEW_SIZES = [24, 64, 100, 128, 160] as const;
 type IconPreviewSize = (typeof ICON_PREVIEW_SIZES)[number];
+
+const PLAYER_EVENT_IDS = EVENT_IDS.filter(
+  (eventId) => getPlayerPuzzleSupport(eventId).type !== 'unsupported',
+);
 
 const ICON_PREVIEW_BACKGROUNDS = [
   { label: 'White background', value: '#ffffff' },
@@ -295,6 +301,17 @@ export const App = ({ service }: AppProps = {}) => {
           Solvers
         </button>
         <button
+          aria-controls="player-panel"
+          aria-selected={playground.activePage === 'player'}
+          className="tab-button"
+          id="player-tab"
+          role="tab"
+          type="button"
+          onClick={() => playground.setActivePage('player')}
+        >
+          Player
+        </button>
+        <button
           aria-controls="icons-panel"
           aria-selected={playground.activePage === 'icons'}
           className="tab-button"
@@ -317,10 +334,134 @@ export const App = ({ service }: AppProps = {}) => {
       ) : null}
 
       {playground.activePage === 'solvers' ? <SolverPage playground={playground} /> : null}
+      {playground.activePage === 'player' ? (
+        <PlayerPage
+          draftEventId={playground.playerDraftEventId}
+          draftFormula={playground.playerDraftFormula}
+          eventId={playground.playerEventId}
+          formula={playground.playerFormula}
+          generationError={playground.playerGenerationError}
+          imageError={playground.playerImageError}
+          imageSvg={playground.playerSvg}
+          setDraftEventId={playground.setPlayerDraftEventId}
+          setDraftFormula={playground.setPlayerDraftFormula}
+          loadFormula={playground.loadPlayerFormula}
+        />
+      ) : null}
       {playground.activePage === 'icons' ? <IconsPage /> : null}
     </main>
   );
 };
+
+const PlayerPage = ({
+  draftEventId,
+  draftFormula,
+  eventId,
+  formula,
+  setDraftEventId,
+  setDraftFormula,
+  loadFormula,
+  generationError,
+  imageSvg,
+  imageError,
+}: {
+  readonly draftEventId: EventId;
+  readonly draftFormula: string;
+  readonly eventId: EventId;
+  readonly formula: string;
+  readonly setDraftEventId: (eventId: EventId) => void | Promise<void>;
+  readonly setDraftFormula: (formula: string) => void;
+  readonly loadFormula: () => void;
+  readonly generationError: string | undefined;
+  readonly imageSvg: string;
+  readonly imageError: string | undefined;
+}) => (
+  <section
+    aria-labelledby="player-tab"
+    className="player-workbench"
+    id="player-panel"
+    role="tabpanel"
+  >
+    <aside className="panel player-controls-panel" aria-label="Player controls">
+      <div className="panel-heading">
+        <p className="eyebrow">player</p>
+        <h2>Formula player</h2>
+      </div>
+
+      <label className="field">
+        <span>Player event</span>
+        <select
+          value={draftEventId}
+          onChange={(event) => void setDraftEventId(event.currentTarget.value as EventId)}
+        >
+          {PLAYER_EVENT_IDS.map((optionEventId) => (
+            <option key={optionEventId} value={optionEventId}>
+              {optionEventId} - {EVENT_INFO[optionEventId].label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="field">
+        <span>Player formula</span>
+        <textarea
+          value={draftFormula}
+          onChange={(event) => setDraftFormula(event.currentTarget.value)}
+        />
+      </label>
+
+      <button className="primary-action" type="button" onClick={loadFormula}>
+        Load formula
+      </button>
+
+      {generationError ? (
+        <p className="error" role="alert">
+          {generationError}
+        </p>
+      ) : null}
+
+      <Diagnostics
+        title="Player"
+        values={[
+          ['Event', eventId],
+          ['Moves', String(formula.trim().split(/\s+/).filter(Boolean).length)],
+        ]}
+      />
+    </aside>
+
+    <section className="panel player-stage-panel">
+      <div className="panel-heading">
+        <p className="eyebrow">three.js</p>
+        <h2>3D player</h2>
+      </div>
+
+      <CubeginPlayer className="playground-player" eventId={eventId} formula={formula} />
+    </section>
+
+    <section className="panel player-image-panel" aria-label="Player scramble image">
+      <div className="panel-heading">
+        <p className="eyebrow">scramble-image</p>
+        <h2>End reference</h2>
+      </div>
+
+      {imageSvg ? (
+        <div
+          className="player-image-preview"
+          dangerouslySetInnerHTML={{ __html: imageSvg }}
+          data-testid="player-scramble-image"
+        />
+      ) : (
+        <p className="empty-state">Load a formula to render its scramble image.</p>
+      )}
+
+      {imageError ? (
+        <p className="error" role="alert">
+          {imageError}
+        </p>
+      ) : null}
+    </section>
+  </section>
+);
 
 const IconsPage = () => {
   const [previewSize, setPreviewSize] = useState<IconPreviewSize>(100);

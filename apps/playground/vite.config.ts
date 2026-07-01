@@ -14,6 +14,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@cubegin/scramble-core': workspacePackage('scramble-core'),
+      '@cubegin/player/react': workspaceSource('player/src/react/index.ts'),
+      '@cubegin/player': workspacePackage('player'),
       '@cubegin/icons/brand': workspaceSource('icons/src/brand/index.ts'),
       '@cubegin/icons/events': workspaceSource('icons/src/events/index.ts'),
       '@cubegin/icons/react': workspaceSource('icons/src/react/index.tsx'),

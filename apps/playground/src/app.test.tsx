@@ -1,7 +1,7 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import { EVENT_IDS } from '@cubegin/shared/events';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './app';
 import type {
   PlaygroundFullSolverInput,
@@ -9,6 +9,12 @@ import type {
   PlaygroundManualRenderInput,
 } from './playground/types';
 import type { PlaygroundService } from './playground/use-playground';
+
+vi.mock('@cubegin/player/react', () => ({
+  CubeginPlayer: ({ eventId, formula }: { readonly eventId: string; readonly formula: string }) => (
+    <div data-event-id={eventId} data-formula={formula} data-testid="mock-cubegin-player" />
+  ),
+}));
 
 afterEach(cleanup);
 
@@ -87,6 +93,52 @@ describe('App', () => {
     expect(screen.getByTestId('event-icon-svg-333').querySelector('svg')).toBeTruthy();
     expect(screen.getByTestId('event-icon-333mbld').textContent).toContain('333mbld');
     expect(screen.getByTestId('event-icon-fto').textContent).toContain('fto');
+  });
+
+  it('loads formulas in the player page', async () => {
+    renderTestApp();
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Player' }));
+    await userEvent.selectOptions(screen.getByLabelText('Player event'), '444');
+    await waitFor(() => {
+      expect((screen.getByLabelText('Player formula') as HTMLTextAreaElement).value).toBe(
+        '444-player-scramble',
+      );
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Load formula' }));
+
+    const player = screen.getByTestId('mock-cubegin-player');
+    expect(player.getAttribute('data-event-id')).toBe('444');
+    expect(player.getAttribute('data-formula')).toBe('444-player-scramble');
+    expect(screen.getByTestId('player-scramble-image').querySelector('svg')).toBeTruthy();
+  });
+
+  it('loads non-cube formulas in the player page', async () => {
+    renderTestApp();
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Player' }));
+
+    const playerEventSelect = screen.getByLabelText('Player event');
+
+    expect(within(playerEventSelect).getByRole('option', { name: /pyram -/i })).toBeTruthy();
+    expect(within(playerEventSelect).getByRole('option', { name: /skewb -/i })).toBeTruthy();
+    expect(within(playerEventSelect).getByRole('option', { name: /fto -/i })).toBeTruthy();
+    expect(within(playerEventSelect).getByRole('option', { name: /minx -/i })).toBeTruthy();
+    expect(within(playerEventSelect).queryByRole('option', { name: /clock -/i })).toBeNull();
+    expect(within(playerEventSelect).queryByRole('option', { name: /sq1 -/i })).toBeNull();
+
+    await userEvent.selectOptions(playerEventSelect, 'minx');
+    await waitFor(() => {
+      expect((screen.getByLabelText('Player formula') as HTMLTextAreaElement).value).toBe(
+        'minx-player-scramble',
+      );
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Load formula' }));
+
+    const player = screen.getByTestId('mock-cubegin-player');
+    expect(player.getAttribute('data-event-id')).toBe('minx');
+    expect(player.getAttribute('data-formula')).toBe('minx-player-scramble');
+    expect(screen.getByTestId('player-scramble-image').querySelector('svg')).toBeTruthy();
   });
 
   it('changes icon preview size from the icons gallery', async () => {
@@ -292,6 +344,15 @@ const fakeService = (): PlaygroundService => ({
     return {
       eventId,
       scramble: `${eventId}-scramble`,
+      error: undefined,
+    };
+  },
+  async generatePlayerScramble(eventId, imageView = 'net') {
+    return {
+      eventId,
+      scramble: `${eventId}-player-scramble`,
+      svg: `<svg data-view="${imageView}"></svg>`,
+      render: { durationMs: 4, scrambleLength: `${eventId}-player-scramble`.length, svgBytes: 32 },
       error: undefined,
     };
   },

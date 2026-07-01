@@ -88,3 +88,11 @@ export interface PlaygroundSolverScrambleResult {
   readonly scramble: string;
   readonly error: string | undefined;
 }
+
+export interface PlaygroundPlayerScrambleResult {
+  readonly eventId: EventId;
+  readonly scramble: string;
+  readonly svg: string;
+  readonly render: PlaygroundRenderDiagnostics;
+  readonly error: string | undefined;
+}
