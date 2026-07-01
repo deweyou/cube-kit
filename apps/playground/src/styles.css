@@ -399,6 +399,14 @@ button {
   margin: 0 auto;
 }
 
+.player-workbench {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(520px, 1fr) minmax(320px, 420px);
+  gap: 16px;
+  max-width: 1680px;
+  margin: 0 auto;
+}
+
 .icons-workbench {
   --icon-asset-card-min: calc(var(--icon-asset-frame-size) + 52px);
   --icon-asset-frame-size: 124px;
@@ -410,9 +418,114 @@ button {
 
 .solver-controls-panel,
 .solver-results-panel,
+.player-controls-panel,
+.player-stage-panel,
+.player-image-panel,
 .icons-panel {
   min-height: 520px;
   padding: 18px;
+}
+
+.player-stage-panel {
+  min-width: 0;
+}
+
+.player-image-panel {
+  min-width: 0;
+}
+
+.player-image-preview {
+  display: grid;
+  min-height: 360px;
+  place-items: center;
+  overflow: auto;
+  border: 1px solid #d9e1e5;
+  border-radius: 6px;
+  background: #f8fafb;
+  padding: 12px;
+}
+
+.player-image-preview svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.playground-player {
+  display: grid;
+  gap: 12px;
+}
+
+.cubegin-player__viewport {
+  display: grid;
+  min-height: 360px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #d9e1e5;
+  border-radius: 6px;
+  background: #f8fafb;
+}
+
+.cubegin-player__viewport canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cubegin-player__controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(64px, 1fr)) minmax(96px, 128px);
+  gap: 8px;
+  align-items: center;
+}
+
+.cubegin-player__controls button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: #26343b;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.cubegin-player__controls button:disabled {
+  cursor: not-allowed;
+  background: #c8d2d7;
+  color: #62737b;
+}
+
+.cubegin-player__controls input[type='range'] {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: #257b6e;
+}
+
+.cubegin-player__speed {
+  display: grid;
+  gap: 4px;
+  color: #53656e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cubegin-player__speed select {
+  min-height: 34px;
+  border: 1px solid #cbd5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #102027;
+  font: inherit;
+  padding: 0 8px;
+}
+
+.cubegin-player__error {
+  margin: 0;
+  border: 1px solid #e3aaa1;
+  border-radius: 6px;
+  background: #fff3f0;
+  color: #9a341f;
+  padding: 10px;
+  font-size: 13px;
 }
 
 .icons-panel-header {
@@ -700,6 +813,12 @@ button {
   overflow-wrap: anywhere;
 }
 
+@media (max-width: 1220px) {
+  .player-workbench {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 1080px) {
   .workbench,
   .manual-grid,
@@ -713,6 +832,9 @@ button {
   .image-panel,
   .solver-controls-panel,
   .solver-results-panel,
+  .player-controls-panel,
+  .player-stage-panel,
+  .player-image-panel,
   .icons-panel {
     min-height: auto;
   }
@@ -747,6 +869,15 @@ button {
   .icons-panel-header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .cubegin-player__controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cubegin-player__speed,
+  .cubegin-player__controls input[type='range'] {
+    grid-column: 1 / -1;
   }
 
   .solution-list li {

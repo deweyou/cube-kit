@@ -12,7 +12,7 @@ import type {
   PlaygroundSolverResult,
 } from './types';
 
-export type PlaygroundPage = 'scrambles' | 'solvers' | 'icons';
+export type PlaygroundPage = 'scrambles' | 'solvers' | 'player' | 'icons';
 export type PlaygroundSolverMode = 'assist' | 'full';
 export type PlaygroundService = ReturnType<typeof createPlaygroundService>;
 
@@ -67,6 +67,13 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   const [solverResult, setSolverResult] = useState<PlaygroundSolverResult>();
   const [fullSolverResult, setFullSolverResult] = useState<PlaygroundFullSolverResult>();
   const [solverGenerationError, setSolverGenerationError] = useState<string>();
+  const [playerDraftEventId, setPlayerDraftEventIdState] = useState<EventId>('333');
+  const [playerEventId, setPlayerEventId] = useState<EventId>('333');
+  const [playerDraftFormula, setPlayerDraftFormulaState] = useState("R U R' U'");
+  const [playerFormula, setPlayerFormula] = useState("R U R' U'");
+  const [playerGenerationError, setPlayerGenerationError] = useState<string>();
+  const [playerSvg, setPlayerSvg] = useState('');
+  const [playerImageError, setPlayerImageError] = useState<string>();
 
   const generate = async () => {
     setGenerationError(undefined);
@@ -164,6 +171,46 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     await applyGeneratedSolverScramble(solverEventId);
   };
 
+  const applyGeneratedPlayerScramble = async (nextEventId: EventId) => {
+    const result = await packageService.generatePlayerScramble(nextEventId, imageView);
+
+    setPlayerGenerationError(result.error);
+    setPlayerImageError(result.error);
+    if (!result.error) {
+      setPlayerDraftFormulaState(result.scramble);
+      setPlayerEventId(nextEventId);
+      setPlayerFormula(result.scramble);
+      setPlayerSvg(result.svg);
+    }
+  };
+
+  const setPlayerDraftEventId = async (nextEventId: EventId) => {
+    setPlayerDraftEventIdState(nextEventId);
+    setPlayerGenerationError(undefined);
+    setPlayerImageError(undefined);
+    setPlayerDraftFormulaState('');
+
+    await applyGeneratedPlayerScramble(nextEventId);
+  };
+
+  const setPlayerDraftFormula = (nextFormula: string) => {
+    setPlayerDraftFormulaState(nextFormula);
+    setPlayerImageError(undefined);
+  };
+
+  const loadPlayerFormula = () => {
+    const renderResult = packageService.renderManual({
+      eventId: playerDraftEventId,
+      scramble: playerDraftFormula,
+      imageView,
+    });
+
+    setPlayerEventId(playerDraftEventId);
+    setPlayerFormula(playerDraftFormula);
+    setPlayerSvg(renderResult.svg);
+    setPlayerImageError(renderResult.error);
+  };
+
   const setSolverMethod = (method: PuzzleAssistMethod, checked: boolean) => {
     setSolverMethods((currentMethods) => {
       const nextMethods = checked
@@ -228,6 +275,17 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
       setManualResult(result);
       setManualSvg(result.svg);
     }
+
+    if (playerFormula.length > 0 || playerSvg.length > 0) {
+      const result = packageService.renderManual({
+        eventId: playerEventId,
+        scramble: playerFormula,
+        imageView: nextImageView,
+      });
+
+      setPlayerSvg(result.svg);
+      setPlayerImageError(result.error);
+    }
   };
 
   return {
@@ -270,6 +328,16 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     generateSolverScramble,
     solvePuzzleAssist,
     solvePuzzleFull,
+    playerDraftEventId,
+    setPlayerDraftEventId,
+    playerEventId,
+    playerDraftFormula,
+    setPlayerDraftFormula,
+    playerFormula,
+    loadPlayerFormula,
+    playerGenerationError,
+    playerSvg,
+    playerImageError,
   };
 };
 

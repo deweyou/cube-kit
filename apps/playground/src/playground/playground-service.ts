@@ -1,9 +1,11 @@
 import {
   createDefaultScrambleGenerator,
+  type GenerateOptions,
   type RandomSource,
   type ScrambleGenerator,
 } from '@cubegin/scramble-core';
 import { renderScrambleImage } from '@cubegin/scramble-image';
+import type { EventId } from '@cubegin/shared/events';
 import {
   solvePuzzleAssist as solvePuzzleAssistCore,
   solvePuzzleFull as solvePuzzleFullCore,
@@ -14,10 +16,12 @@ import { createSeededRandomSource } from './seeded-random';
 import type {
   PlaygroundGenerateInput,
   PlaygroundGenerateResult,
+  PlaygroundImageView,
   PlaygroundFullSolverInput,
   PlaygroundFullSolverResult,
   PlaygroundManualRenderInput,
   PlaygroundManualRenderResult,
+  PlaygroundPlayerScrambleResult,
   PlaygroundRenderDiagnostics,
   PlaygroundScramble,
   PlaygroundSolverInput,
@@ -40,6 +44,30 @@ export const createPlaygroundService = ({
 }: PlaygroundServiceOptions = {}) => {
   const randomSource = random ?? createSeededRandomSource(seed ?? Date.now());
   const generator = providedGenerator ?? createDefaultScrambleGenerator({ random: randomSource });
+  const generateSingleScramble = async <TEventId extends EventId>(
+    eventId: TEventId,
+    options?: GenerateOptions,
+  ): Promise<{
+    readonly eventId: TEventId;
+    readonly scramble: string;
+    readonly error: string | undefined;
+  }> => {
+    try {
+      const [result] = await generator.generateBatch(eventId, 1, options);
+
+      return {
+        eventId,
+        scramble: result?.scramble ?? '',
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        eventId,
+        scramble: '',
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  };
 
   return {
     async generate(input: PlaygroundGenerateInput): Promise<PlaygroundGenerateResult> {
@@ -113,18 +141,58 @@ export const createPlaygroundService = ({
     async generateSolverScramble(
       eventId: PuzzleAssistEventId | PuzzleFullEventId,
     ): Promise<PlaygroundSolverScrambleResult> {
-      try {
-        const [result] = await generator.generateBatch(eventId, 1);
+      return await generateSingleScramble(eventId);
+    },
+    async generatePlayerScramble(
+      eventId: EventId,
+      imageView: PlaygroundImageView = 'net',
+    ): Promise<PlaygroundPlayerScrambleResult> {
+      const generated = await generateSingleScramble(
+        eventId,
+        eventId === '333mbld' ? { multiBlindCubeCount: 1 } : undefined,
+      );
+      const renderStart = now();
+
+      if (generated.error) {
+        const renderEnd = now();
 
         return {
-          eventId,
-          scramble: result?.scramble ?? '',
-          error: undefined,
+          ...generated,
+          svg: '',
+          render: createRenderDiagnostics({
+            durationMs: renderEnd - renderStart,
+            scramble: generated.scramble,
+            svg: '',
+          }),
+        };
+      }
+
+      try {
+        const svg = renderScrambleImage(generated.eventId, generated.scramble, {
+          view: imageView,
+        });
+        const renderEnd = now();
+
+        return {
+          ...generated,
+          svg,
+          render: createRenderDiagnostics({
+            durationMs: renderEnd - renderStart,
+            scramble: generated.scramble,
+            svg,
+          }),
         };
       } catch (error) {
+        const renderEnd = now();
+
         return {
-          eventId,
-          scramble: '',
+          ...generated,
+          svg: '',
+          render: createRenderDiagnostics({
+            durationMs: renderEnd - renderStart,
+            scramble: generated.scramble,
+            svg: '',
+          }),
           error: error instanceof Error ? error.message : String(error),
         };
       }

@@ -39,6 +39,8 @@ describe('cubegin package exports', () => {
       './icons/events/svg/*': './dist/icons/events/svg/*',
       './icons/react': './dist/icons/react.mjs',
       './cli': './dist/cli.mjs',
+      './player': './dist/player.mjs',
+      './player/react': './dist/player/react.mjs',
       './scramble-core': './dist/scramble-core.mjs',
       './scramble-image': './dist/scramble-image.mjs',
       './scramble-puzzle': './dist/scramble-puzzle.mjs',

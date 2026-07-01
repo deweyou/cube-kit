@@ -29,6 +29,8 @@
     "./icons/react": "./dist/icons/react.mjs",
     "./icons/brand/svg/*": "./dist/icons/brand/svg/*",
     "./icons/events/svg/*": "./dist/icons/events/svg/*",
+    "./player": "./dist/player.mjs",
+    "./player/react": "./dist/player/react.mjs",
     "./scramble-core": "./dist/scramble-core.mjs",
     "./scramble-image": "./dist/scramble-image.mjs",
     "./scramble-puzzle": "./dist/scramble-puzzle.mjs",
@@ -43,11 +45,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "citty": "^0.2.2"
+    "citty": "^0.2.2",
+    "three": "^0.185.0"
   },
   "devDependencies": {
     "@cubegin/cli": "workspace:*",
     "@cubegin/icons": "workspace:*",
+    "@cubegin/player": "workspace:*",
     "@cubegin/scramble-core": "workspace:*",
     "@cubegin/scramble-image": "workspace:*",
     "@cubegin/scramble-puzzle": "workspace:*",

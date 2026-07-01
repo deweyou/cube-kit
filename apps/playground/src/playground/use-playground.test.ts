@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import type { EventId } from '@cubegin/shared/events';
 import { describe, expect, it } from 'vitest';
 import type {
   PlaygroundFullSolverInput,
@@ -86,6 +87,27 @@ describe('usePlayground', () => {
     expect(result.current.solverTargetText).toBe('D');
   });
 
+  it('auto-generates a player scramble when changing player event', async () => {
+    const { result } = renderHook(() => usePlayground({ service: fakeService() }));
+
+    await act(async () => {
+      await result.current.setPlayerDraftEventId('minx');
+    });
+    expect(result.current.playerEventId).toBe('minx');
+    expect(result.current.playerFormula).toBe('minx-player-scramble');
+    expect(result.current.playerSvg).toBe('<svg>player-minx-net</svg>');
+
+    act(() => {
+      result.current.loadPlayerFormula();
+    });
+
+    expect(result.current.playerDraftEventId).toBe('minx');
+    expect(result.current.playerDraftFormula).toBe('minx-player-scramble');
+    expect(result.current.playerEventId).toBe('minx');
+    expect(result.current.playerFormula).toBe('minx-player-scramble');
+    expect(result.current.playerSvg).toBe('<svg>manual-net</svg>');
+  });
+
   it('switches to full solver mode and stores full solve results', async () => {
     const { result } = renderHook(() => usePlayground({ service: fakeService() }));
 
@@ -126,12 +148,19 @@ const fakeService = () => ({
       error: undefined,
     };
   },
-  async generateSolverScramble(
-    eventId: '333' | '444' | '222' | 'sq1' | 'pyram' | 'skewb' | 'clock',
-  ) {
+  async generateSolverScramble(eventId: EventId) {
     return {
       eventId,
       scramble: `${eventId}-scramble`,
+      error: undefined,
+    };
+  },
+  async generatePlayerScramble(eventId: EventId, imageView = 'net') {
+    return {
+      eventId,
+      scramble: `${eventId}-player-scramble`,
+      svg: `<svg>player-${eventId}-${imageView}</svg>`,
+      render: { durationMs: 4, scrambleLength: `${eventId}-player-scramble`.length, svgBytes: 32 },
       error: undefined,
     };
   },

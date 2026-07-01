@@ -55,7 +55,12 @@ export {
   areSkewbStatesEqual,
   createSolvedSkewbState,
 } from './skewb/skewb-state.js';
-export { applyFtoMove, areFtoStatesEqual, createSolvedFtoState } from './fto/fto-state.js';
+export {
+  applyFtoMove,
+  areFtoStatesEqual,
+  createSolvedFtoState,
+  getFtoMoveSourceByTarget,
+} from './fto/fto-state.js';
 export {
   applySquareOneMove,
   areSquareOneStatesEqual,

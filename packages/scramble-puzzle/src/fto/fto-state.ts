@@ -75,17 +75,27 @@ const validateMove = (move: FtoMove): FtoMove => {
 
 const moveIndexFor = (move: FtoMove): number => FTO_MOVE_FACE_TO_INDEX[move.face] + move.amount - 1;
 
+export const getFtoMoveSourceByTarget = (move: FtoMove): readonly number[] => {
+  const validMove = validateMove(move);
+  const sourceByTarget = FTO_FACELET_SOURCE_BY_TARGET[moveIndexFor(validMove)];
+
+  if (sourceByTarget === undefined) {
+    throw new RangeError('FTO move source table is missing an entry');
+  }
+
+  return sourceByTarget;
+};
+
 export const createSolvedFtoState = (): FtoState =>
   createFtoState(FTO_FACES.map((_, face) => Array<FtoFacelet>(STICKERS_PER_FACE).fill(face)));
 
 export const applyFtoMove = (state: FtoState, move: FtoMove): FtoState => {
-  const validMove = validateMove(move);
+  const sourceByTarget = getFtoMoveSourceByTarget(move);
   const flatState = flattenImage(state.image);
   if (flatState.length !== FACELET_COUNT) {
     throw new RangeError('FTO state must contain 72 facelets');
   }
 
-  const sourceByTarget = FTO_FACELET_SOURCE_BY_TARGET[moveIndexFor(validMove)];
   const nextFacelets = sourceByTarget.map((sourceFacelet) => flatState[sourceFacelet]);
 
   return createFtoState(inflateImage(nextFacelets));

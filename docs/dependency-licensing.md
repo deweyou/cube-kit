@@ -9,6 +9,11 @@ flowchart TD
     RepoLicense --> Icons["@cubegin/icons GPL-3.0-only"]
     NewPackages --> PublicPackage["cubegin package subpaths GPL-3.0-only"]
     Icons --> PublicPackage
+    Three["three MIT"] --> Player["@cubegin/player GPL-3.0-only"]
+    Three --> PublicPackage
+    CubingGeometry["cubing.js PuzzleGeometry MPL-2.0 OR GPL-3.0-or-later"] -. "Static non-cube player geometry and move maps" .-> Player
+    ScramblePuzzle --> Player
+    Player --> Apps
     Cli["packages/cli MIT dependency: citty"] --> PublicPackage
     NewPackages --> RepoLicense
     NewPackages --> Apps["apps/web and playground import TNoodle-compatible packages"]
@@ -47,6 +52,16 @@ decisions as licensing decisions, not only build decisions.
   ship GPL text and attribution through their `LICENSE` and `NOTICE` files.
 - `citty` is an MIT-licensed runtime dependency for the public `cubegin` CLI and
   is not part of the TNoodle-compatible ported source.
+- `three` is an MIT-licensed runtime dependency for `@cubegin/player`; the player
+  package and the public `cubegin/player` facade remain GPL-3.0-only because
+  they are distributed inside this repository and parse cube notation through
+  the GPL Cubegin puzzle packages.
+- Pyraminx, Skewb, and Megaminx player geometry may reference static sticker
+  coordinates and move mappings from `cubing.js` PuzzleGeometry under its
+  `MPL-2.0 OR GPL-3.0-or-later` license. Keep the attribution in
+  `packages/player/NOTICE`; do not add `cubing/twisty` or
+  `cubing/puzzle-geometry` as a bundled runtime dependency without a separate
+  distribution review.
 - Before adding any dependency to `deps.alwaysBundle`, `noExternal`, or another
   static bundling path, inspect its package license and shipped license file.
   Do not rely only on the package.json `license` field.
@@ -61,4 +76,4 @@ decisions as licensing decisions, not only build decisions.
 
 ---
 
-_Last updated: 2026-06-30 | Reason: record FTO csTimer source-provenance boundary_
+_Last updated: 2026-06-30 | Reason: record player Three.js dependency and Megaminx geometry provenance_

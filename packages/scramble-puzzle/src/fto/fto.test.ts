@@ -3,7 +3,12 @@ import { applyAlgorithm } from '../algorithm.js';
 import { InvalidMoveError, InvalidScrambleError } from '../errors.js';
 import { createFtoDefinition } from './fto-definition.js';
 import { parseFtoAlgorithm } from './fto-parser.js';
-import { applyFtoMove, areFtoStatesEqual, createSolvedFtoState } from './fto-state.js';
+import {
+  applyFtoMove,
+  areFtoStatesEqual,
+  createSolvedFtoState,
+  getFtoMoveSourceByTarget,
+} from './fto-state.js';
 
 const MOVE_INVERSES = [
   ['U', "U'"],
@@ -81,6 +86,21 @@ describe('FTO state transitions', () => {
         return counts;
       }, {}),
     ).toEqual({ 0: 9, 1: 9, 2: 9, 3: 9, 4: 9, 5: 9, 6: 9, 7: 9 });
+  });
+
+  it('exposes FTO facelet permutations for shared renderers', () => {
+    const [move] = parseFtoAlgorithm("R'");
+
+    if (move === undefined) throw new Error('expected an FTO move');
+
+    const sourceByTarget = getFtoMoveSourceByTarget(move);
+
+    expect(sourceByTarget).toHaveLength(72);
+    expect(new Set(sourceByTarget).size).toBe(72);
+    expect(sourceByTarget.some((source, target) => source !== target)).toBe(true);
+    expect(() => getFtoMoveSourceByTarget({ face: 'U', amount: 3 } as never)).toThrow(
+      InvalidMoveError,
+    );
   });
 
   it('wraps invalid algorithms through the shared applyAlgorithm helper', () => {
