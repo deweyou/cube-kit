@@ -40,6 +40,9 @@ shape, expected element counts, custom color handling, and safe escaping.
   is requested.
 - SVG output is a string, not a DOM node, so app integration can run in Node,
   browser workers, and test environments.
+- Square-1 duplicates the middle slice so the top layer can be inspected with a
+  left-side slice and the bottom layer with a right-side slice, with both
+  two-part groups vertically centered.
 
 ## Key Files
 

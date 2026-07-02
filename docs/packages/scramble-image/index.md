@@ -34,6 +34,9 @@ and Skewb events with `renderScrambleImage(eventId, scramble, { view:
 - SVG serialization escapes attribute values and text content.
 - Cube, Clock, Megaminx, Pyraminx, Skewb, and Square-1 renderers own their own
   layout contracts.
+- Square-1 renders a center-aligned split 2D layout: the left copy shows top
+  layer plus middle slice, and the right copy shows middle slice plus bottom
+  layer.
 
 ## Verify
 

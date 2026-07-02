@@ -62,7 +62,7 @@ const SVG_ROOT_CONTRACTS = {
   minx: { width: 304, height: 146, rects: 0, paths: 132, circles: 0, texts: 2 },
   pyram: { width: 200, height: 170, rects: 0, paths: 36, circles: 0, texts: 0 },
   skewb: { width: 217, height: 187, rects: 0, paths: 30, circles: 0, texts: 0 },
-  sq1: { width: 122, height: 244, rects: 4, paths: 40, circles: 0, texts: 0 },
+  sq1: { width: 244, height: 244, rects: 8, paths: 40, circles: 0, texts: 0 },
   fto: { width: 320, height: 160, rects: 0, paths: 72, circles: 0, texts: 0 },
 } as const satisfies Record<EventId, SvgRootContract>;
 
