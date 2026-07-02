@@ -454,11 +454,14 @@ button {
 .playground-player {
   display: grid;
   gap: 12px;
+  width: min(100%, 620px);
+  margin: 0 auto;
 }
 
 .cubegin-player__viewport {
   display: grid;
-  min-height: 360px;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
   place-items: center;
   overflow: hidden;
   border: 1px solid #d9e1e5;

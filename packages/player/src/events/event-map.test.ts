@@ -18,6 +18,7 @@ describe('getPlayerPuzzleSupport', () => {
   });
 
   it('maps non-cube player events to puzzle adapters', () => {
+    expect(getPlayerPuzzleSupport('clock')).toEqual({ type: 'clock' });
     expect(getPlayerPuzzleSupport('minx')).toEqual({ type: 'megaminx' });
     expect(getPlayerPuzzleSupport('pyram')).toEqual({ type: 'pyraminx' });
     expect(getPlayerPuzzleSupport('skewb')).toEqual({ type: 'skewb' });
@@ -25,7 +26,6 @@ describe('getPlayerPuzzleSupport', () => {
   });
 
   it('reports events outside the player release as unsupported', () => {
-    expect(getPlayerPuzzleSupport('clock')).toEqual({ type: 'unsupported' });
     expect(getPlayerPuzzleSupport('sq1')).toEqual({ type: 'unsupported' });
   });
 });

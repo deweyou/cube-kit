@@ -7,6 +7,7 @@ const createView = (): PlayerControllerView => ({
   play: vi.fn(),
   pause: vi.fn(),
   seek: vi.fn(),
+  resetCameraOrbit: vi.fn(),
   dispose: vi.fn(),
 });
 
@@ -44,8 +45,8 @@ describe('createPlayerController', () => {
     const view = createView();
 
     const controller = createPlayerController(view, {
-      eventId: 'clock',
-      formula: 'UR1+',
+      eventId: 'sq1',
+      formula: '(1,0)',
       initialPosition: 'start',
     });
 
@@ -109,5 +110,20 @@ describe('createPlayerController', () => {
     expect(onStateChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ progress: 0.5, status: 'playing' }),
     );
+  });
+
+  it('resets the camera view without changing playback progress', () => {
+    const view = createView();
+    const controller = createPlayerController(view, {
+      eventId: '333',
+      formula: 'R U',
+      initialPosition: 'start',
+    });
+
+    controller.seek(0.5);
+
+    expect(controller.resetView()).toBe(true);
+    expect(view.resetCameraOrbit).toHaveBeenCalledTimes(1);
+    expect(controller.getState().progress).toBe(0.5);
   });
 });

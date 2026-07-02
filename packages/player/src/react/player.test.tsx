@@ -14,6 +14,7 @@ const createView = (): PlayerControllerView => ({
   play: vi.fn(),
   pause: vi.fn(),
   seek: vi.fn(),
+  resetCameraOrbit: vi.fn(),
   dispose: vi.fn(),
 });
 
@@ -100,5 +101,27 @@ describe('CubeginPlayer', () => {
     });
 
     expect(progress?.value).toBe('2');
+  });
+
+  it('lets users reset the camera view from the controls', async () => {
+    const container = document.createElement('div');
+    const view = createView();
+    const viewFactory = vi.fn<CubeginPlayerViewFactory>().mockReturnValue(view);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(<CubeginPlayer eventId="clock" formula="UR3+" viewFactory={viewFactory} />);
+    });
+
+    const resetViewButton = Array.from(container.querySelectorAll('button')).find(
+      (button) => button.textContent === 'Reset view',
+    );
+
+    await act(async () => {
+      resetViewButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(resetViewButton).toBeDefined();
+    expect(view.resetCameraOrbit).toHaveBeenCalledTimes(1);
   });
 });

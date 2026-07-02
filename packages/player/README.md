@@ -8,8 +8,8 @@ reusing `@cubegin/scramble-puzzle` for notation parsing.
 
 The first release targets cube-family events from `222` through `777`, including
 blindfolded, one-handed, FMC, and MultiBLD event aliases that share cube sizes.
-It also supports Pyraminx, Skewb, Face-Turning Octahedron, and Megaminx playback
-through package-internal puzzle adapters.
+It also supports Clock, Pyraminx, Skewb, Face-Turning Octahedron, and Megaminx
+playback through package-internal puzzle adapters.
 
 ## Development
 
@@ -25,7 +25,7 @@ pnpm --filter @cubegin/player build
 - `@cubegin/scramble-image` continues to own static SVG rendering.
 - `@cubegin/scramble-puzzle` continues to own formula parsing and state
   transitions.
-- Clock and Square-1 adapters are future work.
+- Square-1 remains future work.
 
 ## License
 

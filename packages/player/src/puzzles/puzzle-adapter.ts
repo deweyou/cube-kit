@@ -1,6 +1,6 @@
 import type { EventId } from '@cubegin/shared/events';
 
-export type PlayerPuzzleType = 'cube' | 'pyraminx' | 'skewb' | 'fto' | 'megaminx';
+export type PlayerPuzzleType = 'cube' | 'clock' | 'pyraminx' | 'skewb' | 'fto' | 'megaminx';
 
 export interface Vector3Like {
   readonly x: number;
@@ -22,21 +22,36 @@ export interface PlayerRenderableSticker {
   readonly polygon: readonly Vector3Like[];
 }
 
+export type PlayerRenderableBody =
+  | {
+      readonly color: string;
+      readonly size: number;
+      readonly type: 'box';
+    }
+  | {
+      readonly color: string;
+      readonly depth: number;
+      readonly radius: number;
+      readonly type: 'cylinder';
+    };
+
 export interface PlayerRenderablePiece {
   readonly id: string;
-  readonly body?: {
-    readonly color: string;
-    readonly size: number;
-    readonly type: 'box';
-  };
+  readonly body?: PlayerRenderableBody;
   readonly position: Vector3Like;
   readonly orientation: QuaternionLike;
   readonly stickers: readonly PlayerRenderableSticker[];
 }
 
+export interface PlayerCameraOrbit {
+  readonly pitch: number;
+  readonly yaw: number;
+}
+
 export interface PlayerRenderableModel {
   readonly pieces: readonly PlayerRenderablePiece[];
   readonly cameraDistance: number;
+  readonly cameraOrbit?: PlayerCameraOrbit;
 }
 
 export interface PlayerMoveAnimation<Move = unknown> {
@@ -45,7 +60,12 @@ export interface PlayerMoveAnimation<Move = unknown> {
   readonly axis: Vector3Like;
   readonly pivot: Vector3Like;
   readonly angleRadians: number;
+  readonly angleRadiansByPieceId?: Readonly<Record<string, number>>;
+  readonly colorPulseByPieceId?: Readonly<Record<string, string>>;
+  readonly colorPulseByStickerId?: Readonly<Record<string, string>>;
   readonly durationMultiplier?: number;
+  readonly positionPulseByPieceId?: Readonly<Record<string, Vector3Like>>;
+  readonly rotateInPlace?: boolean;
 }
 
 export interface PlayerPuzzleAdapter<Move = unknown, State = unknown> {

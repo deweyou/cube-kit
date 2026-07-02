@@ -1,4 +1,5 @@
 import type { EventId } from '@cubegin/scramble-puzzle';
+import { createClockPlayerAdapter } from './clock/clock-player-adapter.js';
 import { createCubePlayerAdapter } from './cube/cube-player-adapter.js';
 import { createFtoPlayerAdapter } from './fto/fto-player-adapter.js';
 import { createMegaminxPlayerAdapter } from './megaminx/megaminx-player-adapter.js';
@@ -17,6 +18,7 @@ const CUBE_EVENT_GROUPS = [
 
 const PLAYER_ADAPTERS: readonly PlayerPuzzleAdapter[] = [
   ...CUBE_EVENT_GROUPS.map(({ eventIds, size }) => createCubePlayerAdapter(size, eventIds)),
+  createClockPlayerAdapter(),
   createPyraminxPlayerAdapter(),
   createSkewbPlayerAdapter(),
   createFtoPlayerAdapter(),
