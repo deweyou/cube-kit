@@ -6,8 +6,11 @@ import { path, rect, type SvgNode } from '../svg/svg-elements.js';
 const RADIUS = 32;
 const RADIUS_MULTIPLIER = Math.sqrt(2) * Math.cos((15 * Math.PI) / 180);
 const MULTIPLIER = 1.4;
-const WIDTH = Math.trunc(2 * RADIUS_MULTIPLIER * MULTIPLIER * RADIUS);
-const HEIGHT = Math.trunc(4 * RADIUS_MULTIPLIER * MULTIPLIER * RADIUS);
+const FACE_SIZE = Math.trunc(2 * RADIUS_MULTIPLIER * MULTIPLIER * RADIUS);
+const WIDTH = FACE_SIZE * 2;
+const HEIGHT = FACE_SIZE * 2;
+const SLICE_HEIGHT = RADIUS * (MULTIPLIER - 1);
+const GROUP_VERTICAL_INSET = FACE_SIZE / 2 - SLICE_HEIGHT / 4;
 const STROKE = '#000000';
 const STROKE_ATTRS = {
   stroke: STROKE,
@@ -227,15 +230,16 @@ const drawFace = (
 };
 
 const drawMiddleSlice = (
+  centerX: number,
+  centerY: number,
   sliceSolved: boolean,
   colors: Record<SquareOneFace, HexColor>,
 ): SvgNode[] => {
   const halfSquareWidth = (RADIUS * RADIUS_MULTIPLIER * MULTIPLIER) / Math.sqrt(2);
   const edgeWidth = 2 * RADIUS * MULTIPLIER * Math.sin(degreesToRadians(15));
   const cornerWidth = halfSquareWidth - edgeWidth / 2;
-  const sliceX = WIDTH / 2 - halfSquareWidth;
-  const sliceY = HEIGHT / 2 - (RADIUS * (MULTIPLIER - 1)) / 2;
-  const sliceHeight = RADIUS * (MULTIPLIER - 1);
+  const sliceX = centerX - halfSquareWidth;
+  const sliceY = centerY - SLICE_HEIGHT / 2;
   const rightSliceWidth = sliceSolved ? 2 * cornerWidth + edgeWidth : cornerWidth + edgeWidth;
 
   return [
@@ -243,21 +247,21 @@ const drawMiddleSlice = (
       x: sliceX,
       y: sliceY,
       width: rightSliceWidth,
-      height: sliceHeight,
+      height: SLICE_HEIGHT,
       fill: sliceSolved ? colors.F : colors.B,
     }),
     rect({
       x: sliceX,
       y: sliceY,
       width: cornerWidth,
-      height: sliceHeight,
+      height: SLICE_HEIGHT,
       fill: colors.F,
     }),
     rect({
       x: sliceX,
       y: sliceY,
       width: rightSliceWidth,
-      height: sliceHeight,
+      height: SLICE_HEIGHT,
       fill: 'none',
       ...STROKE_ATTRS,
     }),
@@ -265,7 +269,7 @@ const drawMiddleSlice = (
       x: sliceX,
       y: sliceY,
       width: cornerWidth,
-      height: sliceHeight,
+      height: SLICE_HEIGHT,
       fill: 'none',
       ...STROKE_ATTRS,
     }),
@@ -280,13 +284,17 @@ export const renderSquareOneState = (
     ...DEFAULT_SQUARE_ONE_COLORS,
     ...colorScheme,
   };
-  const centerX = WIDTH / 2;
-  const topCenterY = HEIGHT / 4;
-  const bottomCenterY = (HEIGHT / 4) * 3;
+  const topCenterX = FACE_SIZE / 2;
+  const bottomCenterX = (FACE_SIZE / 2) * 3;
+  const topCenterY = GROUP_VERTICAL_INSET + FACE_SIZE / 2;
+  const leftSliceCenterY = GROUP_VERTICAL_INSET + FACE_SIZE;
+  const rightSliceCenterY = HEIGHT - GROUP_VERTICAL_INSET - FACE_SIZE;
+  const bottomCenterY = HEIGHT - GROUP_VERTICAL_INSET - FACE_SIZE / 2;
   const nodes = [
-    ...drawMiddleSlice(state.sliceSolved, colors),
-    ...drawFace(state.pieces, centerX, topCenterY, 90 + 15, colors),
-    ...drawFace(state.pieces.slice(12), centerX, bottomCenterY, -90 - 15, colors),
+    ...drawMiddleSlice(topCenterX, leftSliceCenterY, state.sliceSolved, colors),
+    ...drawMiddleSlice(bottomCenterX, rightSliceCenterY, state.sliceSolved, colors),
+    ...drawFace(state.pieces, topCenterX, topCenterY, 90 + 15, colors),
+    ...drawFace(state.pieces.slice(12), bottomCenterX, bottomCenterY, -90 - 15, colors),
   ];
 
   return createSvgDocument(WIDTH, HEIGHT, nodes);

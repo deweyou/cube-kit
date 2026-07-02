@@ -15,26 +15,60 @@ const applySquareOneAlgorithm = (state: SquareOneState, algorithm: string): Squa
   );
 
 const countPathElements = (svg: string): number => svg.match(/<path\b/g)?.length ?? 0;
+const countRectElements = (svg: string): number => svg.match(/<rect\b/g)?.length ?? 0;
 const countFill = (svg: string, color: string): number =>
   svg.match(new RegExp(`fill="${color}"`, 'g'))?.length ?? 0;
+
+interface TransformCenter {
+  readonly x: number;
+  readonly y: number;
+}
+
+const transformCenters = (svg: string): readonly TransformCenter[] =>
+  Array.from(svg.matchAll(/transform="rotate\([^"]* (?<x>[-\d.]+) (?<y>[-\d.]+)\)"/g)).map(
+    (match) => ({
+      x: Number(match.groups?.x),
+      y: Number(match.groups?.y),
+    }),
+  );
+
+const countTransformCenter = (
+  centers: readonly TransformCenter[],
+  centerX: number,
+  centerY: number,
+): number =>
+  centers.filter(
+    (center) => Math.abs(center.x - centerX) < 0.000001 && Math.abs(center.y - centerY) < 0.000001,
+  ).length;
 
 describe('renderSquareOneState', () => {
   it('renders solved Square-1 state SVG', () => {
     expect(renderSquareOneState(createSolvedSquareOneState())).toContain('<svg');
   });
 
-  it('uses the TNoodle preferred Square-1 viewbox and default colors', () => {
+  it('uses a split-layer Square-1 viewbox and default colors', () => {
     const svg = renderSquareOneState(createSolvedSquareOneState());
 
-    expect(svg).toContain('width="122"');
+    expect(svg).toContain('width="244"');
     expect(svg).toContain('height="244"');
-    expect(svg).toContain('viewBox="0 0 122 244"');
+    expect(svg).toContain('viewBox="0 0 244 244"');
     expect(svg).toContain('#ff8000');
     expect(svg).toContain('#ffffff');
     expect(svg).toContain('#ff0000');
     expect(svg).toContain('#0000ff');
     expect(svg).toContain('#00ff00');
     expect(svg).toContain('#ffff00');
+  });
+
+  it('renders top layer with one middle slice and bottom layer with a copied middle slice', () => {
+    const svg = renderSquareOneState(createSolvedSquareOneState());
+    const centers = transformCenters(svg);
+
+    expect(countRectElements(svg)).toBe(8);
+    expect(countTransformCenter(centers, 61, 118.8)).toBeGreaterThan(0);
+    expect(countTransformCenter(centers, 183, 125.2)).toBeGreaterThan(0);
+    expect(countTransformCenter(centers, 61, 61)).toBe(0);
+    expect(countTransformCenter(centers, 183, 183)).toBe(0);
   });
 
   it('renders moved pieces and the unsolved middle slice back color', () => {
@@ -61,7 +95,7 @@ describe('renderSquareOneState', () => {
   });
 
   it('renders Square-1 scrambles through the public image renderer', () => {
-    expect(renderScrambleImage('sq1', '(3,0) /')).toContain('viewBox="0 0 122 244"');
+    expect(renderScrambleImage('sq1', '(3,0) /')).toContain('viewBox="0 0 244 244"');
   });
 
   it('coalesces Square-1 corners split across the face boundary', () => {
