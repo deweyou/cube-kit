@@ -19,22 +19,39 @@ export interface ThreePlayerRenderer {
   dispose(): void;
 }
 
+export interface ThreePlayerResizeObserver {
+  observe(element: Element): void;
+  disconnect(): void;
+}
+
 export interface ThreePlayerViewOptions {
   readonly rendererFactory?: () => ThreePlayerRenderer;
   readonly cancelAnimationFrame?: (handle: number) => void;
   readonly now?: () => number;
   readonly pixelRatio?: number;
   readonly requestAnimationFrame?: (callback: FrameRequestCallback) => number;
+  readonly resizeObserverFactory?: (
+    callback: ResizeObserverCallback,
+  ) => ThreePlayerResizeObserver | undefined;
   readonly width?: number;
   readonly height?: number;
 }
 
+interface RenderedMaterialColor {
+  readonly material: ColorMaterial;
+  readonly color: THREE.Color;
+}
+
 interface RenderedPiece {
+  readonly colorMaterialsByObjectId: ReadonlyMap<string, readonly ColorMaterial[]>;
   readonly id: string;
+  readonly initialColors: readonly RenderedMaterialColor[];
   readonly initialPosition: THREE.Vector3;
   readonly initialQuaternion: THREE.Quaternion;
   readonly mesh: THREE.Object3D;
 }
+
+type ColorMaterial = THREE.MeshBasicMaterial | THREE.MeshStandardMaterial;
 
 const DEFAULT_WIDTH = 360;
 const DEFAULT_HEIGHT = 300;
@@ -50,6 +67,13 @@ const createDefaultRenderer = (): ThreePlayerRenderer =>
     antialias: true,
     alpha: true,
   });
+
+const createDefaultResizeObserver = (
+  callback: ResizeObserverCallback,
+): ThreePlayerResizeObserver | undefined =>
+  typeof globalThis.ResizeObserver === 'function'
+    ? new globalThis.ResizeObserver(callback)
+    : undefined;
 
 const vectorFrom = (vector: Vector3Like): THREE.Vector3 =>
   new THREE.Vector3(vector.x, vector.y, vector.z);
@@ -98,6 +122,23 @@ const createStickerMesh = (sticker: PlayerRenderableSticker): THREE.Mesh => {
   return mesh;
 };
 
+const createBodyMesh = (piece: PlayerRenderablePiece): THREE.Mesh | undefined => {
+  if (piece.body === undefined) return undefined;
+
+  const geometry =
+    piece.body.type === 'box'
+      ? new THREE.BoxGeometry(piece.body.size, piece.body.size, piece.body.size)
+      : new THREE.CylinderGeometry(piece.body.radius, piece.body.radius, piece.body.depth, 32);
+  const mesh = new THREE.Mesh(geometry, createBodyMaterial(piece.body.color));
+
+  if (piece.body.type === 'cylinder') {
+    mesh.rotation.x = Math.PI / 2;
+  }
+  mesh.name = `${piece.id}-body`;
+
+  return mesh;
+};
+
 const createPieceMesh = (piece: PlayerRenderablePiece): THREE.Group => {
   const group = new THREE.Group();
 
@@ -105,13 +146,8 @@ const createPieceMesh = (piece: PlayerRenderablePiece): THREE.Group => {
   group.position.copy(vectorFrom(piece.position));
   group.quaternion.copy(quaternionFrom(piece.orientation));
 
-  if (piece.body !== undefined) {
-    const body = new THREE.Mesh(
-      new THREE.BoxGeometry(piece.body.size, piece.body.size, piece.body.size),
-      createBodyMaterial(piece.body.color),
-    );
-
-    body.name = `${piece.id}-body`;
+  const body = createBodyMesh(piece);
+  if (body !== undefined) {
     group.add(body);
   }
 
@@ -133,18 +169,83 @@ const disposeObject = (object: THREE.Object3D): void => {
   }
 };
 
+interface RenderedMaterialCollection {
+  readonly colorMaterialsByObjectId: ReadonlyMap<string, readonly ColorMaterial[]>;
+  readonly initialColors: readonly RenderedMaterialColor[];
+}
+
+const collectMaterialColors = (object: THREE.Object3D): RenderedMaterialCollection => {
+  const colors: RenderedMaterialColor[] = [];
+  const materialsByObjectId = new Map<string, ColorMaterial[]>();
+
+  object.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return;
+
+    const materials = Array.isArray(child.material) ? child.material : [child.material];
+    for (const material of materials) {
+      if (
+        material instanceof THREE.MeshBasicMaterial ||
+        material instanceof THREE.MeshStandardMaterial
+      ) {
+        colors.push({
+          color: material.color.clone(),
+          material,
+        });
+        const objectMaterials = materialsByObjectId.get(child.name) ?? [];
+
+        objectMaterials.push(material);
+        materialsByObjectId.set(child.name, objectMaterials);
+      }
+    }
+  });
+
+  return {
+    colorMaterialsByObjectId: materialsByObjectId,
+    initialColors: colors,
+  };
+};
+
+const restorePieceColors = (piece: RenderedPiece): void => {
+  for (const initialColor of piece.initialColors) {
+    initialColor.material.color.copy(initialColor.color);
+  }
+};
+
+const applyPieceColor = (piece: RenderedPiece, color: string): void => {
+  const pulseColor = new THREE.Color(color);
+
+  for (const initialColor of piece.initialColors) {
+    initialColor.material.color.copy(pulseColor);
+  }
+};
+
+const applyObjectColor = (piece: RenderedPiece, objectId: string, color: string): void => {
+  const materials = piece.colorMaterialsByObjectId.get(objectId);
+  if (materials === undefined) return;
+
+  const pulseColor = new THREE.Color(color);
+
+  for (const material of materials) {
+    material.color.copy(pulseColor);
+  }
+};
+
 export const createThreePlayerView = (
   container: HTMLElement,
   options: ThreePlayerViewOptions = {},
 ): PlayerControllerView => {
   const renderer = options.rendererFactory?.() ?? createDefaultRenderer();
   const scene = new THREE.Scene();
-  const width = (options.width ?? container.clientWidth) || DEFAULT_WIDTH;
-  const height = (options.height ?? container.clientHeight) || DEFAULT_HEIGHT;
-  const camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100);
+  const readViewportSize = (): { readonly width: number; readonly height: number } => ({
+    height: (options.height ?? container.clientHeight) || DEFAULT_HEIGHT,
+    width: (options.width ?? container.clientWidth) || DEFAULT_WIDTH,
+  });
+  const initialSize = readViewportSize();
+  const camera = new THREE.PerspectiveCamera(35, initialSize.width / initialSize.height, 0.1, 100);
   const requestFrame = options.requestAnimationFrame ?? globalThis.requestAnimationFrame?.bind(globalThis);
   const cancelFrame = options.cancelAnimationFrame ?? globalThis.cancelAnimationFrame?.bind(globalThis);
   const now = options.now ?? (() => performance.now());
+  const resizeObserverFactory = options.resizeObserverFactory ?? createDefaultResizeObserver;
 
   let activePointer:
     | {
@@ -157,6 +258,7 @@ export const createThreePlayerView = (
   let currentTimeline: PlayerTimeline | undefined;
   let frameHandle: number | undefined;
   let modelGroup: THREE.Group | undefined;
+  let defaultOrbitState = INITIAL_ORBIT_STATE;
   let orbitState = INITIAL_ORBIT_STATE;
   let renderedPieces: RenderedPiece[] = [];
 
@@ -181,10 +283,23 @@ export const createThreePlayerView = (
     renderer.render(scene, camera);
   };
 
+  const applyRendererSize = (shouldRender = true): void => {
+    const size = readViewportSize();
+
+    camera.aspect = size.width / size.height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(size.width, size.height, false);
+
+    if (shouldRender) {
+      renderScene();
+    }
+  };
+
   const resetRenderedPieces = (): void => {
     for (const piece of renderedPieces) {
       piece.mesh.position.copy(piece.initialPosition);
       piece.mesh.quaternion.copy(piece.initialQuaternion);
+      restorePieceColors(piece);
     }
   };
 
@@ -194,13 +309,32 @@ export const createThreePlayerView = (
     const affectedPieceIds = new Set(animation.affectedPieceIds);
     const axis = vectorFrom(animation.axis).normalize();
     const pivot = vectorFrom(animation.pivot);
-    const angleRadians = animation.angleRadians * progress;
-    const rotation = new THREE.Quaternion().setFromAxisAngle(axis, angleRadians);
 
     for (const piece of renderedPieces) {
       if (!affectedPieceIds.has(piece.id)) continue;
 
-      piece.mesh.position.sub(pivot).applyAxisAngle(axis, angleRadians).add(pivot);
+      const angleRadians =
+        (animation.angleRadiansByPieceId?.[piece.id] ?? animation.angleRadians) * progress;
+      const rotation = new THREE.Quaternion().setFromAxisAngle(axis, angleRadians);
+
+      if (!animation.rotateInPlace) {
+        piece.mesh.position.sub(pivot).applyAxisAngle(axis, angleRadians).add(pivot);
+      }
+      const positionPulse = animation.positionPulseByPieceId?.[piece.id];
+      if (positionPulse !== undefined) {
+        piece.mesh.position.add(
+          vectorFrom(positionPulse).multiplyScalar(Math.sin(Math.PI * progress)),
+        );
+      }
+      const colorPulse = animation.colorPulseByPieceId?.[piece.id];
+      if (colorPulse !== undefined && progress > 0 && progress < 1) {
+        applyPieceColor(piece, colorPulse);
+      }
+      if (animation.colorPulseByStickerId !== undefined && progress > 0 && progress < 1) {
+        for (const [stickerId, stickerColorPulse] of Object.entries(animation.colorPulseByStickerId)) {
+          applyObjectColor(piece, stickerId, stickerColorPulse);
+        }
+      }
       piece.mesh.quaternion.premultiply(rotation);
     }
   };
@@ -288,8 +422,14 @@ export const createThreePlayerView = (
 
   applyCameraOrbit();
   renderer.setPixelRatio(options.pixelRatio ?? 1);
-  renderer.setSize(width, height, false);
+  applyRendererSize(false);
   container.appendChild(renderer.domElement);
+
+  const resizeObserver =
+    options.width === undefined || options.height === undefined
+      ? resizeObserverFactory(() => applyRendererSize())
+      : undefined;
+  resizeObserver?.observe(container);
 
   renderer.domElement.addEventListener('pointerdown', handlePointerDown);
   renderer.domElement.addEventListener('pointermove', handlePointerMove);
@@ -299,10 +439,12 @@ export const createThreePlayerView = (
   return {
     renderModel: (model: PlayerRenderableModel) => {
       disposeModelGroup();
-      orbitState = {
-        ...orbitState,
+      defaultOrbitState = {
         distance: model.cameraDistance,
+        pitch: model.cameraOrbit?.pitch ?? INITIAL_ORBIT_STATE.pitch,
+        yaw: model.cameraOrbit?.yaw ?? INITIAL_ORBIT_STATE.yaw,
       };
+      orbitState = defaultOrbitState;
       applyCameraOrbit();
 
       const nextGroup = new THREE.Group();
@@ -312,10 +454,13 @@ export const createThreePlayerView = (
 
       for (const piece of model.pieces) {
         const pieceMesh = createPieceMesh(piece);
+        const materialColors = collectMaterialColors(pieceMesh);
 
         nextGroup.add(pieceMesh);
         nextPieces.push({
+          colorMaterialsByObjectId: materialColors.colorMaterialsByObjectId,
           id: piece.id,
+          initialColors: materialColors.initialColors,
           initialPosition: pieceMesh.position.clone(),
           initialQuaternion: pieceMesh.quaternion.clone(),
           mesh: pieceMesh,
@@ -370,12 +515,19 @@ export const createThreePlayerView = (
       cancelPendingFrame();
       applyTimelineProgress(progress);
     },
+    resetCameraOrbit: () => {
+      activePointer = undefined;
+      orbitState = defaultOrbitState;
+      applyCameraOrbit();
+      renderScene();
+    },
     dispose: () => {
       cancelPendingFrame();
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
       renderer.domElement.removeEventListener('pointermove', handlePointerMove);
       renderer.domElement.removeEventListener('pointerup', handlePointerUp);
       renderer.domElement.removeEventListener('pointercancel', handlePointerUp);
+      resizeObserver?.disconnect();
       disposeModelGroup();
       renderer.dispose();
 

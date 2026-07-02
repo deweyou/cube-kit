@@ -72,11 +72,18 @@ export {
 export type {
   ClockDirection,
   ClockMove,
+  ClockRotationAmount,
   ClockRotationMove,
   ClockTurnMove,
   ClockTurnName,
 } from './clock/clock-parser.js';
-export type { ClockPositions, ClockState } from './clock/clock-state.js';
+export type {
+  ClockFaceRotation,
+  ClockFaceRotations,
+  ClockPositions,
+  ClockState,
+} from './clock/clock-state.js';
+export { getClockTurnMoveForState, getClockTurnNameForFaceRotation } from './clock/clock-state.js';
 export type {
   MegaminxBigTurnMove,
   MegaminxBigTurnName,

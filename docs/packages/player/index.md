@@ -10,6 +10,7 @@ flowchart TD
     Registry --> Skewb["Skewb adapter"]
     Registry --> Fto["FTO adapter"]
     Registry --> Minx["Megaminx adapter"]
+    Registry --> Clock["Clock adapter"]
     Controller --> View["Three.js view"]
     View --> Three["three"]
     Cube --> Puzzle["@cubegin/scramble-puzzle"]
@@ -17,6 +18,7 @@ flowchart TD
     Skewb --> Puzzle
     Fto --> Puzzle
     Minx --> Puzzle
+    Clock --> Puzzle
     Playground["apps/playground Player tab"] --> React
     Playground --> Image["@cubegin/scramble-image reference preview"]
 ```
@@ -39,9 +41,9 @@ subpath.
   player package must not import or depend on `@cubegin/scramble-image`.
 - Supported player events are cube-family events from `222` through `777`,
   their shared-size BLD/FM/OH/MBLD aliases, plus `pyram`, `skewb`, `fto`, and
-  `minx`.
-- `clock` and `sq1` remain unsupported player events and should surface a typed
-  unsupported-event state until adapters are designed.
+  `minx`, and `clock`.
+- `sq1` remains an unsupported player event and should surface a typed
+  unsupported-event state until a dedicated adapter is designed.
 - Static non-cube geometry and move-map provenance is recorded in
   [packages/player/NOTICE](../../../packages/player/NOTICE) and
   [docs/dependency-licensing.md](../../dependency-licensing.md#L1).
@@ -68,9 +70,10 @@ pnpm --filter playground typecheck
 - [packages/player/src/puzzles/skewb/skewb-player-adapter.ts#L1](../../../packages/player/src/puzzles/skewb/skewb-player-adapter.ts#L1) - Skewb adapter.
 - [packages/player/src/puzzles/fto/fto-player-adapter.ts#L1](../../../packages/player/src/puzzles/fto/fto-player-adapter.ts#L1) - FTO adapter.
 - [packages/player/src/puzzles/megaminx/megaminx-player-adapter.ts#L1](../../../packages/player/src/puzzles/megaminx/megaminx-player-adapter.ts#L1) - Megaminx adapter.
+- [packages/player/src/puzzles/clock/clock-player-adapter.ts#L1](../../../packages/player/src/puzzles/clock/clock-player-adapter.ts#L1) - Clock adapter.
 - [packages/player/src/three/three-player-view.ts#L1](../../../packages/player/src/three/three-player-view.ts#L1) - disposable Three.js scene and render loop.
 - [apps/playground/src/app.tsx#L1](../../../apps/playground/src/app.tsx#L1) - Player tab composition.
 
 ---
 
-_Last updated: 2026-07-01 | Reason: document the new Three.js player package and playground integration_
+_Last updated: 2026-07-01 | Reason: document Clock player support_

@@ -10,6 +10,13 @@ describe('parseClockAlgorithm', () => {
     expect(
       parseClockAlgorithm('UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-'),
     ).toHaveLength(15);
+    expect(parseClockAlgorithm("x2 y2 z z' z2")).toEqual([
+      { type: 'rotation', axis: 'x', amount: 2 },
+      { type: 'rotation', axis: 'y', amount: 2 },
+      { type: 'rotation', axis: 'z', amount: 1 },
+      { type: 'rotation', axis: 'z', amount: -1 },
+      { type: 'rotation', axis: 'z', amount: 2 },
+    ]);
   });
 
   it('rejects malformed Clock moves', () => {
@@ -18,6 +25,7 @@ describe('parseClockAlgorithm', () => {
     expect(() => parseClockAlgorithm('UR6-')).toThrow(InvalidMoveError);
     expect(() => parseClockAlgorithm('A5+')).toThrow("move 'A5+' is invalid for puzzle 'clock'");
     expect(() => parseClockAlgorithm('y')).toThrow(InvalidMoveError);
+    expect(() => parseClockAlgorithm('z3')).toThrow(InvalidMoveError);
   });
 
   it('parses empty and whitespace algorithms as no moves', () => {
@@ -33,8 +41,10 @@ describe('Clock state transitions', () => {
     expect(state.positions).toHaveLength(18);
     expect(state.positions.every((position) => position === 0)).toBe(true);
     expect(state.rightSideUp).toBe(true);
+    expect(state.rotations).toEqual([0, 0]);
     expect(Object.isFrozen(state)).toBe(true);
     expect(Object.isFrozen(state.positions)).toBe(true);
+    expect(Object.isFrozen(state.rotations)).toBe(true);
     expect(() => {
       (state.positions as number[])[0] = 1;
     }).toThrow(TypeError);
@@ -65,8 +75,47 @@ describe('Clock state transitions', () => {
     const rotated = applyClockMove(moved, rotation);
 
     expect(rotated.rightSideUp).toBe(false);
+    expect(rotated.rotations).toEqual([0, 0]);
     expect(rotated.positions.slice(9)).toEqual(moved.positions.slice(0, 9));
     expect(rotated.positions.slice(0, 9)).toEqual(moved.positions.slice(9));
+  });
+
+  it('applies x2 by swapping sides and toggling orientation', () => {
+    const [move, rotation] = parseClockAlgorithm('UR3+ x2');
+    const moved = applyClockMove(createSolvedClockState(), move);
+    const rotated = applyClockMove(moved, rotation);
+
+    expect(rotated.rightSideUp).toBe(false);
+    expect(rotated.rotations).toEqual([0, 0]);
+    expect(rotated.positions.slice(9)).toEqual(moved.positions.slice(0, 9));
+    expect(rotated.positions.slice(0, 9)).toEqual(moved.positions.slice(9));
+  });
+
+  it('applies z rotations around the current face without swapping sides', () => {
+    const [z, zPrime, z2] = parseClockAlgorithm("z z' z2");
+    const solved = createSolvedClockState();
+    const zRotated = applyClockMove(solved, z);
+    const restored = applyClockMove(zRotated, zPrime);
+    const halfTurned = applyClockMove(solved, z2);
+
+    expect(zRotated.rightSideUp).toBe(true);
+    expect(zRotated.positions).toEqual(solved.positions);
+    expect(zRotated.rotations).toEqual([1, 3]);
+    expect(restored.rotations).toEqual([0, 0]);
+    expect(halfTurned.rotations).toEqual([2, 2]);
+  });
+
+  it('maps turn names through the current face z rotation', () => {
+    const definition = createClockDefinition();
+    const zThenU = definition.applyAlgorithm(definition.createSolvedState(), 'z U1+');
+    const lThenZ = definition.applyAlgorithm(definition.createSolvedState(), 'L1+ z');
+    const zPrimeThenU = definition.applyAlgorithm(definition.createSolvedState(), "z' U1+");
+    const rThenZPrime = definition.applyAlgorithm(definition.createSolvedState(), "R1+ z'");
+
+    expect(zThenU.positions).toEqual(lThenZ.positions);
+    expect(zThenU.rotations).toEqual([1, 3]);
+    expect(zPrimeThenU.positions).toEqual(rThenZPrime.positions);
+    expect(zPrimeThenU.rotations).toEqual([3, 1]);
   });
 
   it('does not treat the opposite Clock side as solved', () => {
@@ -95,6 +144,9 @@ describe('Clock state transitions', () => {
       { type: 'turn', name: 'UR', amount: 7, direction: '+' },
       { type: 'turn', name: 'UR', amount: 0, direction: '-' },
       { type: 'turn', name: 'bogus', amount: 1, direction: '+' },
+      { type: 'rotation' },
+      { type: 'rotation', axis: 'z' },
+      { type: 'rotation', axis: 'z', amount: 3 },
     ]) {
       expect(() => applyClockMove(state, move as never)).toThrow(InvalidMoveError);
     }
@@ -103,12 +155,12 @@ describe('Clock state transitions', () => {
   it('rejects malformed Clock states when applying moves', () => {
     const [turn, rotation] = parseClockAlgorithm('UR1+ y2');
 
-    expect(() => applyClockMove({ positions: [0, 0, 0], rightSideUp: true }, rotation)).toThrow(
-      RangeError,
-    );
-    expect(() => applyClockMove({ positions: Array(19).fill(0), rightSideUp: true }, turn)).toThrow(
-      RangeError,
-    );
+    expect(() =>
+      applyClockMove({ positions: [0, 0, 0], rightSideUp: true } as never, rotation),
+    ).toThrow(RangeError);
+    expect(() =>
+      applyClockMove({ positions: Array(19).fill(0), rightSideUp: true } as never, turn),
+    ).toThrow(RangeError);
   });
 
   it('compares non-equal Clock states', () => {
@@ -121,6 +173,6 @@ describe('Clock state transitions', () => {
   it('does not treat partial malformed Clock states as solved', () => {
     const definition = createClockDefinition();
 
-    expect(definition.isSolved({ positions: [1], rightSideUp: true })).toBe(false);
+    expect(definition.isSolved({ positions: [1], rightSideUp: true } as never)).toBe(false);
   });
 });

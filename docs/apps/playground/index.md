@@ -38,9 +38,9 @@ solver packages without wiring them into production apps.
 - The Player tab imports `@cubegin/player/react`, loads generated scrambles as
   default formulas for supported events, and keeps a static scramble-image
   preview beside the 3D player for visual comparison.
-- Player support currently covers cube-family events, Pyraminx, Skewb, FTO, and
-  Megaminx. Clock and Square-1 stay visible as unsupported player events until
-  dedicated adapters exist.
+- Player support currently covers cube-family events, Clock, Pyraminx, Skewb,
+  FTO, and Megaminx. Square-1 stays visible as an unsupported player event until
+  a dedicated adapter exists.
 - The Icons tab previews `@cubegin/icons` brand SVG assets, animated React
   components, and event SVG assets with shared size and background controls.
 
@@ -63,4 +63,4 @@ pnpm --filter playground build
 
 ---
 
-_Last updated: 2026-07-01 | Reason: document the Player tab and 3D playback package_
+_Last updated: 2026-07-01 | Reason: document Clock Player tab support_

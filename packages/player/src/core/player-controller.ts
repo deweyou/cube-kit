@@ -23,6 +23,7 @@ export interface PlayerControllerView {
   play(options: PlayerControllerPlayOptions): void;
   pause(): void;
   seek(progress: number): void;
+  resetCameraOrbit(): void;
   dispose(): void;
 }
 
@@ -55,6 +56,7 @@ export interface PlayerController {
   play(): boolean;
   pause(): boolean;
   seek(progress: number): boolean;
+  resetView(): boolean;
   reset(): boolean;
   jumpToEnd(): boolean;
   setPlaybackRate(playbackRate: number): boolean;
@@ -202,6 +204,14 @@ export const createPlayerController = (
 
       view.seek(nextProgress);
       setState({ ...state, progress: nextProgress, error: undefined });
+
+      return true;
+    },
+    resetView: () => {
+      if (state.timeline === undefined) return false;
+
+      view.resetCameraOrbit();
+      setState({ ...state, error: undefined });
 
       return true;
     },

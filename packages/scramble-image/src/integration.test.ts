@@ -58,7 +58,7 @@ const SVG_ROOT_CONTRACTS = {
   '555bld': cubeRootContract(5),
   '666': cubeRootContract(6),
   '777': cubeRootContract(7),
-  clock: { width: 300, height: 150, rects: 0, paths: 18, circles: 270, texts: 0 },
+  clock: { width: 300, height: 150, rects: 0, paths: 20, circles: 260, texts: 0 },
   minx: { width: 304, height: 146, rects: 0, paths: 132, circles: 0, texts: 2 },
   pyram: { width: 200, height: 170, rects: 0, paths: 36, circles: 0, texts: 0 },
   skewb: { width: 217, height: 187, rects: 0, paths: 30, circles: 0, texts: 0 },

@@ -115,6 +115,13 @@ export const CubeginPlayer = ({
         <button
           disabled={!hasTimeline}
           type="button"
+          onClick={() => runControllerAction((controller) => controller.resetView())}
+        >
+          Reset view
+        </button>
+        <button
+          disabled={!hasTimeline}
+          type="button"
           onClick={() => runControllerAction((controller) => controller.jumpToEnd())}
         >
           End

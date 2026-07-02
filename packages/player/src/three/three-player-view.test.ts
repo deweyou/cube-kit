@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import {
   createThreePlayerView,
   type ThreePlayerRenderer,
+  type ThreePlayerViewOptions,
 } from './three-player-view.js';
 import { createPlayerTimeline } from '../core/timeline.js';
 import type { PlayerMoveAnimation, PlayerRenderableModel } from '../puzzles/puzzle-adapter.js';
@@ -37,6 +38,23 @@ const getLastCameraDistance = (renderer: ThreePlayerRenderer): number => {
   return camera.position.length();
 };
 
+const getLastCameraPosition = (renderer: ThreePlayerRenderer): THREE.Vector3 => {
+  const calls = (
+    renderer.render as unknown as {
+      readonly mock: {
+        readonly calls: readonly (readonly [unknown, THREE.Camera])[];
+      };
+    }
+  ).mock.calls;
+  const camera = calls[calls.length - 1]?.[1];
+
+  if (camera === undefined) {
+    throw new Error('renderer did not receive a camera');
+  }
+
+  return camera.position.clone();
+};
+
 const getLastRenderedScene = (renderer: ThreePlayerRenderer): THREE.Scene => {
   const calls = (
     renderer.render as unknown as {
@@ -64,6 +82,39 @@ const getRenderedPuzzleGroup = (scene: THREE.Scene): THREE.Group => {
   }
 
   return puzzleGroup;
+};
+
+const setContainerSize = (container: HTMLElement, width: number, height: number): void => {
+  Object.defineProperty(container, 'clientWidth', { configurable: true, value: width });
+  Object.defineProperty(container, 'clientHeight', { configurable: true, value: height });
+};
+
+const dispatchPointerEvent = (
+  element: HTMLElement,
+  type: string,
+  point: { readonly x: number; readonly y: number; readonly pointerId?: number },
+): void => {
+  const event = new Event(type, { bubbles: true }) as PointerEvent;
+
+  Object.defineProperties(event, {
+    clientX: { value: point.x },
+    clientY: { value: point.y },
+    pointerId: { value: point.pointerId ?? 1 },
+  });
+  element.dispatchEvent(event);
+};
+
+const getMeshColorHex = (mesh: THREE.Mesh): string => {
+  const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+
+  if (
+    !(material instanceof THREE.MeshBasicMaterial) &&
+    !(material instanceof THREE.MeshStandardMaterial)
+  ) {
+    throw new Error('mesh material did not expose a color');
+  }
+
+  return `#${material.color.getHexString()}`;
 };
 
 const createTestModel = (cameraDistance = 8): PlayerRenderableModel => ({
@@ -131,6 +182,54 @@ describe('createThreePlayerView', () => {
     expect(farDistance).toBeGreaterThan(nearDistance * 1.8);
   });
 
+  it('uses a model-specific camera orbit when provided', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+
+    view.renderModel({
+      ...createTestModel(8),
+      cameraOrbit: { pitch: 0, yaw: 0 },
+    });
+
+    const cameraPosition = getLastCameraPosition(renderer);
+
+    expect(cameraPosition.x).toBeCloseTo(0);
+    expect(cameraPosition.y).toBeCloseTo(0);
+    expect(cameraPosition.z).toBeCloseTo(8);
+  });
+
+  it('resets the camera orbit to the current model default', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+
+    view.renderModel({
+      ...createTestModel(8),
+      cameraOrbit: { pitch: 0, yaw: 0 },
+    });
+
+    dispatchPointerEvent(renderer.domElement, 'pointerdown', { x: 10, y: 10 });
+    dispatchPointerEvent(renderer.domElement, 'pointermove', { x: 110, y: 60 });
+    dispatchPointerEvent(renderer.domElement, 'pointerup', { x: 110, y: 60 });
+
+    const movedPosition = getLastCameraPosition(renderer);
+
+    expect(movedPosition.x).not.toBeCloseTo(0);
+
+    view.resetCameraOrbit();
+
+    const resetPosition = getLastCameraPosition(renderer);
+
+    expect(resetPosition.x).toBeCloseTo(0);
+    expect(resetPosition.y).toBeCloseTo(0);
+    expect(resetPosition.z).toBeCloseTo(8);
+  });
+
   it('renders body meshes with polygon sticker faces', () => {
     const container = document.createElement('div');
     const renderer = createRenderer();
@@ -152,6 +251,38 @@ describe('createThreePlayerView', () => {
     expect(body).toBeInstanceOf(THREE.Mesh);
     expect(((body as THREE.Mesh).geometry as THREE.BoxGeometry).parameters.width).toBe(1);
     expect(sticker).toBeInstanceOf(THREE.Mesh);
+  });
+
+  it('renders cylindrical body meshes for round controls', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+    const model: PlayerRenderableModel = {
+      cameraDistance: 8,
+      pieces: [
+        {
+          body: { color: '#111827', depth: 0.16, radius: 0.08, type: 'cylinder' },
+          id: 'pin-0',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: 0, y: 0, z: 0 },
+          stickers: [],
+        },
+      ],
+    };
+
+    view.renderModel(model);
+
+    const scene = getLastRenderedScene(renderer);
+    const puzzleGroup = getRenderedPuzzleGroup(scene);
+    const pieceGroup = puzzleGroup.children.find((child) => child.name === 'pin-0');
+    const body = (pieceGroup as THREE.Group).children.find((child) => child.name === 'pin-0-body');
+
+    expect(body).toBeInstanceOf(THREE.Mesh);
+    expect(((body as THREE.Mesh).geometry as THREE.CylinderGeometry).parameters.radiusTop).toBe(
+      0.08,
+    );
   });
 
   it('renders stickers with unlit materials so face colors stay bright', () => {
@@ -176,6 +307,40 @@ describe('createThreePlayerView', () => {
     expect(sticker).toBeInstanceOf(THREE.Mesh);
     expect((body as THREE.Mesh).material).toBeInstanceOf(THREE.MeshStandardMaterial);
     expect((sticker as THREE.Mesh).material).toBeInstanceOf(THREE.MeshBasicMaterial);
+  });
+
+  it('resizes the renderer when the viewport box changes size', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const resizeObserver = {
+      disconnect: vi.fn(),
+      observe: vi.fn(),
+    };
+    let resizeCallback: ResizeObserverCallback | undefined;
+
+    setContainerSize(container, 400, 300);
+
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+      resizeObserverFactory: (callback: ResizeObserverCallback) => {
+        resizeCallback = callback;
+
+        return resizeObserver;
+      },
+    } as unknown as ThreePlayerViewOptions);
+
+    expect(renderer.setSize).toHaveBeenLastCalledWith(400, 300, false);
+    expect(resizeObserver.observe).toHaveBeenCalledWith(container);
+
+    setContainerSize(container, 520, 360);
+    resizeCallback?.([], resizeObserver as unknown as ResizeObserver);
+
+    expect(renderer.setSize).toHaveBeenLastCalledWith(520, 360, false);
+    expect(renderer.render).toHaveBeenCalled();
+
+    view.dispose();
+
+    expect(resizeObserver.disconnect).toHaveBeenCalled();
   });
 
   it('removes DOM and renderer resources on dispose', () => {
@@ -222,5 +387,132 @@ describe('createThreePlayerView', () => {
     expect(onProgress).toHaveBeenLastCalledWith(0.5);
     expect(renderer.render).toHaveBeenCalled();
     expect(cancelAnimationFrame).toHaveBeenCalled();
+  });
+
+  it('can rotate affected pieces in place without moving their positions', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+    const model = createTestModel();
+    const animation: PlayerMoveAnimation<{ readonly name: string }> = {
+      affectedPieceIds: ['piece-0'],
+      angleRadians: Math.PI / 2,
+      axis: { x: 0, y: 0, z: 1 },
+      move: { name: 'dial-turn' },
+      pivot: { x: 0, y: 0, z: 0 },
+      rotateInPlace: true,
+    };
+
+    view.renderModel({
+      ...model,
+      pieces: [
+        {
+          ...model.pieces[0],
+          position: { x: 2, y: 0, z: 0 },
+        },
+      ],
+    });
+    view.setTimeline(createPlayerTimeline([{ move: animation.move, animation }]));
+    view.seek(1);
+
+    const pieceGroup = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children.find(
+      (child) => child.name === 'piece-0',
+    );
+
+    expect(pieceGroup?.position.x).toBeCloseTo(2);
+    expect(pieceGroup?.position.y).toBeCloseTo(0);
+  });
+
+  it('can pulse affected piece positions during the active step', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+    const model = createTestModel();
+    const animation: PlayerMoveAnimation<{ readonly name: string }> = {
+      affectedPieceIds: ['piece-0'],
+      angleRadians: 0,
+      axis: { x: 0, y: 0, z: 1 },
+      move: { name: 'pin-pulse' },
+      pivot: { x: 0, y: 0, z: 0 },
+      positionPulseByPieceId: {
+        'piece-0': { x: 0, y: 0, z: 1 },
+      },
+    };
+
+    view.renderModel(model);
+    view.setTimeline(createPlayerTimeline([{ move: animation.move, animation }]));
+    view.seek(0.5);
+
+    const activePieceGroup = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children.find(
+      (child) => child.name === 'piece-0',
+    );
+
+    expect(activePieceGroup?.position.z).toBeCloseTo(1);
+
+    view.seek(1);
+
+    const completedPieceGroup = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children.find(
+      (child) => child.name === 'piece-0',
+    );
+
+    expect(completedPieceGroup?.position.z).toBeCloseTo(0);
+  });
+
+  it('temporarily applies sticker color pulses without recoloring the whole piece', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+    const animation = {
+      affectedPieceIds: ['piece-0'],
+      angleRadians: 0,
+      axis: { x: 0, y: 0, z: 1 },
+      colorPulseByStickerId: {
+        'sticker-0': '#d97706',
+      },
+      move: { name: 'pin-pulse' },
+      pivot: { x: 0, y: 0, z: 0 },
+    } as PlayerMoveAnimation<{ readonly name: string }>;
+
+    view.renderModel(createTestModel());
+    view.setTimeline(createPlayerTimeline([{ move: animation.move, animation }]));
+    view.seek(0.5);
+
+    const activePieceGroup = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children.find(
+      (child) => child.name === 'piece-0',
+    );
+    const activeBody = (activePieceGroup as THREE.Group).children.find(
+      (child) => child.name === 'piece-0-body',
+    );
+    const activeSticker = (activePieceGroup as THREE.Group).children.find(
+      (child) => child.name === 'sticker-0',
+    );
+
+    expect(activeBody).toBeInstanceOf(THREE.Mesh);
+    expect(activeSticker).toBeInstanceOf(THREE.Mesh);
+    expect(getMeshColorHex(activeBody as THREE.Mesh)).toBe('#111827');
+    expect(getMeshColorHex(activeSticker as THREE.Mesh)).toBe('#d97706');
+
+    view.seek(1);
+
+    const completedPieceGroup = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children.find(
+      (child) => child.name === 'piece-0',
+    );
+    const completedBody = (completedPieceGroup as THREE.Group).children.find(
+      (child) => child.name === 'piece-0-body',
+    );
+    const completedSticker = (completedPieceGroup as THREE.Group).children.find(
+      (child) => child.name === 'sticker-0',
+    );
+
+    expect(completedBody).toBeInstanceOf(THREE.Mesh);
+    expect(completedSticker).toBeInstanceOf(THREE.Mesh);
+    expect(getMeshColorHex(completedBody as THREE.Mesh)).toBe('#111827');
+    expect(getMeshColorHex(completedSticker as THREE.Mesh)).toBe('#22c55e');
   });
 });

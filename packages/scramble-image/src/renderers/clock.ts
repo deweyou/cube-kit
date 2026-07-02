@@ -56,6 +56,8 @@ const backColors: SideColors = {
 
 const translate = (x: number, y: number): string => `translate(${x} ${y})`;
 
+const svgNumber = (value: number): number => Number(value.toFixed(3));
+
 const clockCenter = (sideIndex: 0 | 1, clockIndex: number): readonly [number, number] => {
   const sideCenterX = (sideIndex * 2 + 1) * (RADIUS + GAP);
   const sideCenterY = RADIUS + GAP;
@@ -63,6 +65,35 @@ const clockCenter = (sideIndex: 0 | 1, clockIndex: number): readonly [number, nu
   const y = sideCenterY + 2 * (Math.floor(clockIndex / 3) - 1) * CLOCK_OUTER_RADIUS;
 
   return [x, y];
+};
+
+const clockBodyPath = (centerX: number, centerY: number): string => {
+  const cornerOffset = 2 * CLOCK_OUTER_RADIUS;
+  const cornerDistance = Math.hypot(cornerOffset, cornerOffset);
+  const intersectionAngle = Math.acos(
+    (RADIUS * RADIUS + cornerDistance * cornerDistance - CLOCK_OUTER_RADIUS * CLOCK_OUTER_RADIUS) /
+      (2 * RADIUS * cornerDistance),
+  );
+  const cornerAngles = [-Math.PI / 4, Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4];
+  const centralPoint = (angle: number): string =>
+    `${svgNumber(centerX + Math.cos(angle) * RADIUS)} ${svgNumber(centerY + Math.sin(angle) * RADIUS)}`;
+  const cornerSpans = cornerAngles.map((angle) => ({
+    end: angle + intersectionAngle,
+    start: angle - intersectionAngle,
+  }));
+  const firstCorner = cornerSpans[0];
+  if (firstCorner === undefined) return '';
+  const segments = [`M ${centralPoint(firstCorner.start)}`];
+
+  for (const [index, corner] of cornerSpans.entries()) {
+    const nextCorner = cornerSpans[(index + 1) % cornerSpans.length];
+    if (nextCorner === undefined) continue;
+
+    segments.push(`A ${CLOCK_OUTER_RADIUS} ${CLOCK_OUTER_RADIUS} 0 0 1 ${centralPoint(corner.end)}`);
+    segments.push(`A ${RADIUS} ${RADIUS} 0 0 1 ${centralPoint(nextCorner.start)}`);
+  }
+
+  return `${segments.join(' ')} Z`;
 };
 
 const handPath = (): string => {
@@ -86,33 +117,15 @@ const handColorForClock = (clockIndex: number, rightSideUp: boolean): SideColors
 const drawSideBackground = (sideIndex: 0 | 1, colors: SideColors): SvgNode[] => {
   const centerX = (sideIndex * 2 + 1) * (RADIUS + GAP);
   const centerY = RADIUS + GAP;
-  const nodes: SvgNode[] = [];
-
-  for (const offsetX of [-2 * CLOCK_OUTER_RADIUS, 2 * CLOCK_OUTER_RADIUS]) {
-    for (const offsetY of [-2 * CLOCK_OUTER_RADIUS, 2 * CLOCK_OUTER_RADIUS]) {
-      nodes.push(
-        circle({
-          cx: centerX + offsetX,
-          cy: centerY + offsetY,
-          r: CLOCK_OUTER_RADIUS,
-          fill: colors.body,
-          stroke: COLORS.stroke,
-          'stroke-width': 2,
-        }),
-      );
-    }
-  }
-
-  nodes.push(
-    circle({
-      cx: centerX,
-      cy: centerY,
-      r: RADIUS,
+  const nodes: SvgNode[] = [
+    path({
+      d: clockBodyPath(centerX, centerY),
       fill: colors.body,
       stroke: COLORS.stroke,
       'stroke-width': 2,
+      'stroke-linejoin': 'round',
     }),
-  );
+  ];
 
   for (let clock = 0; clock < 9; clock += 1) {
     const [clockX, clockY] = clockCenter(sideIndex, clock);
@@ -204,13 +217,33 @@ const drawPins = (rightSideUp: boolean): SvgNode[] => {
   return pins;
 };
 
+const sideRotationTransform = (sideIndex: 0 | 1, state: ClockState): string | undefined => {
+  const rotation = state.rotations?.[sideIndex] ?? 0;
+  if (rotation === 0) return undefined;
+
+  const centerX = (sideIndex * 2 + 1) * (RADIUS + GAP);
+  const centerY = RADIUS + GAP;
+
+  return `rotate(${rotation * 90} ${centerX} ${centerY})`;
+};
+
 export const renderClockState = (state: ClockState): string => {
-  const nodes: SvgNode[] = [
-    ...drawSideBackground(0, sideColorFor(0, state.rightSideUp)),
-    ...drawSideBackground(1, sideColorFor(1, state.rightSideUp)),
-    ...state.positions.map((position, index) => drawHand(index, position, state.rightSideUp)),
-    ...drawPins(state.rightSideUp),
-  ];
+  const pins = drawPins(state.rightSideUp);
+  const nodes: SvgNode[] = [0, 1].map((sideIndex) => {
+    const typedSideIndex = sideIndex as 0 | 1;
+    const sideStart = typedSideIndex * 9;
+    const sideNodes = [
+      ...drawSideBackground(typedSideIndex, sideColorFor(typedSideIndex, state.rightSideUp)),
+      ...state.positions
+        .slice(sideStart, sideStart + 9)
+        .map((position, index) => drawHand(sideStart + index, position, state.rightSideUp)),
+      ...pins.slice(typedSideIndex * 4, typedSideIndex * 4 + 4),
+    ];
+
+    const transform = sideRotationTransform(typedSideIndex, state);
+
+    return group(transform === undefined ? {} : { transform }, sideNodes);
+  });
 
   return createSvgDocument(WIDTH, HEIGHT, nodes);
 };
