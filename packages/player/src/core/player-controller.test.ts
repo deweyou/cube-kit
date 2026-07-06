@@ -130,4 +130,20 @@ describe('createPlayerController', () => {
     expect(view.resetCameraOrbit).toHaveBeenCalledTimes(1);
     expect(controller.getState().progress).toBe(0.5);
   });
+
+  it('provides committed state render checkpoints for Square-1 playback', () => {
+    const view = createView();
+    const controller = createPlayerController(view, {
+      eventId: 'sq1',
+      formula: '(3,0) /',
+      initialPosition: 'start',
+    });
+    const timeline = controller.getState().timeline;
+
+    expect(timeline?.steps).toHaveLength(2);
+    expect(timeline?.modelsByCompletedStepCount).toHaveLength(3);
+    expect(timeline?.modelsByCompletedStepCount?.[0]?.pieces).not.toEqual(
+      timeline?.modelsByCompletedStepCount?.[2]?.pieces,
+    );
+  });
 });

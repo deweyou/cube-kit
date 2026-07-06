@@ -39,8 +39,7 @@ solver packages without wiring them into production apps.
   default formulas for supported events, and keeps a static scramble-image
   preview beside the 3D player for visual comparison.
 - Player support currently covers cube-family events, Clock, Pyraminx, Skewb,
-  FTO, and Megaminx. Square-1 stays visible as an unsupported player event until
-  a dedicated adapter exists.
+  FTO, Megaminx, and Square-1.
 - The Icons tab previews `@cubegin/icons` brand SVG assets, animated React
   components, and event SVG assets with shared size and background controls.
 
@@ -63,4 +62,4 @@ pnpm --filter playground build
 
 ---
 
-_Last updated: 2026-07-01 | Reason: document Clock Player tab support_
+_Last updated: 2026-07-02 | Reason: document Square-1 Player tab support_

@@ -6,6 +6,7 @@ import { createMegaminxPlayerAdapter } from './megaminx/megaminx-player-adapter.
 import type { PlayerPuzzleAdapter } from './puzzle-adapter.js';
 import { createPyraminxPlayerAdapter } from './pyraminx/pyraminx-player-adapter.js';
 import { createSkewbPlayerAdapter } from './skewb/skewb-player-adapter.js';
+import { createSquareOnePlayerAdapter } from './square1/square1-player-adapter.js';
 
 const CUBE_EVENT_GROUPS = [
   { eventIds: ['222'] as const, size: 2 },
@@ -23,6 +24,7 @@ const PLAYER_ADAPTERS: readonly PlayerPuzzleAdapter[] = [
   createSkewbPlayerAdapter(),
   createFtoPlayerAdapter(),
   createMegaminxPlayerAdapter(),
+  createSquareOnePlayerAdapter(),
 ];
 
 export const getPlayerPuzzleAdapter = (eventId: EventId): PlayerPuzzleAdapter | undefined =>

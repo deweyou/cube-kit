@@ -6,7 +6,8 @@ export type PlayerPuzzleType =
   | 'pyraminx'
   | 'skewb'
   | 'fto'
-  | 'megaminx';
+  | 'megaminx'
+  | 'square1';
 
 export interface Vector3Like {
   readonly x: number;

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { EventId } from '@cubegin/shared/events';
 import { getPlayerPuzzleSupport } from './event-map.js';
 
 describe('getPlayerPuzzleSupport', () => {
@@ -21,11 +22,12 @@ describe('getPlayerPuzzleSupport', () => {
     expect(getPlayerPuzzleSupport('clock')).toEqual({ type: 'clock' });
     expect(getPlayerPuzzleSupport('minx')).toEqual({ type: 'megaminx' });
     expect(getPlayerPuzzleSupport('pyram')).toEqual({ type: 'pyraminx' });
+    expect(getPlayerPuzzleSupport('sq1')).toEqual({ type: 'square1' });
     expect(getPlayerPuzzleSupport('skewb')).toEqual({ type: 'skewb' });
     expect(getPlayerPuzzleSupport('fto')).toEqual({ type: 'fto' });
   });
 
   it('reports events outside the player release as unsupported', () => {
-    expect(getPlayerPuzzleSupport('sq1')).toEqual({ type: 'unsupported' });
+    expect(getPlayerPuzzleSupport('333ft' as EventId)).toEqual({ type: 'unsupported' });
   });
 });
