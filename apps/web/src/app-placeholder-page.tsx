@@ -30,7 +30,7 @@ export const AppPlaceholderPage = ({ route }: AppPlaceholderPageProps) => (
         />
       </strong>
     </header>
-    <TimerTopNavigation activeRoute={route} isHidden={false} />
+    <TimerTopNavigation isHidden={false} />
     <main className={styles.main}>
       <h1 className={styles.title}>{PLACEHOLDER_TITLES[route]}</h1>
     </main>

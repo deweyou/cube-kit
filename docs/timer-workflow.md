@@ -12,15 +12,17 @@ stateDiagram-v2
     Idle --> Idle: list or event change / new scramble
 ```
 
-The web timer now starts at `AppRouter` and uses `TimerPage` as the root `/`
-experience. Shared package code supplies timer math and solve/session statistics,
-while React owns keyboard priority, scramble generation, list selection, and the
-redesigned page layout.
+The web timer now starts at `AppRouter`, uses React Router for page routing, and
+uses `TimerPage` as the root `/` experience. Shared package code supplies timer
+math and solve/session statistics, while React owns keyboard priority, scramble
+generation, list selection, and the redesigned page layout.
 
 ## Key Rules
 
-- `AppRouter` maps `/` to `TimerPage` and reserves `/results`, `/formulas`,
-  and `/settings` for follow-up pages. See
+- `AppRouter` wraps the app in React Router, maps `/` to `TimerPage`, and
+  reserves `/results`, `/formulas`, and `/settings` for follow-up pages. Route
+  components are lazy loaded at this boundary to keep inactive pages out of the
+  entry bundle. See
   [apps/web/src/app-router.tsx#L1](../apps/web/src/app-router.tsx#L1) and
   [apps/web/src/app-routes.ts#L1](../apps/web/src/app-routes.ts#L1).
 - `TimerPage` owns the current scramble text, timer state, active list,
@@ -66,4 +68,4 @@ redesigned page layout.
 
 ---
 
-_Last updated: 2026-07-07 | Reason: document TimerPage as the primary web timer implementation_
+_Last updated: 2026-07-07 | Reason: document TimerPage and React Router as the primary web app routing workflow_

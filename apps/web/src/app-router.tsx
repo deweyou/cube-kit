@@ -1,34 +1,31 @@
-import { useEffect, useState } from 'react';
-import { getAppRoute, type AppRoute } from './app-routes';
-import { AppPlaceholderPage } from './app-placeholder-page';
-import { TimerPage } from './timer/timer-page';
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { APP_ROUTE_PATHS } from './app-routes';
 
-export { APP_ROUTE_PATHS, getAppRoute, getAppRoutePath, navigateToAppRoute } from './app-routes';
+export { APP_ROUTE_PATHS, getAppRoute, getAppRoutePath } from './app-routes';
 
-const getCurrentPathname = () => window.location.pathname;
+const AppPlaceholderPage = lazy(() =>
+  import('./app-placeholder-page').then(({ AppPlaceholderPage }) => ({
+    default: AppPlaceholderPage,
+  })),
+);
 
-const renderAppRoute = (route: AppRoute) => {
-  switch (route) {
-    case 'results':
-      return <AppPlaceholderPage route="results" />;
-    case 'formulas':
-      return <AppPlaceholderPage route="formulas" />;
-    case 'settings':
-      return <AppPlaceholderPage route="settings" />;
-    case 'timer':
-      return <TimerPage />;
-  }
-};
+const TimerPage = lazy(() =>
+  import('./timer/timer-page').then(({ TimerPage }) => ({
+    default: TimerPage,
+  })),
+);
 
-export const AppRouter = () => {
-  const [pathname, setPathname] = useState(getCurrentPathname);
-
-  useEffect(() => {
-    const handlePopState = () => setPathname(getCurrentPathname());
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  return renderAppRoute(getAppRoute(pathname));
-};
+export const AppRouter = () => (
+  <BrowserRouter>
+    <Suspense fallback={null}>
+      <Routes>
+        <Route path={APP_ROUTE_PATHS.timer} element={<TimerPage />} />
+        <Route path={APP_ROUTE_PATHS.results} element={<AppPlaceholderPage route="results" />} />
+        <Route path={APP_ROUTE_PATHS.formulas} element={<AppPlaceholderPage route="formulas" />} />
+        <Route path={APP_ROUTE_PATHS.settings} element={<AppPlaceholderPage route="settings" />} />
+        <Route path="*" element={<Navigate to={APP_ROUTE_PATHS.timer} replace />} />
+      </Routes>
+    </Suspense>
+  </BrowserRouter>
+);

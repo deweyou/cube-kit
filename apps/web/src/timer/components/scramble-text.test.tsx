@@ -36,6 +36,7 @@ declare const process: {
   cwd: () => string;
 };
 
+// @ts-ignore Vitest runs this test in Node, while focused app checks may omit Node types.
 const { readFileSync } = await import('node:fs');
 
 const readScrambleTextCss = () =>

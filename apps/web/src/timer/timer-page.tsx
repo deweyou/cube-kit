@@ -896,7 +896,7 @@ export const TimerPage = () => {
         />
       </header>
 
-      <TimerTopNavigation activeRoute="timer" isHidden={isTimerRunning} />
+      <TimerTopNavigation isHidden={isTimerRunning} />
 
       <main className={styles.stage} aria-label="主题计时器">
         <TimerFocusSurface

@@ -119,10 +119,12 @@ rerun the sync script.
   renders React without the removed cstimer browser shim.
 - [apps/web/src/app.tsx#L1](../apps/web/src/app.tsx#L1) wraps
   [AppRouter](../apps/web/src/app-router.tsx#L1) in the app shell.
-- [AppRouter](../apps/web/src/app-router.tsx#L1) maps `/` to
+- [AppRouter](../apps/web/src/app-router.tsx#L1) wraps the app in React Router
+  and maps `/` to
   [TimerPage](../apps/web/src/timer/timer-page.tsx#L1), and maps
   `/results`, `/formulas`, and `/settings` to placeholder pages for follow-up
-  feature work. Route constants live in
+  feature work. Route components are lazy loaded so the app shell and inactive
+  pages stay out of the entry chunk. Route constants live in
   [apps/web/src/app-routes.ts#L1](../apps/web/src/app-routes.ts#L1).
 - `TimerPage` owns the current web timer surface, list selector, scramble
   strip, timing state, result actions, session summary, recent solves, and
@@ -204,4 +206,4 @@ rerun the sync script.
 
 ---
 
-_Last updated: 2026-07-07 | Reason: make TimerPage the primary web timer implementation_
+_Last updated: 2026-07-07 | Reason: make TimerPage primary and route the web app through React Router_

@@ -23,11 +23,3 @@ export const getAppRoute = (pathname: string): AppRoute => {
 };
 
 export const getAppRoutePath = (route: AppRoute) => APP_ROUTE_PATHS[route];
-
-export const navigateToAppRoute = (route: AppRoute) => {
-  const path = getAppRoutePath(route);
-  if (window.location.pathname === path) return;
-
-  window.history.pushState({}, '', path);
-  window.dispatchEvent(new Event('popstate'));
-};

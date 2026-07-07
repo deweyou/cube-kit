@@ -1,4 +1,5 @@
-import { type AppRoute, navigateToAppRoute } from '../app-routes';
+import { useLocation, useNavigate } from 'react-router';
+import { getAppRoute, getAppRoutePath } from '../app-routes';
 import {
   FormulaStudyNavIcon,
   ResultsListNavIcon,
@@ -8,7 +9,6 @@ import {
 import styles from './timer-page.module.css';
 
 interface TimerTopNavigationProps {
-  activeRoute: AppRoute;
   isHidden: boolean;
 }
 
@@ -19,31 +19,37 @@ const TIMER_NAV_ITEMS = [
   { id: 'settings', label: '设置', Icon: SettingsGearNavIcon },
 ] as const;
 
-export const TimerTopNavigation = ({ activeRoute, isHidden }: TimerTopNavigationProps) => (
-  <nav
-    className={styles.primaryNav}
-    aria-label="主导航"
-    aria-hidden={isHidden ? 'true' : undefined}
-    data-hidden={isHidden ? 'true' : undefined}
-  >
-    {TIMER_NAV_ITEMS.map(({ id, label, Icon }) => {
-      const isActive = id === activeRoute;
+export const TimerTopNavigation = ({ isHidden }: TimerTopNavigationProps) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const activeRoute = getAppRoute(location.pathname);
 
-      return (
-        <button
-          key={id}
-          className={styles.navButton}
-          type="button"
-          aria-current={isActive ? 'page' : undefined}
-          aria-label={label}
-          data-active={isActive ? 'true' : undefined}
-          tabIndex={isHidden ? -1 : undefined}
-          title={label}
-          onClick={() => navigateToAppRoute(id)}
-        >
-          <Icon size={22} />
-        </button>
-      );
-    })}
-  </nav>
-);
+  return (
+    <nav
+      className={styles.primaryNav}
+      aria-label="主导航"
+      aria-hidden={isHidden ? 'true' : undefined}
+      data-hidden={isHidden ? 'true' : undefined}
+    >
+      {TIMER_NAV_ITEMS.map(({ id, label, Icon }) => {
+        const isActive = id === activeRoute;
+
+        return (
+          <button
+            key={id}
+            className={styles.navButton}
+            type="button"
+            aria-current={isActive ? 'page' : undefined}
+            aria-label={label}
+            data-active={isActive ? 'true' : undefined}
+            tabIndex={isHidden ? -1 : undefined}
+            title={label}
+            onClick={() => navigate(getAppRoutePath(id))}
+          >
+            <Icon size={22} />
+          </button>
+        );
+      })}
+    </nav>
+  );
+};

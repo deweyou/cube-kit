@@ -8,6 +8,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react';
+import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TimerPage } from './timer-page';
 
@@ -143,6 +144,13 @@ vi.mock('@deweyou-design/react/select', () => {
   return { Select };
 });
 
+const renderTimerPage = () =>
+  render(
+    <MemoryRouter>
+      <TimerPage />
+    </MemoryRouter>,
+  );
+
 beforeEach(() => {
   timerMock.elapsed = 0;
   timerMock.reset.mockClear();
@@ -168,7 +176,7 @@ describe('TimerPage', () => {
   it('uses light theme while mounted and restores the previous page theme', () => {
     document.documentElement.dataset.theme = 'dark';
 
-    const { unmount } = render(<TimerPage />);
+    const { unmount } = renderTimerPage();
 
     expect(document.documentElement.dataset.theme).toBe('light');
 
@@ -178,7 +186,7 @@ describe('TimerPage', () => {
   });
 
   it('keeps the first redesign page minimal without a V2 label', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     const logo = screen.getByRole('img', { name: 'Cubegin' });
 
@@ -187,7 +195,7 @@ describe('TimerPage', () => {
   });
 
   it('matches the previous hero behavior by animating the mark on hover', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     const logo = screen.getByRole('img', { name: 'Cubegin' });
     const brand = logo.closest('strong');
@@ -205,7 +213,7 @@ describe('TimerPage', () => {
   });
 
   it('shows a responsive icon-only primary navigation', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     const navigation = screen.getByRole('navigation', { name: '主导航' });
     const navigationButtons = within(navigation).getAllByRole('button');
@@ -294,7 +302,7 @@ describe('TimerPage', () => {
   });
 
   it('uses a compact list selector with toolbar actions and default lists for every event', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     const listSelector = screen.getByRole('combobox', {
       name: '切换列表',
@@ -356,7 +364,7 @@ describe('TimerPage', () => {
   });
 
   it('edits the active list from the list selector toolbar without adding an option row', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     const listSelector = screen.getByRole('combobox', {
       name: '切换列表',
@@ -385,7 +393,7 @@ describe('TimerPage', () => {
   });
 
   it('lays out the scramble, session summary, and scramble image around the timer', async () => {
-    const { container } = render(<TimerPage />);
+    const { container } = renderTimerPage();
 
     const scrambleRegion = screen.getByRole('region', { name: '当前打乱' });
     const summaryRegion = screen.getByRole('region', { name: '成绩概要' });
@@ -640,7 +648,7 @@ describe('TimerPage', () => {
   });
 
   it('loads a generated scramble when switching to another default event list', async () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     const scrambleRegion = screen.getByRole('region', { name: '当前打乱' });
 
@@ -670,7 +678,7 @@ describe('TimerPage', () => {
   });
 
   it('starts after Space is released and stops with Enter', () => {
-    const { container } = render(<TimerPage />);
+    const { container } = renderTimerPage();
     const getFeedbackSlot = () => container.querySelector('[data-feedback-slot]');
     const pageRoot = container.querySelector('[aria-label="计时器"]');
     const primaryNav = screen.getByRole('navigation', { name: '主导航' });
@@ -748,7 +756,7 @@ describe('TimerPage', () => {
   });
 
   it('claims Space before the focused list selector can consume it', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     const listSelector = screen.getByRole('combobox', { name: '切换列表' });
     const selectorKeyDown = vi.fn();
@@ -805,7 +813,7 @@ describe('TimerPage', () => {
   });
 
   it('shows the newest solve at the bottom in the wide-screen recent solve rail', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     [1000, 1100, 1200].forEach((elapsedMs) => {
       timerMock.stop.mockReturnValueOnce(elapsedMs);
@@ -831,7 +839,7 @@ describe('TimerPage', () => {
   });
 
   it('hides the side recent solve rail until there is more than one solve', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     timerMock.stop.mockReturnValueOnce(1000);
     fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
@@ -849,7 +857,7 @@ describe('TimerPage', () => {
   });
 
   it('calculates compact session statistics from completed solves', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     [1000, 1100, 1200, 1300, 1400].forEach((elapsedMs) => {
       timerMock.stop.mockReturnValueOnce(elapsedMs);
@@ -869,7 +877,7 @@ describe('TimerPage', () => {
   });
 
   it('reveals extended rolling averages when the session reaches their solve counts', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     Array.from({ length: 12 }, (_, index) => 1000 + index * 100).forEach((elapsedMs) => {
       timerMock.stop.mockReturnValueOnce(elapsedMs);
@@ -886,7 +894,7 @@ describe('TimerPage', () => {
   });
 
   it('uses the wide timer width bucket by default', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     const timer = screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' });
 
@@ -897,7 +905,7 @@ describe('TimerPage', () => {
   it('formats solve times at 60 seconds as minutes', () => {
     timerMock.stop.mockReturnValue(60_123);
 
-    render(<TimerPage />);
+    renderTimerPage();
 
     fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
     fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
@@ -918,7 +926,7 @@ describe('TimerPage', () => {
   it('uses the max timer width bucket for long clock values', () => {
     timerMock.elapsed = 610_429;
 
-    render(<TimerPage />);
+    renderTimerPage();
 
     const timer = screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' });
 
@@ -931,7 +939,7 @@ describe('TimerPage', () => {
   });
 
   it('cancels Space ready with Escape before release', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     fireEvent.keyDown(document, { code: 'Space', key: ' ' });
     fireEvent.keyDown(document, { code: 'Escape', key: 'Escape' });
@@ -946,7 +954,7 @@ describe('TimerPage', () => {
   });
 
   it('does not start from clicking the timer surface', () => {
-    render(<TimerPage />);
+    renderTimerPage();
 
     fireEvent.click(screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }));
 
@@ -972,6 +980,7 @@ declare const process: {
   cwd: () => string;
 };
 
+// @ts-ignore Vitest runs this test in Node, while focused app checks may omit Node types.
 const { readFileSync } = await import('node:fs');
 const timerCss = readFileSync(`${process.cwd()}/src/timer/timer-page.module.css`, 'utf8') as string;
 const timerPageSource = readFileSync(`${process.cwd()}/src/timer/timer-page.tsx`, 'utf8') as string;
