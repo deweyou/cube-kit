@@ -2,7 +2,11 @@ import * as THREE from 'three';
 import type { PlayerControllerView } from '../core/player-controller.js';
 import type { PlayerTimeline, PlayerTimelineStep } from '../core/timeline.js';
 import type {
+  PlayerAxisRotationOperation,
+  PlayerColorPulseOperation,
   PlayerMoveAnimation,
+  PlayerMoveTransform,
+  PlayerPositionPulseOperation,
   PlayerRenderableModel,
   PlayerRenderablePiece,
   PlayerRenderableSticker,
@@ -404,6 +408,77 @@ export const createThreePlayerView = (
     }
   };
 
+  const applyAxisRotationOperation = (
+    operation: PlayerAxisRotationOperation,
+    progress: number,
+  ): void => {
+    const affectedPieceIds = new Set(operation.affectedPieceIds);
+    const axis = vectorFrom(operation.axis).normalize();
+
+    for (const piece of renderedPieces) {
+      if (!affectedPieceIds.has(piece.id)) continue;
+
+      const angleRadians =
+        (operation.angleRadiansByPieceId?.[piece.id] ?? operation.angleRadians) * progress;
+      const rotation = new THREE.Quaternion().setFromAxisAngle(axis, angleRadians);
+      const pivot = vectorFrom(operation.pivotByPieceId?.[piece.id] ?? operation.pivot);
+
+      if (!operation.rotateInPlace) {
+        piece.mesh.position.sub(pivot).applyAxisAngle(axis, angleRadians).add(pivot);
+      }
+      piece.mesh.quaternion.premultiply(rotation);
+    }
+  };
+
+  const applyPositionPulseOperation = (
+    operation: PlayerPositionPulseOperation,
+    progress: number,
+  ): void => {
+    for (const piece of renderedPieces) {
+      const positionPulse = operation.positionPulseByPieceId[piece.id];
+      if (positionPulse === undefined) continue;
+
+      piece.mesh.position.add(
+        vectorFrom(positionPulse).multiplyScalar(Math.sin(Math.PI * progress)),
+      );
+    }
+  };
+
+  const applyColorPulseOperation = (
+    operation: PlayerColorPulseOperation,
+    progress: number,
+  ): void => {
+    if (progress <= 0 || progress >= 1) return;
+
+    for (const piece of renderedPieces) {
+      const colorPulse = operation.colorPulseByPieceId?.[piece.id];
+      if (colorPulse !== undefined) {
+        applyPieceColor(piece, colorPulse);
+      }
+      if (operation.colorPulseByStickerId === undefined) continue;
+
+      for (const [stickerId, stickerColorPulse] of Object.entries(
+        operation.colorPulseByStickerId,
+      )) {
+        applyObjectColor(piece, stickerId, stickerColorPulse);
+      }
+    }
+  };
+
+  const applyTransform = (transform: PlayerMoveTransform | undefined, progress: number): void => {
+    if (transform === undefined) return;
+
+    for (const operation of transform.operations) {
+      if (operation.type === 'axis-rotation') {
+        applyAxisRotationOperation(operation, progress);
+      } else if (operation.type === 'position-pulse') {
+        applyPositionPulseOperation(operation, progress);
+      } else {
+        applyColorPulseOperation(operation, progress);
+      }
+    }
+  };
+
   const applyAnimation = (animation: PlayerMoveAnimation | undefined, progress: number): void => {
     if (animation === undefined) return;
 
@@ -468,7 +543,10 @@ export const createThreePlayerView = (
     if (checkpointModel !== undefined) {
       mountModel(checkpointModel, false);
       resetRenderedPieces();
-      applyAnimation(renderPosition.activeStep?.animation, renderPosition.activeStepProgress);
+      applyTransform(renderPosition.activeStep?.transform, renderPosition.activeStepProgress);
+      if (renderPosition.activeStep?.transform === undefined) {
+        applyAnimation(renderPosition.activeStep?.animation, renderPosition.activeStepProgress);
+      }
       renderScene();
       return;
     }
@@ -477,10 +555,16 @@ export const createThreePlayerView = (
     resetRenderedPieces();
 
     for (const step of currentTimeline.steps.slice(0, renderPosition.completedStepCount)) {
-      applyAnimation(step.animation, 1);
+      applyTransform(step.transform, 1);
+      if (step.transform === undefined) {
+        applyAnimation(step.animation, 1);
+      }
     }
 
-    applyAnimation(renderPosition.activeStep?.animation, renderPosition.activeStepProgress);
+    applyTransform(renderPosition.activeStep?.transform, renderPosition.activeStepProgress);
+    if (renderPosition.activeStep?.transform === undefined) {
+      applyAnimation(renderPosition.activeStep?.animation, renderPosition.activeStepProgress);
+    }
 
     renderScene();
   };

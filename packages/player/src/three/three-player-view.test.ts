@@ -445,6 +445,62 @@ describe('createThreePlayerView', () => {
     expect(pieceGroup?.position.y).toBeCloseTo(0);
   });
 
+  it('applies every axis-rotation operation in an active transform', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+    const transform = {
+      move: { notation: '(1,1)' },
+      operations: [
+        {
+          affectedPieceIds: ['top-piece'],
+          angleRadians: Math.PI / 2,
+          axis: { x: 0, y: 1, z: 0 },
+          pivot: { x: 0, y: 0, z: 0 },
+          type: 'axis-rotation' as const,
+        },
+        {
+          affectedPieceIds: ['bottom-piece'],
+          angleRadians: -Math.PI / 2,
+          axis: { x: 0, y: 1, z: 0 },
+          pivot: { x: 0, y: 0, z: 0 },
+          type: 'axis-rotation' as const,
+        },
+      ],
+    };
+
+    view.renderModel({
+      cameraDistance: 8,
+      pieces: [
+        {
+          id: 'top-piece',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: 1, y: 1, z: 0 },
+          stickers: [],
+        },
+        {
+          id: 'bottom-piece',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: 1, y: -1, z: 0 },
+          stickers: [],
+        },
+      ],
+    });
+    view.setTimeline(createPlayerTimeline([{ move: transform.move, transform }]));
+    view.seek(0.5);
+
+    const children = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children;
+    const topPiece = children.find((child) => child.name === 'top-piece');
+    const bottomPiece = children.find((child) => child.name === 'bottom-piece');
+
+    expect(topPiece?.position.x).toBeCloseTo(Math.SQRT1_2);
+    expect(topPiece?.position.z).toBeCloseTo(-Math.SQRT1_2);
+    expect(bottomPiece?.position.x).toBeCloseTo(Math.SQRT1_2);
+    expect(bottomPiece?.position.z).toBeCloseTo(Math.SQRT1_2);
+  });
+
   it('can pulse affected piece positions during the active step', () => {
     const container = document.createElement('div');
     const renderer = createRenderer();
