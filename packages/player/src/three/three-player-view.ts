@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { PlayerControllerView } from '../core/player-controller.js';
-import type { PlayerTimeline } from '../core/timeline.js';
+import type { PlayerTimeline, PlayerTimelineStep } from '../core/timeline.js';
 import type {
   PlayerMoveAnimation,
   PlayerRenderableModel,
@@ -53,6 +53,12 @@ interface RenderedPiece {
 
 type ColorMaterial = THREE.MeshBasicMaterial | THREE.MeshStandardMaterial;
 
+interface TimelineRenderPosition<Move = unknown> {
+  readonly completedStepCount: number;
+  readonly activeStep: PlayerTimelineStep<Move> | undefined;
+  readonly activeStepProgress: number;
+}
+
 const DEFAULT_WIDTH = 360;
 const DEFAULT_HEIGHT = 300;
 const DEFAULT_CAMERA_DISTANCE = 8.5;
@@ -89,10 +95,10 @@ const createBodyMaterial = (color: string): THREE.MeshStandardMaterial =>
     side: THREE.DoubleSide,
   });
 
-const createStickerMaterial = (color: string): THREE.MeshBasicMaterial =>
+const createStickerMaterial = (sticker: PlayerRenderableSticker): THREE.MeshBasicMaterial =>
   new THREE.MeshBasicMaterial({
-    color: new THREE.Color(color),
-    side: THREE.DoubleSide,
+    color: new THREE.Color(sticker.color),
+    side: sticker.renderSide === 'front' ? THREE.FrontSide : THREE.DoubleSide,
   });
 
 const createPolygonGeometry = (polygon: readonly Vector3Like[]): THREE.BufferGeometry => {
@@ -114,7 +120,7 @@ const createPolygonGeometry = (polygon: readonly Vector3Like[]): THREE.BufferGeo
 const createStickerMesh = (sticker: PlayerRenderableSticker): THREE.Mesh => {
   const mesh = new THREE.Mesh(
     createPolygonGeometry(sticker.polygon),
-    createStickerMaterial(sticker.color),
+    createStickerMaterial(sticker),
   );
 
   mesh.name = sticker.id;
@@ -230,6 +236,46 @@ const applyObjectColor = (piece: RenderedPiece, objectId: string, color: string)
   }
 };
 
+const getTimelineRenderPosition = (
+  timeline: PlayerTimeline,
+  progress: number,
+): TimelineRenderPosition => {
+  if (timeline.steps.length === 0 || progress >= 1) {
+    return {
+      activeStep: undefined,
+      activeStepProgress: 1,
+      completedStepCount: timeline.steps.length,
+    };
+  }
+
+  const targetMs = timeline.totalDurationMs * progress;
+  let elapsedMs = 0;
+  let completedStepCount = 0;
+
+  for (const step of timeline.steps) {
+    const nextElapsedMs = elapsedMs + step.durationMs;
+
+    if (targetMs >= nextElapsedMs) {
+      completedStepCount = step.index + 1;
+      elapsedMs = nextElapsedMs;
+      continue;
+    }
+
+    return {
+      activeStep: step,
+      activeStepProgress:
+        step.durationMs === 0 ? 1 : Math.max((targetMs - elapsedMs) / step.durationMs, 0),
+      completedStepCount,
+    };
+  }
+
+  return {
+    activeStep: undefined,
+    activeStepProgress: 1,
+    completedStepCount: timeline.steps.length,
+  };
+};
+
 export const createThreePlayerView = (
   container: HTMLElement,
   options: ThreePlayerViewOptions = {},
@@ -242,8 +288,10 @@ export const createThreePlayerView = (
   });
   const initialSize = readViewportSize();
   const camera = new THREE.PerspectiveCamera(35, initialSize.width / initialSize.height, 0.1, 100);
-  const requestFrame = options.requestAnimationFrame ?? globalThis.requestAnimationFrame?.bind(globalThis);
-  const cancelFrame = options.cancelAnimationFrame ?? globalThis.cancelAnimationFrame?.bind(globalThis);
+  const requestFrame =
+    options.requestAnimationFrame ?? globalThis.requestAnimationFrame?.bind(globalThis);
+  const cancelFrame =
+    options.cancelAnimationFrame ?? globalThis.cancelAnimationFrame?.bind(globalThis);
   const now = options.now ?? (() => performance.now());
   const resizeObserverFactory = options.resizeObserverFactory ?? createDefaultResizeObserver;
 
@@ -258,6 +306,8 @@ export const createThreePlayerView = (
   let currentTimeline: PlayerTimeline | undefined;
   let frameHandle: number | undefined;
   let modelGroup: THREE.Group | undefined;
+  let initialModel: PlayerRenderableModel | undefined;
+  let activeModel: PlayerRenderableModel | undefined;
   let defaultOrbitState = INITIAL_ORBIT_STATE;
   let orbitState = INITIAL_ORBIT_STATE;
   let renderedPieces: RenderedPiece[] = [];
@@ -295,6 +345,57 @@ export const createThreePlayerView = (
     }
   };
 
+  const disposeModelGroup = (): void => {
+    if (modelGroup === undefined) return;
+
+    modelGroup.traverse(disposeObject);
+    scene.remove(modelGroup);
+    modelGroup = undefined;
+    activeModel = undefined;
+    renderedPieces = [];
+  };
+
+  const mountModel = (model: PlayerRenderableModel, shouldResetOrbit: boolean): void => {
+    if (activeModel === model) return;
+
+    disposeModelGroup();
+
+    if (shouldResetOrbit) {
+      defaultOrbitState = {
+        distance: model.cameraDistance,
+        pitch: model.cameraOrbit?.pitch ?? INITIAL_ORBIT_STATE.pitch,
+        yaw: model.cameraOrbit?.yaw ?? INITIAL_ORBIT_STATE.yaw,
+      };
+      orbitState = defaultOrbitState;
+      applyCameraOrbit();
+    }
+
+    const nextGroup = new THREE.Group();
+    const nextPieces: RenderedPiece[] = [];
+
+    nextGroup.name = 'puzzle-model';
+
+    for (const piece of model.pieces) {
+      const pieceMesh = createPieceMesh(piece);
+      const materialColors = collectMaterialColors(pieceMesh);
+
+      nextGroup.add(pieceMesh);
+      nextPieces.push({
+        colorMaterialsByObjectId: materialColors.colorMaterialsByObjectId,
+        id: piece.id,
+        initialColors: materialColors.initialColors,
+        initialPosition: pieceMesh.position.clone(),
+        initialQuaternion: pieceMesh.quaternion.clone(),
+        mesh: pieceMesh,
+      });
+    }
+
+    modelGroup = nextGroup;
+    activeModel = model;
+    renderedPieces = nextPieces;
+    scene.add(nextGroup);
+  };
+
   const resetRenderedPieces = (): void => {
     for (const piece of renderedPieces) {
       piece.mesh.position.copy(piece.initialPosition);
@@ -308,7 +409,6 @@ export const createThreePlayerView = (
 
     const affectedPieceIds = new Set(animation.affectedPieceIds);
     const axis = vectorFrom(animation.axis).normalize();
-    const pivot = vectorFrom(animation.pivot);
 
     for (const piece of renderedPieces) {
       if (!affectedPieceIds.has(piece.id)) continue;
@@ -316,6 +416,7 @@ export const createThreePlayerView = (
       const angleRadians =
         (animation.angleRadiansByPieceId?.[piece.id] ?? animation.angleRadians) * progress;
       const rotation = new THREE.Quaternion().setFromAxisAngle(axis, angleRadians);
+      const pivot = vectorFrom(animation.pivotByPieceId?.[piece.id] ?? animation.pivot);
 
       if (!animation.rotateInPlace) {
         piece.mesh.position.sub(pivot).applyAxisAngle(axis, angleRadians).add(pivot);
@@ -331,42 +432,55 @@ export const createThreePlayerView = (
         applyPieceColor(piece, colorPulse);
       }
       if (animation.colorPulseByStickerId !== undefined && progress > 0 && progress < 1) {
-        for (const [stickerId, stickerColorPulse] of Object.entries(animation.colorPulseByStickerId)) {
+        for (const [stickerId, stickerColorPulse] of Object.entries(
+          animation.colorPulseByStickerId,
+        )) {
           applyObjectColor(piece, stickerId, stickerColorPulse);
         }
       }
       piece.mesh.quaternion.premultiply(rotation);
+
+      const targetPosition = animation.targetPositionByPieceId?.[piece.id];
+      if (targetPosition !== undefined) {
+        piece.mesh.position.lerp(vectorFrom(targetPosition), progress);
+      }
+      const targetOrientation = animation.targetOrientationByPieceId?.[piece.id];
+      if (targetOrientation !== undefined) {
+        piece.mesh.quaternion.slerp(quaternionFrom(targetOrientation), progress);
+      }
     }
   };
 
   const applyTimelineProgress = (progress: number): void => {
     currentProgress = Math.min(Math.max(progress, 0), 1);
-    resetRenderedPieces();
 
     if (currentTimeline === undefined || currentTimeline.steps.length === 0) {
+      if (initialModel !== undefined) mountModel(initialModel, false);
+      resetRenderedPieces();
       renderScene();
       return;
     }
 
-    const targetMs = currentTimeline.totalDurationMs * currentProgress;
-    let elapsedMs = 0;
+    const renderPosition = getTimelineRenderPosition(currentTimeline, currentProgress);
+    const checkpointModel =
+      currentTimeline.modelsByCompletedStepCount?.[renderPosition.completedStepCount];
 
-    for (const step of currentTimeline.steps) {
-      const nextElapsedMs = elapsedMs + step.durationMs;
-      const isComplete = currentProgress === 1 || targetMs >= nextElapsedMs;
-
-      if (isComplete) {
-        applyAnimation(step.animation, 1);
-        elapsedMs = nextElapsedMs;
-        continue;
-      }
-
-      const stepProgress =
-        step.durationMs === 0 ? 1 : Math.max((targetMs - elapsedMs) / step.durationMs, 0);
-
-      applyAnimation(step.animation, stepProgress);
-      break;
+    if (checkpointModel !== undefined) {
+      mountModel(checkpointModel, false);
+      resetRenderedPieces();
+      applyAnimation(renderPosition.activeStep?.animation, renderPosition.activeStepProgress);
+      renderScene();
+      return;
     }
+
+    if (initialModel !== undefined) mountModel(initialModel, false);
+    resetRenderedPieces();
+
+    for (const step of currentTimeline.steps.slice(0, renderPosition.completedStepCount)) {
+      applyAnimation(step.animation, 1);
+    }
+
+    applyAnimation(renderPosition.activeStep?.animation, renderPosition.activeStepProgress);
 
     renderScene();
   };
@@ -376,15 +490,6 @@ export const createThreePlayerView = (
 
     cancelFrame(frameHandle);
     frameHandle = undefined;
-  };
-
-  const disposeModelGroup = (): void => {
-    if (modelGroup === undefined) return;
-
-    modelGroup.traverse(disposeObject);
-    scene.remove(modelGroup);
-    modelGroup = undefined;
-    renderedPieces = [];
   };
 
   const handlePointerDown = (event: PointerEvent): void => {
@@ -438,38 +543,10 @@ export const createThreePlayerView = (
 
   return {
     renderModel: (model: PlayerRenderableModel) => {
-      disposeModelGroup();
-      defaultOrbitState = {
-        distance: model.cameraDistance,
-        pitch: model.cameraOrbit?.pitch ?? INITIAL_ORBIT_STATE.pitch,
-        yaw: model.cameraOrbit?.yaw ?? INITIAL_ORBIT_STATE.yaw,
-      };
-      orbitState = defaultOrbitState;
-      applyCameraOrbit();
-
-      const nextGroup = new THREE.Group();
-      const nextPieces: RenderedPiece[] = [];
-
-      nextGroup.name = 'puzzle-model';
-
-      for (const piece of model.pieces) {
-        const pieceMesh = createPieceMesh(piece);
-        const materialColors = collectMaterialColors(pieceMesh);
-
-        nextGroup.add(pieceMesh);
-        nextPieces.push({
-          colorMaterialsByObjectId: materialColors.colorMaterialsByObjectId,
-          id: piece.id,
-          initialColors: materialColors.initialColors,
-          initialPosition: pieceMesh.position.clone(),
-          initialQuaternion: pieceMesh.quaternion.clone(),
-          mesh: pieceMesh,
-        });
-      }
-
-      modelGroup = nextGroup;
-      renderedPieces = nextPieces;
-      scene.add(nextGroup);
+      currentProgress = 0;
+      currentTimeline = undefined;
+      initialModel = model;
+      mountModel(model, true);
       applyTimelineProgress(currentProgress);
     },
     setTimeline: (timeline) => {
@@ -489,8 +566,7 @@ export const createThreePlayerView = (
 
       cancelPendingFrame();
 
-      const startTime =
-        now() - (currentProgress * currentTimeline.totalDurationMs) / playbackRate;
+      const startTime = now() - (currentProgress * currentTimeline.totalDurationMs) / playbackRate;
       const tick: FrameRequestCallback = (timestamp) => {
         if (currentTimeline === undefined) return;
 

@@ -71,7 +71,7 @@ describe('CubeginPlayer', () => {
     );
 
     expect(progress?.max).toBe('3');
-    expect(progress?.step).toBe('1');
+    expect(progress?.step).toBe('0.01');
     expect(progress?.value).toBe('0');
     expect(speed?.value).toBe('1');
 
@@ -100,7 +100,7 @@ describe('CubeginPlayer', () => {
       playOptions?.onProgress(0.7);
     });
 
-    expect(progress?.value).toBe('2');
+    expect(progress?.value).toBe('2.1');
   });
 
   it('lets users reset the camera view from the controls', async () => {

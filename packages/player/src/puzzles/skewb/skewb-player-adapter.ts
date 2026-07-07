@@ -23,13 +23,27 @@ const SKEWB_COLORS = {
 } satisfies Record<SkewbFace, string>;
 
 const SKEWB_GEOMETRY = STATIC_POLYHEDRON_DATA.skewb;
+const SKEWB_STATE_FACE_BY_STATIC_FACE = {
+  U: 'U',
+  R: 'F',
+  F: 'L',
+  D: 'D',
+  L: 'B',
+  B: 'R',
+} satisfies Record<SkewbFace, SkewbFace>;
+const SKEWB_COLORS_BY_STATIC_FACE = Object.fromEntries(
+  Object.entries(SKEWB_STATE_FACE_BY_STATIC_FACE).map(([staticFace, stateFace]) => [
+    staticFace,
+    SKEWB_COLORS[stateFace],
+  ]),
+) as Record<SkewbFace, string>;
 const moveKeyForMove = (move: SkewbMove): string => `move:${move.face}`;
 
 export const createSkewbPlayerAdapter = (): PlayerPuzzleAdapter<SkewbMove, FaceletTrackingState> => {
   const definition = createSkewbDefinition();
   const staticModel = createStaticPolyhedronModel({
     cameraDistance: 7.2,
-    colors: SKEWB_COLORS,
+    colors: SKEWB_COLORS_BY_STATIC_FACE,
     piecesPrefix: 'skewb',
     stickers: SKEWB_GEOMETRY.stickers,
   });

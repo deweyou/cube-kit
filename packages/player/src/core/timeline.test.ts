@@ -3,6 +3,7 @@ import {
   createPlayerTimeline,
   getTimelinePosition,
   getTimelineProgressForCompletedStepCount,
+  getTimelineProgressForStepPosition,
 } from './timeline.js';
 
 describe('createPlayerTimeline', () => {
@@ -49,6 +50,18 @@ describe('createPlayerTimeline', () => {
     expect(getTimelineProgressForCompletedStepCount(timeline, 3)).toBe(1);
   });
 
+  it('maps fractional move steps back to duration-weighted progress', () => {
+    const timeline = createPlayerTimeline([
+      { move: { name: 'turn' }, durationMultiplier: 1 },
+      { move: { name: 'slash' }, durationMultiplier: 2 },
+    ]);
+
+    expect(getTimelineProgressForStepPosition(timeline, 0)).toBe(0);
+    expect(getTimelineProgressForStepPosition(timeline, 1)).toBeCloseTo(1 / 3);
+    expect(getTimelineProgressForStepPosition(timeline, 1.5)).toBeCloseTo(2 / 3);
+    expect(getTimelineProgressForStepPosition(timeline, 2)).toBe(1);
+  });
+
   it('uses explicit duration multipliers for adapter-specific moves', () => {
     const timeline = createPlayerTimeline([
       { move: { name: 'R++' }, durationMultiplier: 2 },
@@ -56,5 +69,15 @@ describe('createPlayerTimeline', () => {
 
     expect(timeline.steps[0]?.durationMs).toBe(1040);
     expect(timeline.totalDurationMs).toBe(1040);
+  });
+
+  it('keeps state render checkpoints when adapters provide them', () => {
+    const initialModel = { cameraDistance: 1, pieces: [] };
+    const finalModel = { cameraDistance: 1, pieces: [] };
+    const timeline = createPlayerTimeline([{ name: 'shape-shift' }], {
+      modelsByCompletedStepCount: [initialModel, finalModel],
+    });
+
+    expect(timeline.modelsByCompletedStepCount).toEqual([initialModel, finalModel]);
   });
 });

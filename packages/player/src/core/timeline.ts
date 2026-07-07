@@ -1,4 +1,4 @@
-import type { PlayerMoveAnimation } from '../puzzles/puzzle-adapter.js';
+import type { PlayerMoveAnimation, PlayerRenderableModel } from '../puzzles/puzzle-adapter.js';
 
 const BASE_QUARTER_TURN_DURATION_MS = 520;
 
@@ -19,6 +19,7 @@ export interface PlayerTimelineStep<Move = unknown> {
 export interface PlayerTimeline<Move = unknown> {
   readonly steps: readonly PlayerTimelineStep<Move>[];
   readonly totalDurationMs: number;
+  readonly modelsByCompletedStepCount?: readonly PlayerRenderableModel[];
 }
 
 export interface PlayerTimelinePosition {
@@ -49,6 +50,7 @@ const quarterTurnsForMove = (move: unknown): number => {
 
 export const createPlayerTimeline = <Move>(
   moves: readonly (Move | PlayerTimelineInput<Move>)[],
+  options: { readonly modelsByCompletedStepCount?: readonly PlayerRenderableModel[] } = {},
 ): PlayerTimeline<Move> => {
   const steps = moves.map((input, index): PlayerTimelineStep<Move> => {
     const timelineInput = isTimelineInput(input) ? input : { move: input };
@@ -68,6 +70,7 @@ export const createPlayerTimeline = <Move>(
   });
 
   return {
+    modelsByCompletedStepCount: options.modelsByCompletedStepCount,
     steps,
     totalDurationMs: steps.reduce((duration, step) => duration + step.durationMs, 0),
   };
@@ -126,4 +129,24 @@ export const getTimelineProgressForCompletedStepCount = (
     .reduce((duration, step) => duration + step.durationMs, 0);
 
   return completedDurationMs / timeline.totalDurationMs;
+};
+
+export const getTimelineProgressForStepPosition = (
+  timeline: PlayerTimeline,
+  stepPosition: number,
+): number => {
+  if (timeline.steps.length === 0 || timeline.totalDurationMs === 0) return 1;
+
+  const clampedStepPosition = Math.min(Math.max(stepPosition, 0), timeline.steps.length);
+  const completedStepCount = Math.floor(clampedStepPosition);
+  const activeStepProgress = clampedStepPosition - completedStepCount;
+  const completedDurationMs = timeline.steps
+    .slice(0, completedStepCount)
+    .reduce((duration, step) => duration + step.durationMs, 0);
+  const activeStepDurationMs = timeline.steps[completedStepCount]?.durationMs ?? 0;
+
+  return (
+    (completedDurationMs + activeStepDurationMs * activeStepProgress) /
+    timeline.totalDurationMs
+  );
 };

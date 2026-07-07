@@ -3,10 +3,17 @@ import {
   createFaceletPiece,
   type TaggedRenderableModel,
 } from './polyhedron-model.js';
+import type { PlayerCameraOrbit } from './puzzle-adapter.js';
 import type { StaticMoveGeometry, StaticStickerGeometry } from './static-polyhedron-data.js';
 
 export interface StaticPolyhedronModelOptions {
   readonly cameraDistance: number;
+  readonly cameraOrbit?: PlayerCameraOrbit;
+  readonly colorForSticker?: (
+    sticker: StaticStickerGeometry,
+    stickerIndex: number,
+    faceStickerIndex: number,
+  ) => string;
   readonly colors: Readonly<Record<string, string>>;
   readonly piecesPrefix: string;
   readonly stickerScale?: number;
@@ -29,16 +36,18 @@ const normalizeAngle = (angleRadians: number): number => {
 
 export const createStaticPolyhedronModel = ({
   cameraDistance,
+  cameraOrbit,
+  colorForSticker,
   colors,
   piecesPrefix,
   stickerScale,
   stickers,
 }: StaticPolyhedronModelOptions): StaticPolyhedronModel => {
   const faceCounts = new Map<string, number>();
-  const pieces = stickers.map((sticker) => {
+  const pieces = stickers.map((sticker, stickerIndex) => {
     const faceIndex = faceCounts.get(sticker.face) ?? 0;
     const id = `${piecesPrefix}-${sticker.face}-${faceIndex}`;
-    const color = colors[sticker.face];
+    const color = colorForSticker?.(sticker, stickerIndex, faceIndex) ?? colors[sticker.face];
 
     if (color === undefined) {
       throw new Error(`Missing static polyhedron color for face ${sticker.face}`);
@@ -55,7 +64,7 @@ export const createStaticPolyhedronModel = ({
       stickerScale,
     });
   });
-  const taggedModel = buildTaggedModel(pieces, cameraDistance);
+  const taggedModel = buildTaggedModel(pieces, cameraDistance, cameraOrbit);
 
   return {
     model: taggedModel.model,

@@ -15,7 +15,8 @@ const axisForFace = (face: CubeFace): PlayerAxis => {
   return 'z';
 };
 
-const isPositiveFace = (face: CubeFace): boolean => face === 'L' || face === 'U' || face === 'F';
+const usesPositiveTurnAngle = (face: CubeFace): boolean =>
+  face === 'L' || face === 'D' || face === 'B';
 
 const outerLayerForFace = (face: CubeFace, size: number): number =>
   face === 'R' || face === 'U' || face === 'F' ? size - 1 : 0;
@@ -34,7 +35,7 @@ const layersForMove = (move: CubeMove, size: number): readonly number[] => {
 };
 
 export const mapCubeMoveToAnimation = (move: CubeMove, size: number): CubeMoveAnimation => {
-  const direction = isPositiveFace(move.face) ? 1 : -1;
+  const direction = usesPositiveTurnAngle(move.face) ? 1 : -1;
   const turns = move.amount === 3 ? -1 : move.amount;
 
   return {

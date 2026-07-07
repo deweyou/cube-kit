@@ -1,14 +1,14 @@
 import {
+  MEGAMINX_FACES,
   createMegaminxDefinition,
   type MegaminxFace,
   type MegaminxMove,
   type MegaminxMoveAmount,
+  type MegaminxState,
 } from '@cubegin/scramble-puzzle';
 import {
   affectedPieceIdsForSourceByTarget,
-  applySourceByTarget,
   createFaceletTrackingState,
-  type FaceletTrackingState,
   type SourceByTarget,
 } from '../facelet-tracking.js';
 import type { PlayerMoveAnimation, PlayerPuzzleAdapter } from '../puzzle-adapter.js';
@@ -35,16 +35,80 @@ const MEGAMINX_COLORS = {
   DL: '#88ddff',
 } satisfies Record<MegaminxFace, string>;
 
+const MEGAMINX_CAMERA_ORBIT = {
+  pitch: Math.atan(0.5),
+  yaw: 0,
+} as const;
+
+const MEGAMINX_STATE_FACE_BY_STATIC_FACE: Partial<Record<MegaminxFace, MegaminxFace>> = {
+  B: 'DBR',
+  DBL: 'B',
+  DBR: 'DR',
+  DL: 'DBL',
+  DR: 'DL',
+};
+
+const MEGAMINX_STATIC_FACE_BY_STATE_FACE: Partial<Record<MegaminxFace, MegaminxFace>> = {
+  B: 'DBL',
+  DBL: 'DL',
+  DBR: 'B',
+  DL: 'DR',
+  DR: 'DBR',
+};
+
+const MEGAMINX_STATE_STICKER_INDEX_BY_STATIC_FACE = {
+  U: [8, 7, 0, 1, 10, 9, 3, 2, 4, 5, 6],
+  F: [2, 1, 4, 5, 10, 3, 7, 6, 8, 9, 0],
+  L: [4, 3, 6, 7, 10, 5, 9, 8, 0, 1, 2],
+  BL: [6, 5, 8, 9, 10, 7, 1, 0, 2, 3, 4],
+  BR: [8, 7, 0, 1, 10, 9, 3, 2, 4, 5, 6],
+  R: [8, 7, 0, 1, 10, 9, 3, 2, 4, 5, 6],
+  DBR: [0, 9, 2, 3, 10, 1, 5, 4, 6, 7, 8],
+  DR: [8, 7, 0, 1, 10, 9, 3, 2, 4, 5, 6],
+  DL: [8, 7, 0, 1, 10, 9, 3, 2, 4, 5, 6],
+  DBL: [6, 5, 8, 9, 10, 7, 1, 0, 2, 3, 4],
+  B: [4, 3, 6, 7, 10, 5, 9, 8, 0, 1, 2],
+  D: [0, 9, 2, 3, 10, 1, 5, 4, 6, 7, 8],
+} as const satisfies Record<MegaminxFace, readonly number[]>;
+
 const MEGAMINX_GEOMETRY = STATIC_POLYHEDRON_DATA.megaminx;
 
+const staticFaceForStateFace = (face: MegaminxFace): MegaminxFace =>
+  MEGAMINX_STATIC_FACE_BY_STATE_FACE[face] ?? face;
+
 const moveKeyForMove = (move: MegaminxMove): string =>
-  move.type === 'face' ? `face:${move.face}` : `big:${move.name}`;
+  move.type === 'face' ? `face:${staticFaceForStateFace(move.face)}` : `big:${move.name}`;
 
 const durationMultiplierForAmount = (amount: MegaminxMoveAmount): number =>
   amount === 2 || amount === 3 ? 1.6 : 1;
 
 const isMegaminxFace = (face: string): face is MegaminxFace =>
   Object.prototype.hasOwnProperty.call(MEGAMINX_COLORS, face);
+
+const stateStickerIndexForStaticSticker = (
+  face: MegaminxFace,
+  staticStickerIndex: number,
+): number => {
+  return MEGAMINX_STATE_STICKER_INDEX_BY_STATIC_FACE[face][staticStickerIndex] ?? 10;
+};
+
+const colorForStateSticker = (
+  state: MegaminxState,
+  face: string,
+  staticStickerIndex: number,
+): string => {
+  if (!isMegaminxFace(face)) {
+    throw new Error(`Missing megaminx state face for ${face}`);
+  }
+
+  const stateFace = MEGAMINX_STATE_FACE_BY_STATIC_FACE[face] ?? face;
+  const faceIndex = MEGAMINX_FACES.indexOf(stateFace);
+  const stateStickerIndex = stateStickerIndexForStaticSticker(face, staticStickerIndex);
+  const facelet = state.image[faceIndex]?.[stateStickerIndex];
+  const faceletFace = MEGAMINX_FACES[facelet ?? -1] ?? 'U';
+
+  return MEGAMINX_COLORS[faceletFace];
+};
 
 const createCenterPositionByFace = (
   pieces: ReturnType<typeof createStaticPolyhedronModel>['model']['pieces'],
@@ -69,16 +133,17 @@ const createCenterPositionByFace = (
 
 const affectedPieceIdsForMove = (
   move: MegaminxMove,
-  state: FaceletTrackingState,
   sourceByTarget: SourceByTarget,
   centerPositionByFace: ReadonlyMap<MegaminxFace, number>,
+  pieceIds: readonly string[],
 ): readonly string[] => {
-  const affectedPieceIds = new Set(affectedPieceIdsForSourceByTarget(state, sourceByTarget));
+  const affectedPieceIds = new Set(
+    affectedPieceIdsForSourceByTarget(createFaceletTrackingState(pieceIds), sourceByTarget),
+  );
 
   if (move.type === 'face') {
-    const centerPosition = centerPositionByFace.get(move.face);
-    const centerPieceId =
-      centerPosition === undefined ? undefined : state.positionPieceIds[centerPosition];
+    const centerPosition = centerPositionByFace.get(staticFaceForStateFace(move.face));
+    const centerPieceId = centerPosition === undefined ? undefined : pieceIds[centerPosition];
 
     if (centerPieceId !== undefined) affectedPieceIds.add(centerPieceId);
   }
@@ -88,31 +153,31 @@ const affectedPieceIdsForMove = (
 
 export const createMegaminxPlayerAdapter = (): PlayerPuzzleAdapter<
   MegaminxMove,
-  FaceletTrackingState
+  MegaminxState
 > => {
   const definition = createMegaminxDefinition();
-  const staticModel = createStaticPolyhedronModel({
-    cameraDistance: 8.2,
-    colors: MEGAMINX_COLORS,
-    piecesPrefix: 'megaminx',
-    stickers: MEGAMINX_GEOMETRY.stickers,
-  });
-  const centerPositionByFace = createCenterPositionByFace(staticModel.model.pieces);
-  const sourceByTargetForMove = (move: MegaminxMove): SourceByTarget => {
-    const moveGeometry = MEGAMINX_GEOMETRY.moves[moveKeyForMove(move)];
-
-    if (moveGeometry === undefined) throw new Error(`Missing megaminx move ${moveKeyForMove(move)}`);
-
-    return repeatStaticMoveGeometry(moveGeometry, move.amount).sourceByTarget;
-  };
+  const createModel = (state: MegaminxState) =>
+    createStaticPolyhedronModel({
+      cameraDistance: 8.2,
+      cameraOrbit: MEGAMINX_CAMERA_ORBIT,
+      colorForSticker: (sticker, _stickerIndex, faceStickerIndex) =>
+        colorForStateSticker(state, sticker.face, faceStickerIndex),
+      colors: MEGAMINX_COLORS,
+      piecesPrefix: 'megaminx',
+      stickers: MEGAMINX_GEOMETRY.stickers,
+    });
+  const solvedModel = createModel(definition.createSolvedState());
+  const centerPositionByFace = createCenterPositionByFace(solvedModel.model.pieces);
+  const pieceIds = solvedModel.pieceIds;
 
   return {
     type: 'megaminx',
     eventIds: ['minx'],
+    shouldRebuildModelAfterEachMove: true,
     parseFormula: definition.parseAlgorithm,
-    createInitialState: () => createFaceletTrackingState(staticModel.pieceIds),
-    createRenderableModel: () => staticModel.model,
-    describeMove: (move, state): PlayerMoveAnimation<MegaminxMove> => {
+    createInitialState: definition.createSolvedState,
+    createRenderableModel: (state) => createModel(state).model,
+    describeMove: (move): PlayerMoveAnimation<MegaminxMove> => {
       const moveGeometry = MEGAMINX_GEOMETRY.moves[moveKeyForMove(move)];
 
       if (moveGeometry === undefined) throw new Error(`Missing megaminx move ${moveKeyForMove(move)}`);
@@ -122,9 +187,9 @@ export const createMegaminxPlayerAdapter = (): PlayerPuzzleAdapter<
       return {
         affectedPieceIds: affectedPieceIdsForMove(
           move,
-          state,
           repeatedMoveGeometry.sourceByTarget,
           centerPositionByFace,
+          pieceIds,
         ),
         angleRadians: repeatedMoveGeometry.angleRadians,
         axis: repeatedMoveGeometry.axis,
@@ -133,6 +198,6 @@ export const createMegaminxPlayerAdapter = (): PlayerPuzzleAdapter<
         pivot: { x: 0, y: 0, z: 0 },
       };
     },
-    applyMove: (state, move) => applySourceByTarget(state, sourceByTargetForMove(move)),
+    applyMove: definition.applyMove,
   };
 };

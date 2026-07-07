@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getFtoMoveSourceByTarget } from '@cubegin/scramble-puzzle';
+import { getFtoMoveSourceByTarget, type MegaminxFace } from '@cubegin/scramble-puzzle';
 import { createFtoPlayerAdapter } from './fto/fto-player-adapter.js';
 import { createMegaminxPlayerAdapter } from './megaminx/megaminx-player-adapter.js';
 import { createPyraminxPlayerAdapter } from './pyraminx/pyraminx-player-adapter.js';
@@ -82,6 +82,22 @@ const stickerColorsByFace = (model: {
   return colors;
 };
 
+const coloredStickerColorForPiece = (
+  model: {
+    readonly pieces: readonly {
+      readonly id: string;
+      readonly stickers: readonly {
+        readonly color: string;
+        readonly face: string;
+      }[];
+    }[];
+  },
+  pieceId: string,
+): string | undefined =>
+  model.pieces
+    .find((piece) => piece.id === pieceId)
+    ?.stickers.find((sticker) => !sticker.face.endsWith('-border'))?.color;
+
 const pentagonalPiecePositionByFace = (model: {
   readonly pieces: readonly {
     readonly id: string;
@@ -102,6 +118,14 @@ const pentagonalPiecePositionByFace = (model: {
   });
 
   return centerPositionByFace;
+};
+
+const MEGAMINX_STATIC_FACE_BY_STATE_FACE: Partial<Record<MegaminxFace, MegaminxFace>> = {
+  B: 'DBL',
+  DBL: 'DL',
+  DBR: 'B',
+  DL: 'DR',
+  DR: 'DBR',
 };
 
 const polygonCenter = (
@@ -514,18 +538,31 @@ const expectSolvedMoveGeometryMatchesState = <Move>(
 
 describe('non-cube player adapters', () => {
   it('uses cube-aligned sticker borders across non-cube puzzle models', () => {
-    const adapters = [
-      createPyraminxPlayerAdapter(),
-      createSkewbPlayerAdapter(),
-      createFtoPlayerAdapter(),
-      createMegaminxPlayerAdapter(),
+    const models = [
+      (() => {
+        const adapter = createPyraminxPlayerAdapter();
+
+        return adapter.createRenderableModel(adapter.createInitialState());
+      })(),
+      (() => {
+        const adapter = createSkewbPlayerAdapter();
+
+        return adapter.createRenderableModel(adapter.createInitialState());
+      })(),
+      (() => {
+        const adapter = createFtoPlayerAdapter();
+
+        return adapter.createRenderableModel(adapter.createInitialState());
+      })(),
+      (() => {
+        const adapter = createMegaminxPlayerAdapter();
+
+        return adapter.createRenderableModel(adapter.createInitialState());
+      })(),
     ];
 
-    for (const adapter of adapters) {
-      expectStickerScaleCloseTo(
-        adapter.createRenderableModel(adapter.createInitialState()),
-        CUBE_ALIGNED_STICKER_SCALE,
-      );
+    for (const model of models) {
+      expectStickerScaleCloseTo(model, CUBE_ALIGNED_STICKER_SCALE);
     }
   });
 
@@ -582,16 +619,17 @@ describe('non-cube player adapters', () => {
     expect(model.pieces).toHaveLength(30);
     expect(stickerFaceCounts(model)).toEqual({ B: 5, D: 5, F: 5, L: 5, R: 5, U: 5 });
     expect(stickerColorsByFace(model)).toEqual({
-      B: '#ff8000',
+      B: '#0000ff',
       D: '#ffff00',
-      F: '#ff0000',
-      L: '#00ff00',
-      R: '#0000ff',
+      F: '#00ff00',
+      L: '#ff8000',
+      R: '#ff0000',
       U: '#ffffff',
     });
     expect(coloredSticker?.polygon.length).toBeGreaterThanOrEqual(3);
     expect(countColoredStickerPolygonSize(model, 'F', 4)).toBe(1);
     expectBorderVertexCloseTo(model, 'F', { x: -1.110288979211, y: 1.110288979211, z: 1.110288979211 });
+    expect(model.cameraOrbit).toBeUndefined();
     expectColoredStickersOutsideBorders(model);
     expect(animation.affectedPieceIds.length).toBeGreaterThan(0);
     expect(animation.affectedPieceIds.length).toBeLessThan(model.pieces.length);
@@ -690,19 +728,23 @@ describe('non-cube player adapters', () => {
       U: 11,
     });
     expect(stickerColorsByFace(model)).toEqual({
-      B: '#71e600',
+      B: '#ff99ff',
       BL: '#ffcc00',
       BR: '#0000b3',
       D: '#999999',
-      DBL: '#ff8433',
-      DBR: '#ff99ff',
-      DL: '#88ddff',
-      DR: '#ffffb3',
+      DBL: '#71e600',
+      DBR: '#ffffb3',
+      DL: '#ff8433',
+      DR: '#88ddff',
       F: '#006600',
       L: '#8a1aff',
       R: '#dd0000',
       U: '#ffffff',
     });
+    expect(coloredStickerColorForPiece(model, 'megaminx-DBR-4')).toBe('#ffffb3');
+    expect(coloredStickerColorForPiece(model, 'megaminx-B-4')).toBe('#ff99ff');
+    expect(model.cameraOrbit?.pitch).toBeCloseTo(Math.atan(0.5));
+    expect(model.cameraOrbit?.yaw).toBe(0);
     expect(coloredSticker?.polygon).toHaveLength(4);
     expect(countColoredStickerPolygonSize(model, 'U', 5)).toBe(1);
     expect(countColoredStickerPolygonSize(model, 'U', 4)).toBe(10);
@@ -742,8 +784,7 @@ describe('non-cube player adapters', () => {
     expect(bigTurnAnimation.affectedPieceIds).toHaveLength(105);
     expect(bottomBigTurnAnimation.affectedPieceIds).toHaveLength(105);
     expect(bigTurnAnimation.durationMultiplier).toBeGreaterThan(1);
-    expectMoveUsesTrackedState(adapter, 'U F');
-    expectSolvedMoveGeometryMatchesState(adapter, 'U F R++ D--');
+    expect(adapter.shouldRebuildModelAfterEachMove).toBe(true);
   });
 
   it('includes the current megaminx face center in face-turn animations', () => {
@@ -755,13 +796,14 @@ describe('non-cube player adapters', () => {
     for (const move of adapter.parseFormula('U BL BR R F L D DR DBR B DBL DL')) {
       if (move.type !== 'face') throw new Error('expected face moves only');
 
-      const centerPosition = centerPositionByFace.get(move.face);
+      const staticFace = MEGAMINX_STATIC_FACE_BY_STATE_FACE[move.face] ?? move.face;
+      const centerPosition = centerPositionByFace.get(staticFace);
 
       if (centerPosition === undefined) {
-        throw new Error(`missing megaminx center position for ${move.face}`);
+        throw new Error(`missing megaminx center position for ${staticFace}`);
       }
 
-      const centerPieceId = initialState.positionPieceIds[centerPosition];
+      const centerPieceId = model.pieces[centerPosition]?.id;
 
       expect(adapter.describeMove(move, initialState).affectedPieceIds).toContain(centerPieceId);
     }
@@ -773,16 +815,31 @@ describe('non-cube player adapters', () => {
     }
 
     const afterBigTurn = adapter.applyMove(initialState, bigTurnMove);
-    const centerPosition = centerPositionByFace.get(faceMove.face);
+    const staticFace = MEGAMINX_STATIC_FACE_BY_STATE_FACE[faceMove.face] ?? faceMove.face;
+    const centerPosition = centerPositionByFace.get(staticFace);
 
     if (centerPosition === undefined) {
-      throw new Error(`missing megaminx center position for ${faceMove.face}`);
+      throw new Error(`missing megaminx center position for ${staticFace}`);
     }
 
-    const currentCenterPieceId = afterBigTurn.positionPieceIds[centerPosition];
+    const currentCenterPieceId = model.pieces[centerPosition]?.id;
 
     expect(adapter.describeMove(faceMove, afterBigTurn).affectedPieceIds).toContain(
       currentCenterPieceId,
     );
+  });
+
+  it('renders megaminx checkpoint colors from static 3D sticker state indexes', () => {
+    const adapter = createMegaminxPlayerAdapter();
+    const [move] = adapter.parseFormula('U');
+
+    if (move === undefined) throw new Error('megaminx parser did not return expected move');
+
+    const afterMove = adapter.applyMove(adapter.createInitialState(), move);
+    const model = adapter.createRenderableModel(afterMove);
+
+    expect(adapter.shouldRebuildModelAfterEachMove).toBe(true);
+    expect(coloredStickerColorForPiece(model, 'megaminx-F-0')).toBe('#dd0000');
+    expect(coloredStickerColorForPiece(model, 'megaminx-F-7')).toBe('#006600');
   });
 });
