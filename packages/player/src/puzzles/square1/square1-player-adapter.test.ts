@@ -444,6 +444,53 @@ describe('createSquareOnePlayerAdapter', () => {
     );
   });
 
+  it('describes and commits tuple moves through the Square-1 engine transform', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const state = adapter.createInitialState();
+    const [tupleMove] = adapter.parseFormula('(1,0)');
+    const transform =
+      tupleMove === undefined ? undefined : adapter.describeTransform?.(tupleMove, state);
+
+    expect(transform?.operations[0]).toMatchObject({
+      angleRadians: Math.PI / 6,
+      affectedPieceIds: expect.arrayContaining(['square1-piece-0', 'square1-piece-7']),
+      type: 'axis-rotation',
+    });
+    expect(transform?.move).toBe(tupleMove);
+    expect(
+      transform === undefined ? undefined : adapter.commitTransform?.(state, transform).wedges,
+    ).toHaveLength(24);
+  });
+
+  it('describes slash moves from the engine state after a one-slot top turn', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const state = adapter.createInitialState();
+    const [tupleMove, slashMove] = adapter.parseFormula('(1,0) /');
+
+    expect(tupleMove).toBeDefined();
+    expect(slashMove).toBeDefined();
+
+    const tupleTransform = adapter.describeTransform!(tupleMove!, state);
+    const afterTuple = adapter.commitTransform!(state, tupleTransform);
+    const slashTransform = adapter.describeTransform!(slashMove!, afterTuple);
+    const slashOperation = slashTransform.operations[0];
+
+    expect(slashOperation?.type === 'axis-rotation' ? slashOperation.affectedPieceIds : []).toEqual(
+      [
+        'square1-piece-3',
+        'square1-piece-4',
+        'square1-piece-5',
+        'square1-piece-6',
+        'square1-piece-8',
+        'square1-piece-9',
+        'square1-piece-10',
+        'square1-piece-11',
+        'square1-middle-right',
+      ],
+    );
+    expect(adapter.commitTransform!(afterTuple, slashTransform).equatorOrientation).toBe(3);
+  });
+
   it('keeps solved side faces color-aligned across top, middle, and bottom layers', () => {
     const adapter = createSquareOnePlayerAdapter();
     const model = adapter.createRenderableModel(adapter.createInitialState());

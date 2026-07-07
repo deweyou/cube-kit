@@ -35,33 +35,37 @@ const TURN_RADIANS = Math.PI / 6;
 const TOP_AXIS = { x: 0, y: 1, z: 0 } as const satisfies Vector3Like;
 const ZERO_VECTOR = { x: 0, y: 0, z: 0 } as const satisfies Vector3Like;
 const SLASH_AXIS = { x: 1, y: 0, z: 0.27 } as const satisfies Vector3Like;
+const SLASH_DURATION_MULTIPLIER = 1.45;
+const MIDDLE_RIGHT_PIECE_ID = 'square1-middle-right';
+
+const pieceId = (piece: number): string => `square1-piece-${piece}`;
 
 const SOLVED_WEDGE_PATTERN = [
-  ['top-corner-0', 'corner'],
-  ['top-corner-0', 'corner'],
-  ['top-edge-0', 'edge'],
-  ['top-corner-1', 'corner'],
-  ['top-corner-1', 'corner'],
-  ['top-edge-1', 'edge'],
-  ['top-corner-2', 'corner'],
-  ['top-corner-2', 'corner'],
-  ['top-edge-2', 'edge'],
-  ['top-corner-3', 'corner'],
-  ['top-corner-3', 'corner'],
-  ['top-edge-3', 'edge'],
-  ['bottom-edge-0', 'edge'],
-  ['bottom-corner-0', 'corner'],
-  ['bottom-corner-0', 'corner'],
-  ['bottom-edge-1', 'edge'],
-  ['bottom-corner-1', 'corner'],
-  ['bottom-corner-1', 'corner'],
-  ['bottom-edge-2', 'edge'],
-  ['bottom-corner-2', 'corner'],
-  ['bottom-corner-2', 'corner'],
-  ['bottom-edge-3', 'edge'],
-  ['bottom-corner-3', 'corner'],
-  ['bottom-corner-3', 'corner'],
-] as const satisfies readonly (readonly [string, SquareOneEnginePieceKind])[];
+  [pieceId(0), 'corner'],
+  [pieceId(0), 'corner'],
+  [pieceId(1), 'edge'],
+  [pieceId(2), 'corner'],
+  [pieceId(2), 'corner'],
+  [pieceId(3), 'edge'],
+  [pieceId(4), 'corner'],
+  [pieceId(4), 'corner'],
+  [pieceId(5), 'edge'],
+  [pieceId(6), 'corner'],
+  [pieceId(6), 'corner'],
+  [pieceId(7), 'edge'],
+  [pieceId(8), 'edge'],
+  [pieceId(9), 'corner'],
+  [pieceId(9), 'corner'],
+  [pieceId(10), 'edge'],
+  [pieceId(11), 'corner'],
+  [pieceId(11), 'corner'],
+  [pieceId(12), 'edge'],
+  [pieceId(13), 'corner'],
+  [pieceId(13), 'corner'],
+  [pieceId(14), 'edge'],
+  [pieceId(15), 'corner'],
+  [pieceId(15), 'corner'],
+] satisfies readonly (readonly [string, SquareOneEnginePieceKind])[];
 
 export const createSolvedSquareOneEngineState = (): SquareOneEngineState => ({
   equatorOrientation: 0,
@@ -134,13 +138,14 @@ export const describeSquareOneTupleTransform = (
 export const describeSquareOneSlashTransform = (
   state: SquareOneEngineState,
 ): SquareOneEngineTransform => ({
+  durationMultiplier: SLASH_DURATION_MULTIPLIER,
   move: { type: 'slash' },
   operations: [
     {
       affectedPieceIds: uniquePieceIds([
         ...state.wedges.slice(6, 12),
         ...state.wedges.slice(12, 18),
-      ]),
+      ]).concat(MIDDLE_RIGHT_PIECE_ID),
       angleRadians: Math.PI,
       axis: SLASH_AXIS,
       pivot: ZERO_VECTOR,
@@ -156,6 +161,12 @@ export const describeSquareOneMoveTransform = (
   move.type === 'slash'
     ? describeSquareOneSlashTransform(state)
     : describeSquareOneTupleTransform({ bottom: move.bottom, top: move.top }, state);
+
+export const canSquareOneEngineSlash = (state: SquareOneEngineState): boolean =>
+  state.wedges[0]?.pieceId !== state.wedges[11]?.pieceId &&
+  state.wedges[6]?.pieceId !== state.wedges[5]?.pieceId &&
+  state.wedges[12]?.pieceId !== state.wedges[23]?.pieceId &&
+  state.wedges[18]?.pieceId !== state.wedges[17]?.pieceId;
 
 const commitTupleTransform = (
   state: SquareOneEngineState,

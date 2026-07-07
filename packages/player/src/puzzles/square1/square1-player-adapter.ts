@@ -1,11 +1,13 @@
 import {
   createSquareOneDefinition,
+  InvalidMoveError,
   type SquareOneMove,
   type SquareOneState,
   type SquareOneTurn,
 } from '@cubegin/scramble-puzzle';
 import type {
   PlayerMoveAnimation,
+  PlayerMoveTransform,
   PlayerPuzzleAdapter,
   PlayerRenderableModel,
   PlayerRenderablePiece,
@@ -13,6 +15,15 @@ import type {
   QuaternionLike,
   Vector3Like,
 } from '../puzzle-adapter.js';
+import {
+  canSquareOneEngineSlash,
+  commitSquareOneTransform,
+  createSolvedSquareOneEngineState,
+  describeSquareOneMoveTransform,
+  type SquareOneEngineMove,
+  type SquareOneEngineState,
+  type SquareOneEngineTransform,
+} from './square1-engine.js';
 
 const SQUARE_ONE_COLORS = {
   B: '#ff8000',
@@ -83,13 +94,26 @@ interface SideBoundarySegment {
   readonly innerStart: Vector3Like;
 }
 
-interface SquareOnePlayerState {
-  readonly bottomLayerRotationRadians: number;
-  readonly puzzleState: SquareOneState;
-  readonly topLayerRotationRadians: number;
-}
+type SquareOnePlayerState = SquareOneEngineState;
 
 const pieceId = (piece: number): string => `square1-piece-${piece}`;
+
+const pieceValueFromId = (id: string): number => {
+  const match = /^square1-piece-(\d+)$/.exec(id);
+  const piece = match?.[1] === undefined ? Number.NaN : Number(match[1]);
+
+  if (!Number.isSafeInteger(piece) || piece < 0 || piece > 15) {
+    throw new RangeError(`invalid Square-1 player piece id: ${id}`);
+  }
+
+  return piece;
+};
+
+const squareOneStateForEngineState = (state: SquareOneEngineState): SquareOneState =>
+  Object.freeze({
+    sliceSolved: state.equatorOrientation === 0,
+    pieces: Object.freeze(state.wedges.map((slot) => pieceValueFromId(slot.pieceId))),
+  });
 
 const solvedSlotIndexByPiece = SOLVED_SQUARE_ONE_PIECES.reduce((slotIndexByPiece, piece, index) => {
   if (!slotIndexByPiece.has(piece)) slotIndexByPiece.set(piece, index);
@@ -1029,21 +1053,16 @@ const middlePiecesForState = (state: SquareOneState): readonly PlayerRenderableP
   return [middleLeft, applyPoseToPiece(middleRight, slashPoseForPiece(middleRight))];
 };
 
+const createPiecesForSquareOneState = (state: SquareOneState): readonly PlayerRenderablePiece[] => [
+  ...middlePiecesForState(state),
+  ...layerPiecesForState(state.pieces.slice(0, 12), 'top', 0),
+  ...layerPiecesForState(state.pieces.slice(12), 'bottom', 0),
+];
+
 const createPiecesForPlayerState = (
   state: SquareOnePlayerState,
-): readonly PlayerRenderablePiece[] => [
-  ...middlePiecesForState(state.puzzleState),
-  ...layerPiecesForState(
-    state.puzzleState.pieces.slice(0, 12),
-    'top',
-    state.topLayerRotationRadians,
-  ),
-  ...layerPiecesForState(
-    state.puzzleState.pieces.slice(12),
-    'bottom',
-    state.bottomLayerRotationRadians,
-  ),
-];
+): readonly PlayerRenderablePiece[] =>
+  createPiecesForSquareOneState(squareOneStateForEngineState(state));
 
 const targetPoseByPieceId = (
   pieces: readonly PlayerRenderablePiece[],
@@ -1073,17 +1092,15 @@ const describeSquareOneMove = (
   move: SquareOneMove,
   state: SquareOnePlayerState,
 ): PlayerMoveAnimation<SquareOneMove> => {
+  const squareOneState = squareOneStateForEngineState(state);
+
   if (move.type === 'slash') {
-    const affectedPieceIds = slashAffectedPieceIds(state.puzzleState.pieces);
+    const affectedPieceIds = slashAffectedPieceIds(squareOneState.pieces);
     const targetPuzzleState = {
-      sliceSolved: !state.puzzleState.sliceSolved,
-      pieces: slashHalfSlots(state.puzzleState.pieces),
+      sliceSolved: !squareOneState.sliceSolved,
+      pieces: slashHalfSlots(squareOneState.pieces),
     };
-    const targetPieces = createPiecesForPlayerState({
-      bottomLayerRotationRadians: 0,
-      puzzleState: targetPuzzleState,
-      topLayerRotationRadians: 0,
-    });
+    const targetPieces = createPiecesForSquareOneState(targetPuzzleState);
     const targets = targetPoseByPieceId(targetPieces, affectedPieceIds);
     const angleRadians = -Math.PI;
 
@@ -1098,9 +1115,8 @@ const describeSquareOneMove = (
     };
   }
 
-  const topPieceIds = move.top === 0 ? [] : uniquePieceIds(state.puzzleState.pieces.slice(0, 12));
-  const bottomPieceIds =
-    move.bottom === 0 ? [] : uniquePieceIds(state.puzzleState.pieces.slice(12));
+  const topPieceIds = move.top === 0 ? [] : uniquePieceIds(squareOneState.pieces.slice(0, 12));
+  const bottomPieceIds = move.bottom === 0 ? [] : uniquePieceIds(squareOneState.pieces.slice(12));
   const affectedPieceIds = [...topPieceIds, ...bottomPieceIds];
   const angleRadiansByPieceId: Record<string, number> = {};
   const pivotByPieceId = {
@@ -1123,6 +1139,44 @@ const describeSquareOneMove = (
   };
 };
 
+const toEngineMove = (move: SquareOneMove): SquareOneEngineMove =>
+  move.type === 'slash' ? { type: 'slash' } : { type: 'tuple', bottom: move.bottom, top: move.top };
+
+const describeSquareOneTransform = (
+  move: SquareOneMove,
+  state: SquareOnePlayerState,
+): PlayerMoveTransform<SquareOneMove> => {
+  const engineTransform = describeSquareOneMoveTransform(toEngineMove(move), state);
+
+  return {
+    ...engineTransform,
+    move,
+  };
+};
+
+const assertCanCommitSquareOneMove = (move: SquareOneMove, state: SquareOnePlayerState): void => {
+  if (move.type === 'slash' && !canSquareOneEngineSlash(state)) {
+    throw new InvalidMoveError('/', 'square1');
+  }
+};
+
+const toEngineTransform = (
+  transform: PlayerMoveTransform<SquareOneMove>,
+): SquareOneEngineTransform => ({
+  durationMultiplier: transform.durationMultiplier,
+  move: toEngineMove(transform.move),
+  operations: transform.operations,
+});
+
+const commitSquareOnePlayerTransform = (
+  state: SquareOnePlayerState,
+  transform: PlayerMoveTransform<SquareOneMove>,
+): SquareOnePlayerState => {
+  assertCanCommitSquareOneMove(transform.move, state);
+
+  return commitSquareOneTransform(state, toEngineTransform(transform));
+};
+
 export const createSquareOnePlayerAdapter = (): PlayerPuzzleAdapter<
   SquareOneMove,
   SquareOnePlayerState
@@ -1134,33 +1188,16 @@ export const createSquareOnePlayerAdapter = (): PlayerPuzzleAdapter<
     eventIds: ['sq1'],
     shouldRebuildModelAfterEachMove: true,
     parseFormula: (formula) => definition.parseAlgorithm(formula),
-    createInitialState: () => ({
-      bottomLayerRotationRadians: 0,
-      puzzleState: definition.createSolvedState(),
-      topLayerRotationRadians: 0,
-    }),
+    createInitialState: () => createSolvedSquareOneEngineState(),
     createRenderableModel: (state): PlayerRenderableModel => ({
       cameraDistance: CAMERA_DISTANCE,
       cameraOrbit: CAMERA_ORBIT,
       pieces: createPiecesForPlayerState(state),
     }),
+    describeTransform: describeSquareOneTransform,
+    commitTransform: commitSquareOnePlayerTransform,
     describeMove: describeSquareOneMove,
-    applyMove: (state, move) => {
-      const puzzleState = definition.applyMove(state.puzzleState, move);
-
-      if (move.type === 'slash') {
-        return {
-          bottomLayerRotationRadians: 0,
-          puzzleState,
-          topLayerRotationRadians: 0,
-        };
-      }
-
-      return {
-        bottomLayerRotationRadians: 0,
-        puzzleState,
-        topLayerRotationRadians: 0,
-      };
-    },
+    applyMove: (state, move) =>
+      commitSquareOnePlayerTransform(state, describeSquareOneTransform(move, state)),
   };
 };

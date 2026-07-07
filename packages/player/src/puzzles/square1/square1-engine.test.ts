@@ -28,6 +28,14 @@ describe('Square-1 engine state', () => {
     ]);
   });
 
+  it('uses player renderable piece ids as physical piece ids', () => {
+    const state = createSolvedSquareOneEngineState();
+
+    expect([...new Set(state.wedges.map((slot) => slot.pieceId))].sort()).toEqual(
+      Array.from({ length: 16 }, (_, piece) => `square1-piece-${piece}`).sort(),
+    );
+  });
+
   it('turns (1,0) by one top half-slot clockwise', () => {
     const state = createSolvedSquareOneEngineState();
     const transform = describeSquareOneTupleTransform({ bottom: 0, top: 1 }, state);
@@ -76,8 +84,10 @@ describe('Square-1 engine state', () => {
     expect(transform.operations).toHaveLength(1);
     expect(transform.operations[0]).toMatchObject({
       angleRadians: Math.PI,
+      affectedPieceIds: expect.arrayContaining(['square1-middle-right']),
       type: 'axis-rotation',
     });
+    expect(transform.durationMultiplier).toBeGreaterThan(1);
     expect(nextState.equatorOrientation).toBe(3);
     expect(nextState.wedges.slice(6, 12).map((slot) => slot.pieceId)).toEqual(
       state.wedges.slice(12, 18).map((slot) => slot.pieceId),
