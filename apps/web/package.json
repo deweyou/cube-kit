@@ -20,7 +20,8 @@
     "@deweyou-design/react": "catalog:",
     "@deweyou-design/styles": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "react-router": "catalog:"
   },
   "devDependencies": {
     "@testing-library/react": "^16",

@@ -13,6 +13,7 @@ catalog:
   '@vitest/coverage-v8': 4.1.4
   react: ^19
   react-dom: ^19
+  react-router: ^7.10.1
   typescript: ^5
   vite: npm:@voidzero-dev/vite-plus-core@latest
   vite-plus: latest

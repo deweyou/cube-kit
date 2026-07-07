@@ -1,9 +1,9 @@
 import { AppShell } from './layout/app-shell';
-import { TimerPage } from './timer/timer-page';
+import { AppRouter } from './app-router';
 
 const App = () => (
   <AppShell>
-    <TimerPage />
+    <AppRouter />
   </AppShell>
 );
 

@@ -83,12 +83,12 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 
 ## Key Files
 
-- [apps/web/src/timer/timer-page.tsx#L1](../apps/web/src/timer/timer-page.tsx#L1) - timer state and async scramble generation.
+- [apps/web/src/timer/timer-page.tsx#L1](../apps/web/src/timer/timer-page.tsx#L1) - timer state, list/event binding, async scramble generation, and SVG preview ownership.
 - [apps/web/src/timer/scramble-worker-client.ts#L1](../apps/web/src/timer/scramble-worker-client.ts#L1) - browser Worker request/response boundary.
 - [apps/web/src/timer/scramble-prefetcher.ts#L1](../apps/web/src/timer/scramble-prefetcher.ts#L1) - one-use scramble queue plus foreground and background worker prefetch policy.
 - [apps/web/src/timer/scramble-performance-log.ts#L1](../apps/web/src/timer/scramble-performance-log.ts#L1) - dev-only scramble timing logs.
-- [apps/web/src/timer/views/scramble-view.tsx#L1](../apps/web/src/timer/views/scramble-view.tsx#L1) - web SVG rendering through `@cubegin/scramble-image`.
-- [apps/web/src/timer/components/event-selector.tsx#L1](../apps/web/src/timer/components/event-selector.tsx#L1) - event list from `@cubegin/shared/events`.
+- [apps/web/src/timer/components/scramble-image.tsx#L1](../apps/web/src/timer/components/scramble-image.tsx#L1) - inline SVG rendering boundary for `@cubegin/scramble-image` output.
+- [apps/web/src/timer/components/scramble-text.tsx#L1](../apps/web/src/timer/components/scramble-text.tsx#L1) - full scramble text display and event-specific line breaking.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - `prepare:deps` for workspace package exports.
 - [packages/shared/src/events/events.ts#L1](../packages/shared/src/events/events.ts#L1) - canonical supported event list for the packages.
 - [packages/scramble-core/src/generator.ts#L1](../packages/scramble-core/src/generator.ts#L1) - async generator facade and default event dispatch.
@@ -103,4 +103,4 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 
 ---
 
-_Last updated: 2026-06-13 | Reason: document foreground/background worker scramble prefetch policy_
+_Last updated: 2026-07-07 | Reason: align web scramble runtime docs with the primary TimerPage implementation_

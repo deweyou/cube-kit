@@ -1,3 +1,4 @@
+import { formatElapsedClock } from '../timer/format';
 import type { SolvePenalty, SolveRecord } from './types';
 
 export const getSolveScrambles = (solve: Pick<SolveRecord, 'scramble'>): string[] =>
@@ -12,7 +13,7 @@ export const getDisplayedElapsedMs = (elapsedMs: number, penalty: SolvePenalty):
   return elapsedMs;
 };
 
-export const formatMilliseconds = (ms: number): string => (ms / 1000).toFixed(3);
+export const formatMilliseconds = (ms: number): string => formatElapsedClock(ms, 3);
 
 export const getSolveDisplayText = (elapsedMs: number, penalty: SolvePenalty): string => {
   const displayedMs = getDisplayedElapsedMs(elapsedMs, penalty);

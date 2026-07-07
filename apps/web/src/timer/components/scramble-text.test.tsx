@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ScrambleText } from './scramble-text';
@@ -34,5 +32,12 @@ describe('ScrambleText', () => {
   });
 });
 
+declare const process: {
+  cwd: () => string;
+};
+
+// @ts-ignore Vitest runs this test in Node, while focused app checks may omit Node types.
+const { readFileSync } = await import('node:fs');
+
 const readScrambleTextCss = () =>
-  readFileSync(resolve(process.cwd(), 'src/timer/components/scramble-text.module.css'), 'utf8');
+  readFileSync(`${process.cwd()}/src/timer/components/scramble-text.module.css`, 'utf8');

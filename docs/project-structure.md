@@ -10,7 +10,9 @@ flowchart TD
     Apps --> Playground["apps/playground scramble test workbench"]
     Apps --> ScrambleDocs["apps/scramble-docs VitePress learning site"]
     Apps --> Wx["apps/wx-app Taro shell"]
-    Web --> TimerPage["TimerPage"]
+    Web --> AppRouter["AppRouter"]
+    AppRouter --> TimerPage["TimerPage"]
+    AppRouter --> PlaceholderPages["results/formulas/settings placeholders"]
     TimerPage --> SharedTimer["@cubegin/shared/timer"]
     TimerPage --> SharedTimerSession["@cubegin/shared/timer-session"]
     Packages --> PublicCore["cubegin npm package"]
@@ -116,11 +118,18 @@ rerun the sync script.
 - Web starts at [apps/web/src/main.tsx#L1](../apps/web/src/main.tsx#L1), which
   renders React without the removed cstimer browser shim.
 - [apps/web/src/app.tsx#L1](../apps/web/src/app.tsx#L1) wraps
-  [TimerPage](../apps/web/src/timer/timer-page.tsx#L14) in the app shell.
-- `TimerPage` owns the page-level `scramble -> timing -> result` state, uses
-  IndexedDB for web solve persistence, and calls `@cubegin/shared/timer`,
-  `@cubegin/shared/timer-session`, `@cubegin/scramble-core`, and
-  `@cubegin/scramble-image`.
+  [AppRouter](../apps/web/src/app-router.tsx#L1) in the app shell.
+- [AppRouter](../apps/web/src/app-router.tsx#L1) wraps the app in React Router
+  and maps `/` to
+  [TimerPage](../apps/web/src/timer/timer-page.tsx#L1), and maps
+  `/results`, `/formulas`, and `/settings` to placeholder pages for follow-up
+  feature work. Route components are lazy loaded so the app shell and inactive
+  pages stay out of the entry chunk. Route constants live in
+  [apps/web/src/app-routes.ts#L1](../apps/web/src/app-routes.ts#L1).
+- `TimerPage` owns the current web timer surface, list selector, scramble
+  strip, timing state, result actions, session summary, recent solves, and
+  scramble preview. It is the canonical web timer page and reuses only the
+  shared timer hook plus focused scramble display components.
 - Playground starts with `pnpm dev:playground` at
   [apps/playground/src/main.tsx#L1](../apps/playground/src/main.tsx#L1). Its
   [App](../apps/playground/src/app.tsx#L1) calls the new `scramble-core`,
@@ -197,4 +206,4 @@ rerun the sync script.
 
 ---
 
-_Last updated: 2026-07-01 | Reason: add the Three.js player package and playground Player tab_
+_Last updated: 2026-07-07 | Reason: make TimerPage primary and route the web app through React Router_

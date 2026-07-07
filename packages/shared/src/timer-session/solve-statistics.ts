@@ -15,7 +15,7 @@ export interface SolveStatistics {
   rollingAverages: RollingAverageStat[];
 }
 
-const ROLLING_AVERAGE_SIZES = [3, 5, 12, 100] as const;
+const ROLLING_AVERAGE_SIZES = [3, 5, 12, 50, 100] as const;
 
 const compareDisplayedMs = (a: number | null, b: number | null): number => {
   if (a === null && b === null) return 0;
