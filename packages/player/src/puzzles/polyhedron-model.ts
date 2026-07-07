@@ -1,4 +1,5 @@
 import type {
+  PlayerCameraOrbit,
   PlayerRenderableModel,
   PlayerRenderablePiece,
   PlayerRenderableSticker,
@@ -278,6 +279,7 @@ export const buildTaggedModel = (
     readonly piece: PlayerRenderablePiece;
   }[],
   cameraDistance: number,
+  cameraOrbit?: PlayerCameraOrbit,
 ): TaggedRenderableModel => {
   const mutableGroups = new Map<string, string[]>();
 
@@ -293,6 +295,7 @@ export const buildTaggedModel = (
   return {
     model: {
       cameraDistance,
+      ...(cameraOrbit === undefined ? {} : { cameraOrbit }),
       pieces: pieces.map((piece) => piece.piece),
     },
     pieceIdsByGroup: mutableGroups,

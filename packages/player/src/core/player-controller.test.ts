@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { EventId } from '@cubegin/shared/events';
 import { createPlayerController, type PlayerControllerView } from './player-controller.js';
 
 const createView = (): PlayerControllerView => ({
@@ -27,7 +28,10 @@ describe('createPlayerController', () => {
       }),
     );
     expect(view.setTimeline).toHaveBeenCalledWith(
-      expect.objectContaining({ steps: expect.arrayContaining([expect.any(Object)]) }),
+      expect.objectContaining({
+        modelsByCompletedStepCount: undefined,
+        steps: expect.arrayContaining([expect.any(Object)]),
+      }),
     );
     expect(controller.getState()).toMatchObject({
       status: 'ready',
@@ -45,7 +49,7 @@ describe('createPlayerController', () => {
     const view = createView();
 
     const controller = createPlayerController(view, {
-      eventId: 'sq1',
+      eventId: '333ft' as EventId,
       formula: '(1,0)',
       initialPosition: 'start',
     });

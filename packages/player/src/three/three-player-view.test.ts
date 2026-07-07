@@ -142,6 +142,18 @@ const createTestModel = (cameraDistance = 8): PlayerRenderableModel => ({
   ],
 });
 
+const createNamedTestModel = (pieceId: string, x = 0): PlayerRenderableModel => ({
+  cameraDistance: 8,
+  pieces: [
+    {
+      id: pieceId,
+      orientation: { x: 0, y: 0, z: 0, w: 1 },
+      position: { x, y: 0, z: 0 },
+      stickers: [],
+    },
+  ],
+});
+
 const createTestAnimation = (): PlayerMoveAnimation<{ readonly name: string }> => ({
   affectedPieceIds: ['piece-0'],
   angleRadians: Math.PI / 2,
@@ -245,8 +257,12 @@ describe('createThreePlayerView', () => {
 
     expect(pieceGroup).toBeInstanceOf(THREE.Group);
 
-    const body = (pieceGroup as THREE.Group).children.find((child) => child.name === 'piece-0-body');
-    const sticker = (pieceGroup as THREE.Group).children.find((child) => child.name === 'sticker-0');
+    const body = (pieceGroup as THREE.Group).children.find(
+      (child) => child.name === 'piece-0-body',
+    );
+    const sticker = (pieceGroup as THREE.Group).children.find(
+      (child) => child.name === 'sticker-0',
+    );
 
     expect(body).toBeInstanceOf(THREE.Mesh);
     expect(((body as THREE.Mesh).geometry as THREE.BoxGeometry).parameters.width).toBe(1);
@@ -300,8 +316,12 @@ describe('createThreePlayerView', () => {
 
     expect(pieceGroup).toBeInstanceOf(THREE.Group);
 
-    const body = (pieceGroup as THREE.Group).children.find((child) => child.name === 'piece-0-body');
-    const sticker = (pieceGroup as THREE.Group).children.find((child) => child.name === 'sticker-0');
+    const body = (pieceGroup as THREE.Group).children.find(
+      (child) => child.name === 'piece-0-body',
+    );
+    const sticker = (pieceGroup as THREE.Group).children.find(
+      (child) => child.name === 'sticker-0',
+    );
 
     expect(body).toBeInstanceOf(THREE.Mesh);
     expect(sticker).toBeInstanceOf(THREE.Mesh);
@@ -455,11 +475,103 @@ describe('createThreePlayerView', () => {
 
     view.seek(1);
 
-    const completedPieceGroup = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children.find(
-      (child) => child.name === 'piece-0',
-    );
+    const completedPieceGroup = getRenderedPuzzleGroup(
+      getLastRenderedScene(renderer),
+    ).children.find((child) => child.name === 'piece-0');
 
     expect(completedPieceGroup?.position.z).toBeCloseTo(0);
+  });
+
+  it('allows one animation to use per-piece pivots', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+
+    view.renderModel({
+      cameraDistance: 8,
+      pieces: [
+        {
+          id: 'top-piece',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: 1, y: 2, z: 0 },
+          stickers: [],
+        },
+        {
+          id: 'bottom-piece',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: 1, y: -2, z: 0 },
+          stickers: [],
+        },
+      ],
+    });
+    view.setTimeline(
+      createPlayerTimeline([
+        {
+          animation: {
+            affectedPieceIds: ['top-piece', 'bottom-piece'],
+            angleRadians: Math.PI / 2,
+            axis: { x: 0, y: 0, z: 1 },
+            move: { name: 'turn' },
+            pivot: { x: 0, y: 0, z: 0 },
+            pivotByPieceId: {
+              'bottom-piece': { x: 0, y: -2, z: 0 },
+              'top-piece': { x: 0, y: 2, z: 0 },
+            },
+          },
+          move: { name: 'turn' },
+        },
+      ]),
+    );
+
+    view.seek(1);
+
+    const puzzleGroup = getRenderedPuzzleGroup(getLastRenderedScene(renderer));
+    const topPiece = puzzleGroup.children.find((child) => child.name === 'top-piece');
+    const bottomPiece = puzzleGroup.children.find((child) => child.name === 'bottom-piece');
+
+    expect(topPiece?.position.x).toBeCloseTo(0);
+    expect(topPiece?.position.y).toBeCloseTo(3);
+    expect(bottomPiece?.position.x).toBeCloseTo(0);
+    expect(bottomPiece?.position.y).toBeCloseTo(-1);
+  });
+
+  it('renders committed state checkpoints at completed move steps', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+    const initialModel = createNamedTestModel('initial-piece');
+    const finalModel = createNamedTestModel('final-piece', 2);
+    const animation: PlayerMoveAnimation<{ readonly name: string }> = {
+      affectedPieceIds: ['initial-piece'],
+      angleRadians: Math.PI / 2,
+      axis: { x: 0, y: 1, z: 0 },
+      move: { name: 'shape-shift' },
+      pivot: { x: 0, y: 0, z: 0 },
+    };
+
+    view.renderModel(initialModel);
+    view.setTimeline(
+      createPlayerTimeline([{ move: animation.move, animation }], {
+        modelsByCompletedStepCount: [initialModel, finalModel],
+      }),
+    );
+    view.seek(1);
+
+    const finalPuzzleGroup = getRenderedPuzzleGroup(getLastRenderedScene(renderer));
+
+    expect(finalPuzzleGroup.children.some((child) => child.name === 'final-piece')).toBe(true);
+    expect(finalPuzzleGroup.children.some((child) => child.name === 'initial-piece')).toBe(false);
+
+    view.seek(0);
+
+    const initialPuzzleGroup = getRenderedPuzzleGroup(getLastRenderedScene(renderer));
+
+    expect(initialPuzzleGroup.children.some((child) => child.name === 'initial-piece')).toBe(true);
+    expect(initialPuzzleGroup.children.some((child) => child.name === 'final-piece')).toBe(false);
   });
 
   it('temporarily applies sticker color pulses without recoloring the whole piece', () => {
@@ -500,9 +612,9 @@ describe('createThreePlayerView', () => {
 
     view.seek(1);
 
-    const completedPieceGroup = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children.find(
-      (child) => child.name === 'piece-0',
-    );
+    const completedPieceGroup = getRenderedPuzzleGroup(
+      getLastRenderedScene(renderer),
+    ).children.find((child) => child.name === 'piece-0');
     const completedBody = (completedPieceGroup as THREE.Group).children.find(
       (child) => child.name === 'piece-0-body',
     );

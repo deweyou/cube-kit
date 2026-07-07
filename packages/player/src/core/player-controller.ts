@@ -135,10 +135,15 @@ export const createPlayerController = (
       const initialAdapterState = adapter.createInitialState();
       let nextAdapterState = initialAdapterState;
       const moves = adapter.parseFormula(nextFormula);
+      model = adapter.createRenderableModel(initialAdapterState);
+      const modelsByCompletedStepCount = adapter.shouldRebuildModelAfterEachMove
+        ? [model]
+        : undefined;
       const timelineInputs = moves.map((move) => {
         const animation = adapter.describeMove(move, nextAdapterState);
 
         nextAdapterState = adapter.applyMove(nextAdapterState, move);
+        modelsByCompletedStepCount?.push(adapter.createRenderableModel(nextAdapterState));
 
         return {
           animation,
@@ -147,8 +152,7 @@ export const createPlayerController = (
         };
       });
 
-      timeline = createPlayerTimeline(timelineInputs);
-      model = adapter.createRenderableModel(initialAdapterState);
+      timeline = createPlayerTimeline(timelineInputs, { modelsByCompletedStepCount });
     } catch (cause) {
       return setError(new InvalidPlayerFormulaError(nextFormula, cause));
     }

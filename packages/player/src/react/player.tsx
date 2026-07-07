@@ -9,7 +9,7 @@ import {
 } from '../core/player-controller.js';
 import {
   getTimelinePosition,
-  getTimelineProgressForCompletedStepCount,
+  getTimelineProgressForStepPosition,
 } from '../core/timeline.js';
 import { createThreePlayerView } from '../three/three-player-view.js';
 
@@ -40,10 +40,13 @@ export const CubeginPlayer = ({
   const timeline = state?.timeline;
   const hasTimeline = timeline !== undefined;
   const progressStepCount = timeline?.steps.length ?? 0;
-  const completedStepCount =
-    timeline === undefined
-      ? 0
-      : getTimelinePosition(timeline, state?.progress ?? 0).completedStepCount;
+  const timelinePosition =
+    timeline === undefined ? undefined : getTimelinePosition(timeline, state?.progress ?? 0);
+  const completedStepCount = timelinePosition?.completedStepCount ?? 0;
+  const progressStepValue =
+    timelinePosition?.activeStepIndex === undefined
+      ? completedStepCount
+      : completedStepCount + timelinePosition.activeStepProgress;
 
   const syncState = (nextState: PlayerControllerState) => {
     setState(nextState);
@@ -150,18 +153,15 @@ export const CubeginPlayer = ({
           disabled={!hasTimeline}
           max={progressStepCount}
           min={0}
-          step={1}
+          step={0.01}
           type="range"
-          value={completedStepCount}
+          value={progressStepValue}
           onChange={(event) =>
             runControllerAction((controller) => {
               if (timeline === undefined) return;
 
               controller.seek(
-                getTimelineProgressForCompletedStepCount(
-                  timeline,
-                  Number(event.currentTarget.value),
-                ),
+                getTimelineProgressForStepPosition(timeline, Number(event.currentTarget.value)),
               );
             })
           }
