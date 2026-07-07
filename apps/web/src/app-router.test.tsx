@@ -2,8 +2,8 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { APP_ROUTE_PATHS, AppRouter, getAppRoute } from './app-router';
 
-vi.mock('./timer-v2/timer-v2-page', () => ({
-  TimerV2Page: () => <div data-testid="timer-v2-page" />,
+vi.mock('./timer/timer-page', () => ({
+  TimerPage: () => <div data-testid="timer-page" />,
 }));
 
 const setPathname = (pathname: string) => {
@@ -21,7 +21,7 @@ describe('AppRouter', () => {
 
     render(<AppRouter />);
 
-    expect(screen.getByTestId('timer-v2-page')).toBeTruthy();
+    expect(screen.getByTestId('timer-page')).toBeTruthy();
   });
 
   it('renders placeholder routes for results, formulas, and settings', () => {

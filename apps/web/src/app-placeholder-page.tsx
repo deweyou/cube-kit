@@ -1,7 +1,7 @@
 import { BRAND_ICON_SVGS } from '@cubegin/icons/brand';
 import { CubeginAnimatedIcon } from '@cubegin/icons/react';
 import { type AppRoute } from './app-routes';
-import { TimerV2TopNavigation } from './timer-v2/timer-v2-navigation';
+import { TimerTopNavigation } from './timer/timer-navigation';
 import styles from './app-placeholder-page.module.css';
 
 type PlaceholderRoute = Exclude<AppRoute, 'timer'>;
@@ -30,7 +30,7 @@ export const AppPlaceholderPage = ({ route }: AppPlaceholderPageProps) => (
         />
       </strong>
     </header>
-    <TimerV2TopNavigation activeRoute={route} isHidden={false} />
+    <TimerTopNavigation activeRoute={route} isHidden={false} />
     <main className={styles.main}>
       <h1 className={styles.title}>{PLACEHOLDER_TITLES[route]}</h1>
     </main>

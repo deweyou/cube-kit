@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAppRoute, type AppRoute } from './app-routes';
 import { AppPlaceholderPage } from './app-placeholder-page';
-import { TimerV2Page } from './timer-v2/timer-v2-page';
+import { TimerPage } from './timer/timer-page';
 
 export { APP_ROUTE_PATHS, getAppRoute, getAppRoutePath, navigateToAppRoute } from './app-routes';
 
@@ -16,7 +16,7 @@ const renderAppRoute = (route: AppRoute) => {
     case 'settings':
       return <AppPlaceholderPage route="settings" />;
     case 'timer':
-      return <TimerV2Page />;
+      return <TimerPage />;
   }
 };
 

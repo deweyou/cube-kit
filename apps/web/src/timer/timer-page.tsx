@@ -1,710 +1,928 @@
-import { useState, useCallback, useEffect, useMemo, useRef, type UIEvent } from 'react';
-import type { EventId } from '@cubegin/shared/events';
-import type {
-  SolvePenalty,
-  SolveRecord,
-  TimerSessionRepository,
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { BRAND_ICON_SVGS } from '@cubegin/icons/brand';
+import { CubeginAnimatedIcon } from '@cubegin/icons/react';
+import { renderScrambleImage } from '@cubegin/scramble-image';
+import { EVENT_IDS, type EventId } from '@cubegin/shared/events';
+import { formatElapsedClock } from '@cubegin/shared/timer';
+import {
+  calculateSolveStatistics,
+  formatMilliseconds,
+  getEventShortLabel,
+  type RollingAverageStat,
+  type SolveRecord,
+  type SolveStatistics,
 } from '@cubegin/shared/timer-session';
+import { Select } from '@deweyou-design/react/select';
+import { ScrambleImage } from './components/scramble-image';
+import { ScrambleText } from './components/scramble-text';
+import { AddIcon, DeleteIcon, EditIcon } from './components/timer-icons';
 import { useTimer } from './hooks/use-timer';
-import { useTimerGesture } from './hooks/use-timer-gesture';
-import { useTimerSessions } from './hooks/use-timer-sessions';
-import { SolveList } from './components/solve-list';
-import { SolveDetail } from './components/solve-detail';
-import { SolveStatisticsPanel } from './components/solve-statistics-panel';
-import { StorageAlert } from './components/storage-alert';
-import { TimerHeader } from './components/timer-header';
-import { TimerSidebar, type TimerNavItemId } from './components/timer-sidebar';
-import { TIMER_MESSAGES, type TimerLocale } from './timer-i18n';
-import { createMemoryTimerSessionRepository } from './storage/memory-timer-session-repository';
-import { createIndexedDbTimerSessionRepository } from './storage/timer-session-db';
-import { ScrambleView } from './views/scramble-view';
-import { TimingView } from './views/timing-view';
-import { ResultView } from './views/result-view';
+import { getTimerScrambleGenerateOptions } from './scramble-prefetcher';
 import { createTimerScrambleGenerator } from './scramble-worker-client';
-import {
-  createTimerScramblePrefetcher,
-  getTimerScrambleGenerateOptions,
-} from './scramble-prefetcher';
-import {
-  getScrambleElapsedMs,
-  getScramblePerformanceNow,
-  logScramblePerformance,
-} from './scramble-performance-log';
+import { TimerTopNavigation } from './timer-navigation';
 import styles from './timer-page.module.css';
 
-type PageState = 'scramble' | 'timing' | 'result';
-type ThemeMode = 'light' | 'dark';
+type TimerState = 'idle' | 'armed' | 'timing' | 'stopped';
+type TimerTimeWidth = 'wide' | 'max';
 
-const THEME_STORAGE_KEY = 'cubegin-theme';
-const LANGUAGE_STORAGE_KEY = 'cubegin-language';
-const MULTI_BLIND_CUBE_COUNT_STORAGE_KEY = 'cubegin-multi-blind-cube-count';
-const SIDEBAR_MOBILE_QUERY = '(max-width: 860px)';
-const SCRAMBLE_LOADING_PREVIEW_PARAM = 'scrambleLoading';
-const TOUCH_READY_OVERLAY_PREVIEW_PARAM = 'touchReadyOverlay';
-const DEFAULT_MULTI_BLIND_CUBE_COUNT = 3;
-const MIN_MULTI_BLIND_CUBE_COUNT = 2;
-const MAX_MULTI_BLIND_CUBE_COUNT = 99;
-const MULTI_BLIND_DNF_LIMIT_MS = 60 * 60 * 1000;
-
-const waitForLoadingPaint = () =>
-  new Promise<void>((resolve) => {
-    window.setTimeout(resolve, 0);
-  });
-
-const logBackgroundError = (event: string, cause: unknown) => {
-  logScramblePerformance(event, {
-    error: cause instanceof Error ? cause.message : String(cause),
-  });
-};
-
-const isScrambleLoadingPreviewEnabled = () =>
-  import.meta.env.DEV &&
-  new URLSearchParams(window.location.search).has(SCRAMBLE_LOADING_PREVIEW_PARAM);
-
-const getTouchReadyOverlayPreview = (): 'cancel' | 'start' | undefined => {
-  if (!import.meta.env.DEV) return undefined;
-
-  const value = new URLSearchParams(window.location.search).get(TOUCH_READY_OVERLAY_PREVIEW_PARAM);
-  if (value === 'cancel') return 'cancel';
-  if (value !== null) return 'start';
-  return undefined;
-};
-
-const sanitizeMultiBlindCubeCount = (count: number) =>
-  Math.min(MAX_MULTI_BLIND_CUBE_COUNT, Math.max(MIN_MULTI_BLIND_CUBE_COUNT, count));
-
-const readStoredMultiBlindCubeCount = () => {
-  const storedValue = localStorage.getItem(MULTI_BLIND_CUBE_COUNT_STORAGE_KEY);
-  if (storedValue === null) return DEFAULT_MULTI_BLIND_CUBE_COUNT;
-
-  const storedCount = Number(storedValue);
-  if (!Number.isSafeInteger(storedCount)) return DEFAULT_MULTI_BLIND_CUBE_COUNT;
-  return sanitizeMultiBlindCubeCount(storedCount);
-};
-
-const getMultiBlindScrambleLines = (value: string) =>
-  value
-    .split(/\n/u)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-interface TimerPageProps {
-  enableScramblePrefetch?: boolean;
-  repository?: TimerSessionRepository;
+interface TimerScrambleType {
+  id: EventId;
+  label: string;
 }
 
-export const TimerPage = ({
-  enableScramblePrefetch = import.meta.env.MODE !== 'test' && !import.meta.env.VITEST,
-  repository: injectedRepository,
-}: TimerPageProps = {}) => {
-  const [repository, setRepository] = useState<TimerSessionRepository | null>(
-    injectedRepository ?? null,
-  );
-  const [storageError, setStorageError] = useState<string>();
+interface TimerList {
+  id: string;
+  name: string;
+  scrambleTypeId: EventId;
+}
 
-  useEffect(() => {
-    if (injectedRepository) return;
+const TIMER_SCRAMBLE_TYPES: TimerScrambleType[] = EVENT_IDS.map((eventId) => ({
+  id: eventId,
+  label: getEventShortLabel(eventId),
+}));
 
-    let cancelled = false;
-    void createIndexedDbTimerSessionRepository()
-      .then((dbRepository) => {
-        if (!cancelled) setRepository(dbRepository);
-      })
-      .catch((cause) => {
-        if (cancelled) return;
-        setStorageError(cause instanceof Error ? cause.message : String(cause));
-        setRepository(createMemoryTimerSessionRepository());
-      });
+const INITIAL_TIMER_LISTS: TimerList[] = EVENT_IDS.map((eventId) => ({
+  id: `main-${eventId}`,
+  name: getEventShortLabel(eventId),
+  scrambleTypeId: eventId,
+}));
 
-    return () => {
-      cancelled = true;
-    };
-  }, [injectedRepository]);
+const TIMER_ROLLING_STAT_SIZES = [3, 5, 12, 50, 100] as const;
+const TIMER_ALWAYS_VISIBLE_ROLLING_STAT_LIMIT = 5;
+const TIMER_RECENT_SOLVE_LIMIT = 12;
 
-  if (!repository) {
-    return <div className={styles.loading}>{TIMER_MESSAGES['zh-CN'].loading}</div>;
+const EMPTY_TIMER_SOLVE_RECORDS: SolveRecord[] = [];
+
+type TimerListFormMode = 'create' | 'edit';
+
+const isSpaceShortcut = (event: KeyboardEvent) => event.code === 'Space' || event.key === ' ';
+
+const isEnterShortcut = (event: KeyboardEvent) => event.code === 'Enter' || event.key === 'Enter';
+
+const isEscapeShortcut = (event: KeyboardEvent) =>
+  event.code === 'Escape' || event.key === 'Escape';
+
+const claimTimerShortcutEvent = (event: Event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+};
+
+const isEditableTarget = (target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  Boolean(target.closest('button, input, textarea, select, a, [contenteditable="true"]'));
+
+const isTextEntryTarget = (target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  Boolean(target.closest('input, textarea, [contenteditable="true"]'));
+
+interface StartTimerOptions {
+  resetFirst?: boolean;
+}
+
+interface TimerFocusSurfaceProps {
+  elapsed: number;
+  isFocusMode: boolean;
+  label: string;
+  placeholder?: string;
+  state: TimerState;
+}
+
+interface TimerElapsedDisplayProps {
+  elapsedText: string;
+}
+
+const wordmarkSvg = BRAND_ICON_SVGS['cubegin-wordmark'];
+
+const formatSummaryStat = (elapsedMs: number | null, isAvailable: boolean) => {
+  if (!isAvailable) return '--';
+  if (elapsedMs === null) return 'DNF';
+  return formatMilliseconds(elapsedMs);
+};
+
+const getTimerTimeWidth = (elapsedText: string): TimerTimeWidth => {
+  if (elapsedText.length >= 9) return 'max';
+  return 'wide';
+};
+
+const splitTimerElapsedText = (elapsedText: string) => {
+  const fractionStart = elapsedText.indexOf('.');
+
+  if (fractionStart === -1) {
+    return { fraction: '', whole: elapsedText };
   }
 
+  return {
+    fraction: elapsedText.slice(fractionStart),
+    whole: elapsedText.slice(0, fractionStart),
+  };
+};
+
+const getTimerGlyphKind = (glyph: string) =>
+  glyph === '.' || glyph === ':' ? 'separator' : 'digit';
+
+const getRollingAverageStat = (
+  rollingAverages: readonly RollingAverageStat[],
+  size: number,
+): RollingAverageStat | undefined =>
+  rollingAverages.find((rollingAverage) => rollingAverage.size === size);
+
+const createTimerSolveRecord = ({
+  createdAt,
+  elapsedMs,
+  eventId,
+  listId,
+  scramble,
+  solveIndex,
+}: {
+  createdAt: number;
+  elapsedMs: number;
+  eventId: EventId;
+  listId: string;
+  scramble: string;
+  solveIndex: number;
+}): SolveRecord => ({
+  id: `${listId}:${solveIndex}`,
+  sessionId: listId,
+  eventId,
+  scramble,
+  elapsedMs,
+  penalty: 'none',
+  createdAt,
+});
+
+interface TimerListSelectorProps {
+  activeListId: string;
+  lists: TimerList[];
+  isHidden: boolean;
+  onChange: (listId: string) => void;
+  onCreateList: () => void;
+  onEditList: () => void;
+}
+
+const TimerListSelector = ({
+  activeListId,
+  isHidden,
+  lists,
+  onChange,
+  onCreateList,
+  onEditList,
+}: TimerListSelectorProps) => (
+  <Select.Root
+    className={styles.listControl}
+    aria-hidden={isHidden ? 'true' : undefined}
+    data-hidden={isHidden ? 'true' : undefined}
+    label={<span className={styles.visuallyHidden}>切换列表</span>}
+    value={[activeListId]}
+    onValueChange={(nextValue) => {
+      const nextListId = nextValue[0];
+      if (nextListId) onChange(nextListId);
+    }}
+  >
+    <Select.Trigger className={styles.listTrigger} />
+    <Select.Content className={styles.listContent}>
+      <div className={styles.listToolbar} role="toolbar" aria-label="列表操作">
+        <span className={styles.listToolbarLabel}>列表</span>
+        <div className={styles.listToolbarActions}>
+          <button
+            className={styles.listToolbarButton}
+            type="button"
+            aria-label="新增列表"
+            title="新增列表"
+            onClick={onCreateList}
+          >
+            <AddIcon size={15} />
+          </button>
+          <button
+            className={styles.listToolbarButton}
+            type="button"
+            aria-label="编辑列表"
+            title="编辑列表"
+            onClick={onEditList}
+          >
+            <EditIcon size={15} />
+          </button>
+        </div>
+      </div>
+      {lists.map((list) => (
+        <Select.Item key={list.id} className={styles.listItem} value={list.id} label={list.name} />
+      ))}
+    </Select.Content>
+  </Select.Root>
+);
+
+interface CreateListModalProps {
+  mode: TimerListFormMode;
+  name: string;
+  scrambleTypeId: EventId;
+  onCancel: () => void;
+  onNameChange: (name: string) => void;
+  onScrambleTypeChange: (scrambleTypeId: EventId) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}
+
+const CreateListModal = ({
+  mode,
+  name,
+  scrambleTypeId,
+  onCancel,
+  onNameChange,
+  onScrambleTypeChange,
+  onSubmit,
+}: CreateListModalProps) => (
+  <div className={styles.modalBackdrop}>
+    <div
+      className={styles.createListModal}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="timer-create-list-title"
+    >
+      <form
+        className={styles.createListForm}
+        aria-label={mode === 'create' ? '新增列表表单' : '编辑列表表单'}
+        onSubmit={onSubmit}
+      >
+        <h2 className={styles.modalTitle} id="timer-create-list-title">
+          {mode === 'create' ? '新增列表' : '编辑列表'}
+        </h2>
+        <label className={styles.fieldGroup}>
+          <span className={styles.fieldLabel}>列表名称</span>
+          <input
+            className={styles.fieldInput}
+            autoFocus
+            required
+            value={name}
+            onChange={(event) => onNameChange(event.currentTarget.value)}
+          />
+        </label>
+        <div className={styles.fieldGroup}>
+          <Select.Root
+            className={styles.fieldSelect}
+            label={<span className={styles.fieldLabel}>项目</span>}
+            value={[scrambleTypeId]}
+            onValueChange={(nextValue) => {
+              const nextScrambleTypeId = nextValue[0] as EventId | undefined;
+              if (nextScrambleTypeId) onScrambleTypeChange(nextScrambleTypeId);
+            }}
+          >
+            <Select.Trigger className={styles.fieldSelectTrigger} />
+            <Select.Content className={styles.fieldSelectContent}>
+              {TIMER_SCRAMBLE_TYPES.map((scrambleType) => (
+                <Select.Item
+                  key={scrambleType.id}
+                  className={styles.fieldSelectItem}
+                  value={scrambleType.id}
+                  label={scrambleType.label}
+                />
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </div>
+        <div className={styles.modalActions}>
+          <button className={styles.secondaryButton} type="button" onClick={onCancel}>
+            取消
+          </button>
+          <button className={styles.primaryButton} type="submit">
+            {mode === 'create' ? '创建' : '保存'}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+);
+
+interface TimerScrambleStripProps {
+  eventId: EventId;
+  isLoading: boolean;
+  scramble: string;
+}
+
+const TimerScrambleStrip = ({ eventId, isLoading, scramble }: TimerScrambleStripProps) => (
+  <section className={styles.scrambleStrip} aria-label="当前打乱" data-scramble-event-id={eventId}>
+    <div className={styles.scrambleText}>
+      <ScrambleText scramble={scramble} isLoading={isLoading} />
+    </div>
+    <div className={styles.scrambleToolbarSlot} aria-hidden="true">
+      <div className={styles.scrambleToolbarPlaceholder} data-scramble-toolbar-placeholder>
+        <span className={styles.scrambleToolbarPlaceholderItem} />
+        <span className={styles.scrambleToolbarPlaceholderItem} />
+        <span className={styles.scrambleToolbarPlaceholderItem} />
+      </div>
+    </div>
+  </section>
+);
+
+interface SummaryMetricProps {
+  label: string;
+  value: string;
+}
+
+const SummaryMetric = ({ label, value }: SummaryMetricProps) => (
+  <div className={styles.summaryMetric}>
+    <span className={styles.summaryLabel}>{label}</span>
+    <strong className={styles.summaryValue}>{value}</strong>
+  </div>
+);
+
+interface SummaryCountMetricProps {
+  value: string;
+}
+
+const SummaryCountMetric = ({ value }: SummaryCountMetricProps) => (
+  <div className={styles.summaryMetric} role="group" aria-label="有效成绩次数 / 总次数">
+    <strong className={styles.summaryValue}>{value}</strong>
+  </div>
+);
+
+interface TimerSessionSummaryProps {
+  statistics: SolveStatistics;
+}
+
+const TimerSessionSummary = ({ statistics }: TimerSessionSummaryProps) => {
+  const rollingStats = TIMER_ROLLING_STAT_SIZES.filter(
+    (size) => size <= TIMER_ALWAYS_VISIBLE_ROLLING_STAT_LIMIT || statistics.totalCount >= size,
+  ).map((size) => ({
+    label: size === 3 ? 'mo3' : `ao${size}`,
+    stat: getRollingAverageStat(statistics.rollingAverages, size),
+  }));
+
   return (
-    <TimerPageContent
-      enableScramblePrefetch={enableScramblePrefetch}
-      repository={repository}
-      storageError={storageError}
-    />
+    <section className={styles.sessionSummary} aria-label="成绩概要">
+      <SummaryCountMetric value={`${statistics.validCount}/${statistics.totalCount}`} />
+      <SummaryMetric
+        label="mean"
+        value={formatSummaryStat(statistics.averageMs, statistics.totalCount > 0)}
+      />
+      <SummaryMetric
+        label="best"
+        value={formatSummaryStat(statistics.bestMs, statistics.validCount > 0)}
+      />
+      {rollingStats.map(({ label, stat }) => (
+        <SummaryMetric
+          key={label}
+          label={label}
+          value={formatSummaryStat(stat?.currentMs ?? null, stat !== undefined)}
+        />
+      ))}
+    </section>
   );
 };
 
-interface TimerPageContentProps {
-  enableScramblePrefetch: boolean;
-  repository: TimerSessionRepository;
-  storageError?: string;
+interface TimerRecentSolvesProps {
+  solveRecords: readonly SolveRecord[];
 }
 
-const TimerPageContent = ({
-  enableScramblePrefetch,
-  repository,
-  storageError,
-}: TimerPageContentProps) => {
-  const sessionState = useTimerSessions({ repository });
-  const hasStartedInitialWarmPrefetch = useRef(false);
+const TimerRecentSolves = ({ solveRecords }: TimerRecentSolvesProps) => {
+  const recentSolves = solveRecords.slice(0, TIMER_RECENT_SOLVE_LIMIT).reverse();
+
+  if (recentSolves.length <= 1) return null;
+
+  return (
+    <section className={styles.recentRail} aria-label="最近成绩">
+      <ol className={styles.recentRailList}>
+        {recentSolves.map((solveRecord) => (
+          <li className={styles.recentRailItem} key={solveRecord.id}>
+            <strong className={styles.recentRailTime}>
+              {formatMilliseconds(solveRecord.elapsedMs)}
+            </strong>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+};
+
+interface TimerScramblePreviewProps {
+  eventId: EventId;
+  svg: string;
+}
+
+const TimerScramblePreview = ({ eventId, svg }: TimerScramblePreviewProps) => (
+  <aside className={styles.scramblePreview} aria-label="打乱图">
+    {svg.length > 0 ? <ScrambleImage eventId={eventId} svg={svg} /> : null}
+  </aside>
+);
+
+interface TimerFeedbackSlotProps {
+  placeholder?: string;
+  state: TimerState;
+}
+
+const ResultToolbar = () => (
+  <div className={styles.resultToolbar} role="toolbar" aria-label="成绩操作">
+    <button className={styles.resultButton} type="button">
+      +2
+    </button>
+    <button className={styles.resultButton} type="button">
+      DNF
+    </button>
+    <button
+      className={`${styles.resultButton} ${styles.deleteResultButton}`}
+      type="button"
+      aria-label="删除"
+    >
+      <DeleteIcon className={styles.deleteIcon} size={18} />
+    </button>
+  </div>
+);
+
+const TimerFeedbackSlot = ({ placeholder, state }: TimerFeedbackSlotProps) => (
+  <div className={styles.feedbackSlot} data-feedback-slot="true" data-state={state}>
+    {placeholder === undefined ? null : (
+      <span className={styles.placeholder} aria-hidden="true">
+        {placeholder}
+      </span>
+    )}
+    {state === 'stopped' ? <ResultToolbar /> : null}
+  </div>
+);
+
+const TimerElapsedDisplay = ({ elapsedText }: TimerElapsedDisplayProps) => {
+  const { fraction, whole } = splitTimerElapsedText(elapsedText);
+  const renderGlyphs = (part: 'fraction' | 'whole', text: string) =>
+    Array.from(text).map((glyph, index) => (
+      <span
+        className={styles.timerGlyph}
+        data-timer-glyph={getTimerGlyphKind(glyph)}
+        key={`${part}-${index}`}
+      >
+        {glyph}
+      </span>
+    ));
+
+  return (
+    <span className={styles.timerText} data-timer-text="true">
+      <span className={styles.timerWhole} data-timer-part="whole">
+        {renderGlyphs('whole', whole)}
+      </span>
+      {fraction.length > 0 ? (
+        <span className={styles.timerFraction} data-timer-part="fraction">
+          {renderGlyphs('fraction', fraction)}
+        </span>
+      ) : null}
+    </span>
+  );
+};
+
+const TimerFocusSurface = ({
+  elapsed,
+  isFocusMode,
+  label,
+  placeholder,
+  state,
+}: TimerFocusSurfaceProps) => {
+  const decimals = state === 'timing' ? 2 : 3;
+  const elapsedText = formatElapsedClock(elapsed, decimals);
+  const timeWidth = getTimerTimeWidth(elapsedText);
+
+  return (
+    <div
+      className={styles.timerSurface}
+      role="timer"
+      aria-keyshortcuts="Space Enter"
+      aria-label={label}
+      data-state={state}
+      data-focus-mode={isFocusMode ? 'true' : 'false'}
+    >
+      <span
+        className={styles.timeFace}
+        aria-live={state === 'timing' ? 'off' : 'polite'}
+        data-time-width={timeWidth}
+      >
+        <TimerElapsedDisplay elapsedText={elapsedText} />
+      </span>
+      <TimerFeedbackSlot placeholder={placeholder} state={state} />
+    </div>
+  );
+};
+
+export const TimerPage = () => {
+  const [timerState, setTimerState] = useState<TimerState>('idle');
+  const [finalElapsed, setFinalElapsed] = useState(0);
+  const [isBrandHovering, setIsBrandHovering] = useState(false);
+  const [lists, setLists] = useState(INITIAL_TIMER_LISTS);
+  const [activeListId, setActiveListId] = useState(INITIAL_TIMER_LISTS[0].id);
+  const [listFormMode, setListFormMode] = useState<TimerListFormMode>();
+  const [editingListId, setEditingListId] = useState<string>();
+  const [listFormName, setListFormName] = useState('');
+  const [listFormScrambleTypeId, setListFormScrambleTypeId] = useState(TIMER_SCRAMBLE_TYPES[0].id);
+  const [solveRecordsByListId, setSolveRecordsByListId] = useState<Record<string, SolveRecord[]>>({
+    [INITIAL_TIMER_LISTS[0].id]: [],
+  });
   const latestScrambleRequestId = useRef(0);
-  const [scramble, setScramble] = useState('');
+  const keyboardClickSuppressionTarget = useRef<EventTarget | null>(null);
+  const keyboardClickSuppressionTimeout = useRef<number | undefined>(undefined);
+  const [activeScramble, setActiveScramble] = useState('');
+  const [activeScrambleEventId, setActiveScrambleEventId] = useState<EventId>(
+    INITIAL_TIMER_LISTS[0].scrambleTypeId,
+  );
   const [scrambleError, setScrambleError] = useState<string>();
   const [isScrambleLoading, setIsScrambleLoading] = useState(true);
-  const [pageState, setPageState] = useState<PageState>('scramble');
-  const [finalElapsed, setFinalElapsed] = useState(0);
-  const [selectedSolveId, setSelectedSolveId] = useState<string>();
-  const [runtimeStorageError, setRuntimeStorageError] = useState<string>();
-  const [displayEventId, setDisplayEventId] = useState<EventId>('333');
-  const [multiBlindCubeCount, setMultiBlindCubeCount] = useState(readStoredMultiBlindCubeCount);
-  const multiBlindCubeCountRef = useRef(multiBlindCubeCount);
-  multiBlindCubeCountRef.current = multiBlindCubeCount;
-  const activeEventIdRef = useRef<EventId>(displayEventId);
-  activeEventIdRef.current = displayEventId;
-  const generator = useMemo(() => createTimerScrambleGenerator(), []);
-  const backgroundGenerator = useMemo(() => createTimerScrambleGenerator(), []);
-  const scramblePrefetcher = useMemo(
-    () =>
-      createTimerScramblePrefetcher(generator, {
-        backgroundGenerator,
-        shouldKeepWarmResult: (eventId) => eventId !== activeEventIdRef.current,
-      }),
-    [backgroundGenerator, generator],
-  );
-  const [isEventTransitionPending, setIsEventTransitionPending] = useState(false);
-  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
-    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme;
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
-  const [locale, setLocale] = useState<TimerLocale>(() => {
-    const storedLocale = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (storedLocale === 'zh-CN' || storedLocale === 'en-US') return storedLocale;
-    return 'zh-CN';
-  });
-  const [isStageScrolled, setIsStageScrolled] = useState(false);
-  const stageRef = useRef<HTMLElement | null>(null);
-  const [isMobileShell, setIsMobileShell] = useState(
-    () => window.matchMedia?.(SIDEBAR_MOBILE_QUERY).matches ?? false,
-  );
-  const [activeNavItem, setActiveNavItem] = useState<TimerNavItemId>('timer');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
-    () => window.matchMedia?.(SIDEBAR_MOBILE_QUERY).matches ?? false,
-  );
-  const isScrambleLoadingPreview = isScrambleLoadingPreviewEnabled();
-  const touchReadyOverlayPreview = getTouchReadyOverlayPreview();
-
+  const scrambleGenerator = useMemo(() => createTimerScrambleGenerator(), []);
   const { elapsed, start, stop, reset } = useTimer();
 
-  const getDisplayGenerateOptions = useCallback(
-    (eventId: EventId) =>
-      eventId === '333mbld'
-        ? { multiBlindCubeCount: multiBlindCubeCountRef.current }
-        : getTimerScrambleGenerateOptions(eventId),
-    [],
+  const activeList = useMemo(
+    () => lists.find((list) => list.id === activeListId) ?? lists[0],
+    [activeListId, lists],
+  );
+  const activeListSolveRecords = solveRecordsByListId[activeList.id] ?? EMPTY_TIMER_SOLVE_RECORDS;
+  const isActiveScrambleForList = activeScrambleEventId === activeList.scrambleTypeId;
+  const scrambleSvg = useMemo(
+    () =>
+      isActiveScrambleForList && activeScramble.length > 0
+        ? renderScrambleImage(activeList.scrambleTypeId, activeScramble)
+        : '',
+    [activeList.scrambleTypeId, activeScramble, isActiveScrambleForList],
+  );
+  const displayScramble =
+    scrambleError ??
+    (isScrambleLoading || !isActiveScrambleForList ? '生成打乱中...' : activeScramble);
+  const statistics = useMemo(
+    () => calculateSolveStatistics(activeListSolveRecords),
+    [activeListSolveRecords],
   );
 
-  useEffect(() => {
-    return () => {
-      scramblePrefetcher.dispose();
-      backgroundGenerator.dispose?.();
-      generator.dispose?.();
-    };
-  }, [backgroundGenerator, generator, scramblePrefetcher]);
-
-  useEffect(() => {
-    generator.preload?.().catch((cause) => logBackgroundError('worker:preload-error', cause));
-  }, [generator]);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia?.(SIDEBAR_MOBILE_QUERY);
-    if (!mediaQuery) return;
-
-    const handleViewportChange = (event: MediaQueryListEvent) => {
-      setIsMobileShell(event.matches);
-      if (event.matches) setIsSidebarCollapsed(true);
-      if (!event.matches && activeNavItem === 'results') setActiveNavItem('timer');
-    };
-
-    mediaQuery.addEventListener('change', handleViewportChange);
-    return () => mediaQuery.removeEventListener('change', handleViewportChange);
-  }, [activeNavItem]);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = themeMode;
-    localStorage.setItem(THEME_STORAGE_KEY, themeMode);
-  }, [themeMode]);
-
-  useEffect(() => {
-    document.documentElement.lang = locale === 'zh-CN' ? 'zh-CN' : 'en';
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, locale);
-  }, [locale]);
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    setIsStageScrolled(stage.scrollTop > 0);
-  }, []);
-
   const loadScramble = useCallback(
-    async (nextEventId: EventId) => {
+    async (eventId: EventId) => {
       const requestId = latestScrambleRequestId.current + 1;
-      const loadStartMs = getScramblePerformanceNow();
       latestScrambleRequestId.current = requestId;
-      const generateOptions = getDisplayGenerateOptions(nextEventId);
-      const hasReadyScramble =
-        enableScramblePrefetch && scramblePrefetcher.hasReady(nextEventId, generateOptions);
-      logScramblePerformance('load:start', {
-        eventId: nextEventId,
-        hasReadyScramble,
-        prefetchEnabled: enableScramblePrefetch,
-        requestId,
-      });
-      setIsScrambleLoading(!hasReadyScramble);
+      setActiveScramble('');
+      setActiveScrambleEventId(eventId);
       setScrambleError(undefined);
-      if (!hasReadyScramble) {
-        await waitForLoadingPaint();
-        if (latestScrambleRequestId.current !== requestId) {
-          logScramblePerformance('load:stale-after-paint', {
-            eventId: nextEventId,
-            requestId,
-            totalMs: getScrambleElapsedMs(loadStartMs),
-          });
-          return;
-        }
-      }
+      setIsScrambleLoading(true);
 
       try {
-        const result = enableScramblePrefetch
-          ? await scramblePrefetcher.consume(nextEventId, generateOptions)
-          : await generator.generate(nextEventId, generateOptions);
-
-        if (latestScrambleRequestId.current !== requestId) {
-          logScramblePerformance('load:stale-after-generate', {
-            eventId: nextEventId,
-            requestId,
-            totalMs: getScrambleElapsedMs(loadStartMs),
-          });
-          return;
-        }
-        setScramble(result.scramble);
-        logScramblePerformance('load:success', {
-          eventId: nextEventId,
-          requestId,
-          scrambleLength: result.scramble.length,
-          totalMs: getScrambleElapsedMs(loadStartMs),
-        });
-        if (enableScramblePrefetch) {
-          scramblePrefetcher
-            .prefetch(nextEventId, generateOptions)
-            .catch((cause) => logBackgroundError('prefetch:active-unhandled-error', cause));
-          if (!hasStartedInitialWarmPrefetch.current) {
-            hasStartedInitialWarmPrefetch.current = true;
-            scramblePrefetcher
-              .prefetchWarmEvents(nextEventId)
-              .catch((cause) => logBackgroundError('prefetch:warm-unhandled-error', cause));
-          }
-        }
-      } catch (error) {
-        if (latestScrambleRequestId.current !== requestId) {
-          logScramblePerformance('load:stale-error', {
-            eventId: nextEventId,
-            requestId,
-            totalMs: getScrambleElapsedMs(loadStartMs),
-          });
-          return;
-        }
-        setScramble('');
-        setScrambleError(error instanceof Error ? error.message : String(error));
-        logScramblePerformance('load:error', {
-          error: error instanceof Error ? error.message : String(error),
-          eventId: nextEventId,
-          requestId,
-          totalMs: getScrambleElapsedMs(loadStartMs),
-        });
+        const result = await scrambleGenerator.generate(
+          eventId,
+          getTimerScrambleGenerateOptions(eventId),
+        );
+        if (latestScrambleRequestId.current !== requestId) return;
+        setActiveScrambleEventId(result.eventId);
+        setActiveScramble(result.scramble);
+      } catch (cause) {
+        if (latestScrambleRequestId.current !== requestId) return;
+        setScrambleError(cause instanceof Error ? cause.message : String(cause));
       } finally {
         if (latestScrambleRequestId.current === requestId) {
           setIsScrambleLoading(false);
         }
       }
     },
-    [enableScramblePrefetch, generator, getDisplayGenerateOptions, scramblePrefetcher],
+    [scrambleGenerator],
   );
 
   useEffect(() => {
-    if (!sessionState.isReady) return;
-    void loadScramble(displayEventId);
-  }, [displayEventId, loadScramble, sessionState.isReady]);
+    const previousTheme = document.documentElement.dataset.theme;
+
+    document.documentElement.dataset.theme = 'light';
+
+    return () => {
+      if (previousTheme === undefined) {
+        delete document.documentElement.dataset.theme;
+        return;
+      }
+
+      document.documentElement.dataset.theme = previousTheme;
+    };
+  }, []);
 
   useEffect(() => {
-    if (isEventTransitionPending) return;
-    setDisplayEventId(sessionState.eventId);
-  }, [isEventTransitionPending, sessionState.eventId]);
+    return () => {
+      scrambleGenerator.dispose?.();
+    };
+  }, [scrambleGenerator]);
 
-  const handleStart = useCallback(() => {
-    if (
-      pageState !== 'scramble' ||
-      isScrambleLoading ||
-      isEventTransitionPending ||
-      scrambleError ||
-      scramble.length === 0
-    ) {
-      return;
-    }
-    start();
-    setPageState('timing');
-  }, [isEventTransitionPending, isScrambleLoading, pageState, scramble, scrambleError, start]);
+  useEffect(() => {
+    void loadScramble(activeList.scrambleTypeId);
+  }, [activeList.scrambleTypeId, loadScramble]);
 
-  const handleStop = useCallback(() => {
-    const ms = stop();
-    setFinalElapsed(ms);
-    setPageState('result');
-  }, [stop]);
+  const startTimer = useCallback(
+    ({ resetFirst = true }: StartTimerOptions = {}) => {
+      if (resetFirst) {
+        reset();
+        setFinalElapsed(0);
+      }
 
-  const handleCancel = useCallback(() => {
+      start();
+      setTimerState('timing');
+    },
+    [reset, start],
+  );
+
+  const stopTimer = useCallback(() => {
+    const stoppedElapsed = stop();
+
+    setFinalElapsed(stoppedElapsed);
+    setSolveRecordsByListId((currentSolveRecordsByListId) => {
+      const currentSolveRecords = currentSolveRecordsByListId[activeListId] ?? [];
+      const solveRecord = createTimerSolveRecord({
+        createdAt: Date.now(),
+        elapsedMs: stoppedElapsed,
+        eventId: activeList.scrambleTypeId,
+        listId: activeListId,
+        scramble: activeScramble,
+        solveIndex: currentSolveRecords.length + 1,
+      });
+
+      return {
+        ...currentSolveRecordsByListId,
+        [activeListId]: [solveRecord, ...currentSolveRecords],
+      };
+    });
+    setTimerState('stopped');
+  }, [activeList.scrambleTypeId, activeListId, activeScramble, stop]);
+
+  const armTimer = useCallback(() => {
     reset();
-    setPageState('scramble');
-    // Same scramble — user returns to review it
+    setFinalElapsed(0);
+    setTimerState('armed');
   }, [reset]);
 
-  const finishResult = useCallback(
-    async (penalty?: SolvePenalty, multiBlindSolvedCount?: number) => {
-      if (penalty) {
-        const isMultiBlindResult = sessionState.eventId === '333mbld';
-        const multiBlindScrambles = isMultiBlindResult ? getMultiBlindScrambleLines(scramble) : [];
-        const attemptedCount = multiBlindScrambles.length;
-        const solvedCount =
-          typeof multiBlindSolvedCount === 'number'
-            ? Math.min(Math.max(multiBlindSolvedCount, 0), attemptedCount)
-            : attemptedCount;
-        const resolvedPenalty =
-          isMultiBlindResult && finalElapsed > MULTI_BLIND_DNF_LIMIT_MS ? 'dnf' : penalty;
+  const cancelReady = useCallback(() => {
+    reset();
+    setFinalElapsed(0);
+    setTimerState('idle');
+  }, [reset]);
 
-        try {
-          await sessionState.saveSolve({
-            eventId: sessionState.eventId,
-            scramble: isMultiBlindResult ? multiBlindScrambles : scramble,
-            elapsedMs: finalElapsed,
-            multiBlind: isMultiBlindResult
-              ? {
-                  attemptedCount,
-                  solvedCount,
-                }
-              : undefined,
-            penalty: resolvedPenalty,
-          });
-          setRuntimeStorageError(undefined);
-        } catch (cause) {
-          setRuntimeStorageError(cause instanceof Error ? cause.message : String(cause));
-          return;
-        }
-      }
+  const resetListForm = useCallback(() => {
+    setListFormName('');
+    setListFormScrambleTypeId(activeList.scrambleTypeId);
+    setEditingListId(undefined);
+  }, [activeList.scrambleTypeId]);
 
-      reset();
-      setPageState('scramble');
-      void loadScramble(sessionState.eventId);
-    },
-    [finalElapsed, loadScramble, reset, scramble, sessionState],
-  );
+  const closeListFormModal = useCallback(() => {
+    setListFormMode(undefined);
+    resetListForm();
+  }, [resetListForm]);
 
-  const handleRefresh = useCallback(() => {
-    void loadScramble(displayEventId);
-  }, [displayEventId, loadScramble]);
+  const openCreateListModal = useCallback(() => {
+    setEditingListId(undefined);
+    setListFormName('');
+    setListFormScrambleTypeId(activeList.scrambleTypeId);
+    setListFormMode('create');
+  }, [activeList.scrambleTypeId]);
 
-  const handleMultiBlindCubeCountChange = useCallback(
-    (nextCount: number) => {
-      const committedCount = sanitizeMultiBlindCubeCount(nextCount);
-      setMultiBlindCubeCount(committedCount);
-      multiBlindCubeCountRef.current = committedCount;
-      localStorage.setItem(MULTI_BLIND_CUBE_COUNT_STORAGE_KEY, String(committedCount));
+  const openEditListModal = useCallback(() => {
+    setEditingListId(activeList.id);
+    setListFormName(activeList.name);
+    setListFormScrambleTypeId(activeList.scrambleTypeId);
+    setListFormMode('edit');
+  }, [activeList.id, activeList.name, activeList.scrambleTypeId]);
 
-      if (displayEventId !== '333mbld') return;
+  const handleListChange = useCallback((nextListId: string) => {
+    setActiveListId(nextListId);
+  }, []);
 
-      const currentScrambleLines = getMultiBlindScrambleLines(scramble);
-      if (currentScrambleLines.length === 0 || currentScrambleLines.length === committedCount) {
+  const handleListFormSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      const name = listFormName.trim();
+      if (name.length === 0) return;
+
+      if (listFormMode === 'edit') {
+        const listId = editingListId;
+        if (listId === undefined) return;
+
+        setLists((currentLists) =>
+          currentLists.map((list) =>
+            list.id === listId ? { ...list, name, scrambleTypeId: listFormScrambleTypeId } : list,
+          ),
+        );
+        setActiveListId(listId);
+        setListFormMode(undefined);
+        setEditingListId(undefined);
+        setListFormName('');
+        setListFormScrambleTypeId(listFormScrambleTypeId);
         return;
       }
 
-      if (currentScrambleLines.length > committedCount) {
-        setScramble(currentScrambleLines.slice(0, committedCount).join('\n'));
-        setScrambleError(undefined);
-        return;
-      }
+      const list: TimerList = {
+        id: `custom:${lists.length + 1}`,
+        name,
+        scrambleTypeId: listFormScrambleTypeId,
+      };
 
-      const requestId = latestScrambleRequestId.current + 1;
-      latestScrambleRequestId.current = requestId;
-      setScrambleError(undefined);
-      void generator
-        .generate('333mbld', {
-          multiBlindCubeCount: committedCount - currentScrambleLines.length,
-        })
-        .then((result) => {
-          if (latestScrambleRequestId.current !== requestId) return;
-          const appendedLines = getMultiBlindScrambleLines(result.scramble);
-          setScramble(
-            [...currentScrambleLines, ...appendedLines].slice(0, committedCount).join('\n'),
-          );
-        })
-        .catch((cause) => {
-          if (latestScrambleRequestId.current !== requestId) return;
-          setScrambleError(cause instanceof Error ? cause.message : String(cause));
-        });
+      setLists((currentLists) => [...currentLists, list]);
+      setSolveRecordsByListId((currentSolveRecordsByListId) => ({
+        ...currentSolveRecordsByListId,
+        [list.id]: [],
+      }));
+      setActiveListId(list.id);
+      setListFormMode(undefined);
+      setEditingListId(undefined);
+      setListFormName('');
+      setListFormScrambleTypeId(list.scrambleTypeId);
     },
-    [displayEventId, generator, scramble],
+    [editingListId, listFormMode, listFormName, listFormScrambleTypeId, lists.length],
   );
-
-  const handleStageScroll = useCallback((event: UIEvent<HTMLElement>) => {
-    setIsStageScrolled(event.currentTarget.scrollTop > 0);
-  }, []);
-
-  const handleEventChange = useCallback(
-    async (id: EventId) => {
-      setPageState('scramble');
-      setSelectedSolveId(undefined);
-      setDisplayEventId(id);
-      setScramble('');
-      setScrambleError(undefined);
-      setIsScrambleLoading(true);
-      setIsEventTransitionPending(true);
-      try {
-        await sessionState.selectEvent(id);
-        setRuntimeStorageError(undefined);
-      } catch (cause) {
-        setRuntimeStorageError(cause instanceof Error ? cause.message : String(cause));
-        setDisplayEventId(sessionState.eventId);
-      } finally {
-        setIsEventTransitionPending(false);
-      }
-    },
-    [sessionState],
-  );
-
-  const handleSessionChange = useCallback(
-    async (sessionId: string) => {
-      const transition = await sessionState.selectSession(sessionId);
-      if (transition?.shouldGenerateScramble) {
-        setPageState('scramble');
-        setSelectedSolveId(undefined);
-        setDisplayEventId(transition.eventId);
-        setScramble('');
-        setScrambleError(undefined);
-        setIsScrambleLoading(true);
-      }
-    },
-    [sessionState],
-  );
-
-  const handleCreateSession = useCallback(
-    async (name: string) => {
-      await sessionState.createSession(name);
-    },
-    [sessionState],
-  );
-
-  const handleSelectSolve = useCallback((solve: SolveRecord) => {
-    setSelectedSolveId(solve.id);
-  }, []);
 
   useEffect(() => {
-    if (pageState !== 'result') return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (!['Enter', 'Space'].includes(event.code) || event.repeat) return;
-      if (event.target instanceof HTMLElement) {
-        if (event.target.isContentEditable) return;
-        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+    const clearKeyboardClickSuppression = () => {
+      keyboardClickSuppressionTarget.current = null;
+      if (keyboardClickSuppressionTimeout.current !== undefined) {
+        window.clearTimeout(keyboardClickSuppressionTimeout.current);
+        keyboardClickSuppressionTimeout.current = undefined;
       }
-      event.preventDefault();
-      void finishResult('none');
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [finishResult, pageState]);
+    const suppressNextKeyboardClick = (target: EventTarget | null) => {
+      keyboardClickSuppressionTarget.current = target;
+      if (keyboardClickSuppressionTimeout.current !== undefined) {
+        window.clearTimeout(keyboardClickSuppressionTimeout.current);
+      }
 
-  const handlePenaltyChange = useCallback(
-    async (solveId: string, penalty: SolvePenalty) => {
-      await sessionState.updateSolvePenalty(solveId, penalty);
+      keyboardClickSuppressionTimeout.current = window.setTimeout(() => {
+        clearKeyboardClickSuppression();
+      }, 250);
+    };
+
+    const isSuppressedKeyboardClick = (event: MouseEvent) => {
+      if (event.detail !== 0) return false;
+
+      const suppressedTarget = keyboardClickSuppressionTarget.current;
+      if (!(suppressedTarget instanceof Node)) return false;
+
+      const eventTarget = event.target;
+      return (
+        event.composedPath().includes(suppressedTarget) ||
+        (eventTarget instanceof Node &&
+          (eventTarget === suppressedTarget || suppressedTarget.contains(eventTarget)))
+      );
+    };
+
+    const handleClick = (event: MouseEvent) => {
+      if (!isSuppressedKeyboardClick(event)) return;
+
+      clearKeyboardClickSuppression();
+      claimTimerShortcutEvent(event);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isEscapeShortcut(event)) {
+        if (timerState === 'armed') {
+          claimTimerShortcutEvent(event);
+          cancelReady();
+        }
+
+        return;
+      }
+
+      if (isSpaceShortcut(event)) {
+        if (isTextEntryTarget(event.target)) {
+          return;
+        }
+
+        claimTimerShortcutEvent(event);
+        suppressNextKeyboardClick(event.target);
+
+        if (event.repeat) {
+          return;
+        }
+
+        if (timerState === 'timing') {
+          stopTimer();
+          return;
+        }
+
+        armTimer();
+        return;
+      }
+
+      if (!isEnterShortcut(event)) {
+        return;
+      }
+
+      if (isEditableTarget(event.target)) {
+        return;
+      }
+
+      claimTimerShortcutEvent(event);
+
+      if (event.repeat) {
+        return;
+      }
+
+      if (timerState === 'timing') {
+        stopTimer();
+        return;
+      }
+
+      startTimer({ resetFirst: timerState !== 'armed' });
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (!isSpaceShortcut(event) || isTextEntryTarget(event.target)) {
+        return;
+      }
+
+      claimTimerShortcutEvent(event);
+
+      if (timerState === 'armed') {
+        startTimer({ resetFirst: false });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    window.addEventListener('keyup', handleKeyUp, { capture: true });
+    window.addEventListener('click', handleClick, { capture: true });
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, { capture: true });
+      window.removeEventListener('keyup', handleKeyUp, { capture: true });
+      window.removeEventListener('click', handleClick, { capture: true });
+    };
+  }, [armTimer, cancelReady, startTimer, stopTimer, timerState]);
+
+  useEffect(
+    () => () => {
+      if (keyboardClickSuppressionTimeout.current !== undefined) {
+        window.clearTimeout(keyboardClickSuppressionTimeout.current);
+      }
     },
-    [sessionState],
+    [],
   );
 
-  const handleDeleteSolve = useCallback(
-    async (solveId: string) => {
-      await sessionState.deleteSolve(solveId);
-      setSelectedSolveId(undefined);
-    },
-    [sessionState],
-  );
-
-  const { cancelReady, isInCancelZone, isReady, prepareStart, readyTrigger, startReady } =
-    useTimerGesture(pageState === 'timing', {
-      isStartEnabled: pageState === 'scramble',
-      onStart: handleStart,
-      onStop: handleStop,
-      onCancel: handleCancel,
-    });
-
-  const selectedSolve = sessionState.solves.find((solve) => solve.id === selectedSolveId);
-  const sidebarError = storageError ?? runtimeStorageError ?? sessionState.error;
-  const messages = TIMER_MESSAGES[locale];
-  const toggleThemeLabel =
-    themeMode === 'dark' ? messages.toggleThemeLight : messages.toggleThemeDark;
-  const toggleSidebarLabel = isSidebarCollapsed ? messages.sidebarExpand : messages.sidebarCollapse;
-  const visibleNavItem = activeNavItem;
-  const shouldShowTimerStage =
-    activeNavItem === 'timer' || (!isMobileShell && activeNavItem === 'results');
+  const displayElapsed = timerState === 'stopped' ? finalElapsed : elapsed;
+  const isTimerFocusMode = timerState === 'armed' || timerState === 'timing';
+  const isTimerRunning = timerState === 'timing';
+  const timerLabel =
+    timerState === 'timing'
+      ? '计时中，按 Space 或 Enter 结束'
+      : timerState === 'armed'
+        ? '松开 Space 开始计时，按 Esc 取消'
+        : '按 Space 或 Enter 开始计时';
+  const placeholder = timerState === 'armed' ? 'Esc 取消' : undefined;
 
   return (
-    <div
+    <section
       className={styles.root}
-      data-state={pageState}
-      data-sidebar={isSidebarCollapsed ? 'collapsed' : 'expanded'}
-      data-stage-scrolled={isStageScrolled ? 'true' : 'false'}
+      aria-label="计时器"
+      data-focus-mode={isTimerFocusMode ? 'true' : 'false'}
+      data-timer-running={isTimerRunning ? 'true' : 'false'}
     >
-      <TimerSidebar
-        sessions={sessionState.sessions}
-        activeSessionId={sessionState.activeSessionId}
-        activeNavItem={visibleNavItem}
-        eventId={displayEventId}
-        error={sidebarError}
-        isCollapsed={isSidebarCollapsed}
-        isMobileShell={isMobileShell}
-        solves={sessionState.solves}
-        themeMode={themeMode}
-        onCreateSession={(name) => void handleCreateSession(name)}
-        onDeleteSession={(sessionId) => void sessionState.deleteSession(sessionId)}
-        onEventChange={(id) => void handleEventChange(id)}
-        onLocaleToggle={() =>
-          setLocale((currentLocale) => (currentLocale === 'zh-CN' ? 'en-US' : 'zh-CN'))
-        }
-        onNavItemChange={setActiveNavItem}
-        onSelectSession={(sessionId) => void handleSessionChange(sessionId)}
-        onSelectSolve={handleSelectSolve}
-        onThemeToggle={() =>
-          setThemeMode((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
-        }
-        onToggleSidebar={() => setIsSidebarCollapsed((isCollapsed) => !isCollapsed)}
-        locale={locale}
-        messages={messages}
-        toggleSidebarLabel={toggleSidebarLabel}
-        toggleThemeLabel={toggleThemeLabel}
-      />
-      {!isSidebarCollapsed && isMobileShell && (
-        <button
-          type="button"
-          className={styles.sidebarBackdrop}
-          onClick={() => setIsSidebarCollapsed(true)}
-          aria-label={messages.sidebarBackdrop}
+      <header className={styles.hero}>
+        <div className={styles.brandRow}>
+          <strong
+            className={styles.brand}
+            onMouseEnter={() => setIsBrandHovering(true)}
+            onMouseLeave={() => setIsBrandHovering(false)}
+          >
+            <CubeginAnimatedIcon
+              className={styles.brandLogo}
+              isPlaying={isBrandHovering}
+              size={32}
+              title="Cubegin"
+              trigger="manual"
+            />
+            <span
+              className={styles.wordmark}
+              aria-hidden="true"
+              dangerouslySetInnerHTML={{ __html: wordmarkSvg }}
+            />
+          </strong>
+          <TimerListSelector
+            activeListId={activeListId}
+            isHidden={isTimerRunning}
+            lists={lists}
+            onChange={handleListChange}
+            onCreateList={openCreateListModal}
+            onEditList={openEditListModal}
+          />
+        </div>
+        <TimerScrambleStrip
+          eventId={activeList.scrambleTypeId}
+          isLoading={isScrambleLoading}
+          scramble={displayScramble}
         />
-      )}
-      <TimerHeader
-        eventId={displayEventId}
-        isScrolled={isStageScrolled}
-        isSidebarCollapsed={isSidebarCollapsed}
-        locale={locale}
-        messages={messages}
-        themeMode={themeMode}
-        toggleThemeLabel={toggleThemeLabel}
-        onEventChange={(id) => void handleEventChange(id)}
-        onLocaleToggle={() =>
-          setLocale((currentLocale) => (currentLocale === 'zh-CN' ? 'en-US' : 'zh-CN'))
-        }
-        onThemeToggle={() =>
-          setThemeMode((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
-        }
-      />
-      <main
-        ref={stageRef}
-        className={styles.stage}
-        aria-label={messages.timerPage}
-        onScroll={handleStageScroll}
-      >
-        {shouldShowTimerStage && pageState === 'scramble' && (
-          <ScrambleView
-            eventId={displayEventId}
-            scramble={isScrambleLoadingPreview ? '' : scramble}
-            error={isScrambleLoadingPreview ? undefined : scrambleError}
-            isLoading={isScrambleLoadingPreview || isScrambleLoading || isEventTransitionPending}
-            isReady={isReady}
-            multiBlindCubeCount={multiBlindCubeCount}
-            touchReadyOverlayPreview={touchReadyOverlayPreview}
-            messages={messages}
-            onCancelReady={cancelReady}
-            onMultiBlindCubeCountChange={handleMultiBlindCubeCountChange}
-            onPrepareStart={prepareStart}
-            onRefresh={handleRefresh}
-            readyTrigger={readyTrigger}
-            onStartReady={startReady}
-          />
-        )}
-        {shouldShowTimerStage && pageState === 'timing' && (
-          <TimingView elapsed={elapsed} isInCancelZone={isInCancelZone} />
-        )}
-        {shouldShowTimerStage && pageState === 'result' && (
-          <ResultView
-            elapsed={finalElapsed}
-            isAutoDnf={
-              sessionState.eventId === '333mbld' && finalElapsed > MULTI_BLIND_DNF_LIMIT_MS
-            }
-            messages={messages}
-            multiBlindAttemptedCount={
-              sessionState.eventId === '333mbld'
-                ? getMultiBlindScrambleLines(scramble).length
-                : undefined
-            }
-            onContinue={(multiBlindSolvedCount) => void finishResult('none', multiBlindSolvedCount)}
-            onPlusTwo={() => void finishResult('+2')}
-            onDnf={(multiBlindSolvedCount) => void finishResult('dnf', multiBlindSolvedCount)}
-            onDelete={() => void finishResult()}
-          />
-        )}
-        {!shouldShowTimerStage && activeNavItem === 'results' && (
-          <section className={styles.secondaryPage} aria-label={messages.solves}>
-            <header className={styles.secondaryHeader}>
-              <div>
-                <span className={styles.secondaryKicker}>{messages.sessionList}</span>
-                <h1>{messages.solves}</h1>
-              </div>
-              <span className={styles.secondaryCount}>{sessionState.solves.length}</span>
-            </header>
-            {sidebarError && (
-              <StorageAlert message={sidebarError} formatMessage={messages.storageError} />
-            )}
-            <div className={styles.mobileResultsLayout}>
-              <section className={styles.mobileSolveList} aria-label={messages.solves}>
-                <SolveList
-                  solves={sessionState.solves}
-                  emptyText={messages.noSolves}
-                  onSelectSolve={handleSelectSolve}
-                />
-              </section>
-              <SolveStatisticsPanel messages={messages} solves={sessionState.solves} />
-            </div>
-          </section>
-        )}
-        {!shouldShowTimerStage && activeNavItem !== 'results' && (
-          <section className={styles.secondaryPage} aria-label={messages.timerPage}>
-            <header className={styles.secondaryHeader}>
-              <div>
-                <span className={styles.secondaryKicker}>{messages.mobilePageUnavailable}</span>
-                <h1>{activeNavItem === 'formula' ? messages.formulaLibrary : messages.settings}</h1>
-              </div>
-            </header>
-          </section>
-        )}
-        {selectedSolve && (
-          <SolveDetail
-            locale={locale}
-            messages={messages}
-            solve={selectedSolve}
-            onClose={() => setSelectedSolveId(undefined)}
-            onDelete={(solveId) => void handleDeleteSolve(solveId)}
-            onPenaltyChange={(solveId, penalty) => void handlePenaltyChange(solveId, penalty)}
-          />
-        )}
+      </header>
+
+      <TimerTopNavigation activeRoute="timer" isHidden={isTimerRunning} />
+
+      <main className={styles.stage} aria-label="主题计时器">
+        <TimerFocusSurface
+          elapsed={displayElapsed}
+          isFocusMode={isTimerFocusMode}
+          label={timerLabel}
+          placeholder={placeholder}
+          state={timerState}
+        />
+        <TimerRecentSolves solveRecords={activeListSolveRecords} />
       </main>
-    </div>
+      <footer className={styles.bottomDock} aria-label="计时器底部信息">
+        <TimerSessionSummary statistics={statistics} />
+        <TimerScramblePreview eventId={activeList.scrambleTypeId} svg={scrambleSvg} />
+      </footer>
+      {listFormMode !== undefined ? (
+        <CreateListModal
+          mode={listFormMode}
+          name={listFormName}
+          scrambleTypeId={listFormScrambleTypeId}
+          onCancel={closeListFormModal}
+          onNameChange={setListFormName}
+          onScrambleTypeChange={setListFormScrambleTypeId}
+          onSubmit={handleListFormSubmit}
+        />
+      ) : null}
+    </section>
   );
 };
