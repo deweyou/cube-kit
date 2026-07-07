@@ -9,6 +9,7 @@ events.
 - [../../docs/superpowers/specs/2026-06-30-cubegin-player-non-cube-design.md](../../docs/superpowers/specs/2026-06-30-cubegin-player-non-cube-design.md)
 - [../../docs/superpowers/specs/2026-07-07-cubegin-player-move-engine-design.md](../../docs/superpowers/specs/2026-07-07-cubegin-player-move-engine-design.md)
 - [../../docs/superpowers/plans/2026-06-30-cubegin-player.md](../../docs/superpowers/plans/2026-06-30-cubegin-player.md)
+- [../../docs/superpowers/plans/2026-07-07-cubegin-player-move-engine.md](../../docs/superpowers/plans/2026-07-07-cubegin-player-move-engine.md)
 - [../../docs/packages/scramble-puzzle/index.md](../../docs/packages/scramble-puzzle/index.md)
 - [../../docs/dependency-licensing.md](../../docs/dependency-licensing.md)
 
