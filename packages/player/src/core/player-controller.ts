@@ -140,15 +140,21 @@ export const createPlayerController = (
         ? [model]
         : undefined;
       const timelineInputs = moves.map((move) => {
-        const animation = adapter.describeMove(move, nextAdapterState);
+        const transform = adapter.describeTransform?.(move, nextAdapterState);
+        const animation =
+          transform === undefined ? adapter.describeMove(move, nextAdapterState) : undefined;
 
-        nextAdapterState = adapter.applyMove(nextAdapterState, move);
+        nextAdapterState =
+          transform !== undefined && adapter.commitTransform !== undefined
+            ? adapter.commitTransform(nextAdapterState, transform)
+            : adapter.applyMove(nextAdapterState, move);
         modelsByCompletedStepCount?.push(adapter.createRenderableModel(nextAdapterState));
 
         return {
           animation,
-          durationMultiplier: animation.durationMultiplier,
+          durationMultiplier: transform?.durationMultiplier ?? animation?.durationMultiplier,
           move,
+          transform,
         };
       });
 
