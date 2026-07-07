@@ -10,13 +10,7 @@
   );
   --timer-top-zone-height: clamp(292px, 28vh, 392px);
 
-  background:
-    radial-gradient(
-      circle at 50% 46%,
-      color-mix(in srgb, var(--ui-color-brand-text) 12%, transparent),
-      transparent 38%
-    ),
-    linear-gradient(180deg, var(--ui-color-surface) 0%, var(--ui-color-canvas) 62%);
+  background: linear-gradient(180deg, var(--ui-color-surface) 0%, var(--ui-color-canvas) 62%);
   box-sizing: border-box;
   color: var(--ui-color-text);
   display: grid;
@@ -33,6 +27,10 @@
   overflow: hidden;
   padding: 0;
   position: relative;
+}
+
+.root[hidden] {
+  display: none;
 }
 
 .hero {
@@ -838,6 +836,7 @@
 }
 
 .timeFace {
+  --timer-time-label-size: clamp(3.4rem, 9vw, 6.6rem);
   --timer-time-max-size: clamp(4.2rem, 16vw, 9.4rem);
   --timer-time-wide-size: clamp(4.6rem, 15vw, 10.4rem);
 
@@ -861,6 +860,15 @@
   font-size: var(--timer-time-max-size);
 }
 
+.timeFace[data-timer-display='label'] {
+  font-family: var(--ui-font-family-sans);
+  font-feature-settings: normal;
+  font-size: var(--timer-time-label-size);
+  font-variant-numeric: normal;
+  font-weight: 420;
+  line-height: 1;
+}
+
 .timerText {
   align-items: baseline;
   color: inherit;
@@ -871,6 +879,10 @@
   font-weight: inherit;
   line-height: inherit;
   min-width: 0;
+}
+
+.timerText[data-timer-display='label'] {
+  align-items: center;
 }
 
 .timerWhole {
@@ -892,6 +904,19 @@
   margin-inline-start: 0;
 }
 
+.timerLabelText {
+  color: inherit;
+  display: inline-block;
+  font-family: inherit;
+  font-feature-settings: inherit;
+  font-size: inherit;
+  font-variant-numeric: inherit;
+  font-weight: inherit;
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .timerGlyph {
   --timer-glyph-width: 0.58em;
 
@@ -908,7 +933,8 @@
   --timer-glyph-width: 0.32em;
 }
 
-.timerSurface[data-state='armed'] .timeFace {
+.timerSurface[data-state='armed'] .timeFace,
+.timerSurface[data-state='inspection-armed'] .timeFace {
   color: var(--timer-ready-color);
 }
 
@@ -940,7 +966,8 @@
   white-space: nowrap;
 }
 
-.timerSurface[data-state='armed'] .placeholder {
+.timerSurface[data-state='armed'] .placeholder,
+.timerSurface[data-state='inspection-armed'] .placeholder {
   color: color-mix(in srgb, var(--timer-ready-color) 78%, var(--ui-color-text));
 }
 

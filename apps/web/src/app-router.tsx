@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
-import { APP_ROUTE_PATHS } from './app-routes';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router';
+import { APP_ROUTE_PATHS, getAppRoute } from './app-routes';
 
 export { APP_ROUTE_PATHS, getAppRoute, getAppRoutePath } from './app-routes';
 
@@ -16,16 +16,35 @@ const TimerPage = lazy(() =>
   })),
 );
 
+const SettingsPage = lazy(() =>
+  import('./settings/settings-page').then(({ SettingsPage }) => ({
+    default: SettingsPage,
+  })),
+);
+
+const KeepAliveTimerRoute = () => {
+  const location = useLocation();
+  const activeRoute = getAppRoute(location.pathname);
+  const shouldMountTimer = activeRoute === 'timer' || activeRoute === 'settings';
+
+  return (
+    <>
+      {shouldMountTimer ? <TimerPage isActive={activeRoute === 'timer'} /> : null}
+      <Routes>
+        <Route path={APP_ROUTE_PATHS.timer} element={null} />
+        <Route path={APP_ROUTE_PATHS.results} element={<AppPlaceholderPage route="results" />} />
+        <Route path={APP_ROUTE_PATHS.formulas} element={<AppPlaceholderPage route="formulas" />} />
+        <Route path={APP_ROUTE_PATHS.settings} element={<SettingsPage />} />
+        <Route path="*" element={<Navigate to={APP_ROUTE_PATHS.timer} replace />} />
+      </Routes>
+    </>
+  );
+};
+
 export const AppRouter = () => (
   <BrowserRouter>
     <Suspense fallback={null}>
-      <Routes>
-        <Route path={APP_ROUTE_PATHS.timer} element={<TimerPage />} />
-        <Route path={APP_ROUTE_PATHS.results} element={<AppPlaceholderPage route="results" />} />
-        <Route path={APP_ROUTE_PATHS.formulas} element={<AppPlaceholderPage route="formulas" />} />
-        <Route path={APP_ROUTE_PATHS.settings} element={<AppPlaceholderPage route="settings" />} />
-        <Route path="*" element={<Navigate to={APP_ROUTE_PATHS.timer} replace />} />
-      </Routes>
+      <KeepAliveTimerRoute />
     </Suspense>
   </BrowserRouter>
 );

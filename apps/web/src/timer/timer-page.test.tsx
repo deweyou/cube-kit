@@ -1,15 +1,18 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { EVENT_IDS } from '@cubegin/shared/events';
+import { DEFAULT_APP_PREFERENCES } from '@cubegin/shared/preferences';
 import { getEventShortLabel } from '@cubegin/shared/timer-session';
 import {
   Children,
   isValidElement,
   type CSSProperties,
+  type ComponentProps,
   type ReactElement,
   type ReactNode,
 } from 'react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AppPreferencesProvider } from '../preferences/app-preferences';
 import { TimerPage } from './timer-page';
 
 const scrambleImageMock = vi.hoisted(() => ({
@@ -144,14 +147,36 @@ vi.mock('@deweyou-design/react/select', () => {
   return { Select };
 });
 
-const renderTimerPage = () =>
+const setNavigatorLanguages = (languages: string[]) => {
+  Object.defineProperty(window.navigator, 'languages', {
+    configurable: true,
+    value: languages,
+  });
+  Object.defineProperty(window.navigator, 'language', {
+    configurable: true,
+    value: languages[0] ?? '',
+  });
+};
+
+const setStoredPreferences = (preferences: Partial<typeof DEFAULT_APP_PREFERENCES>) => {
+  localStorage.setItem(
+    'cubegin-app-preferences',
+    JSON.stringify({ ...DEFAULT_APP_PREFERENCES, ...preferences }),
+  );
+};
+
+const renderTimerPage = (props: ComponentProps<typeof TimerPage> = {}) =>
   render(
-    <MemoryRouter>
-      <TimerPage />
-    </MemoryRouter>,
+    <AppPreferencesProvider>
+      <MemoryRouter>
+        <TimerPage {...props} />
+      </MemoryRouter>
+    </AppPreferencesProvider>,
   );
 
 beforeEach(() => {
+  localStorage.clear();
+  setNavigatorLanguages(['zh-CN']);
   timerMock.elapsed = 0;
   timerMock.reset.mockClear();
   timerMock.start.mockClear();
@@ -169,18 +194,19 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
+  localStorage.clear();
   delete document.documentElement.dataset.theme;
 });
 
 describe('TimerPage', () => {
-  it('uses light theme while mounted and restores the previous page theme', () => {
-    document.documentElement.dataset.theme = 'dark';
+  it('uses the resolved app theme instead of forcing the timer page to light', () => {
+    localStorage.setItem(
+      'cubegin-app-preferences',
+      JSON.stringify({ ...DEFAULT_APP_PREFERENCES, theme: 'dark' }),
+    );
 
-    const { unmount } = renderTimerPage();
-
-    expect(document.documentElement.dataset.theme).toBe('light');
-
-    unmount();
+    renderTimerPage();
 
     expect(document.documentElement.dataset.theme).toBe('dark');
   });
@@ -301,6 +327,206 @@ describe('TimerPage', () => {
     expect(timerNavigationSource).not.toMatch(/SettingsSlidersNavIcon/su);
   });
 
+  it('localizes timer chrome while preserving event and user-authored list names', () => {
+    localStorage.setItem(
+      'cubegin-app-preferences',
+      JSON.stringify({ ...DEFAULT_APP_PREFERENCES, language: 'en' }),
+    );
+
+    renderTimerPage();
+
+    const navigation = screen.getByRole('navigation', { name: 'Primary navigation' });
+    const navigationButtons = within(navigation).getAllByRole('button');
+
+    expect(navigationButtons.map((button) => button.getAttribute('aria-label'))).toEqual([
+      'Timer',
+      'Results',
+      'Formulas',
+      'Settings',
+    ]);
+    expect(screen.getByRole('timer', { name: 'Press Space or Enter to start' })).toBeTruthy();
+    expect(screen.getByRole('combobox', { name: 'Switch list' })).toBeTruthy();
+
+    const listToolbar = screen.getByRole('toolbar', { name: 'List actions' });
+    fireEvent.click(within(listToolbar).getByRole('button', { name: 'New list' }));
+
+    const dialog = screen.getByRole('dialog', { name: 'New list' });
+    expect(within(dialog).getByRole('combobox', { name: 'Event' })).toBeTruthy();
+    expect(within(dialog).getByRole('option', { name: '3x3x3' })).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText('List name'), { target: { value: 'Four practice' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(screen.getByRole('option', { name: 'Four practice' })).toBeTruthy();
+  });
+
+  it('starts a WCA inspection before solving and lets Escape cancel it', () => {
+    setStoredPreferences({ wcaInspection: true });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+
+    renderTimerPage();
+
+    fireEvent.keyDown(document, { code: 'Space', key: ' ' });
+    fireEvent.keyUp(document, { code: 'Space', key: ' ' });
+
+    const inspectionTimer = screen.getByRole('timer', {
+      name: '观察中，按 Space 或 Enter 开始计时，按 Esc 取消',
+    });
+
+    expect(timerMock.start).not.toHaveBeenCalled();
+    expect(inspectionTimer.getAttribute('data-state')).toBe('inspection');
+    expect(inspectionTimer.querySelector('[data-timer-text]')?.textContent).toBe('15');
+
+    fireEvent.keyDown(document, { code: 'Escape', key: 'Escape' });
+
+    expect(timerMock.start).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }).getAttribute('data-state'),
+    ).toBe('idle');
+  });
+
+  it('does not claim timer shortcuts while inactive', () => {
+    renderTimerPage({ isActive: false });
+
+    fireEvent.keyDown(document, { code: 'Space', key: ' ' });
+
+    expect(timerMock.reset).not.toHaveBeenCalled();
+    expect(timerMock.start).not.toHaveBeenCalled();
+    expect(
+      screen
+        .getByRole('timer', { hidden: true, name: '按 Space 或 Enter 开始计时' })
+        .getAttribute('data-state'),
+    ).toBe('idle');
+  });
+
+  it('applies a +2 penalty when WCA inspection exceeds 15 seconds', () => {
+    setStoredPreferences({ wcaInspection: true });
+    const nowSpy = vi.spyOn(performance, 'now').mockReturnValue(0);
+
+    renderTimerPage();
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+    nowSpy.mockReturnValue(15_001);
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    const summaryRegion = screen.getByRole('region', { name: '成绩概要' });
+
+    expect(timerMock.start).toHaveBeenCalledTimes(1);
+    expect(timerMock.stop).toHaveBeenCalledTimes(1);
+    expect(within(summaryRegion).getByText('1/1')).toBeTruthy();
+    expect(within(summaryRegion).getAllByText('3.234')).toHaveLength(2);
+  });
+
+  it('records DNF when WCA inspection exceeds 17 seconds', () => {
+    setStoredPreferences({ wcaInspection: true });
+    const nowSpy = vi.spyOn(performance, 'now').mockReturnValue(0);
+
+    renderTimerPage();
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+    nowSpy.mockReturnValue(17_001);
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    const summaryRegion = screen.getByRole('region', { name: '成绩概要' });
+
+    expect(within(summaryRegion).getByText('0/1')).toBeTruthy();
+    expect(within(summaryRegion).getByText('DNF')).toBeTruthy();
+  });
+
+  it('keeps the Space ready state before WCA inspection and before timing', () => {
+    setStoredPreferences({ wcaInspection: true });
+    const nowSpy = vi.spyOn(performance, 'now').mockReturnValue(0);
+
+    renderTimerPage();
+
+    fireEvent.keyDown(document, { code: 'Space', key: ' ' });
+
+    const inspectionReadyTimer = screen.getByRole('timer', {
+      name: '松开 Space 开始计时，按 Esc 取消',
+    });
+    expect(inspectionReadyTimer.getAttribute('data-state')).toBe('armed');
+    expect(timerMock.start).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole('timer', {
+        name: '观察中，按 Space 或 Enter 开始计时，按 Esc 取消',
+      }),
+    ).toBeNull();
+
+    fireEvent.keyUp(document, { code: 'Space', key: ' ' });
+
+    expect(
+      screen.getByRole('timer', {
+        name: '观察中，按 Space 或 Enter 开始计时，按 Esc 取消',
+      }),
+    ).toBeTruthy();
+    expect(timerMock.start).not.toHaveBeenCalled();
+
+    nowSpy.mockReturnValue(12_000);
+    fireEvent.keyDown(document, { code: 'Space', key: ' ' });
+
+    const solveReadyTimer = screen.getByRole('timer', {
+      name: '松开 Space 开始计时，按 Esc 取消',
+    });
+    expect(solveReadyTimer.getAttribute('data-state')).toBe('inspection-armed');
+    expect(solveReadyTimer.textContent).toContain('3');
+    expect(timerMock.start).not.toHaveBeenCalled();
+
+    fireEvent.keyUp(document, { code: 'Space', key: ' ' });
+
+    expect(timerMock.start).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('timer', { name: '计时中，按 Space 或 Enter 结束' })).toBeTruthy();
+  });
+
+  it('shows whole seconds only while a solve is running when seconds mode is selected', () => {
+    setStoredPreferences({ timerDisplayMode: 'seconds' });
+    timerMock.elapsed = 12_345;
+
+    renderTimerPage();
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    expect(screen.getByRole('timer', { name: '计时中，按 Space 或 Enter 结束' }).textContent).toBe(
+      '12',
+    );
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    expect(screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }).textContent).toContain(
+      '1.234',
+    );
+  });
+
+  it('shows inspection countdowns and a timing label in inspection-only mode', () => {
+    setStoredPreferences({
+      timerDisplayMode: 'inspection-only',
+      wcaInspection: true,
+    });
+    vi.spyOn(performance, 'now').mockReturnValue(0);
+    timerMock.elapsed = 12_345;
+
+    renderTimerPage();
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    expect(
+      screen
+        .getByRole('timer', {
+          name: '观察中，按 Space 或 Enter 开始计时，按 Esc 取消',
+        })
+        .querySelector('[data-timer-text]')?.textContent,
+    ).toBe('15');
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    const timingTimer = screen.getByRole('timer', { name: '计时中，按 Space 或 Enter 结束' });
+
+    expect(timingTimer.textContent).toBe('计时');
+    expect(timingTimer.querySelector('[data-timer-label-text]')?.textContent).toBe('计时');
+    expect(timingTimer.querySelectorAll('[data-timer-glyph]')).toHaveLength(0);
+  });
+
   it('uses a compact list selector with toolbar actions and default lists for every event', () => {
     renderTimerPage();
 
@@ -416,8 +642,8 @@ describe('TimerPage', () => {
     expect(container.querySelector('svg[data-rendered-scramble="true"]')).not.toBeNull();
     expect(within(summaryRegion).queryByText('有效成绩次数 / 总次数')).toBeNull();
     expect(within(summaryRegion).getByText('0/0')).toBeTruthy();
-    expect(within(summaryRegion).getByText('mean')).toBeTruthy();
-    expect(within(summaryRegion).getByText('best')).toBeTruthy();
+    expect(within(summaryRegion).getByText('平均')).toBeTruthy();
+    expect(within(summaryRegion).getByText('最佳')).toBeTruthy();
     expect(within(summaryRegion).getByText('mo3')).toBeTruthy();
     expect(within(summaryRegion).getByText('ao5')).toBeTruthy();
     expect(within(summaryRegion).queryByText('ao12')).toBeNull();
@@ -434,6 +660,7 @@ describe('TimerPage', () => {
     expect(timerCss).toMatch(/--timer-stage-center-offset: calc\(/u);
     expect(timerCss).toMatch(/--timer-bottom-zone-height: clamp\(190px, 22vh, 236px\);/u);
     expect(timerCss).toMatch(/--timer-nav-zone-height: 0px;/u);
+    expect(timerCss).not.toMatch(/radial-gradient/u);
     expect(timerCss).toMatch(
       /grid-template-rows:\s*var\(--timer-top-zone-height\)\s*minmax\(0, 1fr\)\s*var\(--timer-bottom-zone-height\);/u,
     );
@@ -570,11 +797,17 @@ describe('TimerPage', () => {
     expect(timerCss).toMatch(
       /\.timeFace\s*\{[^}]*--timer-time-max-size: clamp\(4\.2rem, 16vw, 9\.4rem\);/su,
     );
+    expect(timerCss).toMatch(
+      /\.timeFace\s*\{[^}]*--timer-time-label-size: clamp\(3\.4rem, 9vw, 6\.6rem\);/su,
+    );
     expect(timerCss).not.toMatch(/--timer-time-size:/u);
     expect(timerCss).toMatch(/\.timeFace\s*\{[^}]*font-size: var\(--timer-time-wide-size\);/su);
     expect(timerCss).not.toMatch(/\.timeFace\[data-time-width='wide'\]/u);
     expect(timerCss).toMatch(
       /\.timeFace\[data-time-width='max'\]\s*\{[^}]*font-size: var\(--timer-time-max-size\);/su,
+    );
+    expect(timerCss).toMatch(
+      /\.timeFace\[data-timer-display='label'\]\s*\{[^}]*font-size: var\(--timer-time-label-size\);/su,
     );
     expect(timerCss).toMatch(/\.timeFace\s*\{[^}]*font-feature-settings: 'tnum' 1;/su);
     expect(timerCss).toMatch(/\.timeFace\s*\{[^}]*font-variant-numeric: tabular-nums;/su);
@@ -587,6 +820,9 @@ describe('TimerPage', () => {
     expect(timerCss).not.toMatch(/\.timerFraction\s*\{[^}]*font-weight: 380;/su);
     expect(timerCss).not.toMatch(/\.timerFraction\s*\{[^}]*font-size: 0\.8em;/su);
     expect(timerCss).toMatch(/\.timerFraction\s*\{[^}]*margin-inline-start: 0;/su);
+    expect(timerCss).toMatch(
+      /\.timerLabelText\s*\{[^}]*letter-spacing: 0;[^}]*white-space: nowrap;/su,
+    );
     expect(timerCss).toMatch(/\.timerGlyph\s*\{[^}]*--timer-glyph-width: 0\.58em;/su);
     expect(timerCss).toMatch(/\.timerGlyph\s*\{[^}]*flex: 0 0 var\(--timer-glyph-width\);/su);
     expect(timerCss).toMatch(
@@ -934,7 +1170,7 @@ describe('TimerPage', () => {
     expect(timer.querySelector('[data-time-width]')?.getAttribute('data-time-width')).toBe('max');
     expect(timer.querySelector('[data-timer-part="whole"]')?.textContent).toBe('10:10');
     expect(timer.querySelector('[data-timer-part="fraction"]')?.textContent).toBe('.429');
-    expect(timerPageSource).toMatch(/formatElapsedClock/su);
+    expect(timerPageSource).toMatch(/formatTimerDisplay/su);
     expect(timerPageSource).toMatch(/splitTimerElapsedText/su);
   });
 

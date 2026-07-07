@@ -6,6 +6,7 @@ export default defineConfig({
     dts: {},
     entry: {
       'events/index': 'src/events/index.ts',
+      'preferences/index': 'src/preferences/index.ts',
       'timer/index': 'src/timer/index.ts',
       'timer-session/index': 'src/timer-session/index.ts',
     },
