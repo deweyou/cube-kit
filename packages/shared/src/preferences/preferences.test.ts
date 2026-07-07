@@ -36,6 +36,9 @@ describe('app preferences', () => {
   });
 
   it('formats solve display modes without changing final precision', () => {
+    expect(formatTimerDisplay({ mode: 'realtime', phase: 'inspection', elapsedMs: 5_500 })).toBe(
+      '9',
+    );
     expect(formatTimerDisplay({ mode: 'realtime', phase: 'solve', elapsedMs: 12_345 })).toBe(
       '12.34',
     );
