@@ -10,9 +10,11 @@ flowchart TD
     Apps --> Playground["apps/playground scramble test workbench"]
     Apps --> ScrambleDocs["apps/scramble-docs VitePress learning site"]
     Apps --> Wx["apps/wx-app Taro shell"]
-    Web --> TimerPage["TimerPage"]
-    TimerPage --> SharedTimer["@cubegin/shared/timer"]
-    TimerPage --> SharedTimerSession["@cubegin/shared/timer-session"]
+    Web --> AppRouter["AppRouter"]
+    AppRouter --> TimerV2Page["TimerV2Page"]
+    AppRouter --> PlaceholderPages["results/formulas/settings placeholders"]
+    TimerV2Page --> SharedTimer["@cubegin/shared/timer"]
+    TimerV2Page --> SharedTimerSession["@cubegin/shared/timer-session"]
     Packages --> PublicCore["cubegin npm package"]
     Packages --> SharedPkg["@cubegin/shared"]
     Packages --> PuzzlePkg["@cubegin/scramble-puzzle"]
@@ -52,9 +54,9 @@ flowchart TD
     CliPkg --> ImagePkg
     CliPkg --> PuzzlePkg
     CliPkg --> SolverPkg
-    TimerPage --> SharedPkg
-    TimerPage --> CorePkg
-    TimerPage --> ImagePkg
+    TimerV2Page --> SharedPkg
+    TimerV2Page --> CorePkg
+    TimerV2Page --> ImagePkg
     Playground --> CorePkg
     Playground --> ImagePkg
     Playground --> PuzzlePkg
@@ -116,11 +118,16 @@ rerun the sync script.
 - Web starts at [apps/web/src/main.tsx#L1](../apps/web/src/main.tsx#L1), which
   renders React without the removed cstimer browser shim.
 - [apps/web/src/app.tsx#L1](../apps/web/src/app.tsx#L1) wraps
-  [TimerPage](../apps/web/src/timer/timer-page.tsx#L14) in the app shell.
-- `TimerPage` owns the page-level `scramble -> timing -> result` state, uses
-  IndexedDB for web solve persistence, and calls `@cubegin/shared/timer`,
-  `@cubegin/shared/timer-session`, `@cubegin/scramble-core`, and
-  `@cubegin/scramble-image`.
+  [AppRouter](../apps/web/src/app-router.tsx#L1) in the app shell.
+- [AppRouter](../apps/web/src/app-router.tsx#L1) maps `/` to
+  [TimerV2Page](../apps/web/src/timer-v2/timer-v2-page.tsx#L1), and maps
+  `/results`, `/formulas`, and `/settings` to placeholder pages for follow-up
+  feature work. Route constants live in
+  [apps/web/src/app-routes.ts#L1](../apps/web/src/app-routes.ts#L1).
+- `TimerV2Page` owns the current web timer surface, list selector, scramble
+  strip, timing state, result actions, session summary, recent solves, and
+  scramble preview. It reuses legacy timer hooks/components while the redesigned
+  page becomes the app entry surface.
 - Playground starts with `pnpm dev:playground` at
   [apps/playground/src/main.tsx#L1](../apps/playground/src/main.tsx#L1). Its
   [App](../apps/playground/src/app.tsx#L1) calls the new `scramble-core`,
@@ -197,4 +204,4 @@ rerun the sync script.
 
 ---
 
-_Last updated: 2026-07-01 | Reason: add the Three.js player package and playground Player tab_
+_Last updated: 2026-07-06 | Reason: route the web app through TimerV2Page and add placeholder app routes_

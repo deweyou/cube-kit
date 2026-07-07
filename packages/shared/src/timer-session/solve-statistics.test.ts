@@ -73,6 +73,14 @@ describe('solve statistics', () => {
     ]);
   });
 
+  it('includes 50-solve rolling averages for long sessions', () => {
+    const stats = calculateSolveStatistics(
+      Array.from({ length: 50 }, (_, index) => solve(1000 + index, 50 - index)),
+    );
+
+    expect(stats.rollingAverages.map((average) => average.size)).toEqual([3, 5, 12, 50]);
+  });
+
   it('keeps rolling averages as DNF when DNF remains after trimming', () => {
     const stats = calculateSolveStatistics([
       solve(1000, 5, 'dnf'),

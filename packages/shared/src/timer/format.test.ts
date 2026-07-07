@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatElapsed } from './format';
+import { formatElapsed, formatElapsedClock } from './format';
 
 describe('formatElapsed', () => {
   it('0ms with decimals=3 → "0.000"', () => {
@@ -36,5 +36,19 @@ describe('formatElapsed', () => {
 
   it('defaults to decimals=3', () => {
     expect(formatElapsed(5123)).toBe('5.123');
+  });
+});
+
+describe('formatElapsedClock', () => {
+  it('keeps sub-minute times as seconds', () => {
+    expect(formatElapsedClock(59_999, 3)).toBe('59.999');
+  });
+
+  it('formats 60 seconds as minutes', () => {
+    expect(formatElapsedClock(60_123, 3)).toBe('1:00.123');
+  });
+
+  it('formats hour-long times with hours', () => {
+    expect(formatElapsedClock(3_600_000, 3)).toBe('1:00:00.000');
   });
 });
