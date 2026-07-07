@@ -1,10 +1,15 @@
-import type { PlayerMoveAnimation, PlayerRenderableModel } from '../puzzles/puzzle-adapter.js';
+import type {
+  PlayerMoveAnimation,
+  PlayerMoveTransform,
+  PlayerRenderableModel,
+} from '../puzzles/puzzle-adapter.js';
 
 const BASE_QUARTER_TURN_DURATION_MS = 520;
 
 export interface PlayerTimelineInput<Move = unknown> {
   readonly move: Move;
   readonly animation?: PlayerMoveAnimation<Move>;
+  readonly transform?: PlayerMoveTransform<Move>;
   readonly durationMultiplier?: number;
 }
 
@@ -12,6 +17,7 @@ export interface PlayerTimelineStep<Move = unknown> {
   readonly move: Move;
   readonly index: number;
   readonly animation: PlayerMoveAnimation<Move> | undefined;
+  readonly transform: PlayerMoveTransform<Move> | undefined;
   readonly quarterTurns: number;
   readonly durationMs: number;
 }
@@ -32,7 +38,7 @@ const isTimelineInput = <Move>(value: Move | PlayerTimelineInput<Move>): value i
   typeof value === 'object' &&
   value !== null &&
   'move' in value &&
-  ('animation' in value || 'durationMultiplier' in value);
+  ('animation' in value || 'durationMultiplier' in value || 'transform' in value);
 
 const quarterTurnsForMove = (move: unknown): number => {
   if (
@@ -57,11 +63,13 @@ export const createPlayerTimeline = <Move>(
     const quarterTurns = quarterTurnsForMove(timelineInput.move);
     const durationMultiplier =
       timelineInput.durationMultiplier ??
+      timelineInput.transform?.durationMultiplier ??
       timelineInput.animation?.durationMultiplier ??
       (quarterTurns === 2 ? 1.45 : 1);
 
     return {
       animation: timelineInput.animation,
+      transform: timelineInput.transform,
       move: timelineInput.move,
       index,
       quarterTurns,

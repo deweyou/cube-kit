@@ -79,6 +79,39 @@ export interface PlayerMoveAnimation<Move = unknown> {
   readonly rotateInPlace?: boolean;
 }
 
+export type PlayerTransformOperation =
+  | PlayerAxisRotationOperation
+  | PlayerColorPulseOperation
+  | PlayerPositionPulseOperation;
+
+export interface PlayerAxisRotationOperation {
+  readonly type: 'axis-rotation';
+  readonly affectedPieceIds: readonly string[];
+  readonly axis: Vector3Like;
+  readonly pivot: Vector3Like;
+  readonly pivotByPieceId?: Readonly<Record<string, Vector3Like>>;
+  readonly angleRadians: number;
+  readonly angleRadiansByPieceId?: Readonly<Record<string, number>>;
+  readonly rotateInPlace?: boolean;
+}
+
+export interface PlayerColorPulseOperation {
+  readonly type: 'color-pulse';
+  readonly colorPulseByPieceId?: Readonly<Record<string, string>>;
+  readonly colorPulseByStickerId?: Readonly<Record<string, string>>;
+}
+
+export interface PlayerPositionPulseOperation {
+  readonly type: 'position-pulse';
+  readonly positionPulseByPieceId: Readonly<Record<string, Vector3Like>>;
+}
+
+export interface PlayerMoveTransform<Move = unknown> {
+  readonly move: Move;
+  readonly durationMultiplier?: number;
+  readonly operations: readonly PlayerTransformOperation[];
+}
+
 export interface PlayerPuzzleAdapter<Move = unknown, State = unknown> {
   readonly type: PlayerPuzzleType;
   readonly eventIds: readonly EventId[];
@@ -86,6 +119,8 @@ export interface PlayerPuzzleAdapter<Move = unknown, State = unknown> {
   parseFormula(formula: string): readonly Move[];
   createInitialState(): State;
   createRenderableModel(state: State): PlayerRenderableModel;
+  describeTransform?(move: Move, state: State): PlayerMoveTransform<Move>;
+  commitTransform?(state: State, transform: PlayerMoveTransform<Move>): State;
   describeMove(move: Move, state: State): PlayerMoveAnimation<Move>;
   applyMove(state: State, move: Move): State;
 }
