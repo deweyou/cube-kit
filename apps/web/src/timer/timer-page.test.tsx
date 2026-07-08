@@ -550,9 +550,21 @@ describe('TimerPage', () => {
     expect(createListButton.querySelector('svg')).not.toBeNull();
     expect(editListButton.querySelector('svg')).not.toBeNull();
     expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*font-size: 0\.98rem;/su);
-    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*height: 32px;/su);
-    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*min-height: 32px;/su);
-    expect(timerCss).toMatch(/\.listTrigger\s*:global\(svg\)\s*\{[^}]*height: 13px;/su);
+    expect(timerCss).toMatch(
+      /\.listTrigger\s*\{[^}]*background:[^;]*var\(--ui-color-surface-raised\)/su,
+    );
+    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*border: 1px solid/su);
+    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*border-radius: 999px;/su);
+    expect(timerCss).toMatch(
+      /\.listTrigger\s*\{[^}]*color:\s*color-mix\(in srgb,\s*var\(--ui-color-text\) 52%,\s*transparent\);/su,
+    );
+    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*height: 36px;/su);
+    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*min-height: 36px;/su);
+    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*min-width: 76px;/su);
+    expect(timerCss).toMatch(
+      /\.listTrigger:hover\s*:global\(svg\)\s*\{[^}]*color:\s*color-mix\(in srgb,\s*var\(--ui-color-text\) 70%,\s*transparent\);/su,
+    );
+    expect(timerCss).toMatch(/\.listTrigger\s*:global\(svg\)\s*\{[^}]*height: 14px;/su);
     expect(timerCss).toMatch(/\.listToolbar\s*\{[^}]*display: flex;/su);
     expect(timerCss).toMatch(/\.listToolbar\s*\{[^}]*gap: 8px;/su);
     expect(timerCss).toMatch(/\.listToolbar\s*\{[^}]*justify-content: space-between;/su);
