@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router';
 import { getAppRoute, getAppRoutePath } from '../app-routes';
+import { useAppPreferences } from '../preferences/app-preferences';
 import {
   FormulaStudyNavIcon,
   ResultsListNavIcon,
@@ -13,13 +14,14 @@ interface TimerTopNavigationProps {
 }
 
 const TIMER_NAV_ITEMS = [
-  { id: 'timer', label: '计时器', Icon: TimerNavIcon },
-  { id: 'results', label: '成绩列表', Icon: ResultsListNavIcon },
-  { id: 'formulas', label: '公式库', Icon: FormulaStudyNavIcon },
-  { id: 'settings', label: '设置', Icon: SettingsGearNavIcon },
+  { id: 'timer', labelKey: 'timer', Icon: TimerNavIcon },
+  { id: 'results', labelKey: 'results', Icon: ResultsListNavIcon },
+  { id: 'formulas', labelKey: 'formulas', Icon: FormulaStudyNavIcon },
+  { id: 'settings', labelKey: 'settings', Icon: SettingsGearNavIcon },
 ] as const;
 
 export const TimerTopNavigation = ({ isHidden }: TimerTopNavigationProps) => {
+  const { copy } = useAppPreferences();
   const location = useLocation();
   const navigate = useNavigate();
   const activeRoute = getAppRoute(location.pathname);
@@ -27,12 +29,13 @@ export const TimerTopNavigation = ({ isHidden }: TimerTopNavigationProps) => {
   return (
     <nav
       className={styles.primaryNav}
-      aria-label="主导航"
+      aria-label={copy.navigation.ariaLabel}
       aria-hidden={isHidden ? 'true' : undefined}
       data-hidden={isHidden ? 'true' : undefined}
     >
-      {TIMER_NAV_ITEMS.map(({ id, label, Icon }) => {
+      {TIMER_NAV_ITEMS.map(({ id, labelKey, Icon }) => {
         const isActive = id === activeRoute;
+        const label = copy.navigation[labelKey];
 
         return (
           <button

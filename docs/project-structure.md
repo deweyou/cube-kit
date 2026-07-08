@@ -12,9 +12,12 @@ flowchart TD
     Apps --> Wx["apps/wx-app Taro shell"]
     Web --> AppRouter["AppRouter"]
     AppRouter --> TimerPage["TimerPage"]
-    AppRouter --> PlaceholderPages["results/formulas/settings placeholders"]
+    AppRouter --> SettingsPage["SettingsPage"]
+    AppRouter --> PlaceholderPages["results/formulas placeholders"]
     TimerPage --> SharedTimer["@cubegin/shared/timer"]
     TimerPage --> SharedTimerSession["@cubegin/shared/timer-session"]
+    TimerPage --> SharedPreferences["@cubegin/shared/preferences"]
+    SettingsPage --> SharedPreferences
     Packages --> PublicCore["cubegin npm package"]
     Packages --> SharedPkg["@cubegin/shared"]
     Packages --> PuzzlePkg["@cubegin/scramble-puzzle"]
@@ -41,6 +44,7 @@ flowchart TD
     Bin --> CliPkg
     Skills --> CliSkill["skills/cubegin/SKILL.md"]
     SharedPkg --> SharedEvents["shared/events"]
+    SharedPkg --> SharedPreferences
     SharedPkg --> SharedTimer
     SharedPkg --> SharedTimerSession
     CorePkg --> SharedPkg
@@ -83,7 +87,7 @@ apps/web/              React 18 web/H5 app and timer UI
 apps/playground/       React scramble generator/image testing workbench
 apps/scramble-docs/    VitePress bilingual scramble learning site
 apps/wx-app/           Taro WeChat miniprogram shell
-packages/shared/       platform-agnostic event constants, timer state, and session rules
+packages/shared/       platform-agnostic event constants, preferences, timer state, and session rules
 packages/core/         public cubegin npm package subpath exports
 packages/scramble-puzzle/  TNoodle-compatible parsers, puzzle states, and registry helpers
 packages/scramble-core/    TNoodle-compatible scramble generators
@@ -118,18 +122,25 @@ rerun the sync script.
 - Web starts at [apps/web/src/main.tsx#L1](../apps/web/src/main.tsx#L1), which
   renders React without the removed cstimer browser shim.
 - [apps/web/src/app.tsx#L1](../apps/web/src/app.tsx#L1) wraps
-  [AppRouter](../apps/web/src/app-router.tsx#L1) in the app shell.
+  [AppRouter](../apps/web/src/app-router.tsx#L1) in the app shell and app
+  preferences provider.
 - [AppRouter](../apps/web/src/app-router.tsx#L1) wraps the app in React Router
   and maps `/` to
   [TimerPage](../apps/web/src/timer/timer-page.tsx#L1), and maps
-  `/results`, `/formulas`, and `/settings` to placeholder pages for follow-up
-  feature work. Route components are lazy loaded so the app shell and inactive
-  pages stay out of the entry chunk. Route constants live in
+  `/settings` to [SettingsPage](../apps/web/src/settings/settings-page.tsx#L1).
+  `/results` and `/formulas` remain placeholder pages for follow-up feature
+  work. Route components are lazy loaded so the app shell and inactive pages
+  stay out of the entry chunk. Route constants live in
   [apps/web/src/app-routes.ts#L1](../apps/web/src/app-routes.ts#L1).
 - `TimerPage` owns the current web timer surface, list selector, scramble
   strip, timing state, result actions, session summary, recent solves, and
-  scramble preview. It is the canonical web timer page and reuses only the
-  shared timer hook plus focused scramble display components.
+  scramble preview. It is the canonical web timer page and reuses the shared
+  timer hook, preference formatting rules, and focused scramble display
+  components.
+- `SettingsPage` owns the compact grouped web settings surface for theme,
+  language, WCA inspection, and in-progress timer display mode. The web
+  preferences provider persists these options in localStorage, resolves browser
+  language and system theme, and applies the resolved theme to the root element.
 - Playground starts with `pnpm dev:playground` at
   [apps/playground/src/main.tsx#L1](../apps/playground/src/main.tsx#L1). Its
   [App](../apps/playground/src/app.tsx#L1) calls the new `scramble-core`,
@@ -178,6 +189,9 @@ rerun the sync script.
 - [apps/wx-app/config/index.ts#L3](../apps/wx-app/config/index.ts#L3) - Taro
   build configuration.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - web scripts build workspace dependencies before dev, test, typecheck, and build.
+- [apps/web/src/preferences/app-preferences.tsx#L1](../apps/web/src/preferences/app-preferences.tsx#L1) - web preference persistence, theme resolution, and copy provider.
+- [apps/web/src/settings/settings-page.tsx#L1](../apps/web/src/settings/settings-page.tsx#L1) - compact grouped settings route.
+- [packages/shared/src/preferences/index.ts#L1](../packages/shared/src/preferences/index.ts#L1) - platform-agnostic app preference defaults, normalization, timer display, and WCA inspection rules.
 - [packages/shared/src/events/index.ts#L1](../packages/shared/src/events/index.ts#L1) - shared event metadata barrel.
 - [packages/shared/src/timer/index.ts#L1](../packages/shared/src/timer/index.ts#L1) - platform-agnostic timer state and formatting barrel.
 - [packages/shared/src/timer-session/index.ts#L1](../packages/shared/src/timer-session/index.ts#L1) - platform-agnostic solve/session rule barrel.
@@ -206,4 +220,4 @@ rerun the sync script.
 
 ---
 
-_Last updated: 2026-07-07 | Reason: make TimerPage primary and route the web app through React Router_
+_Last updated: 2026-07-07 | Reason: add web settings route and shared preference boundary_

@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { BRAND_ICON_SVGS } from '@cubegin/icons/brand';
 import { CubeginAnimatedIcon } from '@cubegin/icons/react';
 import { renderScrambleImage } from '@cubegin/scramble-image';
 import { EVENT_IDS, type EventId } from '@cubegin/shared/events';
-import { formatElapsedClock } from '@cubegin/shared/timer';
+import { formatTimerDisplay, resolveWcaInspectionPenalty } from '@cubegin/shared/preferences';
 import {
   calculateSolveStatistics,
   formatMilliseconds,
   getEventShortLabel,
+  getSolveDisplayText,
   type RollingAverageStat,
+  type SolvePenalty,
   type SolveRecord,
   type SolveStatistics,
 } from '@cubegin/shared/timer-session';
 import { Select } from '@deweyou-design/react/select';
+import { getCubeginWordmarkSvg } from '../brand/wordmark';
+import type { AppCopy } from '../preferences/app-copy';
+import { useAppPreferences } from '../preferences/app-preferences';
 import { ScrambleImage } from './components/scramble-image';
 import { ScrambleText } from './components/scramble-text';
 import { AddIcon, DeleteIcon, EditIcon } from './components/timer-icons';
@@ -22,8 +26,10 @@ import { createTimerScrambleGenerator } from './scramble-worker-client';
 import { TimerTopNavigation } from './timer-navigation';
 import styles from './timer-page.module.css';
 
-type TimerState = 'idle' | 'armed' | 'timing' | 'stopped';
+type TimerState = 'idle' | 'armed' | 'inspection' | 'inspection-armed' | 'timing' | 'stopped';
+type TimerDisplayKind = 'clock' | 'label';
 type TimerTimeWidth = 'wide' | 'max';
+type TimerReadyAction = 'inspection' | 'solve';
 
 interface TimerScrambleType {
   id: EventId;
@@ -77,11 +83,17 @@ const isTextEntryTarget = (target: EventTarget | null) =>
   Boolean(target.closest('input, textarea, [contenteditable="true"]'));
 
 interface StartTimerOptions {
+  penalty?: SolvePenalty;
   resetFirst?: boolean;
 }
 
+interface TimerPageProps {
+  isActive?: boolean;
+}
+
 interface TimerFocusSurfaceProps {
-  elapsed: number;
+  copy: AppCopy['timer'];
+  elapsedText: string;
   isFocusMode: boolean;
   label: string;
   placeholder?: string;
@@ -89,10 +101,9 @@ interface TimerFocusSurfaceProps {
 }
 
 interface TimerElapsedDisplayProps {
+  displayKind: TimerDisplayKind;
   elapsedText: string;
 }
-
-const wordmarkSvg = BRAND_ICON_SVGS['cubegin-wordmark'];
 
 const formatSummaryStat = (elapsedMs: number | null, isAvailable: boolean) => {
   if (!isAvailable) return '--';
@@ -103,6 +114,11 @@ const formatSummaryStat = (elapsedMs: number | null, isAvailable: boolean) => {
 const getTimerTimeWidth = (elapsedText: string): TimerTimeWidth => {
   if (elapsedText.length >= 9) return 'max';
   return 'wide';
+};
+
+const getTimerDisplayKind = (elapsedText: string): TimerDisplayKind => {
+  if (/^[0-9:.]+$/u.test(elapsedText)) return 'clock';
+  return 'label';
 };
 
 const splitTimerElapsedText = (elapsedText: string) => {
@@ -132,6 +148,7 @@ const createTimerSolveRecord = ({
   elapsedMs,
   eventId,
   listId,
+  penalty = 'none',
   scramble,
   solveIndex,
 }: {
@@ -139,6 +156,7 @@ const createTimerSolveRecord = ({
   elapsedMs: number;
   eventId: EventId;
   listId: string;
+  penalty?: SolvePenalty;
   scramble: string;
   solveIndex: number;
 }): SolveRecord => ({
@@ -147,12 +165,13 @@ const createTimerSolveRecord = ({
   eventId,
   scramble,
   elapsedMs,
-  penalty: 'none',
+  penalty,
   createdAt,
 });
 
 interface TimerListSelectorProps {
   activeListId: string;
+  copy: AppCopy['timer'];
   lists: TimerList[];
   isHidden: boolean;
   onChange: (listId: string) => void;
@@ -162,6 +181,7 @@ interface TimerListSelectorProps {
 
 const TimerListSelector = ({
   activeListId,
+  copy,
   isHidden,
   lists,
   onChange,
@@ -172,7 +192,7 @@ const TimerListSelector = ({
     className={styles.listControl}
     aria-hidden={isHidden ? 'true' : undefined}
     data-hidden={isHidden ? 'true' : undefined}
-    label={<span className={styles.visuallyHidden}>切换列表</span>}
+    label={<span className={styles.visuallyHidden}>{copy.listSelectorLabel}</span>}
     value={[activeListId]}
     onValueChange={(nextValue) => {
       const nextListId = nextValue[0];
@@ -181,14 +201,14 @@ const TimerListSelector = ({
   >
     <Select.Trigger className={styles.listTrigger} />
     <Select.Content className={styles.listContent}>
-      <div className={styles.listToolbar} role="toolbar" aria-label="列表操作">
-        <span className={styles.listToolbarLabel}>列表</span>
+      <div className={styles.listToolbar} role="toolbar" aria-label={copy.listToolbarLabel}>
+        <span className={styles.listToolbarLabel}>{copy.listToolbarTitle}</span>
         <div className={styles.listToolbarActions}>
           <button
             className={styles.listToolbarButton}
             type="button"
-            aria-label="新增列表"
-            title="新增列表"
+            aria-label={copy.createList}
+            title={copy.createList}
             onClick={onCreateList}
           >
             <AddIcon size={15} />
@@ -196,8 +216,8 @@ const TimerListSelector = ({
           <button
             className={styles.listToolbarButton}
             type="button"
-            aria-label="编辑列表"
-            title="编辑列表"
+            aria-label={copy.editList}
+            title={copy.editList}
             onClick={onEditList}
           >
             <EditIcon size={15} />
@@ -212,6 +232,7 @@ const TimerListSelector = ({
 );
 
 interface CreateListModalProps {
+  copy: AppCopy['timer'];
   mode: TimerListFormMode;
   name: string;
   scrambleTypeId: EventId;
@@ -222,6 +243,7 @@ interface CreateListModalProps {
 }
 
 const CreateListModal = ({
+  copy,
   mode,
   name,
   scrambleTypeId,
@@ -239,14 +261,14 @@ const CreateListModal = ({
     >
       <form
         className={styles.createListForm}
-        aria-label={mode === 'create' ? '新增列表表单' : '编辑列表表单'}
+        aria-label={mode === 'create' ? copy.createListFormLabel : copy.editListFormLabel}
         onSubmit={onSubmit}
       >
         <h2 className={styles.modalTitle} id="timer-create-list-title">
-          {mode === 'create' ? '新增列表' : '编辑列表'}
+          {mode === 'create' ? copy.createList : copy.editList}
         </h2>
         <label className={styles.fieldGroup}>
-          <span className={styles.fieldLabel}>列表名称</span>
+          <span className={styles.fieldLabel}>{copy.listNameLabel}</span>
           <input
             className={styles.fieldInput}
             autoFocus
@@ -258,7 +280,7 @@ const CreateListModal = ({
         <div className={styles.fieldGroup}>
           <Select.Root
             className={styles.fieldSelect}
-            label={<span className={styles.fieldLabel}>项目</span>}
+            label={<span className={styles.fieldLabel}>{copy.eventLabel}</span>}
             value={[scrambleTypeId]}
             onValueChange={(nextValue) => {
               const nextScrambleTypeId = nextValue[0] as EventId | undefined;
@@ -280,10 +302,10 @@ const CreateListModal = ({
         </div>
         <div className={styles.modalActions}>
           <button className={styles.secondaryButton} type="button" onClick={onCancel}>
-            取消
+            {copy.cancel}
           </button>
           <button className={styles.primaryButton} type="submit">
-            {mode === 'create' ? '创建' : '保存'}
+            {mode === 'create' ? copy.create : copy.save}
           </button>
         </div>
       </form>
@@ -292,13 +314,19 @@ const CreateListModal = ({
 );
 
 interface TimerScrambleStripProps {
+  ariaLabel: string;
   eventId: EventId;
   isLoading: boolean;
   scramble: string;
 }
 
-const TimerScrambleStrip = ({ eventId, isLoading, scramble }: TimerScrambleStripProps) => (
-  <section className={styles.scrambleStrip} aria-label="当前打乱" data-scramble-event-id={eventId}>
+const TimerScrambleStrip = ({
+  ariaLabel,
+  eventId,
+  isLoading,
+  scramble,
+}: TimerScrambleStripProps) => (
+  <section className={styles.scrambleStrip} aria-label={ariaLabel} data-scramble-event-id={eventId}>
     <div className={styles.scrambleText}>
       <ScrambleText scramble={scramble} isLoading={isLoading} />
     </div>
@@ -325,20 +353,22 @@ const SummaryMetric = ({ label, value }: SummaryMetricProps) => (
 );
 
 interface SummaryCountMetricProps {
+  label: string;
   value: string;
 }
 
-const SummaryCountMetric = ({ value }: SummaryCountMetricProps) => (
-  <div className={styles.summaryMetric} role="group" aria-label="有效成绩次数 / 总次数">
+const SummaryCountMetric = ({ label, value }: SummaryCountMetricProps) => (
+  <div className={styles.summaryMetric} role="group" aria-label={label}>
     <strong className={styles.summaryValue}>{value}</strong>
   </div>
 );
 
 interface TimerSessionSummaryProps {
+  copy: AppCopy['timer'];
   statistics: SolveStatistics;
 }
 
-const TimerSessionSummary = ({ statistics }: TimerSessionSummaryProps) => {
+const TimerSessionSummary = ({ copy, statistics }: TimerSessionSummaryProps) => {
   const rollingStats = TIMER_ROLLING_STAT_SIZES.filter(
     (size) => size <= TIMER_ALWAYS_VISIBLE_ROLLING_STAT_LIMIT || statistics.totalCount >= size,
   ).map((size) => ({
@@ -347,14 +377,17 @@ const TimerSessionSummary = ({ statistics }: TimerSessionSummaryProps) => {
   }));
 
   return (
-    <section className={styles.sessionSummary} aria-label="成绩概要">
-      <SummaryCountMetric value={`${statistics.validCount}/${statistics.totalCount}`} />
+    <section className={styles.sessionSummary} aria-label={copy.summaryLabel}>
+      <SummaryCountMetric
+        label={copy.summaryCountLabel}
+        value={`${statistics.validCount}/${statistics.totalCount}`}
+      />
       <SummaryMetric
-        label="mean"
+        label={copy.mean}
         value={formatSummaryStat(statistics.averageMs, statistics.totalCount > 0)}
       />
       <SummaryMetric
-        label="best"
+        label={copy.best}
         value={formatSummaryStat(statistics.bestMs, statistics.validCount > 0)}
       />
       {rollingStats.map(({ label, stat }) => (
@@ -369,21 +402,22 @@ const TimerSessionSummary = ({ statistics }: TimerSessionSummaryProps) => {
 };
 
 interface TimerRecentSolvesProps {
+  label: string;
   solveRecords: readonly SolveRecord[];
 }
 
-const TimerRecentSolves = ({ solveRecords }: TimerRecentSolvesProps) => {
+const TimerRecentSolves = ({ label, solveRecords }: TimerRecentSolvesProps) => {
   const recentSolves = solveRecords.slice(0, TIMER_RECENT_SOLVE_LIMIT).reverse();
 
   if (recentSolves.length <= 1) return null;
 
   return (
-    <section className={styles.recentRail} aria-label="最近成绩">
+    <section className={styles.recentRail} aria-label={label}>
       <ol className={styles.recentRailList}>
         {recentSolves.map((solveRecord) => (
           <li className={styles.recentRailItem} key={solveRecord.id}>
             <strong className={styles.recentRailTime}>
-              {formatMilliseconds(solveRecord.elapsedMs)}
+              {getSolveDisplayText(solveRecord.elapsedMs, solveRecord.penalty)}
             </strong>
           </li>
         ))}
@@ -394,22 +428,24 @@ const TimerRecentSolves = ({ solveRecords }: TimerRecentSolvesProps) => {
 
 interface TimerScramblePreviewProps {
   eventId: EventId;
+  label: string;
   svg: string;
 }
 
-const TimerScramblePreview = ({ eventId, svg }: TimerScramblePreviewProps) => (
-  <aside className={styles.scramblePreview} aria-label="打乱图">
+const TimerScramblePreview = ({ eventId, label, svg }: TimerScramblePreviewProps) => (
+  <aside className={styles.scramblePreview} aria-label={label}>
     {svg.length > 0 ? <ScrambleImage eventId={eventId} svg={svg} /> : null}
   </aside>
 );
 
 interface TimerFeedbackSlotProps {
+  copy: AppCopy['timer'];
   placeholder?: string;
   state: TimerState;
 }
 
-const ResultToolbar = () => (
-  <div className={styles.resultToolbar} role="toolbar" aria-label="成绩操作">
+const ResultToolbar = ({ copy }: { copy: AppCopy['timer'] }) => (
+  <div className={styles.resultToolbar} role="toolbar" aria-label={copy.resultToolbarLabel}>
     <button className={styles.resultButton} type="button">
       +2
     </button>
@@ -419,25 +455,35 @@ const ResultToolbar = () => (
     <button
       className={`${styles.resultButton} ${styles.deleteResultButton}`}
       type="button"
-      aria-label="删除"
+      aria-label={copy.deleteResult}
     >
       <DeleteIcon className={styles.deleteIcon} size={18} />
     </button>
   </div>
 );
 
-const TimerFeedbackSlot = ({ placeholder, state }: TimerFeedbackSlotProps) => (
+const TimerFeedbackSlot = ({ copy, placeholder, state }: TimerFeedbackSlotProps) => (
   <div className={styles.feedbackSlot} data-feedback-slot="true" data-state={state}>
     {placeholder === undefined ? null : (
       <span className={styles.placeholder} aria-hidden="true">
         {placeholder}
       </span>
     )}
-    {state === 'stopped' ? <ResultToolbar /> : null}
+    {state === 'stopped' ? <ResultToolbar copy={copy} /> : null}
   </div>
 );
 
-const TimerElapsedDisplay = ({ elapsedText }: TimerElapsedDisplayProps) => {
+const TimerElapsedDisplay = ({ displayKind, elapsedText }: TimerElapsedDisplayProps) => {
+  if (displayKind === 'label') {
+    return (
+      <span className={styles.timerText} data-timer-display="label" data-timer-text="true">
+        <span className={styles.timerLabelText} data-timer-label-text="true">
+          {elapsedText}
+        </span>
+      </span>
+    );
+  }
+
   const { fraction, whole } = splitTimerElapsedText(elapsedText);
   const renderGlyphs = (part: 'fraction' | 'whole', text: string) =>
     Array.from(text).map((glyph, index) => (
@@ -451,7 +497,7 @@ const TimerElapsedDisplay = ({ elapsedText }: TimerElapsedDisplayProps) => {
     ));
 
   return (
-    <span className={styles.timerText} data-timer-text="true">
+    <span className={styles.timerText} data-timer-display="clock" data-timer-text="true">
       <span className={styles.timerWhole} data-timer-part="whole">
         {renderGlyphs('whole', whole)}
       </span>
@@ -465,14 +511,14 @@ const TimerElapsedDisplay = ({ elapsedText }: TimerElapsedDisplayProps) => {
 };
 
 const TimerFocusSurface = ({
-  elapsed,
+  copy,
+  elapsedText,
   isFocusMode,
   label,
   placeholder,
   state,
 }: TimerFocusSurfaceProps) => {
-  const decimals = state === 'timing' ? 2 : 3;
-  const elapsedText = formatElapsedClock(elapsed, decimals);
+  const displayKind = getTimerDisplayKind(elapsedText);
   const timeWidth = getTimerTimeWidth(elapsedText);
 
   return (
@@ -487,18 +533,23 @@ const TimerFocusSurface = ({
       <span
         className={styles.timeFace}
         aria-live={state === 'timing' ? 'off' : 'polite'}
+        data-timer-display={displayKind}
         data-time-width={timeWidth}
       >
-        <TimerElapsedDisplay elapsedText={elapsedText} />
+        <TimerElapsedDisplay displayKind={displayKind} elapsedText={elapsedText} />
       </span>
-      <TimerFeedbackSlot placeholder={placeholder} state={state} />
+      <TimerFeedbackSlot copy={copy} placeholder={placeholder} state={state} />
     </div>
   );
 };
 
-export const TimerPage = () => {
+export const TimerPage = ({ isActive = true }: TimerPageProps) => {
+  const { copy, preferences, resolvedTheme } = useAppPreferences();
+  const timerCopy = copy.timer;
+  const wordmarkSvg = getCubeginWordmarkSvg(resolvedTheme);
   const [timerState, setTimerState] = useState<TimerState>('idle');
   const [finalElapsed, setFinalElapsed] = useState(0);
+  const [inspectionElapsed, setInspectionElapsed] = useState(0);
   const [isBrandHovering, setIsBrandHovering] = useState(false);
   const [lists, setLists] = useState(INITIAL_TIMER_LISTS);
   const [activeListId, setActiveListId] = useState(INITIAL_TIMER_LISTS[0].id);
@@ -510,6 +561,9 @@ export const TimerPage = () => {
     [INITIAL_TIMER_LISTS[0].id]: [],
   });
   const latestScrambleRequestId = useRef(0);
+  const inspectionStartedAt = useRef<number | undefined>(undefined);
+  const pendingReadyAction = useRef<TimerReadyAction>('solve');
+  const pendingSolvePenalty = useRef<SolvePenalty>('none');
   const keyboardClickSuppressionTarget = useRef<EventTarget | null>(null);
   const keyboardClickSuppressionTimeout = useRef<number | undefined>(undefined);
   const [activeScramble, setActiveScramble] = useState('');
@@ -536,7 +590,7 @@ export const TimerPage = () => {
   );
   const displayScramble =
     scrambleError ??
-    (isScrambleLoading || !isActiveScrambleForList ? '生成打乱中...' : activeScramble);
+    (isScrambleLoading || !isActiveScrambleForList ? timerCopy.scrambleLoading : activeScramble);
   const statistics = useMemo(
     () => calculateSolveStatistics(activeListSolveRecords),
     [activeListSolveRecords],
@@ -572,21 +626,6 @@ export const TimerPage = () => {
   );
 
   useEffect(() => {
-    const previousTheme = document.documentElement.dataset.theme;
-
-    document.documentElement.dataset.theme = 'light';
-
-    return () => {
-      if (previousTheme === undefined) {
-        delete document.documentElement.dataset.theme;
-        return;
-      }
-
-      document.documentElement.dataset.theme = previousTheme;
-    };
-  }, []);
-
-  useEffect(() => {
     return () => {
       scrambleGenerator.dispose?.();
     };
@@ -596,21 +635,99 @@ export const TimerPage = () => {
     void loadScramble(activeList.scrambleTypeId);
   }, [activeList.scrambleTypeId, loadScramble]);
 
+  useEffect(() => {
+    if (timerState !== 'inspection' && timerState !== 'inspection-armed') return undefined;
+
+    let animationFrameId: number | undefined;
+
+    const tickInspection = () => {
+      const startedAt = inspectionStartedAt.current;
+      if (startedAt !== undefined) {
+        setInspectionElapsed(Math.max(0, performance.now() - startedAt));
+      }
+
+      animationFrameId = window.requestAnimationFrame(tickInspection);
+    };
+
+    animationFrameId = window.requestAnimationFrame(tickInspection);
+
+    return () => {
+      if (animationFrameId !== undefined) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [timerState]);
+
   const startTimer = useCallback(
-    ({ resetFirst = true }: StartTimerOptions = {}) => {
+    ({ penalty = 'none', resetFirst = true }: StartTimerOptions = {}) => {
       if (resetFirst) {
         reset();
         setFinalElapsed(0);
       }
 
+      pendingSolvePenalty.current = penalty;
+      pendingReadyAction.current = 'solve';
+      inspectionStartedAt.current = undefined;
+      setInspectionElapsed(0);
       start();
       setTimerState('timing');
     },
     [reset, start],
   );
 
+  const startInspection = useCallback(() => {
+    reset();
+    setFinalElapsed(0);
+    setInspectionElapsed(0);
+    pendingSolvePenalty.current = 'none';
+    pendingReadyAction.current = 'solve';
+    inspectionStartedAt.current = performance.now();
+    setTimerState('inspection');
+  }, [reset]);
+
+  const armInspection = useCallback(() => {
+    reset();
+    setFinalElapsed(0);
+    setInspectionElapsed(0);
+    pendingSolvePenalty.current = 'none';
+    pendingReadyAction.current = 'inspection';
+    inspectionStartedAt.current = undefined;
+    setTimerState('armed');
+  }, [reset]);
+
+  const cancelInspection = useCallback(() => {
+    reset();
+    setFinalElapsed(0);
+    setInspectionElapsed(0);
+    pendingSolvePenalty.current = 'none';
+    pendingReadyAction.current = 'solve';
+    inspectionStartedAt.current = undefined;
+    setTimerState('idle');
+  }, [reset]);
+
+  const startTimerFromInspection = useCallback(() => {
+    const startedAt = inspectionStartedAt.current;
+    const elapsedInspectionMs =
+      startedAt === undefined ? inspectionElapsed : Math.max(0, performance.now() - startedAt);
+
+    startTimer({
+      penalty: resolveWcaInspectionPenalty(elapsedInspectionMs),
+      resetFirst: true,
+    });
+  }, [inspectionElapsed, startTimer]);
+
+  const armTimerFromInspection = useCallback(() => {
+    const startedAt = inspectionStartedAt.current;
+    if (startedAt !== undefined) {
+      setInspectionElapsed(Math.max(0, performance.now() - startedAt));
+    }
+
+    setTimerState('inspection-armed');
+  }, []);
+
   const stopTimer = useCallback(() => {
     const stoppedElapsed = stop();
+    const solvePenalty = pendingSolvePenalty.current;
 
     setFinalElapsed(stoppedElapsed);
     setSolveRecordsByListId((currentSolveRecordsByListId) => {
@@ -620,6 +737,7 @@ export const TimerPage = () => {
         elapsedMs: stoppedElapsed,
         eventId: activeList.scrambleTypeId,
         listId: activeListId,
+        penalty: solvePenalty,
         scramble: activeScramble,
         solveIndex: currentSolveRecords.length + 1,
       });
@@ -629,18 +747,28 @@ export const TimerPage = () => {
         [activeListId]: [solveRecord, ...currentSolveRecords],
       };
     });
+    pendingSolvePenalty.current = 'none';
+    pendingReadyAction.current = 'solve';
     setTimerState('stopped');
   }, [activeList.scrambleTypeId, activeListId, activeScramble, stop]);
 
   const armTimer = useCallback(() => {
     reset();
     setFinalElapsed(0);
+    setInspectionElapsed(0);
+    pendingSolvePenalty.current = 'none';
+    pendingReadyAction.current = 'solve';
+    inspectionStartedAt.current = undefined;
     setTimerState('armed');
   }, [reset]);
 
   const cancelReady = useCallback(() => {
     reset();
     setFinalElapsed(0);
+    setInspectionElapsed(0);
+    pendingSolvePenalty.current = 'none';
+    pendingReadyAction.current = 'solve';
+    inspectionStartedAt.current = undefined;
     setTimerState('idle');
   }, [reset]);
 
@@ -718,6 +846,8 @@ export const TimerPage = () => {
   );
 
   useEffect(() => {
+    if (!isActive) return undefined;
+
     const clearKeyboardClickSuppression = () => {
       keyboardClickSuppressionTarget.current = null;
       if (keyboardClickSuppressionTimeout.current !== undefined) {
@@ -760,6 +890,12 @@ export const TimerPage = () => {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isEscapeShortcut(event)) {
+        if (timerState === 'inspection' || timerState === 'inspection-armed') {
+          claimTimerShortcutEvent(event);
+          cancelInspection();
+          return;
+        }
+
         if (timerState === 'armed') {
           claimTimerShortcutEvent(event);
           cancelReady();
@@ -782,6 +918,20 @@ export const TimerPage = () => {
 
         if (timerState === 'timing') {
           stopTimer();
+          return;
+        }
+
+        if (timerState === 'inspection') {
+          armTimerFromInspection();
+          return;
+        }
+
+        if (timerState === 'inspection-armed' || timerState === 'armed') {
+          return;
+        }
+
+        if (preferences.wcaInspection) {
+          armInspection();
           return;
         }
 
@@ -808,7 +958,27 @@ export const TimerPage = () => {
         return;
       }
 
-      startTimer({ resetFirst: timerState !== 'armed' });
+      if (timerState === 'inspection' || timerState === 'inspection-armed') {
+        startTimerFromInspection();
+        return;
+      }
+
+      if (timerState === 'armed') {
+        if (pendingReadyAction.current === 'inspection') {
+          startInspection();
+          return;
+        }
+
+        startTimer({ resetFirst: false });
+        return;
+      }
+
+      if (preferences.wcaInspection) {
+        startInspection();
+        return;
+      }
+
+      startTimer();
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
@@ -819,7 +989,17 @@ export const TimerPage = () => {
       claimTimerShortcutEvent(event);
 
       if (timerState === 'armed') {
+        if (pendingReadyAction.current === 'inspection') {
+          startInspection();
+          return;
+        }
+
         startTimer({ resetFirst: false });
+        return;
+      }
+
+      if (timerState === 'inspection-armed') {
+        startTimerFromInspection();
       }
     };
 
@@ -831,7 +1011,20 @@ export const TimerPage = () => {
       window.removeEventListener('keyup', handleKeyUp, { capture: true });
       window.removeEventListener('click', handleClick, { capture: true });
     };
-  }, [armTimer, cancelReady, startTimer, stopTimer, timerState]);
+  }, [
+    armTimer,
+    armInspection,
+    armTimerFromInspection,
+    cancelInspection,
+    cancelReady,
+    isActive,
+    preferences.wcaInspection,
+    startInspection,
+    startTimer,
+    startTimerFromInspection,
+    stopTimer,
+    timerState,
+  ]);
 
   useEffect(
     () => () => {
@@ -842,23 +1035,40 @@ export const TimerPage = () => {
     [],
   );
 
-  const displayElapsed = timerState === 'stopped' ? finalElapsed : elapsed;
-  const isTimerFocusMode = timerState === 'armed' || timerState === 'timing';
+  const isTimerInspectionState = timerState === 'inspection' || timerState === 'inspection-armed';
+  const isTimerReadyState = timerState === 'armed' || timerState === 'inspection-armed';
+  const displayElapsed =
+    timerState === 'stopped' ? finalElapsed : isTimerInspectionState ? inspectionElapsed : elapsed;
+  const timerDisplayPhase = isTimerInspectionState
+    ? 'inspection'
+    : timerState === 'timing'
+      ? 'solve'
+      : 'final';
+  const elapsedText = formatTimerDisplay({
+    elapsedMs: displayElapsed,
+    mode: preferences.timerDisplayMode,
+    phase: timerDisplayPhase,
+    timingText: timerCopy.timingDisplayText,
+  });
+  const isTimerFocusMode = isTimerReadyState || isTimerInspectionState || timerState === 'timing';
   const isTimerRunning = timerState === 'timing';
   const timerLabel =
     timerState === 'timing'
-      ? '计时中，按 Space 或 Enter 结束'
-      : timerState === 'armed'
-        ? '松开 Space 开始计时，按 Esc 取消'
-        : '按 Space 或 Enter 开始计时';
-  const placeholder = timerState === 'armed' ? 'Esc 取消' : undefined;
+      ? timerCopy.timingLabel
+      : timerState === 'inspection'
+        ? timerCopy.inspectionLabel
+        : isTimerReadyState
+          ? timerCopy.armedLabel
+          : timerCopy.idleLabel;
+  const placeholder = isTimerReadyState || isTimerInspectionState ? timerCopy.escCancel : undefined;
 
   return (
     <section
       className={styles.root}
-      aria-label="计时器"
+      aria-label={timerCopy.pageLabel}
       data-focus-mode={isTimerFocusMode ? 'true' : 'false'}
       data-timer-running={isTimerRunning ? 'true' : 'false'}
+      hidden={!isActive}
     >
       <header className={styles.hero}>
         <div className={styles.brandRow}>
@@ -882,6 +1092,7 @@ export const TimerPage = () => {
           </strong>
           <TimerListSelector
             activeListId={activeListId}
+            copy={timerCopy}
             isHidden={isTimerRunning}
             lists={lists}
             onChange={handleListChange}
@@ -890,6 +1101,7 @@ export const TimerPage = () => {
           />
         </div>
         <TimerScrambleStrip
+          ariaLabel={timerCopy.currentScrambleLabel}
           eventId={activeList.scrambleTypeId}
           isLoading={isScrambleLoading}
           scramble={displayScramble}
@@ -898,22 +1110,31 @@ export const TimerPage = () => {
 
       <TimerTopNavigation isHidden={isTimerRunning} />
 
-      <main className={styles.stage} aria-label="主题计时器">
+      <main className={styles.stage} aria-label={timerCopy.mainTimerLabel}>
         <TimerFocusSurface
-          elapsed={displayElapsed}
+          copy={timerCopy}
+          elapsedText={elapsedText}
           isFocusMode={isTimerFocusMode}
           label={timerLabel}
           placeholder={placeholder}
           state={timerState}
         />
-        <TimerRecentSolves solveRecords={activeListSolveRecords} />
+        <TimerRecentSolves
+          label={timerCopy.recentSolvesLabel}
+          solveRecords={activeListSolveRecords}
+        />
       </main>
-      <footer className={styles.bottomDock} aria-label="计时器底部信息">
-        <TimerSessionSummary statistics={statistics} />
-        <TimerScramblePreview eventId={activeList.scrambleTypeId} svg={scrambleSvg} />
+      <footer className={styles.bottomDock} aria-label={timerCopy.bottomInfoLabel}>
+        <TimerSessionSummary copy={timerCopy} statistics={statistics} />
+        <TimerScramblePreview
+          eventId={activeList.scrambleTypeId}
+          label={timerCopy.scrambleImageLabel}
+          svg={scrambleSvg}
+        />
       </footer>
       {listFormMode !== undefined ? (
         <CreateListModal
+          copy={timerCopy}
           mode={listFormMode}
           name={listFormName}
           scrambleTypeId={listFormScrambleTypeId}

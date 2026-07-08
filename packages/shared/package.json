@@ -11,6 +11,7 @@
   "type": "module",
   "exports": {
     "./events": "./dist/events/index.mjs",
+    "./preferences": "./dist/preferences/index.mjs",
     "./timer": "./dist/timer/index.mjs",
     "./timer-session": "./dist/timer-session/index.mjs",
     "./package.json": "./package.json"
