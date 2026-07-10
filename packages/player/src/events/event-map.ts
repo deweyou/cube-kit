@@ -6,7 +6,7 @@ export interface CubePlayerPuzzleSupport {
 }
 
 export interface NonCubePlayerPuzzleSupport {
-  readonly type: 'clock' | 'pyraminx' | 'skewb' | 'fto' | 'megaminx';
+  readonly type: 'clock' | 'pyraminx' | 'skewb' | 'fto' | 'megaminx' | 'square1';
 }
 
 export interface UnsupportedPlayerPuzzleSupport {
@@ -38,6 +38,7 @@ const NON_CUBE_PUZZLE_BY_EVENT: Readonly<Partial<Record<EventId, NonCubePlayerPu
   fto: { type: 'fto' },
   minx: { type: 'megaminx' },
   pyram: { type: 'pyraminx' },
+  sq1: { type: 'square1' },
   skewb: { type: 'skewb' },
 };
 

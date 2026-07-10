@@ -1,6 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import type { ScrambleGenerator, ScrambleResult } from '@cubegin/scramble-core';
+import type { EventId } from '@cubegin/shared/events';
 import { createPlaygroundService } from './playground-service';
+
+const PLAYER_REFERENCE_FORMULAS = [
+  { eventId: '222', formula: 'R U F' },
+  { eventId: '333', formula: "R U R' U'" },
+  { eventId: '444', formula: 'Rw U F2' },
+  { eventId: '555', formula: 'Rw U F2' },
+  { eventId: '666', formula: 'Rw U F2' },
+  { eventId: '777', formula: 'Rw U F2' },
+  {
+    eventId: 'clock',
+    formula: 'UR3+ DR2- DL0+ UL5- U1+ R2+ D3- L4+ ALL5+ y2 U1- R2- D3+ L4- ALL5-',
+  },
+  { eventId: 'pyram', formula: "U L R B u' l' r' b'" },
+  { eventId: 'skewb', formula: "R U L B R' U'" },
+  { eventId: 'fto', formula: "U D F B L R BL BR U' BR'" },
+  { eventId: 'minx', formula: "R++ D-- R-- D++ R++ D++ R-- D-- R++ D-- U'" },
+] as const satisfies readonly { readonly eventId: EventId; readonly formula: string }[];
 
 describe('createPlaygroundService', () => {
   it('generates scrambles and renders the first SVG', async () => {
@@ -113,6 +131,23 @@ describe('createPlaygroundService', () => {
     expect(requestedBatches).toEqual([
       { eventId: '333mbld', count: 1, options: { multiBlindCubeCount: 1 } },
     ]);
+  });
+
+  it('renders non-Square-1 player reference formulas through scramble-image', () => {
+    const service = createPlaygroundService({ seed: 42 });
+
+    for (const { eventId, formula } of PLAYER_REFERENCE_FORMULAS) {
+      const result = service.renderManual({
+        eventId,
+        scramble: formula,
+        imageView: 'net',
+      });
+
+      expect(result.error).toBeUndefined();
+      expect(result.svg).toContain('<svg');
+      expect(result.render.scrambleLength).toBe(formula.length);
+      expect(result.render.svgBytes).toBeGreaterThan(100);
+    }
   });
 
   it('solves non-3x3 helper methods through the playground service', () => {

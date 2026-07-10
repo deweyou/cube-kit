@@ -71,6 +71,27 @@ describe('createPlayerTimeline', () => {
     expect(timeline.totalDurationMs).toBe(1040);
   });
 
+  it('keeps transform operations on timeline steps', () => {
+    const transform = {
+      durationMultiplier: 1.25,
+      move: { notation: 'combo' },
+      operations: [
+        {
+          affectedPieceIds: ['piece-a'],
+          angleRadians: Math.PI / 2,
+          axis: { x: 0, y: 1, z: 0 },
+          pivot: { x: 0, y: 0, z: 0 },
+          type: 'axis-rotation' as const,
+        },
+      ],
+    };
+    const timeline = createPlayerTimeline([{ move: transform.move, transform }]);
+
+    expect(timeline.steps[0]?.transform).toBe(transform);
+    expect(timeline.steps[0]?.animation).toBeUndefined();
+    expect(timeline.steps[0]?.durationMs).toBe(650);
+  });
+
   it('keeps state render checkpoints when adapters provide them', () => {
     const initialModel = { cameraDistance: 1, pieces: [] };
     const finalModel = { cameraDistance: 1, pieces: [] };

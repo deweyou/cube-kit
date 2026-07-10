@@ -125,19 +125,19 @@ describe('App', () => {
     expect(within(playerEventSelect).getByRole('option', { name: /fto -/i })).toBeTruthy();
     expect(within(playerEventSelect).getByRole('option', { name: /minx -/i })).toBeTruthy();
     expect(within(playerEventSelect).getByRole('option', { name: /clock -/i })).toBeTruthy();
-    expect(within(playerEventSelect).queryByRole('option', { name: /sq1 -/i })).toBeNull();
+    expect(within(playerEventSelect).getByRole('option', { name: /sq1 -/i })).toBeTruthy();
 
-    await userEvent.selectOptions(playerEventSelect, 'clock');
+    await userEvent.selectOptions(playerEventSelect, 'sq1');
     await waitFor(() => {
       expect((screen.getByLabelText('Player formula') as HTMLTextAreaElement).value).toBe(
-        'clock-player-scramble',
+        'sq1-player-scramble',
       );
     });
     await userEvent.click(screen.getByRole('button', { name: 'Load formula' }));
 
     const player = screen.getByTestId('mock-cubegin-player');
-    expect(player.getAttribute('data-event-id')).toBe('clock');
-    expect(player.getAttribute('data-formula')).toBe('clock-player-scramble');
+    expect(player.getAttribute('data-event-id')).toBe('sq1');
+    expect(player.getAttribute('data-formula')).toBe('sq1-player-scramble');
     expect(screen.getByTestId('player-scramble-image').querySelector('svg')).toBeTruthy();
   });
 

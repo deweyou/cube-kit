@@ -7,8 +7,13 @@ import {
   type ThreePlayerRenderer,
   type ThreePlayerViewOptions,
 } from './three-player-view.js';
-import { createPlayerTimeline } from '../core/timeline.js';
-import type { PlayerMoveAnimation, PlayerRenderableModel } from '../puzzles/puzzle-adapter.js';
+import { createPlayerTimeline, getTimelineProgressForStepPosition } from '../core/timeline.js';
+import type {
+  PlayerMoveAnimation,
+  PlayerRenderableModel,
+  PlayerRenderablePiece,
+} from '../puzzles/puzzle-adapter.js';
+import { createSquareOnePlayerAdapter } from '../puzzles/square1/square1-player-adapter.js';
 
 const createRenderer = (): ThreePlayerRenderer => ({
   domElement: document.createElement('canvas'),
@@ -115,6 +120,109 @@ const getMeshColorHex = (mesh: THREE.Mesh): string => {
   }
 
   return `#${material.color.getHexString()}`;
+};
+
+const getRenderedPiecePositions = (puzzleGroup: THREE.Group): ReadonlyMap<string, THREE.Vector3> =>
+  new Map(
+    puzzleGroup.children
+      .filter((child) => child.name.startsWith('square1-piece-'))
+      .map((child) => [child.name, child.position.clone()]),
+  );
+
+const getRenderedPiecePoses = (
+  puzzleGroup: THREE.Group,
+): ReadonlyMap<
+  string,
+  {
+    readonly position: THREE.Vector3;
+    readonly quaternion: THREE.Quaternion;
+  }
+> =>
+  new Map(
+    puzzleGroup.children
+      .filter(
+        (child) =>
+          child.name.startsWith('square1-piece-') ||
+          child.name.startsWith('square1-middle-') ||
+          child.name === 'square1-core',
+      )
+      .map((child) => [
+        child.name,
+        {
+          position: child.position.clone(),
+          quaternion: child.quaternion.clone(),
+        },
+      ]),
+  );
+
+const createSquareOnePlaybackFixture = (
+  formula: string,
+): {
+  readonly finalModel: PlayerRenderableModel;
+  readonly initialModel: PlayerRenderableModel;
+  readonly timeline: ReturnType<typeof createPlayerTimeline>;
+} => {
+  const adapter = createSquareOnePlayerAdapter();
+  let nextState = adapter.createInitialState();
+  const initialModel = adapter.createRenderableModel(nextState);
+  const modelsByCompletedStepCount = adapter.shouldRebuildModelAfterEachMove
+    ? [initialModel]
+    : undefined;
+  const timelineInputs = adapter.parseFormula(formula).map((move) => {
+    const transform = adapter.describeTransform?.(move, nextState);
+    const animation = transform === undefined ? adapter.describeMove(move, nextState) : undefined;
+
+    nextState =
+      transform !== undefined && adapter.commitTransform !== undefined
+        ? adapter.commitTransform(nextState, transform)
+        : adapter.applyMove(nextState, move);
+    modelsByCompletedStepCount?.push(adapter.createRenderableModel(nextState));
+
+    return {
+      animation,
+      durationMultiplier: transform?.durationMultiplier ?? animation?.durationMultiplier,
+      move,
+      transform,
+    };
+  });
+
+  return {
+    finalModel: adapter.createRenderableModel(nextState),
+    initialModel,
+    timeline: createPlayerTimeline(timelineInputs, { modelsByCompletedStepCount }),
+  };
+};
+
+const expectRenderedPoseToMatchPiece = (
+  renderedPoses: ReadonlyMap<
+    string,
+    {
+      readonly position: THREE.Vector3;
+      readonly quaternion: THREE.Quaternion;
+    }
+  >,
+  expectedPiece: PlayerRenderablePiece,
+): void => {
+  const actualPose = renderedPoses.get(expectedPiece.id);
+
+  expect(actualPose, expectedPiece.id).toBeDefined();
+  if (actualPose === undefined) return;
+
+  expect(actualPose.position.x, expectedPiece.id).toBeCloseTo(expectedPiece.position.x, 4);
+  expect(actualPose.position.y, expectedPiece.id).toBeCloseTo(expectedPiece.position.y, 4);
+  expect(actualPose.position.z, expectedPiece.id).toBeCloseTo(expectedPiece.position.z, 4);
+
+  const expectedQuaternion = new THREE.Quaternion(
+    expectedPiece.orientation.x,
+    expectedPiece.orientation.y,
+    expectedPiece.orientation.z,
+    expectedPiece.orientation.w,
+  );
+
+  expect(Math.abs(actualPose.quaternion.dot(expectedQuaternion)), expectedPiece.id).toBeCloseTo(
+    1,
+    4,
+  );
 };
 
 const createTestModel = (cameraDistance = 8): PlayerRenderableModel => ({
@@ -443,6 +551,338 @@ describe('createThreePlayerView', () => {
 
     expect(pieceGroup?.position.x).toBeCloseTo(2);
     expect(pieceGroup?.position.y).toBeCloseTo(0);
+  });
+
+  it('applies every axis-rotation operation in an active transform', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+    const transform = {
+      move: { notation: '(1,1)' },
+      operations: [
+        {
+          affectedPieceIds: ['top-piece'],
+          angleRadians: Math.PI / 2,
+          axis: { x: 0, y: 1, z: 0 },
+          pivot: { x: 0, y: 0, z: 0 },
+          type: 'axis-rotation' as const,
+        },
+        {
+          affectedPieceIds: ['bottom-piece'],
+          angleRadians: -Math.PI / 2,
+          axis: { x: 0, y: 1, z: 0 },
+          pivot: { x: 0, y: 0, z: 0 },
+          type: 'axis-rotation' as const,
+        },
+      ],
+    };
+
+    view.renderModel({
+      cameraDistance: 8,
+      pieces: [
+        {
+          id: 'top-piece',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: 1, y: 1, z: 0 },
+          stickers: [],
+        },
+        {
+          id: 'bottom-piece',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: 1, y: -1, z: 0 },
+          stickers: [],
+        },
+      ],
+    });
+    view.setTimeline(createPlayerTimeline([{ move: transform.move, transform }]));
+    view.seek(0.5);
+
+    const children = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children;
+    const topPiece = children.find((child) => child.name === 'top-piece');
+    const bottomPiece = children.find((child) => child.name === 'bottom-piece');
+
+    expect(topPiece?.position.x).toBeCloseTo(Math.SQRT1_2);
+    expect(topPiece?.position.z).toBeCloseTo(-Math.SQRT1_2);
+    expect(bottomPiece?.position.x).toBeCloseTo(Math.SQRT1_2);
+    expect(bottomPiece?.position.z).toBeCloseTo(Math.SQRT1_2);
+  });
+
+  it('keeps target-pose axis rotations rigid before the target blend window', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+    const transform = {
+      move: { notation: 'shape-changing-turn' },
+      operations: [
+        {
+          affectedPieceIds: ['piece-a', 'piece-b'],
+          angleRadians: Math.PI / 2,
+          axis: { x: 0, y: 1, z: 0 },
+          pivot: { x: 0, y: 0, z: 0 },
+          targetPoseBlendStart: 0.9,
+          targetPositionByPieceId: {
+            'piece-a': { x: 4, y: 0, z: 0 },
+            'piece-b': { x: -4, y: 0, z: 0 },
+          },
+          type: 'axis-rotation' as const,
+        },
+      ],
+    };
+
+    view.renderModel({
+      cameraDistance: 8,
+      pieces: [
+        {
+          id: 'piece-a',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: 1, y: 0, z: 0 },
+          stickers: [],
+        },
+        {
+          id: 'piece-b',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: -1, y: 0, z: 0 },
+          stickers: [],
+        },
+      ],
+    });
+    view.setTimeline(createPlayerTimeline([{ move: transform.move, transform }]));
+    view.seek(0.5);
+
+    const children = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children;
+    const pieceA = children.find((child) => child.name === 'piece-a');
+    const pieceB = children.find((child) => child.name === 'piece-b');
+
+    expect(pieceA?.position.x).toBeCloseTo(Math.SQRT1_2);
+    expect(pieceA?.position.z).toBeCloseTo(-Math.SQRT1_2);
+    expect(pieceB?.position.x).toBeCloseTo(-Math.SQRT1_2);
+    expect(pieceB?.position.z).toBeCloseTo(Math.SQRT1_2);
+  });
+
+  it('keeps target-only pieces out of the rotation group before target blending', () => {
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+    const transform = {
+      move: { notation: 'shape-changing-turn' },
+      operations: [
+        {
+          affectedPieceIds: ['turning-piece', 'target-only-piece'],
+          angleRadians: Math.PI / 2,
+          axis: { x: 0, y: 1, z: 0 },
+          pivot: { x: 0, y: 0, z: 0 },
+          rotationAffectedPieceIds: ['turning-piece'],
+          targetPoseBlendStart: 0.9,
+          targetPositionByPieceId: {
+            'target-only-piece': { x: 4, y: 0, z: 0 },
+            'turning-piece': { x: 0, y: 0, z: -1 },
+          },
+          type: 'axis-rotation' as const,
+        },
+      ],
+    };
+
+    view.renderModel({
+      cameraDistance: 8,
+      pieces: [
+        {
+          id: 'turning-piece',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: 1, y: 0, z: 0 },
+          stickers: [],
+        },
+        {
+          id: 'target-only-piece',
+          orientation: { x: 0, y: 0, z: 0, w: 1 },
+          position: { x: -1, y: 0, z: 0 },
+          stickers: [],
+        },
+      ],
+    });
+    view.setTimeline(createPlayerTimeline([{ move: transform.move, transform }]));
+    view.seek(0.5);
+
+    const children = getRenderedPuzzleGroup(getLastRenderedScene(renderer)).children;
+    const turningPiece = children.find((child) => child.name === 'turning-piece');
+    const targetOnlyPiece = children.find((child) => child.name === 'target-only-piece');
+
+    expect(turningPiece?.position.x).toBeCloseTo(Math.SQRT1_2);
+    expect(turningPiece?.position.z).toBeCloseTo(-Math.SQRT1_2);
+    expect(targetOnlyPiece?.position.x).toBeCloseTo(-1);
+    expect(targetOnlyPiece?.position.z).toBeCloseTo(0);
+  });
+
+  it('keeps Square-1 slash playback compact at the active half turn', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [tupleMove, slashMove] = adapter.parseFormula('(1,0) /');
+    const initialState = adapter.createInitialState();
+    const initialModel = adapter.createRenderableModel(initialState);
+    const tupleTransform =
+      tupleMove === undefined ? undefined : adapter.describeTransform?.(tupleMove, initialState);
+
+    expect(tupleMove).toBeDefined();
+    expect(slashMove).toBeDefined();
+    expect(tupleTransform).toBeDefined();
+    if (tupleMove === undefined || slashMove === undefined || tupleTransform === undefined) return;
+
+    const afterTupleState = adapter.commitTransform!(initialState, tupleTransform);
+    const slashTransform = adapter.describeTransform?.(slashMove, afterTupleState);
+
+    expect(slashTransform).toBeDefined();
+    if (slashTransform === undefined) return;
+
+    const timeline = createPlayerTimeline([
+      { move: tupleMove, transform: tupleTransform },
+      { move: slashMove, transform: slashTransform },
+    ]);
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+
+    view.renderModel(initialModel);
+    view.setTimeline(timeline);
+    view.seek(getTimelineProgressForStepPosition(timeline, 1.5));
+
+    const box = new THREE.Box3().setFromObject(
+      getRenderedPuzzleGroup(getLastRenderedScene(renderer)),
+    );
+    const size = box.getSize(new THREE.Vector3());
+
+    expect(size.x).toBeLessThan(4.2);
+    expect(size.y).toBeLessThan(4.2);
+    expect(size.z).toBeLessThan(4.2);
+  });
+
+  it('renders the Square-1 slash end frame from the canonical checkpoint', () => {
+    const { finalModel, initialModel, timeline } = createSquareOnePlaybackFixture('(1,0) /');
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+
+    expect(timeline.modelsByCompletedStepCount).toHaveLength(3);
+
+    view.renderModel(initialModel);
+    view.setTimeline(timeline);
+    view.seek(1);
+
+    const renderedPoses = getRenderedPiecePoses(
+      getRenderedPuzzleGroup(getLastRenderedScene(renderer)),
+    );
+
+    for (const expectedPiece of finalModel.pieces) {
+      expectRenderedPoseToMatchPiece(renderedPoses, expectedPiece);
+    }
+  });
+
+  it('turns every visually top Square-1 piece after a completed slash', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [firstTupleMove, slashMove, secondTupleMove] = adapter.parseFormula('(1,-1) / (3,0)');
+    const initialState = adapter.createInitialState();
+    const initialModel = adapter.createRenderableModel(initialState);
+    const firstTupleTransform =
+      firstTupleMove === undefined
+        ? undefined
+        : adapter.describeTransform?.(firstTupleMove, initialState);
+
+    expect(firstTupleMove).toBeDefined();
+    expect(slashMove).toBeDefined();
+    expect(secondTupleMove).toBeDefined();
+    expect(firstTupleTransform).toBeDefined();
+    if (
+      firstTupleMove === undefined ||
+      slashMove === undefined ||
+      secondTupleMove === undefined ||
+      firstTupleTransform === undefined
+    ) {
+      return;
+    }
+
+    const afterFirstTupleState = adapter.commitTransform!(initialState, firstTupleTransform);
+    const slashTransform = adapter.describeTransform?.(slashMove, afterFirstTupleState);
+
+    expect(slashTransform).toBeDefined();
+    if (slashTransform === undefined) return;
+
+    const afterSlashState = adapter.commitTransform!(afterFirstTupleState, slashTransform);
+    const secondTupleTransform = adapter.describeTransform?.(secondTupleMove, afterSlashState);
+
+    expect(secondTupleTransform).toBeDefined();
+    if (secondTupleTransform === undefined) return;
+
+    const timeline = createPlayerTimeline([
+      { move: firstTupleMove, transform: firstTupleTransform },
+      { move: slashMove, transform: slashTransform },
+      { move: secondTupleMove, transform: secondTupleTransform },
+    ]);
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+
+    view.renderModel(initialModel);
+    view.setTimeline(timeline);
+    view.seek(getTimelineProgressForStepPosition(timeline, 2));
+
+    const beforeTurnPositions = getRenderedPiecePositions(
+      getRenderedPuzzleGroup(getLastRenderedScene(renderer)),
+    );
+    const visuallyTopPieceIds = [...beforeTurnPositions.entries()]
+      .filter(([, position]) => position.y > 0.2)
+      .map(([pieceId]) => pieceId);
+
+    expect(visuallyTopPieceIds.length).toBeGreaterThan(0);
+
+    view.seek(getTimelineProgressForStepPosition(timeline, 2.5));
+
+    const activeTurnPositions = getRenderedPiecePositions(
+      getRenderedPuzzleGroup(getLastRenderedScene(renderer)),
+    );
+    const unmovedTopPieceIds = visuallyTopPieceIds.filter((pieceId) => {
+      const beforeTurnPosition = beforeTurnPositions.get(pieceId);
+      const activeTurnPosition = activeTurnPositions.get(pieceId);
+
+      return (
+        beforeTurnPosition !== undefined &&
+        activeTurnPosition !== undefined &&
+        beforeTurnPosition.distanceTo(activeTurnPosition) < 0.05
+      );
+    });
+
+    expect(unmovedTopPieceIds).toEqual([]);
+  });
+
+  it('renders long Square-1 scrambles at the canonical final checkpoint', () => {
+    const { finalModel, initialModel, timeline } = createSquareOnePlaybackFixture(
+      '(-2,0) / (5,2) / (0,-3) / (1,-2) / (6,0) / (0,-3) / (0,-1) / (0,-3) / (3,-2) / (2,0) / (-4,0) / (1,0) / (4,-1) /',
+    );
+    const container = document.createElement('div');
+    const renderer = createRenderer();
+    const view = createThreePlayerView(container, {
+      rendererFactory: () => renderer,
+    });
+
+    view.renderModel(initialModel);
+    view.setTimeline(timeline);
+    view.seek(1);
+
+    const renderedPoses = getRenderedPiecePoses(
+      getRenderedPuzzleGroup(getLastRenderedScene(renderer)),
+    );
+
+    for (const expectedPiece of finalModel.pieces) {
+      expectRenderedPoseToMatchPiece(renderedPoses, expectedPiece);
+    }
   });
 
   it('can pulse affected piece positions during the active step', () => {
