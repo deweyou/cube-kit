@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   commitSquareOneTransform,
   createSolvedSquareOneEngineState,
+  describeSquareOneMoveTransform,
   describeSquareOneSlashTransform,
   describeSquareOneTupleTransform,
+  type SquareOneEngineMove,
 } from './square1-engine.js';
 
 describe('Square-1 engine state', () => {
@@ -43,7 +45,7 @@ describe('Square-1 engine state', () => {
 
     expect(transform.operations).toHaveLength(1);
     expect(transform.operations[0]).toMatchObject({
-      angleRadians: Math.PI / 6,
+      angleRadians: -Math.PI / 6,
       axis: { x: 0, y: 1, z: 0 },
       type: 'axis-rotation',
     });
@@ -63,7 +65,7 @@ describe('Square-1 engine state', () => {
 
     expect(transform.operations).toHaveLength(1);
     expect(transform.operations[0]).toMatchObject({
-      angleRadians: Math.PI / 6,
+      angleRadians: -Math.PI / 6,
       axis: { x: 0, y: 1, z: 0 },
       type: 'axis-rotation',
     });
@@ -76,14 +78,14 @@ describe('Square-1 engine state', () => {
     ]);
   });
 
-  it('slashes by swapping the current top-right and bottom-left half-slot ranges', () => {
+  it('slashes by swapping the canonical top-right and bottom-left half-slot ranges', () => {
     const state = createSolvedSquareOneEngineState();
     const transform = describeSquareOneSlashTransform(state);
     const nextState = commitSquareOneTransform(state, transform);
 
     expect(transform.operations).toHaveLength(1);
     expect(transform.operations[0]).toMatchObject({
-      angleRadians: Math.PI,
+      angleRadians: -Math.PI,
       affectedPieceIds: expect.arrayContaining(['square1-middle-right']),
       type: 'axis-rotation',
     });
@@ -95,5 +97,31 @@ describe('Square-1 engine state', () => {
     expect(nextState.wedges.slice(12, 18).map((slot) => slot.pieceId)).toEqual(
       state.wedges.slice(6, 12).map((slot) => slot.pieceId),
     );
+    expect(nextState.wedges.slice(18).map((slot) => slot.pieceId)).toEqual(
+      state.wedges.slice(18).map((slot) => slot.pieceId),
+    );
+    const slashOperation = transform.operations[0];
+
+    expect(slashOperation?.type).toBe('axis-rotation');
+    if (slashOperation?.type !== 'axis-rotation') return;
+
+    expect(slashOperation.affectedPieceIds).not.toContain(state.wedges[18]?.pieceId);
+  });
+
+  it('keeps committed tuple state aligned with the expected half-slot rotations', () => {
+    const state = createSolvedSquareOneEngineState();
+    const turn = { bottom: -2, top: 3, type: 'tuple' } as const satisfies SquareOneEngineMove;
+    const transform = describeSquareOneMoveTransform(turn, state);
+    const nextState = commitSquareOneTransform(state, transform);
+
+    expect(nextState.equatorOrientation).toBe(state.equatorOrientation);
+    expect(nextState.wedges.slice(0, 12).map((slot) => slot.pieceId)).toEqual([
+      ...state.wedges.slice(9, 12).map((slot) => slot.pieceId),
+      ...state.wedges.slice(0, 9).map((slot) => slot.pieceId),
+    ]);
+    expect(nextState.wedges.slice(12).map((slot) => slot.pieceId)).toEqual([
+      ...state.wedges.slice(14).map((slot) => slot.pieceId),
+      ...state.wedges.slice(12, 14).map((slot) => slot.pieceId),
+    ]);
   });
 });

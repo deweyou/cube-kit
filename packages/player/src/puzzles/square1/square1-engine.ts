@@ -83,6 +83,14 @@ const uniquePieceIds = (slots: readonly SquareOneEngineSlot[]): readonly string[
   ...new Set(slots.map((slot) => slot.pieceId)),
 ];
 
+// A slash exchanges exactly these two six-slot ranges. Legal slash positions
+// guarantee that no corner crosses the range boundary, so adjacent edge slots
+// remain stationary even when they touch the middle seam.
+export const squareOneSlashAffectedPieceIds = (state: SquareOneEngineState): readonly string[] =>
+  uniquePieceIds([...state.wedges.slice(6, 12), ...state.wedges.slice(12, 18)]).concat(
+    MIDDLE_RIGHT_PIECE_ID,
+  );
+
 const withLayerForIndex = (slot: SquareOneEngineSlot, index: number): SquareOneEngineSlot =>
   Object.freeze({
     ...slot,
@@ -112,7 +120,7 @@ export const describeSquareOneTupleTransform = (
   if (turn.top !== 0) {
     operations.push({
       affectedPieceIds: uniquePieceIds(state.wedges.slice(0, 12)),
-      angleRadians: turn.top * TURN_RADIANS,
+      angleRadians: -turn.top * TURN_RADIANS,
       axis: TOP_AXIS,
       pivot: ZERO_VECTOR,
       type: 'axis-rotation',
@@ -122,7 +130,7 @@ export const describeSquareOneTupleTransform = (
   if (turn.bottom !== 0) {
     operations.push({
       affectedPieceIds: uniquePieceIds(state.wedges.slice(12)),
-      angleRadians: -turn.bottom * TURN_RADIANS,
+      angleRadians: turn.bottom * TURN_RADIANS,
       axis: TOP_AXIS,
       pivot: ZERO_VECTOR,
       type: 'axis-rotation',
@@ -142,11 +150,8 @@ export const describeSquareOneSlashTransform = (
   move: { type: 'slash' },
   operations: [
     {
-      affectedPieceIds: uniquePieceIds([
-        ...state.wedges.slice(6, 12),
-        ...state.wedges.slice(12, 18),
-      ]).concat(MIDDLE_RIGHT_PIECE_ID),
-      angleRadians: Math.PI,
+      affectedPieceIds: squareOneSlashAffectedPieceIds(state),
+      angleRadians: -Math.PI,
       axis: SLASH_AXIS,
       pivot: ZERO_VECTOR,
       type: 'axis-rotation',
@@ -186,11 +191,13 @@ const toggleEquatorOrientation = (
 ): SquareOneEquatorOrientation => (equatorOrientation === 0 ? 3 : 0);
 
 const commitSlashTransform = (state: SquareOneEngineState): SquareOneEngineState => {
+  const topSlots = state.wedges.slice(0, 12);
+  const bottomSlots = state.wedges.slice(12);
   const wedges = [
-    ...state.wedges.slice(0, 6),
-    ...state.wedges.slice(12, 18),
-    ...state.wedges.slice(6, 12),
-    ...state.wedges.slice(18),
+    ...topSlots.slice(0, 6),
+    ...bottomSlots.slice(0, 6),
+    ...topSlots.slice(6, 12),
+    ...bottomSlots.slice(6),
   ];
 
   return {

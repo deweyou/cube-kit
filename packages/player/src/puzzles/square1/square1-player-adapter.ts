@@ -20,6 +20,7 @@ import {
   commitSquareOneTransform,
   createSolvedSquareOneEngineState,
   describeSquareOneMoveTransform,
+  squareOneSlashAffectedPieceIds,
   type SquareOneEngineMove,
   type SquareOneEngineState,
   type SquareOneEngineTransform,
@@ -49,6 +50,9 @@ const SIDE_STICKER_EDGE_INSET_RATIO = 0.075;
 const SIDE_STICKER_EDGE_INSET = (LAYER_HALF_SIZE * 2 * SIDE_STICKER_EDGE_INSET_RATIO) / 3;
 const SIDE_STICKER_Y_INSET = 0.04;
 const SIDE_STICKER_LIFT = 0.006;
+const SIDE_SEAM_EDGE_RATIO = 0.025;
+const SIDE_SEAM_LIFT = SIDE_STICKER_LIFT + 0.002;
+const CAP_FRAME_OVERLAP = 0.008;
 const LAYER_THIRD = LAYER_HALF_SIZE / 3;
 const TOP_CAP_Y = LAYER_HALF_SIZE;
 const TOP_INNER_Y = LAYER_THIRD;
@@ -62,8 +66,9 @@ const MIDDLE_DIVIDER_WIDTH = 0.028;
 const SQUARE_ONE_EDGE_HALF_WIDTH = LAYER_HALF_SIZE * Math.tan(Math.PI / 12);
 const MIDDLE_SEAM_X = -SQUARE_ONE_EDGE_HALF_WIDTH;
 const MIRRORED_MIDDLE_SEAM_X = -MIDDLE_SEAM_X;
+const CORE_HALF_SIZE = INNER_RADIUS + CAP_FRAME_OVERLAP;
 const TOP_INITIAL_ANGLE_DEGREES = 105;
-const BOTTOM_INITIAL_ANGLE_DEGREES = -105;
+const BOTTOM_INITIAL_ANGLE_DEGREES = 105;
 const SLASH_AXIS = {
   x: MIDDLE_FRONT_Z - MIDDLE_BACK_Z,
   y: 0,
@@ -76,12 +81,11 @@ const SOLVED_SQUARE_ONE_PIECES = [
   0, 0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9, 9, 10, 11, 11, 12, 13, 13, 14, 15, 15,
 ] as const;
 const SIDE_FACE_START_DEGREES = {
-  B: 45,
-  F: 225,
+  B: 225,
+  F: 45,
   L: 135,
   R: 315,
 } as const satisfies Record<SquareOneSideFace, number>;
-
 type SquareOneLayerName = 'top' | 'bottom';
 type SquareOneSideFace = (typeof SIDE_FACES)[number];
 
@@ -121,6 +125,12 @@ const solvedSlotIndexByPiece = SOLVED_SQUARE_ONE_PIECES.reduce((slotIndexByPiece
   return slotIndexByPiece;
 }, new Map<number, number>());
 
+const solvedSlotWidthByPiece = SOLVED_SQUARE_ONE_PIECES.reduce((slotWidthByPiece, piece) => {
+  slotWidthByPiece.set(piece, (slotWidthByPiece.get(piece) ?? 0) + 1);
+
+  return slotWidthByPiece;
+}, new Map<number, number>());
+
 const sticker = (
   id: string,
   face: string,
@@ -142,7 +152,7 @@ const rayDirection = (angleDegrees: number): { readonly x: number; readonly z: n
 
   return {
     x: Math.cos(radians),
-    z: -Math.sin(radians),
+    z: Math.sin(radians),
   };
 };
 
@@ -151,7 +161,7 @@ const tangentDirection = (angleDegrees: number): { readonly x: number; readonly 
 
   return {
     x: -Math.sin(radians),
-    z: -Math.cos(radians),
+    z: Math.cos(radians),
   };
 };
 
@@ -235,9 +245,9 @@ const rotatePointAroundY = (point: Vector3Like, degrees: number): Vector3Like =>
   const sine = Math.sin(radians);
 
   return {
-    x: point.x * cosine + point.z * sine,
+    x: point.x * cosine - point.z * sine,
     y: point.y,
-    z: -point.x * sine + point.z * cosine,
+    z: point.x * sine + point.z * cosine,
   };
 };
 
@@ -312,7 +322,7 @@ const rotatePolygonAroundY = (
 const orientCapPolygon = (
   polygon: readonly Vector3Like[],
   layer: SquareOneLayerName,
-): readonly Vector3Like[] => (layer === 'bottom' ? [...polygon].reverse() : polygon);
+): readonly Vector3Like[] => (layer === 'top' ? [...polygon].reverse() : polygon);
 
 const layerCapPolygon = (
   startDegrees: number,
@@ -412,17 +422,6 @@ const localizePolygon = (
 
 const isCornerPiece = (piece: number): boolean => (piece + (piece <= 7 ? 0 : 1)) % 2 === 0;
 
-const sideColor = (sideIndex: number, isTopPiece: boolean): string => {
-  // The 2D Square-1 renderer lays top side stickers from the top-face
-  // viewpoint. In the 3D player those front/back stickers live on physical side
-  // faces, so top-layer B/F must be mirrored to keep solved side faces uniform.
-  const normalizedSideIndex = isTopPiece && sideIndex % 2 === 1 ? 4 - sideIndex : sideIndex;
-  const face = SIDE_FACES[sideIndex] ?? 'L';
-  const physicalFace = SIDE_FACES[normalizedSideIndex] ?? face;
-
-  return SQUARE_ONE_COLORS[physicalFace];
-};
-
 const pieceColors = (pieceValue: number): readonly string[] => {
   const isTopPiece = pieceValue <= 7;
   const capColor = isTopPiece ? SQUARE_ONE_COLORS.U : SQUARE_ONE_COLORS.D;
@@ -431,36 +430,25 @@ const pieceColors = (pieceValue: number): readonly string[] => {
   if (isCornerPiece(piece)) {
     if (!isTopPiece) piece = 15 - piece;
 
-    let firstSideColor = sideColor((Math.trunc(piece / 2) + 3) % 4, isTopPiece);
-    let secondSideColor = sideColor(Math.trunc(piece / 2), isTopPiece);
+    let firstSideColor = SQUARE_ONE_COLORS[SIDE_FACES[(Math.trunc(piece / 2) + 3) % 4] ?? 'L'];
+    let secondSideColor = SQUARE_ONE_COLORS[SIDE_FACES[Math.trunc(piece / 2)] ?? 'L'];
 
-    if (!isTopPiece) {
-      const previousFirstSideColor = firstSideColor;
-
-      firstSideColor = secondSideColor;
-      secondSideColor = previousFirstSideColor;
-    }
+    if (!isTopPiece) [firstSideColor, secondSideColor] = [secondSideColor, firstSideColor];
 
     return [capColor, firstSideColor, secondSideColor];
   }
 
   if (!isTopPiece) piece = 14 - piece;
 
-  return [capColor, sideColor(Math.trunc(piece / 2), isTopPiece)];
-};
-
-const sideFaceForColor = (color: string): SquareOneSideFace | 'side' => {
-  const face = SIDE_FACES.find((sideFace) => SQUARE_ONE_COLORS[sideFace] === color);
-
-  return face ?? 'side';
+  return [capColor, SQUARE_ONE_COLORS[SIDE_FACES[Math.trunc(piece / 2)] ?? 'L']];
 };
 
 const sideFaceForSegment = (angleStart: number, angleEnd: number): SquareOneSideFace => {
   const midpoint = ((angleStart + angleEnd) / 2 + 360 * 4) % 360;
 
-  if (midpoint >= 45 && midpoint < 135) return 'B';
+  if (midpoint >= 45 && midpoint < 135) return 'F';
   if (midpoint >= 135 && midpoint < 225) return 'L';
-  if (midpoint >= 225 && midpoint < 315) return 'F';
+  if (midpoint >= 225 && midpoint < 315) return 'B';
 
   return 'R';
 };
@@ -485,11 +473,11 @@ const sideFacePoint = (
 ): Vector3Like => {
   const offset = (relativeDegrees / 90) * LAYER_HALF_SIZE * 2;
 
-  if (face === 'F') return { x: -LAYER_HALF_SIZE + offset, y, z: LAYER_HALF_SIZE };
-  if (face === 'R') return { x: LAYER_HALF_SIZE, y, z: LAYER_HALF_SIZE - offset };
-  if (face === 'B') return { x: LAYER_HALF_SIZE - offset, y, z: -LAYER_HALF_SIZE };
+  if (face === 'F') return { x: LAYER_HALF_SIZE - offset, y, z: LAYER_HALF_SIZE };
+  if (face === 'R') return { x: LAYER_HALF_SIZE, y, z: -LAYER_HALF_SIZE + offset };
+  if (face === 'B') return { x: -LAYER_HALF_SIZE + offset, y, z: -LAYER_HALF_SIZE };
 
-  return { x: -LAYER_HALF_SIZE, y, z: -LAYER_HALF_SIZE + offset };
+  return { x: -LAYER_HALF_SIZE, y, z: LAYER_HALF_SIZE - offset };
 };
 
 const sideFaceSegmentPolygon = ({
@@ -530,16 +518,24 @@ const layerYValues = (
         middleY: (BOTTOM_CAP_Y + BOTTOM_INNER_Y) / 2,
       };
 
+const startDegreesForSlots = (
+  layer: SquareOneLayerName,
+  startSlot: number,
+  slotWidth: number,
+): number =>
+  // Tuple slots advance clockwise in each face's own view. The D face looks
+  // upward from below, so its world-space ring must run in the opposite direction
+  // for slash's canonical slot exchange to stay a rigid half turn.
+  layer === 'top'
+    ? TOP_INITIAL_ANGLE_DEGREES + startSlot * 30
+    : BOTTOM_INITIAL_ANGLE_DEGREES - (startSlot + slotWidth) * 30;
+
 const solvedStartDegreesForPiece = (piece: number): number => {
   const solvedSlotIndex = solvedSlotIndexByPiece.get(piece);
-  if (solvedSlotIndex === undefined) return 0;
+  const solvedSlotWidth = solvedSlotWidthByPiece.get(piece);
+  if (solvedSlotIndex === undefined || solvedSlotWidth === undefined) return 0;
 
-  const isTopPiece = piece <= 7;
-  const halfSlotIndex = solvedSlotIndex % 12;
-
-  return (
-    (isTopPiece ? TOP_INITIAL_ANGLE_DEGREES : BOTTOM_INITIAL_ANGLE_DEGREES) + halfSlotIndex * 30
-  );
+  return startDegreesForSlots(piece <= 7 ? 'top' : 'bottom', solvedSlotIndex % 12, solvedSlotWidth);
 };
 
 const createSideStickers = (
@@ -559,26 +555,32 @@ const createSideStickers = (
     yValues.innerY,
   );
   const segmentCount = sideSegments.length;
+  const orderedSideColors = layer === 'top' ? sideColors : [...sideColors].reverse();
 
   return Array.from({ length: segmentCount }, (_, segmentIndex) => {
-    const sideColorIndex = Math.min(
-      Math.floor((segmentIndex / Math.max(segmentCount, 1)) * sideColors.length),
-      sideColors.length - 1,
-    );
-    const color = sideColors[sideColorIndex] ?? SQUARE_ONE_COLORS.border;
     const sideSegment = sideSegments[segmentIndex];
-    const borderPolygon =
+    const face =
+      sideSegment === undefined
+        ? undefined
+        : sideFaceForSegment(sideSegment.angleStart, sideSegment.angleEnd);
+    const colorIndex = Math.min(
+      Math.floor((segmentIndex / Math.max(segmentCount, 1)) * orderedSideColors.length),
+      orderedSideColors.length - 1,
+    );
+    const color = orderedSideColors[colorIndex] ?? SQUARE_ONE_COLORS.border;
+    const sidePolygon =
       sideSegment === undefined
         ? []
         : rotatePolygonAroundY(sideFaceSegmentPolygon(sideSegment), rotationDegrees);
-    const [capStart, capEnd, innerEnd, innerStart] = borderPolygon;
+    const borderPolygon = sidePolygon;
+    const [capStart, capEnd, innerEnd, innerStart] = sidePolygon;
     const yDirection = Math.sign(yValues.capY - yValues.innerY) || 1;
-    const colorPolygon =
+    const colorFacePolygon =
       capStart === undefined ||
       capEnd === undefined ||
       innerEnd === undefined ||
       innerStart === undefined
-        ? borderPolygon
+        ? sidePolygon
         : pushPolygonOutward(
             [
               {
@@ -600,6 +602,37 @@ const createSideStickers = (
             ],
             SIDE_STICKER_LIFT,
           );
+    const colorPolygon = colorFacePolygon;
+    const startSeamPolygon =
+      capStart === undefined ||
+      capEnd === undefined ||
+      innerEnd === undefined ||
+      innerStart === undefined
+        ? []
+        : pushPolygonOutward(
+            [
+              capStart,
+              interpolatePoint(capStart, capEnd, SIDE_SEAM_EDGE_RATIO),
+              interpolatePoint(innerStart, innerEnd, SIDE_SEAM_EDGE_RATIO),
+              innerStart,
+            ],
+            SIDE_SEAM_LIFT,
+          );
+    const endSeamPolygon =
+      capStart === undefined ||
+      capEnd === undefined ||
+      innerEnd === undefined ||
+      innerStart === undefined
+        ? []
+        : pushPolygonOutward(
+            [
+              interpolatePoint(capEnd, capStart, SIDE_SEAM_EDGE_RATIO),
+              capEnd,
+              innerEnd,
+              interpolatePoint(innerEnd, innerStart, SIDE_SEAM_EDGE_RATIO),
+            ],
+            SIDE_SEAM_LIFT,
+          );
 
     return [
       sticker(
@@ -610,9 +643,21 @@ const createSideStickers = (
       ),
       sticker(
         `${id}-side-${segmentIndex}`,
-        sideFaceForColor(color),
+        face ?? 'side',
         color,
         localizePolygon(colorPolygon, origin),
+      ),
+      sticker(
+        `${id}-side-start-seam-${segmentIndex}`,
+        'border',
+        SQUARE_ONE_COLORS.border,
+        localizePolygon(startSeamPolygon, origin),
+      ),
+      sticker(
+        `${id}-side-end-seam-${segmentIndex}`,
+        'border',
+        SQUARE_ONE_COLORS.border,
+        localizePolygon(endSeamPolygon, origin),
       ),
     ];
   }).flat();
@@ -652,6 +697,8 @@ const createPiece = (
               referenceStartDegrees,
               spanDegrees,
               yValues.capY + (layer === 'top' ? 1 : -1) * BORDER_LIFT,
+              -CAP_FRAME_OVERLAP,
+              -CAP_FRAME_OVERLAP,
             ),
             layer,
           ),
@@ -899,17 +946,88 @@ const createMiddlePiece = (id: string, side: 'left' | 'right'): PlayerRenderable
   };
 };
 
+const createSquareOneCore = (): PlayerRenderablePiece => {
+  const top = TOP_CAP_Y + BORDER_LIFT;
+  const bottom = BOTTOM_CAP_Y - BORDER_LIFT;
+  const front = CORE_HALF_SIZE;
+  const back = -CORE_HALF_SIZE;
+  const left = -CORE_HALF_SIZE;
+  const right = CORE_HALF_SIZE;
+
+  return {
+    id: 'square1-core',
+    orientation: IDENTITY_QUATERNION,
+    position: { x: 0, y: 0, z: 0 },
+    stickers: [
+      sticker(
+        'square1-core-top',
+        'border',
+        SQUARE_ONE_COLORS.border,
+        [
+          { x: left, y: top, z: back },
+          { x: right, y: top, z: back },
+          { x: right, y: top, z: front },
+          { x: left, y: top, z: front },
+        ],
+      ),
+      sticker(
+        'square1-core-bottom',
+        'border',
+        SQUARE_ONE_COLORS.border,
+        [
+          { x: left, y: bottom, z: front },
+          { x: right, y: bottom, z: front },
+          { x: right, y: bottom, z: back },
+          { x: left, y: bottom, z: back },
+        ],
+      ),
+      sticker(
+        'square1-core-front',
+        'border',
+        SQUARE_ONE_COLORS.border,
+        rectanglePolygon(left, top, right, bottom, front),
+      ),
+      sticker(
+        'square1-core-back',
+        'border',
+        SQUARE_ONE_COLORS.border,
+        rectanglePolygon(right, top, left, bottom, back),
+      ),
+      sticker(
+        'square1-core-left',
+        'border',
+        SQUARE_ONE_COLORS.border,
+        [
+          { x: left, y: top, z: back },
+          { x: left, y: top, z: front },
+          { x: left, y: bottom, z: front },
+          { x: left, y: bottom, z: back },
+        ],
+      ),
+      sticker(
+        'square1-core-right',
+        'border',
+        SQUARE_ONE_COLORS.border,
+        [
+          { x: right, y: top, z: front },
+          { x: right, y: top, z: back },
+          { x: right, y: bottom, z: back },
+          { x: right, y: bottom, z: front },
+        ],
+      ),
+    ],
+  };
+};
+
 const currentStartDegreesForSlot = (
   piece: number,
   layer: SquareOneLayerName,
   startSlot: number,
+  slotWidth: number,
 ): { readonly referenceStartDegrees: number; readonly startDegrees: number } => {
-  const layerInitialAngleDegrees =
-    layer === 'top' ? TOP_INITIAL_ANGLE_DEGREES : BOTTOM_INITIAL_ANGLE_DEGREES;
-
   return {
     referenceStartDegrees: solvedStartDegreesForPiece(piece),
-    startDegrees: layerInitialAngleDegrees + startSlot * 30,
+    startDegrees: startDegreesForSlots(layer, startSlot, slotWidth),
   };
 };
 
@@ -936,6 +1054,7 @@ const facePieces = (
       piece,
       layer,
       startSlot,
+      occupiedSlots.length,
     );
 
     renderablePieces.push(
@@ -958,28 +1077,7 @@ const uniquePieceIds = (pieces: readonly number[]): readonly string[] => {
   return ids;
 };
 
-const slashHalfSlots = (pieces: readonly number[]): readonly number[] => {
-  const nextPieces = [...pieces];
-
-  for (let index = 0; index < 6; index += 1) {
-    const topIndex = 6 + index;
-    const bottomIndex = 12 + index;
-    const bottomPiece = nextPieces[bottomIndex];
-
-    nextPieces[bottomIndex] = nextPieces[topIndex] ?? 0;
-    nextPieces[topIndex] = bottomPiece ?? 0;
-  }
-
-  return nextPieces;
-};
-
-const slashAffectedPieceIds = (pieces: readonly number[]): readonly string[] => [
-  ...uniquePieceIds(pieces.slice(6, 12)),
-  ...uniquePieceIds(pieces.slice(12, 18)),
-  'square1-middle-right',
-];
-
-const topTurnToRadians = (turn: SquareOneTurn): number => turn * TURN_RADIANS;
+const topTurnToRadians = (turn: SquareOneTurn): number => -turn * TURN_RADIANS;
 
 const bottomTurnToRadians = (turn: SquareOneTurn): number => turn * TURN_RADIANS;
 
@@ -1055,6 +1153,7 @@ const middlePiecesForState = (state: SquareOneState): readonly PlayerRenderableP
 
 const createPiecesForSquareOneState = (state: SquareOneState): readonly PlayerRenderablePiece[] => [
   ...middlePiecesForState(state),
+  createSquareOneCore(),
   ...layerPiecesForState(state.pieces.slice(0, 12), 'top', 0),
   ...layerPiecesForState(state.pieces.slice(12), 'bottom', 0),
 ];
@@ -1064,30 +1163,6 @@ const createPiecesForPlayerState = (
 ): readonly PlayerRenderablePiece[] =>
   createPiecesForSquareOneState(squareOneStateForEngineState(state));
 
-const targetPoseByPieceId = (
-  pieces: readonly PlayerRenderablePiece[],
-  ids: readonly string[],
-): {
-  readonly targetOrientationByPieceId: Readonly<Record<string, QuaternionLike>>;
-  readonly targetPositionByPieceId: Readonly<Record<string, Vector3Like>>;
-} => {
-  const targetOrientationByPieceId: Record<string, QuaternionLike> = {};
-  const targetPositionByPieceId: Record<string, Vector3Like> = {};
-
-  for (const id of ids) {
-    const piece = pieces.find((candidate) => candidate.id === id);
-    if (piece === undefined) continue;
-
-    targetOrientationByPieceId[id] = piece.orientation;
-    targetPositionByPieceId[id] = piece.position;
-  }
-
-  return {
-    targetOrientationByPieceId,
-    targetPositionByPieceId,
-  };
-};
-
 const describeSquareOneMove = (
   move: SquareOneMove,
   state: SquareOnePlayerState,
@@ -1095,23 +1170,15 @@ const describeSquareOneMove = (
   const squareOneState = squareOneStateForEngineState(state);
 
   if (move.type === 'slash') {
-    const affectedPieceIds = slashAffectedPieceIds(squareOneState.pieces);
-    const targetPuzzleState = {
-      sliceSolved: !squareOneState.sliceSolved,
-      pieces: slashHalfSlots(squareOneState.pieces),
-    };
-    const targetPieces = createPiecesForSquareOneState(targetPuzzleState);
-    const targets = targetPoseByPieceId(targetPieces, affectedPieceIds);
-    const angleRadians = -Math.PI;
+    const affectedPieceIds = squareOneSlashAffectedPieceIds(state);
 
     return {
       affectedPieceIds,
-      angleRadians,
+      angleRadians: -Math.PI,
       axis: SLASH_AXIS,
       durationMultiplier: SLASH_DURATION_MULTIPLIER,
       move,
       pivot: { x: 0, y: 0, z: 0 },
-      ...targets,
     };
   }
 
@@ -1148,6 +1215,22 @@ const describeSquareOneTransform = (
 ): PlayerMoveTransform<SquareOneMove> => {
   const engineTransform = describeSquareOneMoveTransform(toEngineMove(move), state);
 
+  if (move.type === 'slash') {
+    return {
+      ...engineTransform,
+      move,
+      operations: engineTransform.operations.map((operation) =>
+        operation.type === 'axis-rotation'
+          ? {
+              ...operation,
+              affectedPieceIds: squareOneSlashAffectedPieceIds(state),
+              axis: SLASH_AXIS,
+            }
+          : operation,
+      ),
+    };
+  }
+
   return {
     ...engineTransform,
     move,
@@ -1177,6 +1260,15 @@ const commitSquareOnePlayerTransform = (
   return commitSquareOneTransform(state, toEngineTransform(transform));
 };
 
+const applySquareOnePlayerMove = (
+  state: SquareOnePlayerState,
+  move: SquareOneMove,
+): SquareOnePlayerState => {
+  assertCanCommitSquareOneMove(move, state);
+
+  return commitSquareOneTransform(state, describeSquareOneMoveTransform(toEngineMove(move), state));
+};
+
 export const createSquareOnePlayerAdapter = (): PlayerPuzzleAdapter<
   SquareOneMove,
   SquareOnePlayerState
@@ -1197,7 +1289,6 @@ export const createSquareOnePlayerAdapter = (): PlayerPuzzleAdapter<
     describeTransform: describeSquareOneTransform,
     commitTransform: commitSquareOnePlayerTransform,
     describeMove: describeSquareOneMove,
-    applyMove: (state, move) =>
-      commitSquareOnePlayerTransform(state, describeSquareOneTransform(move, state)),
+    applyMove: applySquareOnePlayerMove,
   };
 };

@@ -1,4 +1,4 @@
-import { InvalidMoveError } from '@cubegin/scramble-puzzle';
+import { createSquareOneDefinition, InvalidMoveError } from '@cubegin/scramble-puzzle';
 import { describe, expect, it } from 'vitest';
 import type { PlayerRenderablePiece, PlayerRenderableSticker } from '../puzzle-adapter.js';
 import { createSquareOnePlayerAdapter } from './square1-player-adapter.js';
@@ -133,6 +133,13 @@ const frontSideStickerBounds = (
     )
     .filter((bounds) => (bounds.minZ + bounds.maxZ) / 2 > 0.98)
     .sort((left, right) => left.minX - right.minX);
+
+const visibleStickerColors = (piece: PlayerRenderablePiece): ReadonlySet<string> =>
+  new Set(
+    piece.stickers
+      .map((pieceSticker) => pieceSticker.color)
+      .filter((color) => color !== '#111827' && color !== '#4b5563'),
+  );
 
 const backSideStickerBounds = (
   model: ReturnType<ReturnType<typeof createSquareOnePlayerAdapter>['createRenderableModel']>,
@@ -364,7 +371,10 @@ const normalizeHorizontalVector = (vector: {
 };
 
 const horizontalAngleRadians = (point: { readonly x: number; readonly z: number }): number =>
-  Math.atan2(-point.z, point.x);
+  Math.atan2(point.z, point.x);
+
+const bottomFaceAngleRadians = (point: { readonly x: number; readonly z: number }): number =>
+  -horizontalAngleRadians(point);
 
 const normalizedAngleDelta = (fromRadians: number, toRadians: number): number =>
   Math.atan2(Math.sin(toRadians - fromRadians), Math.cos(toRadians - fromRadians));
@@ -405,6 +415,135 @@ const rotateWorldPointAroundAxis = (
   };
 };
 
+const boundsForPoints = (
+  points: readonly { readonly x: number; readonly y: number; readonly z: number }[],
+): {
+  readonly maxX: number;
+  readonly maxY: number;
+  readonly maxZ: number;
+  readonly minX: number;
+  readonly minY: number;
+  readonly minZ: number;
+} => ({
+  maxX: Math.max(...points.map((point) => point.x)),
+  maxY: Math.max(...points.map((point) => point.y)),
+  maxZ: Math.max(...points.map((point) => point.z)),
+  minX: Math.min(...points.map((point) => point.x)),
+  minY: Math.min(...points.map((point) => point.y)),
+  minZ: Math.min(...points.map((point) => point.z)),
+});
+
+const squareOnePlayerPieces = (
+  state: ReturnType<ReturnType<typeof createSquareOnePlayerAdapter>['createInitialState']>,
+): readonly number[] =>
+  state.wedges.map((slot) => {
+    const match = /^square1-piece-(\d+)$/.exec(slot.pieceId);
+
+    return match?.[1] === undefined ? Number.NaN : Number(match[1]);
+  });
+
+const expectedSlashRotationPieceIds = (
+  state: ReturnType<ReturnType<typeof createSquareOnePlayerAdapter>['createInitialState']>,
+): readonly string[] => {
+  const pieceIds = [
+    ...new Set([
+      ...state.wedges.slice(6, 12).map((slot) => slot.pieceId),
+      ...state.wedges.slice(12, 18).map((slot) => slot.pieceId),
+    ]),
+  ].filter((pieceId): pieceId is string => pieceId !== undefined);
+
+  return [...pieceIds, 'square1-middle-right'];
+};
+
+const lerpPoint = (
+  from: { readonly x: number; readonly y: number; readonly z: number },
+  to: { readonly x: number; readonly y: number; readonly z: number },
+  progress: number,
+): { readonly x: number; readonly y: number; readonly z: number } => ({
+  x: from.x + (to.x - from.x) * progress,
+  y: from.y + (to.y - from.y) * progress,
+  z: from.z + (to.z - from.z) * progress,
+});
+
+const targetPoseBlendProgress = (
+  progress: number,
+  targetPoseBlendStart: number | undefined,
+): number => {
+  const blendStart = targetPoseBlendStart ?? 0;
+
+  if (blendStart <= 0) return progress;
+  if (progress <= blendStart) return 0;
+  if (blendStart >= 1) return progress >= 1 ? 1 : 0;
+
+  return Math.min(Math.max((progress - blendStart) / (1 - blendStart), 0), 1);
+};
+
+const movePiecePositionByOperation = (
+  piece: PlayerRenderablePiece,
+  operation: Extract<
+    NonNullable<
+      ReturnType<NonNullable<ReturnType<typeof createSquareOnePlayerAdapter>['describeTransform']>>
+    >['operations'][number],
+    { readonly type: 'axis-rotation' }
+  >,
+  progress: number,
+): ReturnType<typeof rotateWorldPointAroundAxis> => {
+  const rotationAffectedPieceIds = operation.rotationAffectedPieceIds ?? operation.affectedPieceIds;
+  const movedPosition = rotationAffectedPieceIds.includes(piece.id)
+    ? rotateWorldPointAroundAxis(
+        piece.position,
+        operation.axis,
+        (operation.angleRadiansByPieceId?.[piece.id] ?? operation.angleRadians) * progress,
+        operation.pivotByPieceId?.[piece.id] ?? operation.pivot,
+      )
+    : piece.position;
+  const targetPosition = operation.targetPositionByPieceId?.[piece.id];
+  const targetBlendProgress = targetPoseBlendProgress(progress, operation.targetPoseBlendStart);
+
+  return targetPosition === undefined || targetBlendProgress === 0
+    ? movedPosition
+    : lerpPoint(movedPosition, targetPosition, targetBlendProgress);
+};
+
+const animatedModelBounds = (
+  model: ReturnType<ReturnType<typeof createSquareOnePlayerAdapter>['createRenderableModel']>,
+  operation: Extract<
+    NonNullable<
+      ReturnType<NonNullable<ReturnType<typeof createSquareOnePlayerAdapter>['describeTransform']>>
+    >['operations'][number],
+    { readonly type: 'axis-rotation' }
+  >,
+  progress: number,
+): ReturnType<typeof boundsForPoints> => {
+  const affectedPieceIds = new Set(operation.affectedPieceIds);
+
+  return boundsForPoints(
+    model.pieces.map((piece) =>
+      affectedPieceIds.has(piece.id)
+        ? movePiecePositionByOperation(piece, operation, progress)
+        : piece.position,
+    ),
+  );
+};
+
+const moveStickerCenterByOperation = (
+  piece: PlayerRenderablePiece,
+  sticker: PlayerRenderableSticker,
+  operation: Extract<
+    NonNullable<
+      ReturnType<NonNullable<ReturnType<typeof createSquareOnePlayerAdapter>['describeTransform']>>
+    >['operations'][number],
+    { readonly type: 'axis-rotation' }
+  >,
+  progress: number,
+): ReturnType<typeof rotateWorldPointAroundAxis> =>
+  rotateWorldPointAroundAxis(
+    stickerWorldCenter(piece, sticker),
+    operation.axis,
+    (operation.angleRadiansByPieceId?.[piece.id] ?? operation.angleRadians) * progress,
+    operation.pivotByPieceId?.[piece.id] ?? operation.pivot,
+  );
+
 describe('createSquareOnePlayerAdapter', () => {
   it('parses Square-1 notation and creates a solved 3D prism model', () => {
     const adapter = createSquareOnePlayerAdapter();
@@ -421,8 +560,10 @@ describe('createSquareOnePlayerAdapter', () => {
     expect(model.pieces.find((piece) => piece.id === 'square1-piece-0')?.stickers).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ color: '#111827', id: 'square1-piece-0-side-border-0' }),
+        expect.objectContaining({ color: '#111827', id: 'square1-piece-0-side-start-seam-0' }),
+        expect.objectContaining({ color: '#111827', id: 'square1-piece-0-side-end-seam-0' }),
         expect.objectContaining({ color: '#ffff00', id: 'square1-piece-0-u' }),
-        expect.objectContaining({ color: '#ff8000', id: 'square1-piece-0-side-0' }),
+        expect.objectContaining({ color: '#ff0000', id: 'square1-piece-0-side-0' }),
         expect.objectContaining({ color: '#0000ff', id: 'square1-piece-0-side-1' }),
       ]),
     );
@@ -440,11 +581,18 @@ describe('createSquareOnePlayerAdapter', () => {
     expect(model.pieces.find((piece) => piece.id === 'square1-piece-8')?.stickers).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ color: '#ffffff', id: 'square1-piece-8-d' }),
+        expect.objectContaining({ color: '#ff0000', id: 'square1-piece-8-side-0' }),
+      ]),
+    );
+    expect(model.pieces.find((piece) => piece.id === 'square1-piece-12')?.stickers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ color: '#ffffff', id: 'square1-piece-12-d' }),
+        expect.objectContaining({ color: '#ff8000', id: 'square1-piece-12-side-0' }),
       ]),
     );
   });
 
-  it('describes and commits tuple moves through the Square-1 engine transform', () => {
+  it('describes tuple playback in the same world direction as its committed slots', () => {
     const adapter = createSquareOnePlayerAdapter();
     const state = adapter.createInitialState();
     const [tupleMove] = adapter.parseFormula('(1,0)');
@@ -452,7 +600,7 @@ describe('createSquareOnePlayerAdapter', () => {
       tupleMove === undefined ? undefined : adapter.describeTransform?.(tupleMove, state);
 
     expect(transform?.operations[0]).toMatchObject({
-      angleRadians: Math.PI / 6,
+      angleRadians: -Math.PI / 6,
       affectedPieceIds: expect.arrayContaining(['square1-piece-0', 'square1-piece-7']),
       type: 'axis-rotation',
     });
@@ -471,27 +619,24 @@ describe('createSquareOnePlayerAdapter', () => {
     expect(slashMove).toBeDefined();
 
     const tupleTransform = adapter.describeTransform!(tupleMove!, state);
-    const afterTuple = adapter.commitTransform!(state, tupleTransform);
-    const slashTransform = adapter.describeTransform!(slashMove!, afterTuple);
-    const slashOperation = slashTransform.operations[0];
+    expect(tupleTransform).toBeDefined();
+    if (tupleTransform === undefined) return;
 
-    expect(slashOperation?.type === 'axis-rotation' ? slashOperation.affectedPieceIds : []).toEqual(
-      [
-        'square1-piece-3',
-        'square1-piece-4',
-        'square1-piece-5',
-        'square1-piece-6',
-        'square1-piece-8',
-        'square1-piece-9',
-        'square1-piece-10',
-        'square1-piece-11',
-        'square1-middle-right',
-      ],
+    const afterTuple = adapter.commitTransform!(state, tupleTransform);
+    const slashTransform = adapter.describeTransform?.(slashMove!, afterTuple);
+    const slashOperation = slashTransform?.operations[0];
+
+    expect(slashTransform).toBeDefined();
+    expect(slashOperation?.type).toBe('axis-rotation');
+    if (slashOperation?.type !== 'axis-rotation') return;
+
+    expect(slashOperation.rotationAffectedPieceIds ?? slashOperation.affectedPieceIds).toEqual(
+      expectedSlashRotationPieceIds(afterTuple),
     );
-    expect(adapter.commitTransform!(afterTuple, slashTransform).equatorOrientation).toBe(3);
+    expect(adapter.commitTransform!(afterTuple, slashTransform!).equatorOrientation).toBe(3);
   });
 
-  it('keeps solved side faces color-aligned across top, middle, and bottom layers', () => {
+  it('keeps solved side faces aligned with the Square-1 reference color mapping', () => {
     const adapter = createSquareOnePlayerAdapter();
     const model = adapter.createRenderableModel(adapter.createInitialState());
     const frontStickerColors = model.pieces.flatMap((piece) =>
@@ -638,6 +783,31 @@ describe('createSquareOnePlayerAdapter', () => {
     );
   });
 
+  it('seals the Square-1 central axle with a black core', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const initialModel = adapter.createRenderableModel(adapter.createInitialState());
+    const [turn, slash] = adapter.parseFormula('(1,0) /');
+    const afterTurn = turn === undefined ? undefined : adapter.applyMove(adapter.createInitialState(), turn);
+    const slashedModel =
+      afterTurn === undefined || slash === undefined
+        ? undefined
+        : adapter.createRenderableModel(adapter.applyMove(afterTurn, slash));
+    const initialCore = initialModel.pieces.find((piece) => piece.id === 'square1-core');
+    const slashedCore = slashedModel?.pieces.find((piece) => piece.id === 'square1-core');
+
+    expect(initialCore?.stickers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ color: '#111827', id: 'square1-core-top' }),
+        expect.objectContaining({ color: '#111827', id: 'square1-core-bottom' }),
+        expect.objectContaining({ color: '#111827', id: 'square1-core-front' }),
+        expect.objectContaining({ color: '#111827', id: 'square1-core-back' }),
+      ]),
+    );
+    expect(slashedCore).toBeDefined();
+    expect(slashedCore?.position).toEqual(initialCore?.position);
+    expect(slashedCore?.orientation).toEqual(initialCore?.orientation);
+  });
+
   it('renders the solved front side as a cube-shaped Square-1 grid', () => {
     const adapter = createSquareOnePlayerAdapter();
     const model = adapter.createRenderableModel(adapter.createInitialState());
@@ -767,6 +937,44 @@ describe('createSquareOnePlayerAdapter', () => {
     expect(outerGap / innerGap).toBeLessThan(2);
   });
 
+  it('keeps solved side frames within the Square-1 cube envelope', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const model = adapter.createRenderableModel(adapter.createInitialState());
+    const farthestSideFrameCoordinate = Math.max(
+      ...model.pieces.flatMap((piece) =>
+        piece.stickers
+          .filter((pieceSticker) => pieceSticker.id.includes('-side-border-'))
+          .flatMap((pieceSticker) =>
+            stickerWorldPoints(piece, pieceSticker).map((point) =>
+              Math.max(Math.abs(point.x), Math.abs(point.z)),
+            ),
+          ),
+      ),
+    );
+
+    expect(farthestSideFrameCoordinate).toBeLessThanOrEqual(1.050001);
+  });
+
+  it('orients solved top cap stickers toward the camera-facing side', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const model = adapter.createRenderableModel(adapter.createInitialState());
+    const topCapNormals = model.pieces.flatMap((piece) =>
+      piece.stickers
+        .filter(
+          (pieceSticker) =>
+            pieceSticker.face === 'U' &&
+            pieceSticker.color !== '#111827' &&
+            stickerWorldCenter(piece, pieceSticker).y > 0.45,
+        )
+        .map((pieceSticker) => polygonNormalY(stickerWorldPoints(piece, pieceSticker))),
+    );
+
+    expect(topCapNormals.length).toBeGreaterThan(0);
+    for (const normalY of topCapNormals) {
+      expect(normalY).toBeGreaterThan(0);
+    }
+  });
+
   it('keeps tuple-rotated top pieces as their physical Square-1 shape', () => {
     const adapter = createSquareOnePlayerAdapter();
     const [turn] = adapter.parseFormula('(1,0)');
@@ -829,65 +1037,672 @@ describe('createSquareOnePlayerAdapter', () => {
     expect(normalizedAngleDelta(initialAngle, movedAngle)).toBeCloseTo(Math.PI / 6, 3);
   });
 
-  it('animates slash from the state-defined half swap after a one-slot top turn', () => {
+  it('keeps negative bottom tuple playback counter-clockwise in the D-face view', () => {
     const adapter = createSquareOnePlayerAdapter();
-    const [turn, slash] = adapter.parseFormula('(1,0) /');
-    const turnedState = adapter.applyMove(adapter.createInitialState(), turn);
-    const animation = adapter.describeMove(slash, turnedState);
+    const initialState = adapter.createInitialState();
+    const [turn] = adapter.parseFormula('(0,-1)');
+    const transform = adapter.describeTransform?.(turn, initialState);
+    const initialModel = adapter.createRenderableModel(initialState);
+    const movedModel = adapter.createRenderableModel(adapter.applyMove(initialState, turn));
 
-    expect(animation.affectedPieceIds).toEqual([
-      'square1-piece-3',
-      'square1-piece-4',
-      'square1-piece-5',
-      'square1-piece-6',
-      'square1-piece-8',
-      'square1-piece-9',
-      'square1-piece-10',
-      'square1-piece-11',
-      'square1-middle-right',
-    ]);
+    expect(transform?.operations).toHaveLength(1);
+
+    const operation = transform?.operations[0];
+    const initialPiece = initialModel.pieces.find((piece) => piece.id === 'square1-piece-8');
+    const movedPiece = movedModel.pieces.find((piece) => piece.id === 'square1-piece-8');
+
+    expect(operation?.type).toBe('axis-rotation');
+    expect(initialPiece).toBeDefined();
+    expect(movedPiece).toBeDefined();
+
+    if (operation?.type !== 'axis-rotation') return;
+
+    const initialSticker = initialPiece?.stickers.find(
+      (pieceSticker) => pieceSticker.id === 'square1-piece-8-d',
+    );
+    const movedSticker = movedPiece?.stickers.find(
+      (pieceSticker) => pieceSticker.id === 'square1-piece-8-d',
+    );
+
+    expect(initialSticker).toBeDefined();
+    expect(movedSticker).toBeDefined();
+
+    const initialWorldAngle = horizontalAngleRadians(
+      stickerWorldCenter(
+        initialPiece as PlayerRenderablePiece,
+        initialSticker as PlayerRenderableSticker,
+      ),
+    );
+    const committedWorldAngle = horizontalAngleRadians(
+      stickerWorldCenter(
+        movedPiece as PlayerRenderablePiece,
+        movedSticker as PlayerRenderableSticker,
+      ),
+    );
+
+    expect(
+      operation.angleRadiansByPieceId?.['square1-piece-8'] ?? operation.angleRadians,
+    ).toBeCloseTo(-Math.PI / 6, 3);
+    expect(normalizedAngleDelta(initialWorldAngle, committedWorldAngle)).toBeCloseTo(
+      Math.PI / 6,
+      3,
+    );
+    expect(normalizedAngleDelta(-initialWorldAngle, -committedWorldAngle)).toBeCloseTo(
+      -Math.PI / 6,
+      3,
+    );
   });
 
-  it('lands slash animation on the committed Square-1 state after a one-slot top turn', () => {
+  it('describes negative bottom tuple turns as a D-face inverse rotation', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const initialState = adapter.createInitialState();
+    const [turn] = adapter.parseFormula('(0,-1)');
+    const transform = adapter.describeTransform?.(turn, initialState);
+    const operation = transform?.operations[0];
+
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    expect(
+      operation.angleRadiansByPieceId?.['square1-piece-8'] ?? operation.angleRadians,
+    ).toBeCloseTo(-Math.PI / 6, 3);
+  });
+
+  it('renders negative bottom tuple turns counter-clockwise by one small slot', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [turn] = adapter.parseFormula('(0,-1)');
+    const initialModel = adapter.createRenderableModel(adapter.createInitialState());
+    const movedModel = adapter.createRenderableModel(
+      adapter.applyMove(adapter.createInitialState(), turn),
+    );
+    const initialPiece = initialModel.pieces.find((piece) => piece.id === 'square1-piece-8');
+    const movedPiece = movedModel.pieces.find((piece) => piece.id === 'square1-piece-8');
+    const initialSticker = initialPiece?.stickers.find(
+      (pieceSticker) => pieceSticker.id === 'square1-piece-8-d',
+    );
+    const movedSticker = movedPiece?.stickers.find(
+      (pieceSticker) => pieceSticker.id === 'square1-piece-8-d',
+    );
+
+    expect(initialPiece).toBeDefined();
+    expect(movedPiece).toBeDefined();
+    expect(initialSticker).toBeDefined();
+    expect(movedSticker).toBeDefined();
+
+    const initialAngle = bottomFaceAngleRadians(
+      stickerWorldCenter(
+        initialPiece as PlayerRenderablePiece,
+        initialSticker as PlayerRenderableSticker,
+      ),
+    );
+    const movedAngle = bottomFaceAngleRadians(
+      stickerWorldCenter(
+        movedPiece as PlayerRenderablePiece,
+        movedSticker as PlayerRenderableSticker,
+      ),
+    );
+
+    expect(normalizedAngleDelta(initialAngle, movedAngle)).toBeCloseTo(-Math.PI / 6, 3);
+  });
+
+  it('animates slash from the physical right-half swap after a one-slot top turn', () => {
     const adapter = createSquareOnePlayerAdapter();
     const [turn, slash] = adapter.parseFormula('(1,0) /');
     const turnedState = adapter.applyMove(adapter.createInitialState(), turn);
-    const animation = adapter.describeMove(slash, turnedState);
-    const beforeSlashModel = adapter.createRenderableModel(turnedState);
-    const afterSlashModel = adapter.createRenderableModel(adapter.applyMove(turnedState, slash));
+    const transform = adapter.describeTransform?.(slash, turnedState);
+    const operation = transform?.operations[0];
 
-    for (const pieceIdValue of animation.affectedPieceIds.filter((id) =>
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    expect(operation.rotationAffectedPieceIds ?? operation.affectedPieceIds).toEqual(
+      expectedSlashRotationPieceIds(turnedState),
+    );
+  });
+
+  it('describes slash after a one-slot top turn as a physical half turn', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [turn, slash] = adapter.parseFormula('(1,0) /');
+    const turnedState = adapter.applyMove(adapter.createInitialState(), turn);
+    const transform = adapter.describeTransform?.(slash, turnedState);
+    const operation = transform?.operations[0];
+    const animation = adapter.describeMove(slash, turnedState);
+
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    expect(transform).toBeDefined();
+    expect(operation.affectedPieceIds).toEqual(
+      expect.arrayContaining([...animation.affectedPieceIds]),
+    );
+    expect(operation.angleRadians).toBeCloseTo(-Math.PI);
+    expect(operation.rotationAffectedPieceIds).toBeUndefined();
+    expect(operation.targetPoseBlendStart).toBeUndefined();
+    expect(operation.targetPositionByPieceId).toBeUndefined();
+    expect(operation.targetOrientationByPieceId).toBeUndefined();
+    expect(operation.rotateInPlace).toBeUndefined();
+    expect(adapter.commitTransform!(turnedState, transform!).equatorOrientation).toBe(3);
+  });
+
+  it('keeps slash visual playback as a rigid physical half turn without target blending', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [turn, slash] = adapter.parseFormula('(1,0) /');
+    const turnedState = adapter.applyMove(adapter.createInitialState(), turn);
+    const transform = adapter.describeTransform?.(slash, turnedState);
+    const operation = transform?.operations[0];
+
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    expect(adapter.shouldRebuildModelAfterEachMove).toBe(true);
+    expect(operation.rotationAffectedPieceIds).toBeUndefined();
+    expect(operation.targetPoseBlendStart).toBeUndefined();
+    expect(operation.targetPositionByPieceId).toBeUndefined();
+    expect(operation.targetOrientationByPieceId).toBeUndefined();
+    expect(operation.rotateInPlace).toBeUndefined();
+  });
+
+  it('lands the base slash at the committed geometry without a checkpoint correction', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [turn, slash] = adapter.parseFormula('(1,0) /');
+    const stateBeforeSlash = adapter.applyMove(adapter.createInitialState(), turn);
+    const modelBeforeSlash = adapter.createRenderableModel(stateBeforeSlash);
+    const transform = adapter.describeTransform?.(slash, stateBeforeSlash);
+    const operation = transform?.operations[0];
+    const modelAfterSlash = adapter.createRenderableModel(
+      adapter.applyMove(stateBeforeSlash, slash),
+    );
+
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    for (const pieceId of operation.affectedPieceIds.filter((id) =>
       id.startsWith('square1-piece-'),
     )) {
-      const beforePiece = beforeSlashModel.pieces.find((piece) => piece.id === pieceIdValue);
-      const afterPiece = afterSlashModel.pieces.find((piece) => piece.id === pieceIdValue);
-
-      expect(beforePiece).toBeDefined();
-      expect(afterPiece).toBeDefined();
-
-      const animatedPosition =
-        animation.targetPositionByPieceId?.[pieceIdValue] ??
-        rotateWorldPointAroundAxis(
-          (beforePiece as PlayerRenderablePiece).position,
-          animation.axis,
-          animation.angleRadians,
-          animation.pivot,
-        );
-
-      const afterPosition = (afterPiece as PlayerRenderablePiece).position;
-      const distance = Math.hypot(
-        animatedPosition.x - afterPosition.x,
-        animatedPosition.y - afterPosition.y,
-        animatedPosition.z - afterPosition.z,
+      const pieceBeforeSlash = modelBeforeSlash.pieces.find((piece) => piece.id === pieceId);
+      const pieceAfterSlash = modelAfterSlash.pieces.find((piece) => piece.id === pieceId);
+      const capBeforeSlash = pieceBeforeSlash?.stickers.find(
+        (pieceSticker) => pieceSticker.face === 'U' || pieceSticker.face === 'D',
+      );
+      const capAfterSlash = pieceAfterSlash?.stickers.find(
+        (pieceSticker) =>
+          (pieceSticker.face === 'U' || pieceSticker.face === 'D') &&
+          pieceSticker.color === capBeforeSlash?.color,
       );
 
-      if (distance > 0.02) {
-        throw new Error(
-          `${pieceIdValue} lands ${distance.toFixed(4)} away from committed state: ` +
-            `before=${JSON.stringify((beforePiece as PlayerRenderablePiece).position)} ` +
-            `animated=${JSON.stringify(animatedPosition)} committed=${JSON.stringify(afterPosition)}`,
+      expect(pieceBeforeSlash, pieceId).toBeDefined();
+      expect(pieceAfterSlash, pieceId).toBeDefined();
+      expect(capBeforeSlash, pieceId).toBeDefined();
+      expect(capAfterSlash, pieceId).toBeDefined();
+
+      const animatedCenter = moveStickerCenterByOperation(
+        pieceBeforeSlash as PlayerRenderablePiece,
+        capBeforeSlash as PlayerRenderableSticker,
+        operation,
+        1,
+      );
+      const checkpointCenter = stickerWorldCenter(
+        pieceAfterSlash as PlayerRenderablePiece,
+        capAfterSlash as PlayerRenderableSticker,
+      );
+
+      expect(
+        Math.hypot(
+          animatedCenter.x - checkpointCenter.x,
+          animatedCenter.y - checkpointCenter.y,
+          animatedCenter.z - checkpointCenter.z,
+        ),
+        pieceId,
+      ).toBeLessThan(0.02);
+    }
+  });
+
+  it('keeps the slash active half-turn compact after a one-slot top turn', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [turn, slash] = adapter.parseFormula('(1,0) /');
+    const turnedState = adapter.applyMove(adapter.createInitialState(), turn);
+    const transform = adapter.describeTransform?.(slash, turnedState);
+    const operation = transform?.operations[0];
+    const beforeSlashModel = adapter.createRenderableModel(turnedState);
+
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    const bounds = animatedModelBounds(beforeSlashModel, operation, 0.5);
+
+    expect(bounds.maxX - bounds.minX).toBeLessThan(3.4);
+    expect(bounds.maxY - bounds.minY).toBeLessThan(3.4);
+    expect(bounds.maxZ - bounds.minZ).toBeLessThan(3.4);
+  });
+
+  it('moves every sticker on the URF top corner during slash playback', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [turn, slash] = adapter.parseFormula('(1,0) /');
+    const turnedState = adapter.applyMove(adapter.createInitialState(), turn);
+    const beforeSlashModel = adapter.createRenderableModel(turnedState);
+    const transform = adapter.describeTransform?.(slash, turnedState);
+    const operation = transform?.operations[0];
+
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    const urfCorner = beforeSlashModel.pieces.find((piece) => {
+      const colors = new Set(piece.stickers.map((pieceSticker) => pieceSticker.color));
+
+      return (
+        piece.id.startsWith('square1-piece-') &&
+        colors.has('#ffff00') &&
+        colors.has('#ff0000') &&
+        colors.has('#00ff00')
+      );
+    });
+
+    expect(urfCorner).toBeDefined();
+    expect(operation.affectedPieceIds).toContain(urfCorner?.id);
+
+    const movingStickers = (urfCorner as PlayerRenderablePiece).stickers.filter((pieceSticker) =>
+      ['#ffff00', '#ff0000', '#00ff00'].includes(pieceSticker.color),
+    );
+
+    expect(movingStickers).toHaveLength(3);
+
+    for (const pieceSticker of movingStickers) {
+      const startCenter = stickerWorldCenter(urfCorner as PlayerRenderablePiece, pieceSticker);
+      const halfTurnCenter = moveStickerCenterByOperation(
+        urfCorner as PlayerRenderablePiece,
+        pieceSticker,
+        operation,
+        0.5,
+      );
+
+      expect(
+        Math.hypot(
+          halfTurnCenter.x - startCenter.x,
+          halfTurnCenter.y - startCenter.y,
+          halfTurnCenter.z - startCenter.z,
+        ),
+        pieceSticker.id,
+      ).toBeGreaterThan(0.2);
+    }
+  });
+
+  it('moves the current bottom slash slots during slash playback after a top turn', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [turn, slash] = adapter.parseFormula('(1,0) /');
+    const turnedState = adapter.applyMove(adapter.createInitialState(), turn);
+    const beforeSlashModel = adapter.createRenderableModel(turnedState);
+    const transform = adapter.describeTransform?.(slash, turnedState);
+    const operation = transform?.operations[0];
+
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    const dFrontRedWhiteEdge = beforeSlashModel.pieces.find((piece) => {
+      const colors = new Set(piece.stickers.map((pieceSticker) => pieceSticker.color));
+      const redSticker = piece.stickers.find((pieceSticker) => pieceSticker.color === '#ff0000');
+
+      return (
+        piece.id.startsWith('square1-piece-') &&
+        colors.has('#ffffff') &&
+        colors.has('#ff0000') &&
+        colors.size === 3 &&
+        redSticker !== undefined &&
+        stickerWorldCenter(piece, redSticker).z > 0.9
+      );
+    });
+    const dBackOrangeWhiteEdge = beforeSlashModel.pieces.find((piece) => {
+      const colors = new Set(piece.stickers.map((pieceSticker) => pieceSticker.color));
+      const orangeSticker = piece.stickers.find((pieceSticker) => pieceSticker.color === '#ff8000');
+
+      return (
+        piece.id.startsWith('square1-piece-') &&
+        colors.has('#ffffff') &&
+        colors.has('#ff8000') &&
+        colors.size === 3 &&
+        orangeSticker !== undefined &&
+        stickerWorldCenter(piece, orangeSticker).z < -0.9
+      );
+    });
+
+    expect(dFrontRedWhiteEdge?.id).toBe('square1-piece-8');
+    expect(dBackOrangeWhiteEdge?.id).toBe('square1-piece-12');
+    expect(operation.affectedPieceIds).toContain(dFrontRedWhiteEdge?.id);
+    expect(operation.affectedPieceIds).not.toContain(dBackOrangeWhiteEdge?.id);
+    expect(operation.rotationAffectedPieceIds).toBeUndefined();
+    expect(operation.targetPositionByPieceId).toBeUndefined();
+
+    const redWhiteHalfTurnPosition = movePiecePositionByOperation(
+      dFrontRedWhiteEdge as PlayerRenderablePiece,
+      operation,
+      0.5,
+    );
+    const orangeWhiteHalfTurnPosition = movePiecePositionByOperation(
+      dBackOrangeWhiteEdge as PlayerRenderablePiece,
+      operation,
+      0.5,
+    );
+
+    expect(
+      Math.hypot(
+        redWhiteHalfTurnPosition.x - (dFrontRedWhiteEdge as PlayerRenderablePiece).position.x,
+        redWhiteHalfTurnPosition.y - (dFrontRedWhiteEdge as PlayerRenderablePiece).position.y,
+        redWhiteHalfTurnPosition.z - (dFrontRedWhiteEdge as PlayerRenderablePiece).position.z,
+      ),
+    ).toBeGreaterThan(0.2);
+    expect(
+      Math.hypot(
+        orangeWhiteHalfTurnPosition.x - (dBackOrangeWhiteEdge as PlayerRenderablePiece).position.x,
+        orangeWhiteHalfTurnPosition.y - (dBackOrangeWhiteEdge as PlayerRenderablePiece).position.y,
+        orangeWhiteHalfTurnPosition.z - (dBackOrangeWhiteEdge as PlayerRenderablePiece).position.z,
+      ),
+    ).toBeLessThan(0.01);
+  });
+
+  it('moves the correct D-layer pieces during slash playback after a negative bottom turn', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [turn, slash] = adapter.parseFormula('(0,-1) /');
+    const turnedState = adapter.applyMove(adapter.createInitialState(), turn);
+    const beforeSlashModel = adapter.createRenderableModel(turnedState);
+    const transform = adapter.describeTransform?.(slash, turnedState);
+    const operation = transform?.operations[0];
+
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    const squareOnePieces = beforeSlashModel.pieces.filter((piece) =>
+      piece.id.startsWith('square1-piece-'),
+    );
+    const whiteOrangeEdge = squareOnePieces.find((piece) => {
+      const colors = visibleStickerColors(piece);
+
+      return colors.size === 2 && colors.has('#ffffff') && colors.has('#ff8000');
+    });
+    const whiteRedEdge = squareOnePieces.find((piece) => {
+      const colors = visibleStickerColors(piece);
+
+      return colors.size === 2 && colors.has('#ffffff') && colors.has('#ff0000');
+    });
+    const whiteRedBlueCorner = squareOnePieces.find((piece) => {
+      const colors = visibleStickerColors(piece);
+
+      return (
+        colors.size === 3 && colors.has('#ffffff') && colors.has('#ff0000') && colors.has('#0000ff')
+      );
+    });
+    const whiteOrangeBlueCorner = squareOnePieces.find((piece) => {
+      const colors = visibleStickerColors(piece);
+
+      return (
+        colors.size === 3 && colors.has('#ffffff') && colors.has('#ff8000') && colors.has('#0000ff')
+      );
+    });
+    const whiteRedGreenCorner = squareOnePieces.find((piece) => {
+      const colors = visibleStickerColors(piece);
+
+      return (
+        colors.size === 3 && colors.has('#ffffff') && colors.has('#ff0000') && colors.has('#00ff00')
+      );
+    });
+    const whiteGreenEdge = squareOnePieces.find((piece) => {
+      const colors = visibleStickerColors(piece);
+
+      return colors.size === 2 && colors.has('#ffffff') && colors.has('#00ff00');
+    });
+    const rotationAffectedPieceIds = new Set(
+      operation.rotationAffectedPieceIds ?? operation.affectedPieceIds,
+    );
+
+    expect(whiteOrangeEdge?.id).toBe('square1-piece-12');
+    expect(whiteRedEdge?.id).toBe('square1-piece-8');
+    expect(whiteRedBlueCorner?.id).toBe('square1-piece-15');
+    expect(whiteOrangeBlueCorner?.id).toBe('square1-piece-13');
+    expect(whiteRedGreenCorner?.id).toBe('square1-piece-9');
+    expect(whiteGreenEdge?.id).toBe('square1-piece-10');
+    expect(rotationAffectedPieceIds).toEqual(new Set(expectedSlashRotationPieceIds(turnedState)));
+    expect(rotationAffectedPieceIds).toContain(whiteOrangeEdge?.id);
+    expect(rotationAffectedPieceIds).not.toContain(whiteRedEdge?.id);
+    expect(rotationAffectedPieceIds).toContain(whiteRedGreenCorner?.id);
+    expect(rotationAffectedPieceIds).toContain(whiteGreenEdge?.id);
+    expect(rotationAffectedPieceIds).not.toContain(whiteRedBlueCorner?.id);
+    expect(rotationAffectedPieceIds).not.toContain(whiteOrangeBlueCorner?.id);
+  });
+
+  it('does not rotate an outside bottom seam edge during long-scramble slash playback', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const moves = adapter.parseFormula(
+      '(-2,0) / (5,2) / (0,-3) / (1,-2) / (6,0) / (0,-3) / (0,-1) / (0,-3) / (3,-2) / (2,0) / (-4,0) / (1,0) / (4,-1) /',
+    );
+    let state = adapter.createInitialState();
+
+    for (const move of moves.slice(0, -1)) {
+      state = adapter.applyMove(state, move);
+    }
+
+    const slash = moves.at(-1);
+    const transform = slash === undefined ? undefined : adapter.describeTransform?.(slash, state);
+    const operation = transform?.operations[0];
+
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    expect(state.wedges[17]).toMatchObject({ pieceId: 'square1-piece-1', pieceKind: 'edge' });
+    expect(state.wedges[18]).toMatchObject({ pieceId: 'square1-piece-10', pieceKind: 'edge' });
+    expect(operation.affectedPieceIds).toEqual(expectedSlashRotationPieceIds(state));
+    expect(operation.affectedPieceIds).not.toContain('square1-piece-10');
+  });
+
+  it('does not use target-pose interpolation to hide slash playback drift', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [turn, slash] = adapter.parseFormula('(1,0) /');
+    const turnedState = adapter.applyMove(adapter.createInitialState(), turn);
+    const transform = adapter.describeTransform?.(slash, turnedState);
+    const operation = transform?.operations[0];
+
+    expect(operation?.type).toBe('axis-rotation');
+    if (operation?.type !== 'axis-rotation') return;
+
+    expect(adapter.shouldRebuildModelAfterEachMove).toBe(true);
+    expect(operation.rotationAffectedPieceIds).toBeUndefined();
+    expect(operation.targetPoseBlendStart).toBeUndefined();
+    expect(operation.targetPositionByPieceId).toBeUndefined();
+    expect(operation.targetOrientationByPieceId).toBeUndefined();
+  });
+
+  it('keeps the yellow-red-green top corner side stickers attached after a top turn', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const [turn] = adapter.parseFormula('(1,0)');
+    const turnedState = adapter.applyMove(adapter.createInitialState(), turn);
+    const model = adapter.createRenderableModel(turnedState);
+    const urfCorner = model.pieces.find((piece) => {
+      const colors = new Set(piece.stickers.map((pieceSticker) => pieceSticker.color));
+
+      return (
+        piece.id.startsWith('square1-piece-') &&
+        colors.has('#ffff00') &&
+        colors.has('#ff0000') &&
+        colors.has('#00ff00')
+      );
+    });
+    const redFrontSticker = urfCorner?.stickers.find(
+      (pieceSticker) => pieceSticker.color === '#ff0000',
+    );
+    const greenRightSticker = urfCorner?.stickers.find(
+      (pieceSticker) => pieceSticker.color === '#00ff00',
+    );
+
+    expect(urfCorner).toBeDefined();
+    expect(redFrontSticker).toBeDefined();
+    expect(greenRightSticker).toBeDefined();
+
+    const redCenter = stickerWorldCenter(
+      urfCorner as PlayerRenderablePiece,
+      redFrontSticker as PlayerRenderableSticker,
+    );
+    const greenCenter = stickerWorldCenter(
+      urfCorner as PlayerRenderablePiece,
+      greenRightSticker as PlayerRenderableSticker,
+    );
+
+    expect(redCenter.z).toBeGreaterThan(0.45);
+    expect(greenCenter.x).toBeGreaterThan(0.45);
+  });
+
+  it('self-checks Square-1 playback loops against active slash invariants', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const formulas = [
+      '(1,0) /',
+      '(3,0) /',
+      '(3,0) / (0,3) /',
+      '(3,0) / / (-3,0)',
+      '(1,0) / (-1,0)',
+      '(-2,0) / (5,2) / (0,-3) / (1,-2) / (6,0) / (0,-3) / (0,-1) / (0,-3) / (3,-2) / (2,0) / (-4,0) / (1,0) / (4,-1) /',
+    ] as const;
+
+    for (const formula of formulas) {
+      let state = adapter.createInitialState();
+
+      for (const move of adapter.parseFormula(formula)) {
+        const modelBeforeMove = adapter.createRenderableModel(state);
+        const transform = adapter.describeTransform?.(move, state);
+
+        expect(transform, `${formula}: transform for ${JSON.stringify(move)}`).toBeDefined();
+        if (transform === undefined) continue;
+
+        if (move.type === 'slash') {
+          expect(transform.operations, `${formula}: slash operations`).toHaveLength(1);
+
+          const operation = transform.operations[0];
+
+          expect(operation?.type, `${formula}: slash operation type`).toBe('axis-rotation');
+          if (operation?.type === 'axis-rotation') {
+            expect(operation.affectedPieceIds, `${formula}: slash affected pieces`).toEqual(
+              expectedSlashRotationPieceIds(state),
+            );
+            expect(
+              operation.rotationAffectedPieceIds,
+              `${formula}: slash rotation override`,
+            ).toBeUndefined();
+            expect(
+              operation.targetPoseBlendStart,
+              `${formula}: slash target blend`,
+            ).toBeUndefined();
+            expect(
+              operation.targetPositionByPieceId,
+              `${formula}: slash target positions`,
+            ).toBeUndefined();
+            expect(
+              operation.targetOrientationByPieceId,
+              `${formula}: slash target orientations`,
+            ).toBeUndefined();
+
+            const activeBounds = animatedModelBounds(modelBeforeMove, operation, 0.5);
+
+            expect(
+              activeBounds.maxX - activeBounds.minX,
+              `${formula}: active slash width`,
+            ).toBeLessThan(3.4);
+            expect(
+              activeBounds.maxY - activeBounds.minY,
+              `${formula}: active slash height`,
+            ).toBeLessThan(3.4);
+            expect(
+              activeBounds.maxZ - activeBounds.minZ,
+              `${formula}: active slash depth`,
+            ).toBeLessThan(3.4);
+          }
+        }
+
+        const committedState = adapter.commitTransform!(state, transform);
+        const appliedState = adapter.applyMove(state, move);
+
+        expect(squareOnePlayerPieces(committedState), `${formula}: commit/apply pieces`).toEqual(
+          squareOnePlayerPieces(appliedState),
         );
+        expect(
+          committedState.equatorOrientation,
+          `${formula}: commit/apply middle orientation`,
+        ).toBe(appliedState.equatorOrientation);
+
+        const modelAfterMove = adapter.createRenderableModel(committedState);
+
+        for (const operation of transform.operations) {
+          if (operation.type !== 'axis-rotation') continue;
+
+          for (const pieceId of operation.affectedPieceIds.filter((id) =>
+            id.startsWith('square1-piece-'),
+          )) {
+            const pieceBeforeMove = modelBeforeMove.pieces.find((piece) => piece.id === pieceId);
+            const pieceAfterMove = modelAfterMove.pieces.find((piece) => piece.id === pieceId);
+            const capBeforeMove = pieceBeforeMove?.stickers.find(
+              (pieceSticker) => pieceSticker.face === 'U' || pieceSticker.face === 'D',
+            );
+            const capAfterMove = pieceAfterMove?.stickers.find(
+              (pieceSticker) =>
+                (pieceSticker.face === 'U' || pieceSticker.face === 'D') &&
+                pieceSticker.color === capBeforeMove?.color,
+            );
+
+            expect(pieceBeforeMove, `${formula}: ${pieceId} before`).toBeDefined();
+            expect(pieceAfterMove, `${formula}: ${pieceId} after`).toBeDefined();
+            expect(capBeforeMove, `${formula}: ${pieceId} cap before`).toBeDefined();
+            expect(capAfterMove, `${formula}: ${pieceId} cap after`).toBeDefined();
+
+            const animatedCenter = moveStickerCenterByOperation(
+              pieceBeforeMove as PlayerRenderablePiece,
+              capBeforeMove as PlayerRenderableSticker,
+              operation,
+              1,
+            );
+            const checkpointCenter = stickerWorldCenter(
+              pieceAfterMove as PlayerRenderablePiece,
+              capAfterMove as PlayerRenderableSticker,
+            );
+
+            expect(
+              Math.hypot(
+                animatedCenter.x - checkpointCenter.x,
+                animatedCenter.y - checkpointCenter.y,
+                animatedCenter.z - checkpointCenter.z,
+              ),
+              `${formula}: ${JSON.stringify(move)} ${pieceId} endpoint`,
+            ).toBeLessThan(0.02);
+          }
+        }
+
+        state = committedState;
       }
+
+      expect(squareOnePlayerPieces(state), `${formula}: final pieces`).toHaveLength(24);
+      expect(new Set(squareOnePlayerPieces(state)), `${formula}: final physical pieces`).toEqual(
+        new Set(Array.from({ length: 16 }, (_, piece) => piece)),
+      );
+      expect([0, 3], `${formula}: final middle orientation`).toContain(state.equatorOrientation);
+    }
+  });
+
+  it('keeps committed Square-1 player state aligned with the scramble-puzzle reference', () => {
+    const adapter = createSquareOnePlayerAdapter();
+    const reference = createSquareOneDefinition();
+    const formulas = [
+      '(1,0) /',
+      '(3,0) /',
+      '(3,0) / (0,3) /',
+      '(3,0) / / (-3,0)',
+      '(1,0) / (-1,0)',
+      '(-2,0) / (5,2) / (0,-3) / (1,-2) / (6,0) / (0,-3) / (0,-1) / (0,-3) / (3,-2) / (2,0) / (-4,0) / (1,0) / (4,-1) /',
+    ] as const;
+
+    for (const formula of formulas) {
+      let state = adapter.createInitialState();
+
+      for (const move of adapter.parseFormula(formula)) {
+        state = adapter.applyMove(state, move);
+      }
+
+      const referenceState = reference.applyAlgorithm(reference.createSolvedState(), formula);
+
+      expect(squareOnePlayerPieces(state), formula).toEqual(referenceState.pieces);
+      expect(state.equatorOrientation === 0, formula).toBe(referenceState.sliceSolved);
     }
   });
 
@@ -966,7 +1781,7 @@ describe('createSquareOnePlayerAdapter', () => {
     }
   });
 
-  it('keeps slash checkpoints aligned with the Square-1 reference face order', () => {
+  it('keeps slash checkpoints aligned with the canonical Square-1 face order', () => {
     const adapter = createSquareOnePlayerAdapter();
     let state = adapter.createInitialState();
 
@@ -975,9 +1790,9 @@ describe('createSquareOnePlayerAdapter', () => {
     }
 
     const model = adapter.createRenderableModel(state);
-    const topWhiteEdgePiece = model.pieces.find((piece) => piece.id === 'square1-piece-8');
+    const topWhiteEdgePiece = model.pieces.find((piece) => piece.id === 'square1-piece-9');
     const topWhiteSticker = topWhiteEdgePiece?.stickers.find(
-      (pieceSticker) => pieceSticker.id === 'square1-piece-8-u',
+      (pieceSticker) => pieceSticker.id === 'square1-piece-9-u',
     );
 
     expect(topWhiteEdgePiece).toBeDefined();
@@ -990,8 +1805,7 @@ describe('createSquareOnePlayerAdapter', () => {
       ),
     );
 
-    expect(stickerAngle).toBeGreaterThan(-1.1);
-    expect(stickerAngle).toBeLessThan(-0.8);
+    expect(stickerAngle).toBeCloseTo(-Math.PI / 12, 3);
   });
 
   it('matches the Square-1 reference middle strip colors after slash checkpoints', () => {
@@ -1139,14 +1953,14 @@ describe('createSquareOnePlayerAdapter', () => {
     expect(animation.affectedPieceIds).toEqual(
       expect.arrayContaining(['square1-piece-0', 'square1-piece-8']),
     );
-    expect(animation.angleRadiansByPieceId?.['square1-piece-0']).toBeCloseTo(Math.PI / 2);
+    expect(animation.angleRadiansByPieceId?.['square1-piece-0']).toBeCloseTo(-Math.PI / 2);
     expect(animation.angleRadiansByPieceId?.['square1-piece-8']).toBeCloseTo(-Math.PI / 3);
     expect(animation.axis).toEqual({ x: 0, y: 1, z: 0 });
     expect(animation.pivotByPieceId?.['square1-piece-0']?.y).toBeGreaterThan(0);
     expect(animation.pivotByPieceId?.['square1-piece-8']?.y).toBeLessThan(0);
   });
 
-  it('animates slash moves as the state-defined half swap', () => {
+  it('animates slash moves as the physical right-half swap', () => {
     const adapter = createSquareOnePlayerAdapter();
     const [slash] = adapter.parseFormula('/');
     const animation = adapter.describeMove(slash, adapter.createInitialState());
@@ -1157,10 +1971,10 @@ describe('createSquareOnePlayerAdapter', () => {
         'square1-piece-5',
         'square1-piece-6',
         'square1-piece-7',
-        'square1-piece-8',
         'square1-piece-9',
         'square1-piece-10',
         'square1-piece-11',
+        'square1-piece-8',
         'square1-middle-right',
       ]),
     );

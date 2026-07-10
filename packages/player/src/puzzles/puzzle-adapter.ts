@@ -68,12 +68,14 @@ export interface PlayerMoveAnimation<Move = unknown> {
   readonly axis: Vector3Like;
   readonly pivot: Vector3Like;
   readonly pivotByPieceId?: Readonly<Record<string, Vector3Like>>;
+  readonly rotationAffectedPieceIds?: readonly string[];
   readonly angleRadians: number;
   readonly angleRadiansByPieceId?: Readonly<Record<string, number>>;
   readonly colorPulseByPieceId?: Readonly<Record<string, string>>;
   readonly colorPulseByStickerId?: Readonly<Record<string, string>>;
   readonly durationMultiplier?: number;
   readonly positionPulseByPieceId?: Readonly<Record<string, Vector3Like>>;
+  readonly targetPoseBlendStart?: number;
   readonly targetOrientationByPieceId?: Readonly<Record<string, QuaternionLike>>;
   readonly targetPositionByPieceId?: Readonly<Record<string, Vector3Like>>;
   readonly rotateInPlace?: boolean;
@@ -90,8 +92,12 @@ export interface PlayerAxisRotationOperation {
   readonly axis: Vector3Like;
   readonly pivot: Vector3Like;
   readonly pivotByPieceId?: Readonly<Record<string, Vector3Like>>;
+  readonly rotationAffectedPieceIds?: readonly string[];
   readonly angleRadians: number;
   readonly angleRadiansByPieceId?: Readonly<Record<string, number>>;
+  readonly targetPoseBlendStart?: number;
+  readonly targetOrientationByPieceId?: Readonly<Record<string, QuaternionLike>>;
+  readonly targetPositionByPieceId?: Readonly<Record<string, Vector3Like>>;
   readonly rotateInPlace?: boolean;
 }
 
