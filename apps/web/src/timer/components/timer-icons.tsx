@@ -95,10 +95,69 @@ export const EditIcon = ({ size = 18 }: TimerIconProps) => (
 
 export const DeleteIcon = ({ className, size = 18 }: TimerIconProps) => (
   <svg {...iconProps(size, className)}>
+    <path d="M4 7h16" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
     <path
-      d="M5 7h14M10 11v6M14 11v6M8 7l1-3h6l1 3M7 7l1 14h8l1-14"
+      d="M9 7V4.8A1.8 1.8 0 0 1 10.8 3h2.4A1.8 1.8 0 0 1 15 4.8V7"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+    <path
+      d="M6.5 7 7.4 19.3A2 2 0 0 0 9.4 21h5.2a2 2 0 0 0 2-1.7L17.5 7"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+    <path
+      d="M10 11v6M14 11v6"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
+export const CloseIcon = ({ className, size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size, className)}>
+    <path
+      d="M7 7l10 10M17 7 7 17"
       stroke="currentColor"
       strokeLinecap="square"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
+export const CopyIcon = ({ className, size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size, className)}>
+    <rect
+      height="12"
+      rx="1.5"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      width="10"
+      x="9"
+      y="8"
+    />
+    <path
+      d="M15 6.5V5.8A1.8 1.8 0 0 0 13.2 4H6.8A1.8 1.8 0 0 0 5 5.8v9.4A1.8 1.8 0 0 0 6.8 17H7"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
+export const CheckIcon = ({ className, size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size, className)}>
+    <path
+      d="m6 12.5 3.7 3.7L18 8"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       strokeWidth="2"
     />
   </svg>

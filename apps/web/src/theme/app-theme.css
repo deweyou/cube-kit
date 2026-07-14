@@ -1,3 +1,14 @@
+[data-theme],
+[data-theme] * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+[data-theme] :is(input, textarea, [contenteditable='true']) {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 [data-theme='dark'] {
   --ui-color-canvas: #080808;
   --ui-color-surface: #111111;

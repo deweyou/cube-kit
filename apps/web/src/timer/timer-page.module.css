@@ -478,8 +478,8 @@
   background: color-mix(in srgb, var(--ui-color-canvas) 62%, transparent);
   display: grid;
   inset: 0;
-  padding: calc(88px + env(safe-area-inset-top)) 16px 16px;
-  place-items: start center;
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  place-items: center;
   position: fixed;
   z-index: 12;
 }
@@ -499,11 +499,35 @@
   padding: 18px;
 }
 
+.deleteResultModal {
+  width: min(340px, 100%);
+}
+
+.deleteResultContent {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
 .modalTitle {
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.3;
+  margin: 0;
+}
+
+.deleteResultTitle {
+  font-size: 1.16rem;
+  font-weight: 760;
+}
+
+.deleteResultDescription {
+  color: var(--ui-color-text-muted);
+  font-size: 0.9rem;
+  font-weight: 520;
+  letter-spacing: 0;
+  line-height: 1.45;
   margin: 0;
 }
 
@@ -645,6 +669,12 @@
 .secondaryButton:hover,
 .primaryButton:hover {
   opacity: 0.84;
+}
+
+.dangerButton {
+  background: var(--ui-color-danger-text);
+  border-color: var(--ui-color-danger-text);
+  color: var(--ui-color-canvas);
 }
 
 .secondaryButton:focus-visible,
@@ -1023,6 +1053,12 @@
   text-decoration: none;
 }
 
+.resultButton[data-active='true'] {
+  color: var(--ui-color-text);
+  font-weight: 680;
+  opacity: 1;
+}
+
 .resultButton:focus-visible {
   border-radius: 4px;
   opacity: 1;
@@ -1113,7 +1149,7 @@
     --timer-page-inline-padding: 16px;
     --timer-scramble-line-height: 1.18;
     --timer-scramble-toolbar-height: 30px;
-    --timer-top-zone-height: 342px;
+    --timer-top-zone-height: clamp(286px, 43dvh, 328px);
   }
 
   .hero {
@@ -1149,10 +1185,10 @@
   }
 
   .scrambleText :global([data-density='dense']) {
-    --scramble-text-size: clamp(0.86rem, 2vw + 0.32rem, 1rem);
+    --scramble-text-size: clamp(0.8rem, 1.35vw + 0.3rem, 0.94rem);
 
     inline-size: fit-content;
-    line-height: 1.14;
+    line-height: 1.1;
     max-inline-size: 100%;
     text-align: center;
   }
