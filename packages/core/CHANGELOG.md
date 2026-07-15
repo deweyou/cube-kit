@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.0.6 - 2026-07-15
+
+- feat: add persisted results and statistics views ([#40](https://github.com/deweyou/cube-kit/pull/40)) (03b5daf)
+- feat: add Square-1 player playback ([#36](https://github.com/deweyou/cube-kit/pull/36)) (b46883c)
+- Add web settings preferences ([#39](https://github.com/deweyou/cube-kit/pull/39)) (7302182)
+- [codex] replace web timer with redesigned app shell ([#37](https://github.com/deweyou/cube-kit/pull/37)) (d9178cd)
+- fix: align player puzzle scramble states ([#38](https://github.com/deweyou/cube-kit/pull/38)) (933fa4b)
+- fix: refine square-1 scramble image layout ([#35](https://github.com/deweyou/cube-kit/pull/35)) (c7651f7)
+- feat: add clock player support ([#34](https://github.com/deweyou/cube-kit/pull/34)) (3c43551)
+- feat: add Three.js player package ([#33](https://github.com/deweyou/cube-kit/pull/33)) (5aac9ca)
+- feat: add FTO event support ([#32](https://github.com/deweyou/cube-kit/pull/32)) (f557bf2)
+- Improve timer multi-blind and mobile layout ([#31](https://github.com/deweyou/cube-kit/pull/31)) (fdd66cb)
+
+<details>
+<summary>Release scope</summary>
+
+- Previous tag: cubegin@0.0.5
+- packages/cli
+- packages/core
+- packages/icons
+- packages/player
+- packages/scramble-core
+- packages/scramble-image
+- packages/scramble-puzzle
+- packages/shared
+- packages/solver
+
+</details>
+
 ## 0.0.5 - 2026-06-13
 
 - chore(release): align package metadata and docs badges ([#30](https://github.com/deweyou/cube-kit/pull/30)) (4ad1cde)

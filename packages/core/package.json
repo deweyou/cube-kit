@@ -1,6 +1,6 @@
 {
   "name": "cubegin",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Public Cubegin package entrypoints for scramble generation, parsing, and SVG rendering.",
   "license": "GPL-3.0-only",
   "repository": {
