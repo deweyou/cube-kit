@@ -17,6 +17,21 @@ const solve = (
 });
 
 describe('solve statistics', () => {
+  it('returns empty statistics for a session without solves', () => {
+    const stats = calculateSolveStatistics([]);
+
+    expect(stats).toMatchObject({
+      averageMs: null,
+      averageStandardDeviationMs: null,
+      bestMs: null,
+      rollingAverages: [],
+      totalCount: 0,
+      validCount: 0,
+      validRatio: 0,
+      worstMs: null,
+    });
+  });
+
   it('counts valid solves and calculates best single with penalties applied', () => {
     const stats = calculateSolveStatistics([
       solve(1000, 4, 'dnf'),
@@ -154,6 +169,22 @@ describe('solve statistics', () => {
       standardDeviationMs: 0,
       valueMs: 1300,
       valueText: '1.300',
+    });
+  });
+
+  it('returns no incomplete windows and labels all-DNF windows', () => {
+    expect(calculateRollingAverageWindows([solve(1000, 1)], 'ao5')).toEqual([]);
+
+    const windows = calculateRollingAverageWindows(
+      [solve(1000, 3, 'dnf'), solve(1100, 2, 'dnf'), solve(1200, 1, 'dnf')],
+      'av3',
+    );
+
+    expect(windows).toHaveLength(1);
+    expect(windows[0]).toMatchObject({
+      valueMs: null,
+      valueText: 'DNF',
+      standardDeviationMs: null,
     });
   });
 
