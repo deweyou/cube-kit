@@ -29,8 +29,8 @@ selection, settings persistence, and page layout.
 
 - `AppRouter` wraps the app in React Router, keeps `TimerPage` mounted while the
   user moves between `/` and `/settings`, maps `/settings` to `SettingsPage`,
-  and reserves `/results` and `/formulas` for follow-up pages. Route components
-  are lazy loaded at this boundary. See
+  and maps `/results` to `ResultsPage`; `/formulas` remains a follow-up page.
+  Route components are lazy loaded at this boundary. See
   [apps/web/src/app-router.tsx#L1](../apps/web/src/app-router.tsx#L1) and
   [apps/web/src/app-routes.ts#L1](../apps/web/src/app-routes.ts#L1).
 - `AppPreferencesProvider` wraps the router, persists preferences in
@@ -50,10 +50,15 @@ selection, settings persistence, and page layout.
   inspection countdown duration, and WCA +2/DNF penalty thresholds.
 - `@cubegin/shared/timer-session` is platform-agnostic solve/session logic. It
   owns solve records, penalty display, elapsed formatting, and rolling averages
-  including mo3, ao5, ao12, ao50, and ao100.
-- `TimerPage` currently keeps lists and solves in React state. Each list binds
-  to one event/scramble type, and switching lists switches the active event for
-  scramble generation.
+  including mo3, ao5, ao12, ao50, and ao100. Average calculation is centralized
+  in `calculateSolveAverage`: a window is DNF only when more than half of its
+  entries are DNF; otherwise numeric entries are averaged with the requested
+  trim rule and a population standard deviation.
+- `TimerSessionStoreProvider` owns web-local lists and solves through IndexedDB.
+  `TimerPage` records, updates, and deletes solves through this store, while
+  `ResultsPage` reads the same active list for score rows, rolling averages,
+  detail editing, and statistics. Each list binds to one event/scramble type,
+  and switching lists switches the active event for scramble generation.
 - `useTimer` bridges the core timer to React with `requestAnimationFrame`; keep
   RAF cleanup on stop, reset, and unmount. See
   [apps/web/src/timer/hooks/use-timer.ts#L5](../apps/web/src/timer/hooks/use-timer.ts#L5).
@@ -88,19 +93,22 @@ selection, settings persistence, and page layout.
 - [apps/web/src/preferences/app-preferences.tsx#L1](../apps/web/src/preferences/app-preferences.tsx#L1) - preference persistence, resolved theme, and localized copy.
 - [apps/web/src/settings/settings-page.tsx#L1](../apps/web/src/settings/settings-page.tsx#L1) - settings route for general and timer preferences.
 - [apps/web/src/timer/timer-page.tsx#L1](../apps/web/src/timer/timer-page.tsx#L1) - redesigned timer state and layout.
+- [apps/web/src/results/results-page.tsx#L1](../apps/web/src/results/results-page.tsx#L1) - persisted score history, detail surfaces, and statistics views.
+- [apps/web/src/timer-session/timer-session-store.tsx#L1](../apps/web/src/timer-session/timer-session-store.tsx#L1) - React store over the IndexedDB list and solve adapter.
 - [apps/web/src/timer/timer-navigation.tsx#L1](../apps/web/src/timer/timer-navigation.tsx#L1) - shared timer app navigation.
 - [apps/web/src/timer/timer-page.module.css#L1](../apps/web/src/timer/timer-page.module.css#L1) - fixed timer, scramble, bottom dock, and mobile nav layout.
 - [apps/web/src/timer/components/scramble-image.tsx#L5](../apps/web/src/timer/components/scramble-image.tsx#L5) - inline SVG boundary.
 - [packages/shared/src/timer/format.ts#L1](../packages/shared/src/timer/format.ts#L1) - elapsed time formatting.
+- [packages/shared/src/timer-session/solve-average.ts#L1](../packages/shared/src/timer-session/solve-average.ts#L1) - shared trimmed-average and standard-deviation rules.
 - [packages/shared/src/preferences/index.ts#L1](../packages/shared/src/preferences/index.ts#L1) - preference defaults, normalization, display formatting, and WCA inspection rules.
 
 ## Open Questions
 
 - TODO: Confirm whether the WeChat miniprogram should mirror the web timer
   gesture model or use native mini-program interactions.
-- TODO: Decide when `TimerPage` should move list and solve storage from React
-  state to IndexedDB-backed session persistence.
+- TODO: Decide when local results history should add cloud sync, import, and
+  export without changing the shared solve/session contract.
 
 ---
 
-_Last updated: 2026-07-07 | Reason: document settings preferences, WCA inspection, and timer display modes_
+_Last updated: 2026-07-14 | Reason: document persisted results history, shared average rules, and IndexedDB ownership_

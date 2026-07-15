@@ -13,6 +13,8 @@ import {
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppPreferencesProvider } from '../preferences/app-preferences';
+import { createMemoryTimerSessionDb } from '../timer-session/timer-session-db';
+import { TimerSessionStoreProvider } from '../timer-session/timer-session-store';
 import { TimerPage } from './timer-page';
 
 const scrambleImageMock = vi.hoisted(() => ({
@@ -168,11 +170,20 @@ const setStoredPreferences = (preferences: Partial<typeof DEFAULT_APP_PREFERENCE
 const renderTimerPage = (props: ComponentProps<typeof TimerPage> = {}) =>
   render(
     <AppPreferencesProvider>
-      <MemoryRouter>
-        <TimerPage {...props} />
-      </MemoryRouter>
+      <TimerSessionStoreProvider db={createMemoryTimerSessionDb()}>
+        <MemoryRouter>
+          <TimerPage {...props} />
+        </MemoryRouter>
+      </TimerSessionStoreProvider>
     </AppPreferencesProvider>,
   );
+
+const finishOneSolve = async () => {
+  fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+  fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+  await waitFor(() => expect(screen.getByRole('toolbar', { name: '成绩操作' })).toBeTruthy());
+};
 
 beforeEach(() => {
   localStorage.clear();
@@ -740,7 +751,7 @@ describe('TimerPage', () => {
       /@media \(max-width: 1180px\)\s*\{[\s\S]*?\.bottomDock\s*\{[^}]*padding-bottom: 0;/u,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 720px\)\s*\{[^}]*--timer-top-zone-height: 342px;/su,
+      /@media \(max-width: 720px\)\s*\{[^}]*--timer-top-zone-height: clamp\(286px, 43dvh, 328px\);/su,
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[^}]*--timer-page-inline-padding: 16px;/su,
@@ -755,13 +766,13 @@ describe('TimerPage', () => {
       /@media \(max-width: 720px\)\s*\{[^}]*--timer-scramble-toolbar-height: 30px;/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*--scramble-text-size: clamp\(0\.86rem, 2vw \+ 0\.32rem, 1rem\);/u,
+      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*--scramble-text-size: clamp\(0\.8rem, 1\.35vw \+ 0\.3rem, 0\.94rem\);/u,
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*inline-size: fit-content;/u,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*line-height: 1\.14;/u,
+      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*line-height: 1\.1;/u,
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*max-inline-size: 100%;/u,
@@ -1001,6 +1012,61 @@ describe('TimerPage', () => {
     expect(within(summaryRegion).queryByText('有效成绩次数 / 总次数')).toBeNull();
     expect(within(summaryRegion).getByText('1/1')).toBeTruthy();
     expect(within(summaryRegion).getAllByText('1.234')).toHaveLength(2);
+  });
+
+  it('edits the stopped solve penalty from the result toolbar', async () => {
+    renderTimerPage();
+
+    await finishOneSolve();
+
+    fireEvent.click(screen.getByRole('button', { name: '+2' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }).textContent).toContain(
+        '3.234+',
+      ),
+    );
+
+    const summaryRegion = screen.getByRole('region', { name: '成绩概要' });
+
+    expect(within(summaryRegion).getByText('1/1')).toBeTruthy();
+    expect(within(summaryRegion).getAllByText('3.234')).toHaveLength(2);
+
+    fireEvent.click(screen.getByRole('button', { name: 'DNF' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }).textContent).toContain(
+        'DNF',
+      ),
+    );
+    expect(within(summaryRegion).getByText('0/1')).toBeTruthy();
+    expect(within(summaryRegion).getByText('DNF')).toBeTruthy();
+  });
+
+  it('confirms deleting the stopped solve from the delete dialog', async () => {
+    renderTimerPage();
+
+    await finishOneSolve();
+
+    fireEvent.click(screen.getByRole('button', { name: '删除' }));
+
+    const dialog = await screen.findByRole('dialog', { name: '删除本次成绩' });
+    const confirmButton = within(dialog).getByRole('button', { name: '删除' });
+
+    expect(within(dialog).getByText('删除后不可恢复。')).toBeTruthy();
+    expect(within(dialog).queryByRole('checkbox')).toBeNull();
+    expect((confirmButton as HTMLButtonElement).disabled).toBe(false);
+    expect(timerCss).toMatch(/\.modalBackdrop\s*\{[^}]*place-items: center;/su);
+    expect(timerCss).toMatch(/\.deleteResultTitle\s*\{[^}]*font-size: 1\.16rem;/su);
+
+    fireEvent.click(confirmButton);
+
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: '删除本次成绩' })).toBeNull());
+    expect(screen.queryByRole('toolbar', { name: '成绩操作' })).toBeNull();
+    expect(screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }).textContent).toContain(
+      '0.000',
+    );
+    expect(within(screen.getByRole('region', { name: '成绩概要' })).getByText('0/0')).toBeTruthy();
   });
 
   it('claims Space before the focused list selector can consume it', () => {

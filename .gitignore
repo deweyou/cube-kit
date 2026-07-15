@@ -27,6 +27,8 @@ coverage
 *.sln
 *.sw?
 .superpowers/
+.deweyou/
+.harness_local/
 .worktrees/
 .build/
 packages/core/skills/

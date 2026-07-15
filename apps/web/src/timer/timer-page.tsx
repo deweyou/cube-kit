@@ -17,6 +17,7 @@ import { Select } from '@deweyou-design/react/select';
 import { getCubeginWordmarkSvg } from '../brand/wordmark';
 import type { AppCopy } from '../preferences/app-copy';
 import { useAppPreferences } from '../preferences/app-preferences';
+import { useTimerSessionStore, type TimerList } from '../timer-session/timer-session-store';
 import { ScrambleImage } from './components/scramble-image';
 import { ScrambleText } from './components/scramble-text';
 import { AddIcon, DeleteIcon, EditIcon } from './components/timer-icons';
@@ -36,28 +37,14 @@ interface TimerScrambleType {
   label: string;
 }
 
-interface TimerList {
-  id: string;
-  name: string;
-  scrambleTypeId: EventId;
-}
-
 const TIMER_SCRAMBLE_TYPES: TimerScrambleType[] = EVENT_IDS.map((eventId) => ({
   id: eventId,
   label: getEventShortLabel(eventId),
 }));
 
-const INITIAL_TIMER_LISTS: TimerList[] = EVENT_IDS.map((eventId) => ({
-  id: `main-${eventId}`,
-  name: getEventShortLabel(eventId),
-  scrambleTypeId: eventId,
-}));
-
 const TIMER_ROLLING_STAT_SIZES = [3, 5, 12, 50, 100] as const;
 const TIMER_ALWAYS_VISIBLE_ROLLING_STAT_LIMIT = 5;
 const TIMER_RECENT_SOLVE_LIMIT = 12;
-
-const EMPTY_TIMER_SOLVE_RECORDS: SolveRecord[] = [];
 
 type TimerListFormMode = 'create' | 'edit';
 
@@ -97,7 +84,10 @@ interface TimerFocusSurfaceProps {
   isFocusMode: boolean;
   label: string;
   placeholder?: string;
+  stoppedPenalty: SolvePenalty;
   state: TimerState;
+  onDeleteStoppedSolve: () => void;
+  onStoppedPenaltyChange: (penalty: SolvePenalty) => void;
 }
 
 interface TimerElapsedDisplayProps {
@@ -117,7 +107,7 @@ const getTimerTimeWidth = (elapsedText: string): TimerTimeWidth => {
 };
 
 const getTimerDisplayKind = (elapsedText: string): TimerDisplayKind => {
-  if (/^[0-9:.]+$/u.test(elapsedText)) return 'clock';
+  if (/^[0-9:.+]+$/u.test(elapsedText)) return 'clock';
   return 'label';
 };
 
@@ -142,32 +132,6 @@ const getRollingAverageStat = (
   size: number,
 ): RollingAverageStat | undefined =>
   rollingAverages.find((rollingAverage) => rollingAverage.size === size);
-
-const createTimerSolveRecord = ({
-  createdAt,
-  elapsedMs,
-  eventId,
-  listId,
-  penalty = 'none',
-  scramble,
-  solveIndex,
-}: {
-  createdAt: number;
-  elapsedMs: number;
-  eventId: EventId;
-  listId: string;
-  penalty?: SolvePenalty;
-  scramble: string;
-  solveIndex: number;
-}): SolveRecord => ({
-  id: `${listId}:${solveIndex}`,
-  sessionId: listId,
-  eventId,
-  scramble,
-  elapsedMs,
-  penalty,
-  createdAt,
-});
 
 interface TimerListSelectorProps {
   activeListId: string;
@@ -441,35 +405,118 @@ const TimerScramblePreview = ({ eventId, label, svg }: TimerScramblePreviewProps
 interface TimerFeedbackSlotProps {
   copy: AppCopy['timer'];
   placeholder?: string;
+  stoppedPenalty: SolvePenalty;
   state: TimerState;
+  onDeleteStoppedSolve: () => void;
+  onStoppedPenaltyChange: (penalty: SolvePenalty) => void;
 }
 
-const ResultToolbar = ({ copy }: { copy: AppCopy['timer'] }) => (
+interface ResultToolbarProps {
+  copy: AppCopy['timer'];
+  penalty: SolvePenalty;
+  onDelete: () => void;
+  onPenaltyChange: (penalty: SolvePenalty) => void;
+}
+
+const ResultToolbar = ({ copy, penalty, onDelete, onPenaltyChange }: ResultToolbarProps) => (
   <div className={styles.resultToolbar} role="toolbar" aria-label={copy.resultToolbarLabel}>
-    <button className={styles.resultButton} type="button">
+    <button
+      className={styles.resultButton}
+      type="button"
+      aria-pressed={penalty === '+2'}
+      data-active={penalty === '+2' ? 'true' : undefined}
+      onClick={() => onPenaltyChange('+2')}
+    >
       +2
     </button>
-    <button className={styles.resultButton} type="button">
+    <button
+      className={styles.resultButton}
+      type="button"
+      aria-pressed={penalty === 'dnf'}
+      data-active={penalty === 'dnf' ? 'true' : undefined}
+      onClick={() => onPenaltyChange('dnf')}
+    >
       DNF
     </button>
     <button
       className={`${styles.resultButton} ${styles.deleteResultButton}`}
       type="button"
       aria-label={copy.deleteResult}
+      onClick={onDelete}
     >
       <DeleteIcon className={styles.deleteIcon} size={18} />
     </button>
   </div>
 );
 
-const TimerFeedbackSlot = ({ copy, placeholder, state }: TimerFeedbackSlotProps) => (
+const TimerFeedbackSlot = ({
+  copy,
+  placeholder,
+  stoppedPenalty,
+  state,
+  onDeleteStoppedSolve,
+  onStoppedPenaltyChange,
+}: TimerFeedbackSlotProps) => (
   <div className={styles.feedbackSlot} data-feedback-slot="true" data-state={state}>
     {placeholder === undefined ? null : (
       <span className={styles.placeholder} aria-hidden="true">
         {placeholder}
       </span>
     )}
-    {state === 'stopped' ? <ResultToolbar copy={copy} /> : null}
+    {state === 'stopped' ? (
+      <ResultToolbar
+        copy={copy}
+        penalty={stoppedPenalty}
+        onDelete={onDeleteStoppedSolve}
+        onPenaltyChange={onStoppedPenaltyChange}
+      />
+    ) : null}
+  </div>
+);
+
+interface DeleteResultDialogProps {
+  copy: AppCopy['timer'];
+  onCancel: () => void;
+  onDelete: () => void;
+}
+
+const DeleteResultDialog = ({
+  copy,
+  onCancel,
+  onDelete,
+}: DeleteResultDialogProps) => (
+  <div className={styles.modalBackdrop}>
+    <div
+      className={`${styles.createListModal} ${styles.deleteResultModal}`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="timer-delete-result-title"
+      aria-describedby="timer-delete-result-description"
+    >
+      <div className={styles.deleteResultContent}>
+        <h2
+          className={`${styles.modalTitle} ${styles.deleteResultTitle}`}
+          id="timer-delete-result-title"
+        >
+          {copy.deleteResultConfirmTitle}
+        </h2>
+        <p className={styles.deleteResultDescription} id="timer-delete-result-description">
+          {copy.deleteResultConfirmDescription}
+        </p>
+        <div className={styles.modalActions}>
+          <button className={styles.secondaryButton} type="button" onClick={onCancel}>
+            {copy.cancel}
+          </button>
+          <button
+            className={`${styles.primaryButton} ${styles.dangerButton}`}
+            type="button"
+            onClick={onDelete}
+          >
+            {copy.deleteResult}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 );
 
@@ -516,7 +563,10 @@ const TimerFocusSurface = ({
   isFocusMode,
   label,
   placeholder,
+  stoppedPenalty,
   state,
+  onDeleteStoppedSolve,
+  onStoppedPenaltyChange,
 }: TimerFocusSurfaceProps) => {
   const displayKind = getTimerDisplayKind(elapsedText);
   const timeWidth = getTimerTimeWidth(elapsedText);
@@ -538,48 +588,62 @@ const TimerFocusSurface = ({
       >
         <TimerElapsedDisplay displayKind={displayKind} elapsedText={elapsedText} />
       </span>
-      <TimerFeedbackSlot copy={copy} placeholder={placeholder} state={state} />
+      <TimerFeedbackSlot
+        copy={copy}
+        placeholder={placeholder}
+        stoppedPenalty={stoppedPenalty}
+        state={state}
+        onDeleteStoppedSolve={onDeleteStoppedSolve}
+        onStoppedPenaltyChange={onStoppedPenaltyChange}
+      />
     </div>
   );
 };
 
 export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   const { copy, preferences, resolvedTheme } = useAppPreferences();
+  const {
+    activeList,
+    activeListId,
+    activeListSolveRecords,
+    addSolve,
+    createList,
+    deleteSolve,
+    lists,
+    setActiveListId,
+    updateList,
+    updateSolvePenalty,
+  } = useTimerSessionStore();
   const timerCopy = copy.timer;
   const wordmarkSvg = getCubeginWordmarkSvg(resolvedTheme);
   const [timerState, setTimerState] = useState<TimerState>('idle');
   const [finalElapsed, setFinalElapsed] = useState(0);
   const [inspectionElapsed, setInspectionElapsed] = useState(0);
+  const [stoppedSolveId, setStoppedSolveId] = useState<string>();
+  const [stoppedSolvePenalty, setStoppedSolvePenalty] = useState<SolvePenalty>('none');
+  const [isDeleteResultDialogOpen, setIsDeleteResultDialogOpen] = useState(false);
   const [isBrandHovering, setIsBrandHovering] = useState(false);
-  const [lists, setLists] = useState(INITIAL_TIMER_LISTS);
-  const [activeListId, setActiveListId] = useState(INITIAL_TIMER_LISTS[0].id);
   const [listFormMode, setListFormMode] = useState<TimerListFormMode>();
   const [editingListId, setEditingListId] = useState<string>();
   const [listFormName, setListFormName] = useState('');
   const [listFormScrambleTypeId, setListFormScrambleTypeId] = useState(TIMER_SCRAMBLE_TYPES[0].id);
-  const [solveRecordsByListId, setSolveRecordsByListId] = useState<Record<string, SolveRecord[]>>({
-    [INITIAL_TIMER_LISTS[0].id]: [],
-  });
   const latestScrambleRequestId = useRef(0);
   const inspectionStartedAt = useRef<number | undefined>(undefined);
   const pendingReadyAction = useRef<TimerReadyAction>('solve');
   const pendingSolvePenalty = useRef<SolvePenalty>('none');
+  const pendingStoppedSolve = useRef<Promise<SolveRecord> | undefined>(undefined);
+  const stoppedPenaltyRequestId = useRef(0);
   const keyboardClickSuppressionTarget = useRef<EventTarget | null>(null);
   const keyboardClickSuppressionTimeout = useRef<number | undefined>(undefined);
   const [activeScramble, setActiveScramble] = useState('');
   const [activeScrambleEventId, setActiveScrambleEventId] = useState<EventId>(
-    INITIAL_TIMER_LISTS[0].scrambleTypeId,
+    TIMER_SCRAMBLE_TYPES[0].id,
   );
   const [scrambleError, setScrambleError] = useState<string>();
   const [isScrambleLoading, setIsScrambleLoading] = useState(true);
   const scrambleGenerator = useMemo(() => createTimerScrambleGenerator(), []);
   const { elapsed, start, stop, reset } = useTimer();
 
-  const activeList = useMemo(
-    () => lists.find((list) => list.id === activeListId) ?? lists[0],
-    [activeListId, lists],
-  );
-  const activeListSolveRecords = solveRecordsByListId[activeList.id] ?? EMPTY_TIMER_SOLVE_RECORDS;
   const isActiveScrambleForList = activeScrambleEventId === activeList.scrambleTypeId;
   const scrambleSvg = useMemo(
     () =>
@@ -595,6 +659,64 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     () => calculateSolveStatistics(activeListSolveRecords),
     [activeListSolveRecords],
   );
+
+  const clearStoppedSolveState = useCallback(() => {
+    pendingStoppedSolve.current = undefined;
+    stoppedPenaltyRequestId.current += 1;
+    setStoppedSolveId(undefined);
+    setStoppedSolvePenalty('none');
+    setIsDeleteResultDialogOpen(false);
+  }, []);
+
+  const openDeleteResultDialog = useCallback(() => {
+    setIsDeleteResultDialogOpen(true);
+  }, []);
+
+  const closeDeleteResultDialog = useCallback(() => {
+    setIsDeleteResultDialogOpen(false);
+  }, []);
+
+  const handleStoppedPenaltyChange = useCallback(
+    (penalty: SolvePenalty) => {
+      const requestId = stoppedPenaltyRequestId.current + 1;
+      stoppedPenaltyRequestId.current = requestId;
+      setStoppedSolvePenalty(penalty);
+
+      void (async () => {
+        const solveId = stoppedSolveId ?? (await pendingStoppedSolve.current)?.id;
+        if (solveId === undefined || stoppedPenaltyRequestId.current !== requestId) return;
+
+        setStoppedSolveId(solveId);
+        await updateSolvePenalty(solveId, penalty);
+      })();
+    },
+    [stoppedSolveId, updateSolvePenalty],
+  );
+
+  const handleDeleteStoppedSolve = useCallback(() => {
+    const solveId = stoppedSolveId;
+    const solvePromise = pendingStoppedSolve.current;
+
+    pendingStoppedSolve.current = undefined;
+    stoppedPenaltyRequestId.current += 1;
+    setStoppedSolveId(undefined);
+    setStoppedSolvePenalty('none');
+    setIsDeleteResultDialogOpen(false);
+    setFinalElapsed(0);
+    reset();
+    pendingSolvePenalty.current = 'none';
+    pendingReadyAction.current = 'solve';
+    inspectionStartedAt.current = undefined;
+    setInspectionElapsed(0);
+    setTimerState('idle');
+
+    void (async () => {
+      const resolvedSolveId = solveId ?? (await solvePromise)?.id;
+      if (resolvedSolveId === undefined) return;
+
+      await deleteSolve(resolvedSolveId);
+    })();
+  }, [deleteSolve, reset, stoppedSolveId]);
 
   const loadScramble = useCallback(
     async (eventId: EventId) => {
@@ -660,6 +782,8 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
 
   const startTimer = useCallback(
     ({ penalty = 'none', resetFirst = true }: StartTimerOptions = {}) => {
+      clearStoppedSolveState();
+
       if (resetFirst) {
         reset();
         setFinalElapsed(0);
@@ -672,10 +796,11 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
       start();
       setTimerState('timing');
     },
-    [reset, start],
+    [clearStoppedSolveState, reset, start],
   );
 
   const startInspection = useCallback(() => {
+    clearStoppedSolveState();
     reset();
     setFinalElapsed(0);
     setInspectionElapsed(0);
@@ -683,9 +808,10 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     pendingReadyAction.current = 'solve';
     inspectionStartedAt.current = performance.now();
     setTimerState('inspection');
-  }, [reset]);
+  }, [clearStoppedSolveState, reset]);
 
   const armInspection = useCallback(() => {
+    clearStoppedSolveState();
     reset();
     setFinalElapsed(0);
     setInspectionElapsed(0);
@@ -693,9 +819,10 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     pendingReadyAction.current = 'inspection';
     inspectionStartedAt.current = undefined;
     setTimerState('armed');
-  }, [reset]);
+  }, [clearStoppedSolveState, reset]);
 
   const cancelInspection = useCallback(() => {
+    clearStoppedSolveState();
     reset();
     setFinalElapsed(0);
     setInspectionElapsed(0);
@@ -703,7 +830,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     pendingReadyAction.current = 'solve';
     inspectionStartedAt.current = undefined;
     setTimerState('idle');
-  }, [reset]);
+  }, [clearStoppedSolveState, reset]);
 
   const startTimerFromInspection = useCallback(() => {
     const startedAt = inspectionStartedAt.current;
@@ -728,31 +855,32 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   const stopTimer = useCallback(() => {
     const stoppedElapsed = stop();
     const solvePenalty = pendingSolvePenalty.current;
+    const savedSolve = addSolve({
+      elapsedMs: stoppedElapsed,
+      eventId: activeList.scrambleTypeId,
+      listId: activeListId,
+      penalty: solvePenalty,
+      scramble: activeScramble,
+    });
 
+    pendingStoppedSolve.current = savedSolve;
     setFinalElapsed(stoppedElapsed);
-    setSolveRecordsByListId((currentSolveRecordsByListId) => {
-      const currentSolveRecords = currentSolveRecordsByListId[activeListId] ?? [];
-      const solveRecord = createTimerSolveRecord({
-        createdAt: Date.now(),
-        elapsedMs: stoppedElapsed,
-        eventId: activeList.scrambleTypeId,
-        listId: activeListId,
-        penalty: solvePenalty,
-        scramble: activeScramble,
-        solveIndex: currentSolveRecords.length + 1,
-      });
+    setStoppedSolveId(undefined);
+    setStoppedSolvePenalty(solvePenalty);
+    setIsDeleteResultDialogOpen(false);
+    void savedSolve.then((solveRecord) => {
+      if (pendingStoppedSolve.current !== savedSolve) return;
 
-      return {
-        ...currentSolveRecordsByListId,
-        [activeListId]: [solveRecord, ...currentSolveRecords],
-      };
+      setStoppedSolveId(solveRecord.id);
+      setStoppedSolvePenalty(solveRecord.penalty);
     });
     pendingSolvePenalty.current = 'none';
     pendingReadyAction.current = 'solve';
     setTimerState('stopped');
-  }, [activeList.scrambleTypeId, activeListId, activeScramble, stop]);
+  }, [activeList.scrambleTypeId, activeListId, activeScramble, addSolve, stop]);
 
   const armTimer = useCallback(() => {
+    clearStoppedSolveState();
     reset();
     setFinalElapsed(0);
     setInspectionElapsed(0);
@@ -760,9 +888,10 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     pendingReadyAction.current = 'solve';
     inspectionStartedAt.current = undefined;
     setTimerState('armed');
-  }, [reset]);
+  }, [clearStoppedSolveState, reset]);
 
   const cancelReady = useCallback(() => {
+    clearStoppedSolveState();
     reset();
     setFinalElapsed(0);
     setInspectionElapsed(0);
@@ -770,7 +899,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     pendingReadyAction.current = 'solve';
     inspectionStartedAt.current = undefined;
     setTimerState('idle');
-  }, [reset]);
+  }, [clearStoppedSolveState, reset]);
 
   const resetListForm = useCallback(() => {
     setListFormName('');
@@ -797,9 +926,20 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     setListFormMode('edit');
   }, [activeList.id, activeList.name, activeList.scrambleTypeId]);
 
-  const handleListChange = useCallback((nextListId: string) => {
-    setActiveListId(nextListId);
-  }, []);
+  const handleListChange = useCallback(
+    (nextListId: string) => {
+      clearStoppedSolveState();
+      reset();
+      setFinalElapsed(0);
+      setInspectionElapsed(0);
+      pendingSolvePenalty.current = 'none';
+      pendingReadyAction.current = 'solve';
+      inspectionStartedAt.current = undefined;
+      setTimerState('idle');
+      void setActiveListId(nextListId);
+    },
+    [clearStoppedSolveState, reset, setActiveListId],
+  );
 
   const handleListFormSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -812,37 +952,21 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
         const listId = editingListId;
         if (listId === undefined) return;
 
-        setLists((currentLists) =>
-          currentLists.map((list) =>
-            list.id === listId ? { ...list, name, scrambleTypeId: listFormScrambleTypeId } : list,
-          ),
-        );
-        setActiveListId(listId);
         setListFormMode(undefined);
         setEditingListId(undefined);
         setListFormName('');
         setListFormScrambleTypeId(listFormScrambleTypeId);
+        void updateList({ listId, name, scrambleTypeId: listFormScrambleTypeId });
         return;
       }
 
-      const list: TimerList = {
-        id: `custom:${lists.length + 1}`,
-        name,
-        scrambleTypeId: listFormScrambleTypeId,
-      };
-
-      setLists((currentLists) => [...currentLists, list]);
-      setSolveRecordsByListId((currentSolveRecordsByListId) => ({
-        ...currentSolveRecordsByListId,
-        [list.id]: [],
-      }));
-      setActiveListId(list.id);
       setListFormMode(undefined);
       setEditingListId(undefined);
       setListFormName('');
-      setListFormScrambleTypeId(list.scrambleTypeId);
+      setListFormScrambleTypeId(listFormScrambleTypeId);
+      void createList({ name, scrambleTypeId: listFormScrambleTypeId });
     },
-    [editingListId, listFormMode, listFormName, listFormScrambleTypeId, lists.length],
+    [createList, editingListId, listFormMode, listFormName, listFormScrambleTypeId, updateList],
   );
 
   useEffect(() => {
@@ -1044,12 +1168,15 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     : timerState === 'timing'
       ? 'solve'
       : 'final';
-  const elapsedText = formatTimerDisplay({
-    elapsedMs: displayElapsed,
-    mode: preferences.timerDisplayMode,
-    phase: timerDisplayPhase,
-    timingText: timerCopy.timingDisplayText,
-  });
+  const elapsedText =
+    timerState === 'stopped'
+      ? getSolveDisplayText(finalElapsed, stoppedSolvePenalty)
+      : formatTimerDisplay({
+          elapsedMs: displayElapsed,
+          mode: preferences.timerDisplayMode,
+          phase: timerDisplayPhase,
+          timingText: timerCopy.timingDisplayText,
+        });
   const isTimerFocusMode = isTimerReadyState || isTimerInspectionState || timerState === 'timing';
   const isTimerRunning = timerState === 'timing';
   const timerLabel =
@@ -1117,7 +1244,10 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
           isFocusMode={isTimerFocusMode}
           label={timerLabel}
           placeholder={placeholder}
+          stoppedPenalty={stoppedSolvePenalty}
           state={timerState}
+          onDeleteStoppedSolve={openDeleteResultDialog}
+          onStoppedPenaltyChange={handleStoppedPenaltyChange}
         />
         <TimerRecentSolves
           label={timerCopy.recentSolvesLabel}
@@ -1142,6 +1272,13 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
           onNameChange={setListFormName}
           onScrambleTypeChange={setListFormScrambleTypeId}
           onSubmit={handleListFormSubmit}
+        />
+      ) : null}
+      {isDeleteResultDialogOpen ? (
+        <DeleteResultDialog
+          copy={timerCopy}
+          onCancel={closeDeleteResultDialog}
+          onDelete={handleDeleteStoppedSolve}
         />
       ) : null}
     </section>

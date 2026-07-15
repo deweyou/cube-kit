@@ -38,6 +38,59 @@ export interface AppCopy {
     timerDisplaySeconds: string;
     timerDisplayInspectionOnly: string;
   };
+  results: {
+    title: string;
+    pageLabel: string;
+    scores: string;
+    scoreTypeLabel: string;
+    statsViewLabel: string;
+    singleScoreType: string;
+    stats: string;
+    statsOverview: string;
+    scoreTableLabel: string;
+    averageTableLabel: string;
+    sequenceColumn: string;
+    resultColumn: string;
+    ao5Column: string;
+    ao12Column: string;
+    createdAtColumn: string;
+    rangeColumn: string;
+    compositionColumn: string;
+    emptySolves: string;
+    emptySolvesHint: string;
+    emptyAverage: string;
+    detailTitle: string;
+    averageDetailTitle: string;
+    noPenalty: string;
+    plusTwoPenalty: string;
+    dnfPenalty: string;
+    deleteSolve: string;
+    copyScramble: string;
+    scrambleCopied: string;
+    closeDetail: string;
+    total: string;
+    best: string;
+    mean: string;
+    currentAo5: string;
+    validCount: string;
+    validRatio: string;
+    bestSingle: string;
+    worstSingle: string;
+    overallAverage: string;
+    averageResults: string;
+    currentAverage: string;
+    bestAverage: string;
+    standardDeviation: string;
+    recentTrend: string;
+    lineChart: string;
+    trendAll: string;
+    trendMetricLabel: string;
+    trendSingle: string;
+    timeDistribution: string;
+    statsEmpty: string;
+    retry: string;
+    localHistoryError: string;
+  };
   timer: {
     pageLabel: string;
     mainTimerLabel: string;
@@ -64,6 +117,8 @@ export interface AppCopy {
     recentSolvesLabel: string;
     resultToolbarLabel: string;
     deleteResult: string;
+    deleteResultConfirmTitle: string;
+    deleteResultConfirmDescription: string;
     idleLabel: string;
     armedLabel: string;
     inspectionLabel: string;
@@ -110,6 +165,59 @@ const APP_COPY = {
       timerDisplaySeconds: '到秒',
       timerDisplayInspectionOnly: '仅观察',
     },
+    results: {
+      title: '成绩列表',
+      pageLabel: '成绩列表',
+      scores: '成绩',
+      scoreTypeLabel: '成绩类型',
+      statsViewLabel: '统计视图',
+      singleScoreType: '单次成绩',
+      stats: '统计',
+      statsOverview: '统计数据',
+      scoreTableLabel: '成绩明细',
+      averageTableLabel: '平均成绩明细',
+      sequenceColumn: '#',
+      resultColumn: '成绩',
+      ao5Column: 'ao5',
+      ao12Column: 'ao12',
+      createdAtColumn: '创建时间',
+      rangeColumn: '范围',
+      compositionColumn: '组成',
+      emptySolves: '暂无成绩',
+      emptySolvesHint: '先完成一次计时，或在右上角切换列表。',
+      emptyAverage: '需要更多成绩',
+      detailTitle: '成绩详情',
+      averageDetailTitle: '平均详情',
+      noPenalty: '无',
+      plusTwoPenalty: '+2',
+      dnfPenalty: 'DNF',
+      deleteSolve: '删除成绩',
+      copyScramble: '复制打乱',
+      scrambleCopied: '已复制打乱',
+      closeDetail: '关闭详情',
+      total: '总数',
+      best: '最佳',
+      mean: '平均',
+      currentAo5: '当前 ao5',
+      validCount: '有效成绩',
+      validRatio: '有效占比',
+      bestSingle: '最佳单次',
+      worstSingle: '最差单次',
+      overallAverage: '总平均',
+      averageResults: '平均成绩',
+      currentAverage: '当前',
+      bestAverage: '最好平均',
+      standardDeviation: '标准差',
+      recentTrend: '最近趋势',
+      lineChart: '折线图',
+      trendAll: '全部',
+      trendMetricLabel: '折线指标',
+      trendSingle: '单次',
+      timeDistribution: '时间分布',
+      statsEmpty: '暂无统计',
+      retry: '重试',
+      localHistoryError: '本地成绩读取失败',
+    },
     timer: {
       pageLabel: '计时器',
       mainTimerLabel: '主题计时器',
@@ -136,6 +244,8 @@ const APP_COPY = {
       recentSolvesLabel: '最近成绩',
       resultToolbarLabel: '成绩操作',
       deleteResult: '删除',
+      deleteResultConfirmTitle: '删除本次成绩',
+      deleteResultConfirmDescription: '删除后不可恢复。',
       idleLabel: '按 Space 或 Enter 开始计时',
       armedLabel: '松开 Space 开始计时，按 Esc 取消',
       inspectionLabel: '观察中，按 Space 或 Enter 开始计时，按 Esc 取消',
@@ -180,6 +290,59 @@ const APP_COPY = {
       timerDisplaySeconds: 'Seconds',
       timerDisplayInspectionOnly: 'Inspection only',
     },
+    results: {
+      title: 'Results',
+      pageLabel: 'Results',
+      scores: 'Scores',
+      scoreTypeLabel: 'Score type',
+      statsViewLabel: 'Statistics view',
+      singleScoreType: 'Single',
+      stats: 'Stats',
+      statsOverview: 'Overview',
+      scoreTableLabel: 'Score details',
+      averageTableLabel: 'Average details',
+      sequenceColumn: '#',
+      resultColumn: 'Result',
+      ao5Column: 'ao5',
+      ao12Column: 'ao12',
+      createdAtColumn: 'Created',
+      rangeColumn: 'Range',
+      compositionColumn: 'Composition',
+      emptySolves: 'No solves yet',
+      emptySolvesHint: 'Complete a solve, or switch lists in the top right.',
+      emptyAverage: 'More solves needed',
+      detailTitle: 'Solve detail',
+      averageDetailTitle: 'Average detail',
+      noPenalty: 'OK',
+      plusTwoPenalty: '+2',
+      dnfPenalty: 'DNF',
+      deleteSolve: 'Delete solve',
+      copyScramble: 'Copy scramble',
+      scrambleCopied: 'Scramble copied',
+      closeDetail: 'Close detail',
+      total: 'Total',
+      best: 'Best',
+      mean: 'Mean',
+      currentAo5: 'Current ao5',
+      validCount: 'Valid solves',
+      validRatio: 'Valid ratio',
+      bestSingle: 'Best single',
+      worstSingle: 'Worst single',
+      overallAverage: 'Session average',
+      averageResults: 'Averages',
+      currentAverage: 'Current',
+      bestAverage: 'Best',
+      standardDeviation: 'Standard deviation',
+      recentTrend: 'Recent trend',
+      lineChart: 'Line chart',
+      trendAll: 'All',
+      trendMetricLabel: 'Trend series',
+      trendSingle: 'Single',
+      timeDistribution: 'Time distribution',
+      statsEmpty: 'No statistics yet',
+      retry: 'Retry',
+      localHistoryError: 'Local history failed to load',
+    },
     timer: {
       pageLabel: 'Timer',
       mainTimerLabel: 'Main timer',
@@ -206,6 +369,8 @@ const APP_COPY = {
       recentSolvesLabel: 'Recent solves',
       resultToolbarLabel: 'Result actions',
       deleteResult: 'Delete',
+      deleteResultConfirmTitle: 'Delete this solve',
+      deleteResultConfirmDescription: 'This cannot be undone.',
       idleLabel: 'Press Space or Enter to start',
       armedLabel: 'Release Space to start, Esc to cancel',
       inspectionLabel: 'Inspecting, press Space or Enter to start, Esc to cancel',

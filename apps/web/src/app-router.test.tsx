@@ -36,6 +36,30 @@ vi.mock('./settings/settings-page', () => ({
   ),
 }));
 
+vi.mock('./results/results-page', async () => {
+  const { useAppPreferences } =
+    await vi.importActual<typeof import('./preferences/app-preferences')>(
+      './preferences/app-preferences',
+    );
+  const { TimerTopNavigation } = await vi.importActual<typeof import('./timer/timer-navigation')>(
+    './timer/timer-navigation',
+  );
+
+  return {
+    ResultsPage: () => {
+      const { copy } = useAppPreferences();
+
+      return (
+        <div data-testid="results-page">
+          <TimerTopNavigation isHidden={false} />
+          <h1>{copy.results.title}</h1>
+          <section aria-label="results-page-marker">{copy.results.scoreTableLabel}</section>
+        </div>
+      );
+    },
+  };
+});
+
 const setPathname = (pathname: string) => {
   window.history.pushState({}, '', pathname);
 };
@@ -83,27 +107,35 @@ describe('AppRouter', () => {
     expect(await screen.findByTestId('timer-page')).toBeTruthy();
   });
 
-  it('renders placeholder routes for results and formulas', async () => {
-    const expectedRoutes = [
-      { path: APP_ROUTE_PATHS.results, title: '成绩列表', route: 'results' },
-      { path: APP_ROUTE_PATHS.formulas, title: '公式库', route: 'formulas' },
-    ] as const;
+  it('renders the results page route instead of the placeholder', async () => {
+    setPathname(APP_ROUTE_PATHS.results);
 
-    for (const { path, route, title } of expectedRoutes) {
-      cleanup();
-      setPathname(path);
+    renderAppRouter();
 
-      renderAppRouter();
+    expect(await screen.findByTestId('results-page')).toBeTruthy();
+    expect(screen.getByLabelText('results-page-marker')).toBeTruthy();
+    expect(getAppRoute(APP_ROUTE_PATHS.results)).toBe('results');
 
-      expect(await screen.findByRole('heading', { name: title })).toBeTruthy();
-      expect(getAppRoute(path)).toBe(route);
+    const activeNavButton = within(screen.getByRole('navigation', { name: '主导航' })).getByRole(
+      'button',
+      { current: 'page' },
+    );
+    expect(activeNavButton.getAttribute('aria-label')).toBe('成绩列表');
+  });
 
-      const activeNavButton = within(screen.getByRole('navigation', { name: '主导航' })).getByRole(
-        'button',
-        { current: 'page' },
-      );
-      expect(activeNavButton.getAttribute('aria-label')).toBe(title);
-    }
+  it('keeps formulas as a placeholder route', async () => {
+    setPathname(APP_ROUTE_PATHS.formulas);
+
+    renderAppRouter();
+
+    expect(await screen.findByRole('heading', { name: '公式库' })).toBeTruthy();
+    expect(getAppRoute(APP_ROUTE_PATHS.formulas)).toBe('formulas');
+
+    const activeNavButton = within(screen.getByRole('navigation', { name: '主导航' })).getByRole(
+      'button',
+      { current: 'page' },
+    );
+    expect(activeNavButton.getAttribute('aria-label')).toBe('公式库');
   });
 
   it('renders the settings page route instead of the placeholder', async () => {

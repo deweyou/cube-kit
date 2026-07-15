@@ -24,4 +24,13 @@ describe('app theme overrides', () => {
     expect(themeSource).toMatch(/--ui-color-border:\s*#303030;/u);
     expect(themeSource).not.toMatch(/stone/u);
   });
+
+  it('disables text selection across the app while retaining editable controls', () => {
+    const themeSource = readSourceFile('src/theme/app-theme.css');
+
+    expect(themeSource).toMatch(/\[data-theme\],\s*\[data-theme\] \*\s*\{[^}]*user-select:\s*none;/su);
+    expect(themeSource).toMatch(
+      /\[data-theme\] :is\(input, textarea, \[contenteditable='true'\]\)\s*\{[^}]*user-select:\s*text;/su,
+    );
+  });
 });

@@ -263,7 +263,8 @@ describe('SettingsPage', () => {
   });
 
   it('keeps desktop select controls compact', () => {
-    expect(settingsPageStyles).toMatch(/\.content\s*\{[^}]*max-width:\s*680px;/su);
+    expect(settingsPageStyles).toMatch(/\.content\s*\{[^}]*gap:\s*22px;/su);
+    expect(settingsPageStyles).toMatch(/\.content\s*\{[^}]*max-width:\s*640px;/su);
     expect(settingsPageStyles).toMatch(/\.settingSelectShell\s*\{[^}]*flex:\s*0 1 180px;/su);
     expect(settingsPageStyles).toMatch(/\.settingSelectShell\s*\{[^}]*width:\s*180px;/su);
     expect(settingsPageStyles).toMatch(
@@ -272,6 +273,33 @@ describe('SettingsPage', () => {
     expect(settingsPageStyles).toMatch(
       /\.settingSelectContent\s*\{[^}]*min-width:\s*min\(180px,\s*calc\(100vw - 32px\)\);/su,
     );
+  });
+
+  it('uses serif section typography while keeping setting controls sans', () => {
+    expect(settingsPageStyles).toMatch(
+      /\.title\s*\{[^}]*font-family:\s*var\(--ui-font-serif\);/su,
+    );
+    expect(settingsPageStyles).toMatch(/\.title\s*\{[^}]*font-size:\s*1\.45rem;/su);
+    expect(settingsPageStyles).toMatch(
+      /\.groupTitle\s*\{[^}]*font-family:\s*var\(--ui-font-serif\);/su,
+    );
+    expect(settingsPageStyles).toMatch(/\.groupTitle\s*\{[^}]*font-size:\s*0\.8rem;/su);
+    expect(settingsPageStyles).toMatch(
+      /\.settingTitle\s*\{[^}]*font-family:\s*var\(--ui-font-sans\);/su,
+    );
+    expect(settingsPageStyles).toMatch(/\.settingTitle\s*\{[^}]*font-size:\s*0\.94rem;/su);
+    expect(settingsPageStyles).toMatch(
+      /\.settingSelectTrigger\s*\{[^}]*font-family:\s*var\(--ui-font-sans\);/su,
+    );
+  });
+
+  it('keeps the settings list rhythm dense without shrinking tap targets too far', () => {
+    expect(settingsPageStyles).toMatch(/\.main\s*\{[^}]*padding:\s*32px var\(--settings-inline-padding\)/su);
+    expect(settingsPageStyles).toMatch(/\.group\s*\{[^}]*gap:\s*10px;/su);
+    expect(settingsPageStyles).toMatch(/\.group\s*\{[^}]*padding-top:\s*12px;/su);
+    expect(settingsPageStyles).toMatch(/\.settingRow\s*\{[^}]*gap:\s*16px;/su);
+    expect(settingsPageStyles).toMatch(/\.settingRow\s*\{[^}]*min-height:\s*60px;/su);
+    expect(settingsPageStyles).toMatch(/\.settingRow\s*\{[^}]*padding:\s*8px 16px;/su);
   });
 
   it('keeps mobile setting rows on one line when space allows', () => {
@@ -283,6 +311,9 @@ describe('SettingsPage', () => {
     );
     expect(settingsPageStyles).toMatch(
       /@media \(max-width: 720px\)\s*\{[\s\S]*?\.settingRow\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto;/u,
+    );
+    expect(settingsPageStyles).toMatch(
+      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.settingRow\s*\{[^}]*min-height:\s*58px;/u,
     );
     expect(settingsPageStyles).toMatch(
       /@media \(max-width: 720px\)\s*\{[\s\S]*?\.settingControl\s*\{[^}]*justify-content:\s*flex-end;/u,
