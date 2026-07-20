@@ -75,6 +75,43 @@ describe('multi-blind result', () => {
     expect(formatMultiBlindSolve(solve)).toBe('3/3 0:05');
   });
 
+  it('handles legacy records and empty statistics without inventing an MBLD result', () => {
+    const valid = multiBlindSolve({
+      attemptedCount: 3,
+      elapsedMs: 5_999,
+      id: '1',
+      solvedCount: 3,
+    });
+    const legacy: SolveRecord = { ...valid, multiBlind: undefined };
+    const legacyDnf: SolveRecord = { ...legacy, id: '2', penalty: 'dnf' };
+
+    expect(getMultiBlindFinalTimeMs(legacy)).toBeNull();
+    expect(isMultiBlindSolveDnf(legacy)).toBe(true);
+    expect(formatMultiBlindSolve(legacyDnf)).toBe('DNF');
+    expect(compareMultiBlindSolves(legacy, valid)).toBeGreaterThan(0);
+    expect(compareMultiBlindSolves(valid, legacy)).toBeLessThan(0);
+    expect(compareMultiBlindSolves(legacy, legacyDnf)).toBe(0);
+    expect(calculateMultiBlindStatistics([])).toEqual({
+      bestScore: null,
+      bestSolve: null,
+      totalCount: 0,
+      validCount: 0,
+    });
+  });
+
+  it('clamps negative cumulative penalties and keeps equal solves tied', () => {
+    const solve = multiBlindSolve({
+      attemptedCount: 3,
+      elapsedMs: 5_999,
+      id: '1',
+      solvedCount: 3,
+      timePenaltyCount: -2,
+    });
+
+    expect(getMultiBlindFinalTimeMs(solve)).toBe(5_000);
+    expect(compareMultiBlindSolves(solve, solve)).toBe(0);
+  });
+
   it('derives DNF from negative score, exactly one solved cube, or whole-attempt DNF', () => {
     expect(
       isMultiBlindSolveDnf(
