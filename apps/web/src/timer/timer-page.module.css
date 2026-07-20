@@ -3,11 +3,10 @@
   --timer-bottom-zone-height: clamp(190px, 22vh, 236px);
   --timer-nav-zone-height: 0px;
   --timer-page-inline-padding: 16px;
+  --timer-scramble-preview-size: clamp(128px, min(26vw, 22dvh), 192px);
   --timer-scramble-line-height: 1.26;
   --timer-scramble-toolbar-height: 36px;
-  --timer-stage-center-offset: calc(
-    (var(--timer-bottom-zone-height) - var(--timer-top-zone-height)) / 2
-  );
+  --timer-stage-height: clamp(220px, 24dvh, 240px);
   --timer-top-zone-height: clamp(292px, 28vh, 392px);
 
   background: linear-gradient(180deg, var(--ui-color-surface) 0%, var(--ui-color-canvas) 62%);
@@ -19,9 +18,9 @@
     'stage'
     'bottom';
   grid-template-rows:
-    var(--timer-top-zone-height)
-    minmax(0, 1fr)
-    var(--timer-bottom-zone-height);
+    minmax(var(--timer-top-zone-height), 1fr)
+    var(--timer-stage-height)
+    minmax(var(--timer-bottom-zone-height), 1fr);
   height: 100%;
   min-width: 0;
   overflow: hidden;
@@ -246,20 +245,27 @@
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-size: 0.98rem;
-  font-weight: 700;
-  gap: 6px;
-  height: 36px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  gap: 4px;
+  height: 32px;
   justify-content: center;
   letter-spacing: 0;
-  min-height: 36px;
-  min-width: 76px;
-  padding: 0 10px 0 12px;
+  min-height: 32px;
+  min-width: 68px;
+  padding: 0 8px 0 10px;
+  position: relative;
   transition:
     background 140ms ease,
     border-color 140ms ease,
     color 140ms ease;
   white-space: nowrap;
+}
+
+.listTrigger::after {
+  content: '';
+  inset: -4px;
+  position: absolute;
 }
 
 .listTrigger:hover {
@@ -279,9 +285,9 @@
 
 .listTrigger :global(svg) {
   color: color-mix(in srgb, var(--ui-color-text) 38%, transparent);
-  height: 14px;
+  height: 12px;
   transition: color 140ms ease;
-  width: 14px;
+  width: 12px;
 }
 
 .listTrigger :global(span:first-child) {
@@ -406,48 +412,110 @@
   max-width: 100%;
   min-height: 0;
   min-width: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
+  overflow: visible;
+  position: relative;
   width: 100%;
 }
 
-.scrambleText::-webkit-scrollbar {
+.scrambleText :global([data-density])::-webkit-scrollbar {
   display: none;
 }
 
 .scrambleToolbarSlot {
   align-items: center;
   display: flex;
+  inset-block-start: calc(50% + var(--scramble-rendered-half-height, 0px) + 12px);
+  inset-inline-start: 0;
   justify-content: center;
   min-height: var(--timer-scramble-toolbar-height);
+  position: absolute;
   width: 100%;
 }
 
-.scrambleToolbarPlaceholder {
+.scrambleToolbar {
   align-items: center;
   display: inline-flex;
-  gap: 8px;
-  min-height: 28px;
-  opacity: 0.42;
+  gap: 4px;
+  min-width: 0;
 }
 
-.scrambleToolbarPlaceholderItem {
-  background: color-mix(in srgb, var(--ui-color-text) 14%, transparent);
+.scrambleToolbarButton {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
   border-radius: 999px;
-  display: block;
-  height: 7px;
-  width: 34px;
+  color: color-mix(in srgb, var(--ui-color-text) 46%, transparent);
+  cursor: pointer;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  padding: 0;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    opacity 140ms ease,
+    transform 140ms ease;
+  width: 36px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.scrambleToolbarPlaceholderItem:nth-child(2) {
-  width: 46px;
+.scrambleToolbarButton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ui-color-text) 7%, transparent);
+  color: color-mix(in srgb, var(--ui-color-text) 78%, transparent);
+}
+
+.scrambleToolbarButton:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ui-color-text) 10%, transparent);
+  transform: scale(0.94);
+}
+
+.scrambleToolbarButton:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ui-color-brand-text) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.scrambleToolbarButton:disabled {
+  cursor: default;
+  opacity: 0.52;
+}
+
+.scrambleRefreshButton:disabled {
+  cursor: wait;
+}
+
+.multiBlindPosition {
+  color: color-mix(in srgb, var(--ui-color-text) 58%, transparent);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  line-height: 1;
+  min-width: 46px;
+  text-align: center;
+  user-select: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+}
+
+.scrambleRefreshIcon {
+  display: block;
+}
+
+.scrambleRefreshButton[data-loading='true'] .scrambleRefreshIcon {
+  animation: scramble-refresh-spin 720ms linear infinite;
 }
 
 .scrambleText :global([data-density]) {
+  --scramble-fit-max-size: 32px;
+  --scramble-fit-min-size: 12px;
+
   color: inherit;
   line-height: var(--timer-scramble-line-height);
-  max-width: min(1280px, 100%);
+  max-height: 100%;
+  max-width: min(1280px, var(--scramble-auto-fit-width, 100%));
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
 }
 
 .scrambleText :global([data-density='regular']) {
@@ -503,6 +571,24 @@
   width: min(340px, 100%);
 }
 
+.multiBlindSettingsModal {
+  width: min(320px, 100%);
+}
+
+.multiBlindResultModal {
+  width: min(340px, 100%);
+}
+
+.multiBlindResultFields {
+  display: grid;
+  gap: 10px;
+}
+
+.multiBlindCheckboxRow {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
 .deleteResultContent {
   display: grid;
   gap: 14px;
@@ -536,32 +622,15 @@
   gap: 7px;
 }
 
-.fieldLabel {
-  color: var(--ui-color-text-muted);
-  font-size: 0.82rem;
-  font-weight: 560;
-  letter-spacing: 0;
-  line-height: 1.2;
+.multiBlindNumberInput {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
 }
 
-.fieldInput {
-  background: var(--ui-color-canvas);
-  border: 1px solid color-mix(in srgb, var(--ui-color-border) 88%, transparent);
-  border-radius: 8px;
-  box-sizing: border-box;
-  color: var(--ui-color-text);
-  font: inherit;
-  font-size: 0.95rem;
-  height: 42px;
-  letter-spacing: 0;
-  min-width: 0;
-  padding: 0 11px;
-  width: 100%;
-}
-
-.fieldInput:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--ui-color-brand-text) 42%, transparent);
-  outline-offset: 2px;
+.multiBlindNumberInput > :nth-child(3) {
+  grid-column: 2;
 }
 
 .fieldSelect {
@@ -654,10 +723,28 @@
   padding: 0 14px;
 }
 
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
 .secondaryButton {
   background: transparent;
   border: 1px solid color-mix(in srgb, var(--ui-color-border) 86%, transparent);
   color: var(--ui-color-text-muted);
+}
+
+.discardButton {
+  background: var(--ui-color-surface);
+  border-color: color-mix(in srgb, var(--ui-color-text) 18%, var(--ui-color-border));
+  color: var(--ui-color-text);
+  opacity: 1;
+}
+
+.discardButton:hover {
+  background: color-mix(in srgb, var(--ui-color-text) 5%, var(--ui-color-surface));
+  border-color: color-mix(in srgb, var(--ui-color-text) 28%, var(--ui-color-border));
+  opacity: 1;
 }
 
 .primaryButton {
@@ -823,12 +910,13 @@
 
 .scramblePreview {
   align-items: end;
-  align-self: stretch;
+  align-self: end;
+  block-size: min(100%, var(--timer-scramble-preview-size));
   display: flex;
   inline-size: 100%;
   justify-content: flex-end;
   justify-self: end;
-  min-height: 136px;
+  min-height: 0;
   min-width: 0;
   overflow: hidden;
 }
@@ -855,16 +943,14 @@
 
 .timerSurface {
   --timer-feedback-height: 60px;
-  --timer-feedback-offset: clamp(4.1rem, 7.6vw, 7.4rem);
 
   align-items: center;
   background: transparent;
   color: inherit;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   font: inherit;
   gap: 0;
-  justify-content: center;
+  grid-template-rows: minmax(0, 1fr) var(--timer-feedback-height);
   justify-items: center;
   height: 100%;
   max-width: 100%;
@@ -873,7 +959,6 @@
   padding: 0;
   position: relative;
   text-align: center;
-  transform: translateY(var(--timer-stage-center-offset));
   user-select: none;
 }
 
@@ -885,7 +970,7 @@
   align-items: center;
   display: flex;
   font-feature-settings: 'tnum' 1;
-  font-size: var(--timer-time-wide-size);
+  font-size: var(--timer-time-fitted-size, var(--timer-time-wide-size));
   font-variant-numeric: tabular-nums;
   font-weight: 340;
   justify-content: center;
@@ -899,7 +984,7 @@
 }
 
 .timeFace[data-time-width='max'] {
-  font-size: var(--timer-time-max-size);
+  font-size: var(--timer-time-fitted-size, var(--timer-time-max-size));
 }
 
 .timeFace[data-timer-display='label'] {
@@ -921,6 +1006,7 @@
   font-weight: inherit;
   line-height: inherit;
   min-width: 0;
+  white-space: nowrap;
 }
 
 .timerText[data-timer-display='label'] {
@@ -930,6 +1016,7 @@
 .timerWhole {
   color: inherit;
   display: inline-flex;
+  flex: 0 0 auto;
   font-size: inherit;
   font-weight: inherit;
   line-height: inherit;
@@ -937,6 +1024,8 @@
 
 .timerFraction {
   color: inherit;
+  display: inline-flex;
+  flex: 0 0 auto;
   font-feature-settings: inherit;
   font-size: inherit;
   font-variant-numeric: inherit;
@@ -960,7 +1049,7 @@
 }
 
 .timerGlyph {
-  --timer-glyph-width: 0.58em;
+  --timer-glyph-width: 1ch;
 
   align-items: center;
   display: inline-flex;
@@ -972,7 +1061,7 @@
 }
 
 .timerGlyph[data-timer-glyph='separator'] {
-  --timer-glyph-width: 0.32em;
+  --timer-glyph-width: 0.4ch;
 }
 
 .timerSurface[data-state='armed'] .timeFace,
@@ -983,12 +1072,10 @@
 .feedbackSlot {
   align-items: center;
   display: flex;
-  inset-block-start: calc(50% + var(--timer-feedback-offset));
-  inset-inline-start: 50%;
   justify-content: center;
   min-height: var(--timer-feedback-height);
-  position: absolute;
-  transform: translateX(-50%);
+  position: static;
+  transform: none;
   width: min(420px, 100%);
 }
 
@@ -1022,6 +1109,14 @@
   user-select: none;
   -webkit-user-select: none;
   white-space: nowrap;
+}
+
+.resultToolbar[data-compact='true'] {
+  gap: 0;
+}
+
+.resultToolbar[data-compact='true'] .resultButton {
+  min-width: 44px;
 }
 
 .resultButton {
@@ -1090,6 +1185,18 @@
   }
 }
 
+@keyframes scramble-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrambleRefreshButton[data-loading='true'] .scrambleRefreshIcon {
+    animation: none;
+  }
+}
+
 @media (min-width: 1180px) and (min-height: 720px) {
   .recentRail {
     display: grid;
@@ -1116,9 +1223,9 @@
       'bottom'
       'nav';
     grid-template-rows:
-      var(--timer-top-zone-height)
-      minmax(0, 1fr)
-      var(--timer-bottom-zone-height)
+      minmax(var(--timer-top-zone-height), 1fr)
+      var(--timer-stage-height)
+      minmax(var(--timer-bottom-zone-height), 1fr)
       var(--timer-nav-zone-height);
   }
 
@@ -1148,7 +1255,8 @@
     --timer-nav-zone-height: calc(58px + env(safe-area-inset-bottom));
     --timer-page-inline-padding: 16px;
     --timer-scramble-line-height: 1.18;
-    --timer-scramble-toolbar-height: 30px;
+    --timer-scramble-toolbar-height: 44px;
+    --timer-stage-height: 180px;
     --timer-top-zone-height: clamp(286px, 43dvh, 328px);
   }
 
@@ -1184,13 +1292,22 @@
     width: calc(100vw - var(--timer-page-inline-padding) - var(--timer-page-inline-padding));
   }
 
+  .scrambleToolbarButton {
+    height: 44px;
+    width: 44px;
+  }
+
   .scrambleText :global([data-density='dense']) {
     --scramble-text-size: clamp(0.8rem, 1.35vw + 0.3rem, 0.94rem);
 
     inline-size: fit-content;
     line-height: 1.1;
-    max-inline-size: 100%;
+    max-inline-size: var(--scramble-auto-fit-width, 100%);
     text-align: center;
+  }
+
+  .scrambleText :global([data-density]) {
+    --scramble-fit-max-size: 24px;
   }
 
   .scrambleStrip[data-scramble-event-id='minx'] .scrambleText :global([data-density='dense']) {
@@ -1202,6 +1319,7 @@
   }
 
   .listTrigger {
+    font-size: 0.9rem;
     max-width: min(42vw, 170px);
   }
 
@@ -1226,10 +1344,8 @@
 
   .scramblePreview {
     align-self: flex-end;
-    block-size: min(100%, 126px);
     flex: 1 1 auto;
     inline-size: auto;
-    min-height: 0;
   }
 
   .scramblePreview :global([data-scramble-image]) {
@@ -1242,9 +1358,12 @@
 
   .timerSurface {
     --timer-feedback-height: 56px;
-    --timer-feedback-offset: clamp(3.6rem, 15vw, 5.4rem);
 
     min-width: 100%;
+  }
+
+  .feedbackSlot {
+    width: 100%;
   }
 
   .timeFace {
@@ -1258,8 +1377,8 @@
     --timer-nav-zone-height: calc(52px + env(safe-area-inset-bottom));
     --timer-page-inline-padding: 16px;
     --timer-scramble-line-height: 1.12;
-    --timer-scramble-toolbar-height: 24px;
-    --timer-stage-center-offset: 0px;
+    --timer-scramble-toolbar-height: 44px;
+    --timer-stage-height: 120px;
     --timer-top-zone-height: clamp(180px, 48vh, 204px);
   }
 
@@ -1283,24 +1402,14 @@
     width: 19px;
   }
 
-  .scrambleToolbarPlaceholder {
-    gap: 7px;
-    min-height: 20px;
-  }
-
-  .scrambleToolbarPlaceholderItem {
-    height: 5px;
-    width: 30px;
-  }
-
-  .scrambleToolbarPlaceholderItem:nth-child(2) {
-    width: 40px;
-  }
-
   .scrambleText :global([data-density='dense']) {
     --scramble-text-size: clamp(0.7rem, 0.65vw + 0.36rem, 0.82rem);
 
     line-height: 1.08;
+  }
+
+  .scrambleText :global([data-density]) {
+    --scramble-fit-max-size: 22px;
   }
 
   .bottomDock {
@@ -1309,7 +1418,6 @@
 
   .timerSurface {
     --timer-feedback-height: 32px;
-    --timer-feedback-offset: clamp(2.35rem, 9.8vh, 2.55rem);
   }
 
   .timeFace {

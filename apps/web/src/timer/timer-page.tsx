@@ -1,10 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from 'react';
 import { CubeginAnimatedIcon } from '@cubegin/icons/react';
 import { renderScrambleImage } from '@cubegin/scramble-image';
 import { EVENT_IDS, type EventId } from '@cubegin/shared/events';
 import { formatTimerDisplay, resolveWcaInspectionPenalty } from '@cubegin/shared/preferences';
 import {
+  calculateMultiBlindStatistics,
   calculateSolveStatistics,
+  formatMultiBlindSolve,
   formatMilliseconds,
   getEventShortLabel,
   getSolveDisplayText,
@@ -13,16 +23,32 @@ import {
   type SolveRecord,
   type SolveStatistics,
 } from '@cubegin/shared/timer-session';
+import { Checkbox } from '@deweyou-design/react/checkbox';
 import { Select } from '@deweyou-design/react/select';
+import { NumberInput } from '@deweyou-design/react/number-input';
 import { getCubeginWordmarkSvg } from '../brand/wordmark';
 import type { AppCopy } from '../preferences/app-copy';
 import { useAppPreferences } from '../preferences/app-preferences';
+import { resolveMultiBlindResultDraft } from '../timer-session/multi-blind-result-draft';
 import { useTimerSessionStore, type TimerList } from '../timer-session/timer-session-store';
 import { ScrambleImage } from './components/scramble-image';
 import { ScrambleText } from './components/scramble-text';
-import { AddIcon, DeleteIcon, EditIcon } from './components/timer-icons';
+import {
+  AddIcon,
+  DeleteIcon,
+  EditIcon,
+  NextIcon,
+  PreviousIcon,
+  RefreshIcon,
+  SettingsGearNavIcon,
+} from './components/timer-icons';
 import { useTimer } from './hooks/use-timer';
-import { getTimerScrambleGenerateOptions } from './scramble-prefetcher';
+import {
+  DEFAULT_MULTI_BLIND_CUBE_COUNT,
+  MAX_MULTI_BLIND_CUBE_COUNT,
+  MIN_MULTI_BLIND_CUBE_COUNT,
+  getTimerScrambleGenerateOptions,
+} from './scramble-prefetcher';
 import { createTimerScrambleGenerator } from './scramble-worker-client';
 import { TimerTopNavigation } from './timer-navigation';
 import styles from './timer-page.module.css';
@@ -45,6 +71,47 @@ const TIMER_SCRAMBLE_TYPES: TimerScrambleType[] = EVENT_IDS.map((eventId) => ({
 const TIMER_ROLLING_STAT_SIZES = [3, 5, 12, 50, 100] as const;
 const TIMER_ALWAYS_VISIBLE_ROLLING_STAT_LIMIT = 5;
 const TIMER_RECENT_SOLVE_LIMIT = 12;
+const WCA_INSPECTION_UNSUPPORTED_EVENT_IDS = new Set<EventId>([
+  '333bld',
+  '444bld',
+  '555bld',
+  '333mbld',
+]);
+const TIMER_FONT_SIZE_PRECISION = 4;
+const TIMER_FONT_SIZE_SAFETY_STEP = 0.5;
+const TIMER_MIN_FITTED_FONT_SIZE = 32;
+
+interface SafeTimerFontSizeOptions {
+  availableWidth: number;
+  baseFontSize: number;
+  minFontSize: number;
+  renderedWidth: number;
+}
+
+export const getBufferedTimerWidth = (width: number) =>
+  Math.max(0, width - Math.max(24, width * 0.06));
+
+export const getSafeTimerFontSize = ({
+  availableWidth,
+  baseFontSize,
+  minFontSize,
+  renderedWidth,
+}: SafeTimerFontSizeOptions) => {
+  const bufferedWidth = getBufferedTimerWidth(availableWidth);
+
+  if (bufferedWidth <= 0 || renderedWidth <= 0 || renderedWidth <= bufferedWidth) {
+    return baseFontSize;
+  }
+
+  const scaledSize = (baseFontSize * bufferedWidth) / renderedWidth;
+  const roundedDownSize =
+    Math.floor(scaledSize * TIMER_FONT_SIZE_PRECISION) / TIMER_FONT_SIZE_PRECISION;
+
+  return Math.max(
+    minFontSize,
+    Math.min(baseFontSize, roundedDownSize - TIMER_FONT_SIZE_SAFETY_STEP),
+  );
+};
 
 type TimerListFormMode = 'create' | 'edit';
 
@@ -79,14 +146,17 @@ interface TimerPageProps {
 }
 
 interface TimerFocusSurfaceProps {
+  hasStoppedSolve: boolean;
   copy: AppCopy['timer'];
   elapsedText: string;
   isFocusMode: boolean;
+  isMultiBlind: boolean;
   label: string;
   placeholder?: string;
   stoppedPenalty: SolvePenalty;
   state: TimerState;
   onDeleteStoppedSolve: () => void;
+  onEditMultiBlindResult: () => void;
   onStoppedPenaltyChange: (penalty: SolvePenalty) => void;
 }
 
@@ -277,28 +347,149 @@ const CreateListModal = ({
   </div>
 );
 
+interface MultiBlindSettingsDialogProps {
+  copy: AppCopy['timer'];
+  cubeCount: string;
+  onCancel: () => void;
+  onCubeCountChange: (cubeCount: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}
+
+const MultiBlindSettingsDialog = ({
+  copy,
+  cubeCount,
+  onCancel,
+  onCubeCountChange,
+  onSubmit,
+}: MultiBlindSettingsDialogProps) => (
+  <div className={styles.modalBackdrop}>
+    <div
+      className={`${styles.createListModal} ${styles.multiBlindSettingsModal}`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="timer-multi-blind-settings-title"
+    >
+      <form className={styles.createListForm} onSubmit={onSubmit}>
+        <h2 className={styles.modalTitle} id="timer-multi-blind-settings-title">
+          {copy.multiBlindSettings}
+        </h2>
+        <NumberInput
+          className={styles.multiBlindNumberInput}
+          autoFocus
+          decrementLabel={copy.decreaseValue}
+          incrementLabel={copy.increaseValue}
+          inputMode="numeric"
+          label={copy.multiBlindCubeCountLabel}
+          max={MAX_MULTI_BLIND_CUBE_COUNT}
+          min={MIN_MULTI_BLIND_CUBE_COUNT}
+          required
+          size="sm"
+          step={1}
+          value={cubeCount}
+          onValueChange={({ value }) => onCubeCountChange(value)}
+        />
+        <div className={styles.modalActions}>
+          <button className={styles.secondaryButton} type="button" onClick={onCancel}>
+            {copy.cancel}
+          </button>
+          <button className={styles.primaryButton} type="submit">
+            {copy.apply}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+);
+
+interface MultiBlindScrambleNavigation {
+  currentIndex: number;
+  totalCount: number;
+  onNext: () => void;
+  onOpenSettings: () => void;
+  onPrevious: () => void;
+}
+
 interface TimerScrambleStripProps {
   ariaLabel: string;
+  copy: AppCopy['timer'];
   eventId: EventId;
   isLoading: boolean;
+  multiBlindNavigation?: MultiBlindScrambleNavigation;
   scramble: string;
+  onRefresh: () => void;
 }
 
 const TimerScrambleStrip = ({
   ariaLabel,
+  copy,
   eventId,
   isLoading,
+  multiBlindNavigation,
   scramble,
+  onRefresh,
 }: TimerScrambleStripProps) => (
   <section className={styles.scrambleStrip} aria-label={ariaLabel} data-scramble-event-id={eventId}>
     <div className={styles.scrambleText}>
       <ScrambleText scramble={scramble} isLoading={isLoading} />
-    </div>
-    <div className={styles.scrambleToolbarSlot} aria-hidden="true">
-      <div className={styles.scrambleToolbarPlaceholder} data-scramble-toolbar-placeholder>
-        <span className={styles.scrambleToolbarPlaceholderItem} />
-        <span className={styles.scrambleToolbarPlaceholderItem} />
-        <span className={styles.scrambleToolbarPlaceholderItem} />
+      <div className={styles.scrambleToolbarSlot}>
+        <div className={styles.scrambleToolbar}>
+          {multiBlindNavigation ? (
+            <>
+              <button
+                className={styles.scrambleToolbarButton}
+                type="button"
+                aria-label={copy.previousMultiBlindScramble}
+                disabled={isLoading || multiBlindNavigation.currentIndex === 0}
+                title={copy.previousMultiBlindScramble}
+                onClick={multiBlindNavigation.onPrevious}
+              >
+                <PreviousIcon size={18} />
+              </button>
+              <span
+                className={styles.multiBlindPosition}
+                role="status"
+                aria-label={`${copy.multiBlindPositionLabel}: ${multiBlindNavigation.currentIndex + 1} / ${multiBlindNavigation.totalCount}`}
+              >
+                {multiBlindNavigation.currentIndex + 1} / {multiBlindNavigation.totalCount}
+              </span>
+              <button
+                className={styles.scrambleToolbarButton}
+                type="button"
+                aria-label={copy.nextMultiBlindScramble}
+                disabled={
+                  isLoading ||
+                  multiBlindNavigation.currentIndex >= multiBlindNavigation.totalCount - 1
+                }
+                title={copy.nextMultiBlindScramble}
+                onClick={multiBlindNavigation.onNext}
+              >
+                <NextIcon size={18} />
+              </button>
+            </>
+          ) : null}
+          <button
+            className={`${styles.scrambleToolbarButton} ${styles.scrambleRefreshButton}`}
+            type="button"
+            aria-label={copy.refreshScramble}
+            data-loading={isLoading ? 'true' : 'false'}
+            disabled={isLoading}
+            title={copy.refreshScramble}
+            onClick={onRefresh}
+          >
+            <RefreshIcon className={styles.scrambleRefreshIcon} size={18} />
+          </button>
+          {multiBlindNavigation ? (
+            <button
+              className={styles.scrambleToolbarButton}
+              type="button"
+              aria-label={copy.multiBlindSettings}
+              title={copy.multiBlindSettings}
+              onClick={multiBlindNavigation.onOpenSettings}
+            >
+              <SettingsGearNavIcon size={18} />
+            </button>
+          ) : null}
+        </div>
       </div>
     </div>
   </section>
@@ -329,10 +520,41 @@ const SummaryCountMetric = ({ label, value }: SummaryCountMetricProps) => (
 
 interface TimerSessionSummaryProps {
   copy: AppCopy['timer'];
+  isMultiBlind: boolean;
+  solveRecords: readonly SolveRecord[];
   statistics: SolveStatistics;
 }
 
-const TimerSessionSummary = ({ copy, statistics }: TimerSessionSummaryProps) => {
+const TimerSessionSummary = ({
+  copy,
+  isMultiBlind,
+  solveRecords,
+  statistics,
+}: TimerSessionSummaryProps) => {
+  if (isMultiBlind) {
+    const multiBlindStatistics = calculateMultiBlindStatistics(solveRecords);
+    return (
+      <section className={styles.sessionSummary} aria-label={copy.summaryLabel}>
+        <SummaryCountMetric
+          label={copy.summaryCountLabel}
+          value={`${multiBlindStatistics.validCount}/${multiBlindStatistics.totalCount}`}
+        />
+        <SummaryMetric
+          label={copy.best}
+          value={
+            multiBlindStatistics.bestSolve
+              ? formatMultiBlindSolve(multiBlindStatistics.bestSolve)
+              : '--'
+          }
+        />
+        <SummaryMetric
+          label={copy.multiBlindBestScore}
+          value={multiBlindStatistics.bestScore?.toString() ?? '--'}
+        />
+      </section>
+    );
+  }
+
   const rollingStats = TIMER_ROLLING_STAT_SIZES.filter(
     (size) => size <= TIMER_ALWAYS_VISIBLE_ROLLING_STAT_LIMIT || statistics.totalCount >= size,
   ).map((size) => ({
@@ -381,7 +603,9 @@ const TimerRecentSolves = ({ label, solveRecords }: TimerRecentSolvesProps) => {
         {recentSolves.map((solveRecord) => (
           <li className={styles.recentRailItem} key={solveRecord.id}>
             <strong className={styles.recentRailTime}>
-              {getSolveDisplayText(solveRecord.elapsedMs, solveRecord.penalty)}
+              {solveRecord.eventId === '333mbld'
+                ? formatMultiBlindSolve(solveRecord)
+                : getSolveDisplayText(solveRecord.elapsedMs, solveRecord.penalty)}
             </strong>
           </li>
         ))}
@@ -403,41 +627,72 @@ const TimerScramblePreview = ({ eventId, label, svg }: TimerScramblePreviewProps
 );
 
 interface TimerFeedbackSlotProps {
+  hasStoppedSolve: boolean;
   copy: AppCopy['timer'];
+  isMultiBlind: boolean;
   placeholder?: string;
   stoppedPenalty: SolvePenalty;
   state: TimerState;
   onDeleteStoppedSolve: () => void;
+  onEditMultiBlindResult: () => void;
   onStoppedPenaltyChange: (penalty: SolvePenalty) => void;
 }
 
 interface ResultToolbarProps {
   copy: AppCopy['timer'];
+  isMultiBlind: boolean;
   penalty: SolvePenalty;
   onDelete: () => void;
+  onEditMultiBlindResult: () => void;
   onPenaltyChange: (penalty: SolvePenalty) => void;
 }
 
-const ResultToolbar = ({ copy, penalty, onDelete, onPenaltyChange }: ResultToolbarProps) => (
-  <div className={styles.resultToolbar} role="toolbar" aria-label={copy.resultToolbarLabel}>
-    <button
-      className={styles.resultButton}
-      type="button"
-      aria-pressed={penalty === '+2'}
-      data-active={penalty === '+2' ? 'true' : undefined}
-      onClick={() => onPenaltyChange('+2')}
-    >
-      +2
-    </button>
-    <button
-      className={styles.resultButton}
-      type="button"
-      aria-pressed={penalty === 'dnf'}
-      data-active={penalty === 'dnf' ? 'true' : undefined}
-      onClick={() => onPenaltyChange('dnf')}
-    >
-      DNF
-    </button>
+const ResultToolbar = ({
+  copy,
+  isMultiBlind,
+  penalty,
+  onDelete,
+  onEditMultiBlindResult,
+  onPenaltyChange,
+}: ResultToolbarProps) => (
+  <div
+    className={styles.resultToolbar}
+    data-compact={isMultiBlind ? 'true' : undefined}
+    role="toolbar"
+    aria-label={copy.resultToolbarLabel}
+  >
+    {isMultiBlind ? (
+      <button
+        className={styles.resultButton}
+        type="button"
+        aria-label={copy.editResult}
+        title={copy.editResult}
+        onClick={onEditMultiBlindResult}
+      >
+        <EditIcon size={18} />
+      </button>
+    ) : (
+      <>
+        <button
+          className={styles.resultButton}
+          type="button"
+          aria-pressed={penalty === '+2'}
+          data-active={penalty === '+2' ? 'true' : undefined}
+          onClick={() => onPenaltyChange('+2')}
+        >
+          +2
+        </button>
+        <button
+          className={styles.resultButton}
+          type="button"
+          aria-pressed={penalty === 'dnf'}
+          data-active={penalty === 'dnf' ? 'true' : undefined}
+          onClick={() => onPenaltyChange('dnf')}
+        >
+          DNF
+        </button>
+      </>
+    )}
     <button
       className={`${styles.resultButton} ${styles.deleteResultButton}`}
       type="button"
@@ -451,6 +706,9 @@ const ResultToolbar = ({ copy, penalty, onDelete, onPenaltyChange }: ResultToolb
 
 const TimerFeedbackSlot = ({
   copy,
+  hasStoppedSolve,
+  isMultiBlind,
+  onEditMultiBlindResult,
   placeholder,
   stoppedPenalty,
   state,
@@ -463,16 +721,194 @@ const TimerFeedbackSlot = ({
         {placeholder}
       </span>
     )}
-    {state === 'stopped' ? (
+    {state === 'stopped' && (!isMultiBlind || hasStoppedSolve) ? (
       <ResultToolbar
         copy={copy}
+        isMultiBlind={isMultiBlind}
         penalty={stoppedPenalty}
         onDelete={onDeleteStoppedSolve}
+        onEditMultiBlindResult={onEditMultiBlindResult}
         onPenaltyChange={onStoppedPenaltyChange}
       />
     ) : null}
   </div>
 );
+
+interface MultiBlindResultDialogProps {
+  attemptedCount: number;
+  copy: AppCopy['timer'];
+  isDnf: boolean;
+  penaltyCount: string;
+  solvedCount: string;
+  onDiscard: () => void;
+  onDnfChange: (isDnf: boolean) => void;
+  onPenaltyCountChange: (value: string) => void;
+  onSolvedCountChange: (value: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}
+
+const MultiBlindResultDialog = ({
+  attemptedCount,
+  copy,
+  isDnf,
+  penaltyCount,
+  solvedCount,
+  onDiscard,
+  onDnfChange,
+  onPenaltyCountChange,
+  onSolvedCountChange,
+  onSubmit,
+}: MultiBlindResultDialogProps) => {
+  const [isDiscardConfirmationOpen, setIsDiscardConfirmationOpen] = useState(false);
+  const discardButtonRef = useRef<HTMLButtonElement>(null);
+  const shouldRestoreDiscardFocusRef = useRef(false);
+  const solved = Number(solvedCount);
+  const penalties = Number(penaltyCount);
+  const isSolvedCountValid =
+    solvedCount.trim() !== '' &&
+    Number.isSafeInteger(solved) &&
+    solved >= 0 &&
+    solved <= attemptedCount;
+  const penaltyCountMax = isSolvedCountValid ? solved : 0;
+  const isPenaltyCountValid =
+    penaltyCount.trim() !== '' &&
+    Number.isSafeInteger(penalties) &&
+    penalties >= 0 &&
+    penalties <= penaltyCountMax;
+  const hasSolvedCountError = !isDnf && solvedCount.trim() !== '' && !isSolvedCountValid;
+  const hasPenaltyCountError = !isDnf && penaltyCount.trim() !== '' && !isPenaltyCountValid;
+  const isValid = isDnf || (isSolvedCountValid && isPenaltyCountValid);
+  const solvedCountError = copy.multiBlindSolvedCountError.replace(
+    '{max}',
+    attemptedCount.toString(),
+  );
+  const penaltyCountError = copy.multiBlindPenaltyCountError.replace(
+    '{max}',
+    penaltyCountMax.toString(),
+  );
+
+  useEffect(() => {
+    if (isDiscardConfirmationOpen || !shouldRestoreDiscardFocusRef.current) return;
+    shouldRestoreDiscardFocusRef.current = false;
+    discardButtonRef.current?.focus();
+  }, [isDiscardConfirmationOpen]);
+  return (
+    <>
+      <div className={styles.modalBackdrop} hidden={isDiscardConfirmationOpen}>
+        <div
+          className={`${styles.createListModal} ${styles.multiBlindResultModal}`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="timer-multi-blind-result-title"
+        >
+          <form className={styles.createListForm} onSubmit={onSubmit}>
+            <h2 className={styles.modalTitle} id="timer-multi-blind-result-title">
+              {copy.multiBlindResultTitle}
+            </h2>
+            <div className={styles.multiBlindResultFields}>
+              <NumberInput
+                className={styles.multiBlindNumberInput}
+                autoFocus
+                decrementLabel={copy.decreaseValue}
+                disabled={isDnf}
+                error={hasSolvedCountError ? solvedCountError : undefined}
+                incrementLabel={copy.increaseValue}
+                inputMode="numeric"
+                label={copy.multiBlindSolvedCountLabel}
+                max={attemptedCount}
+                min={0}
+                required={!isDnf}
+                size="sm"
+                step={1}
+                value={solvedCount}
+                onValueChange={({ value }) => onSolvedCountChange(value)}
+              />
+              <NumberInput
+                className={styles.multiBlindNumberInput}
+                decrementLabel={copy.decreaseValue}
+                disabled={isDnf}
+                error={hasPenaltyCountError ? penaltyCountError : undefined}
+                incrementLabel={copy.increaseValue}
+                inputMode="numeric"
+                label={copy.multiBlindPenaltyCountLabel}
+                max={penaltyCountMax}
+                min={0}
+                required={!isDnf}
+                size="sm"
+                step={1}
+                value={penaltyCount}
+                onValueChange={({ value }) => onPenaltyCountChange(value)}
+              />
+              <Checkbox
+                checked={isDnf}
+                className={styles.multiBlindCheckboxRow}
+                onCheckedChange={onDnfChange}
+              >
+                {copy.multiBlindWholeDnfLabel}
+              </Checkbox>
+            </div>
+            <div className={styles.modalActions}>
+              <button
+                className={`${styles.secondaryButton} ${styles.discardButton}`}
+                ref={discardButtonRef}
+                type="button"
+                onClick={() => {
+                  shouldRestoreDiscardFocusRef.current = true;
+                  setIsDiscardConfirmationOpen(true);
+                }}
+              >
+                {copy.discard}
+              </button>
+              <button className={styles.primaryButton} disabled={!isValid} type="submit">
+                {copy.save}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {isDiscardConfirmationOpen ? (
+        <div className={styles.modalBackdrop}>
+          <div
+            className={`${styles.createListModal} ${styles.deleteResultModal}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="timer-discard-result-title"
+            aria-describedby="timer-discard-result-description"
+          >
+            <div className={styles.deleteResultContent}>
+              <h2
+                className={`${styles.modalTitle} ${styles.deleteResultTitle}`}
+                id="timer-discard-result-title"
+              >
+                {copy.discardConfirmTitle}
+              </h2>
+              <p className={styles.deleteResultDescription} id="timer-discard-result-description">
+                {copy.discardConfirmDescription}
+              </p>
+              <div className={styles.modalActions}>
+                <button
+                  autoFocus
+                  className={styles.secondaryButton}
+                  type="button"
+                  onClick={() => setIsDiscardConfirmationOpen(false)}
+                >
+                  {copy.cancel}
+                </button>
+                <button
+                  className={`${styles.primaryButton} ${styles.dangerButton}`}
+                  type="button"
+                  onClick={onDiscard}
+                >
+                  {copy.discardConfirmAction}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+};
 
 interface DeleteResultDialogProps {
   copy: AppCopy['timer'];
@@ -480,11 +916,7 @@ interface DeleteResultDialogProps {
   onDelete: () => void;
 }
 
-const DeleteResultDialog = ({
-  copy,
-  onCancel,
-  onDelete,
-}: DeleteResultDialogProps) => (
+const DeleteResultDialog = ({ copy, onCancel, onDelete }: DeleteResultDialogProps) => (
   <div className={styles.modalBackdrop}>
     <div
       className={`${styles.createListModal} ${styles.deleteResultModal}`}
@@ -560,16 +992,83 @@ const TimerElapsedDisplay = ({ displayKind, elapsedText }: TimerElapsedDisplayPr
 const TimerFocusSurface = ({
   copy,
   elapsedText,
+  hasStoppedSolve,
   isFocusMode,
+  isMultiBlind,
   label,
   placeholder,
   stoppedPenalty,
   state,
   onDeleteStoppedSolve,
+  onEditMultiBlindResult,
   onStoppedPenaltyChange,
 }: TimerFocusSurfaceProps) => {
   const displayKind = getTimerDisplayKind(elapsedText);
   const timeWidth = getTimerTimeWidth(elapsedText);
+  const timeFaceRef = useRef<HTMLSpanElement>(null);
+  const timerFitKey = `${displayKind}:${timeWidth}:${elapsedText.length}`;
+
+  useLayoutEffect(() => {
+    const timeFace = timeFaceRef.current;
+    const timerSurface = timeFace?.parentElement;
+    const timerText = timeFace?.querySelector<HTMLElement>('[data-timer-text="true"]');
+
+    if (!timeFace) {
+      return;
+    }
+
+    timeFace.dataset.autoFit = 'fallback';
+    timeFace.style.removeProperty('--timer-time-fitted-size');
+
+    if (!timerSurface || !timerText || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    let isDisposed = false;
+
+    const measure = () => {
+      if (isDisposed) {
+        return;
+      }
+
+      timeFace.style.removeProperty('--timer-time-fitted-size');
+
+      const availableWidth = timerSurface.clientWidth;
+      const renderedWidth = timerText.scrollWidth;
+      const baseFontSize = Number.parseFloat(getComputedStyle(timeFace).fontSize);
+
+      if (
+        availableWidth <= 0 ||
+        renderedWidth <= 0 ||
+        !Number.isFinite(baseFontSize) ||
+        baseFontSize <= 0
+      ) {
+        return;
+      }
+
+      const fittedFontSize = getSafeTimerFontSize({
+        availableWidth,
+        baseFontSize,
+        minFontSize: TIMER_MIN_FITTED_FONT_SIZE,
+        renderedWidth,
+      });
+
+      timeFace.style.setProperty('--timer-time-fitted-size', `${fittedFontSize}px`);
+      timeFace.dataset.autoFit = 'measured';
+    };
+
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(timerSurface);
+
+    void document.fonts?.ready.then(measure);
+
+    return () => {
+      isDisposed = true;
+      observer.disconnect();
+    };
+  }, [timerFitKey]);
 
   return (
     <div
@@ -581,8 +1080,10 @@ const TimerFocusSurface = ({
       data-focus-mode={isFocusMode ? 'true' : 'false'}
     >
       <span
+        ref={timeFaceRef}
         className={styles.timeFace}
         aria-live={state === 'timing' ? 'off' : 'polite'}
+        data-auto-fit="fallback"
         data-timer-display={displayKind}
         data-time-width={timeWidth}
       >
@@ -590,6 +1091,9 @@ const TimerFocusSurface = ({
       </span>
       <TimerFeedbackSlot
         copy={copy}
+        hasStoppedSolve={hasStoppedSolve}
+        isMultiBlind={isMultiBlind}
+        onEditMultiBlindResult={onEditMultiBlindResult}
         placeholder={placeholder}
         stoppedPenalty={stoppedPenalty}
         state={state}
@@ -612,6 +1116,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     lists,
     setActiveListId,
     updateList,
+    updateSolveMultiBlind,
     updateSolvePenalty,
   } = useTimerSessionStore();
   const timerCopy = copy.timer;
@@ -641,20 +1146,49 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   );
   const [scrambleError, setScrambleError] = useState<string>();
   const [isScrambleLoading, setIsScrambleLoading] = useState(true);
+  const [activeMultiBlindScrambleIndex, setActiveMultiBlindScrambleIndex] = useState(0);
+  const [multiBlindCubeCount, setMultiBlindCubeCount] = useState(DEFAULT_MULTI_BLIND_CUBE_COUNT);
+  const [multiBlindCubeCountDraft, setMultiBlindCubeCountDraft] = useState(
+    String(DEFAULT_MULTI_BLIND_CUBE_COUNT),
+  );
+  const [isMultiBlindSettingsOpen, setIsMultiBlindSettingsOpen] = useState(false);
+  const [isMultiBlindResultOpen, setIsMultiBlindResultOpen] = useState(false);
+  const [multiBlindSolvedCountDraft, setMultiBlindSolvedCountDraft] = useState('');
+  const [multiBlindPenaltyCountDraft, setMultiBlindPenaltyCountDraft] = useState('0');
+  const [isMultiBlindWholeDnfDraft, setIsMultiBlindWholeDnfDraft] = useState(false);
   const scrambleGenerator = useMemo(() => createTimerScrambleGenerator(), []);
   const { elapsed, start, stop, reset } = useTimer();
 
   const isActiveScrambleForList = activeScrambleEventId === activeList.scrambleTypeId;
+  const isMultiBlindList = activeList.scrambleTypeId === '333mbld';
+  const isWcaInspectionEnabled =
+    preferences.wcaInspection &&
+    !WCA_INSPECTION_UNSUPPORTED_EVENT_IDS.has(activeList.scrambleTypeId);
+  const activeMultiBlindScrambles = useMemo(
+    () =>
+      activeScrambleEventId === '333mbld'
+        ? activeScramble.split('\n').filter((scramble) => scramble.length > 0)
+        : [],
+    [activeScramble, activeScrambleEventId],
+  );
+  const selectedScramble = isMultiBlindList
+    ? (activeMultiBlindScrambles[activeMultiBlindScrambleIndex] ?? '')
+    : activeScramble;
+  const multiBlindScrambleCount = activeMultiBlindScrambles.length || multiBlindCubeCount;
+  const stoppedSolve = useMemo(
+    () => activeListSolveRecords.find((solveRecord) => solveRecord.id === stoppedSolveId),
+    [activeListSolveRecords, stoppedSolveId],
+  );
   const scrambleSvg = useMemo(
     () =>
-      isActiveScrambleForList && activeScramble.length > 0
-        ? renderScrambleImage(activeList.scrambleTypeId, activeScramble)
+      isActiveScrambleForList && selectedScramble.length > 0
+        ? renderScrambleImage(activeList.scrambleTypeId, selectedScramble)
         : '',
-    [activeList.scrambleTypeId, activeScramble, isActiveScrambleForList],
+    [activeList.scrambleTypeId, isActiveScrambleForList, selectedScramble],
   );
   const displayScramble =
     scrambleError ??
-    (isScrambleLoading || !isActiveScrambleForList ? timerCopy.scrambleLoading : activeScramble);
+    (isScrambleLoading || !isActiveScrambleForList ? timerCopy.scrambleLoading : selectedScramble);
   const statistics = useMemo(
     () => calculateSolveStatistics(activeListSolveRecords),
     [activeListSolveRecords],
@@ -666,6 +1200,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     setStoppedSolveId(undefined);
     setStoppedSolvePenalty('none');
     setIsDeleteResultDialogOpen(false);
+    setIsMultiBlindResultOpen(false);
   }, []);
 
   const openDeleteResultDialog = useCallback(() => {
@@ -718,19 +1253,86 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     })();
   }, [deleteSolve, reset, stoppedSolveId]);
 
+  const openMultiBlindResultEditor = useCallback(() => {
+    setMultiBlindSolvedCountDraft(stoppedSolve?.multiBlind?.solvedCount.toString() ?? '');
+    setMultiBlindPenaltyCountDraft(stoppedSolve?.multiBlind?.timePenaltyCount?.toString() ?? '0');
+    setIsMultiBlindWholeDnfDraft(stoppedSolve?.penalty === 'dnf');
+    setIsMultiBlindResultOpen(true);
+  }, [stoppedSolve]);
+
+  const discardPendingMultiBlindResult = useCallback(() => {
+    setIsMultiBlindResultOpen(false);
+    if (stoppedSolveId !== undefined) return;
+
+    setFinalElapsed(0);
+    reset();
+    setTimerState('idle');
+  }, [reset, stoppedSolveId]);
+
+  const handleMultiBlindResultSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const multiBlind = resolveMultiBlindResultDraft({
+        attemptedCount: multiBlindScrambleCount,
+        isDnf: isMultiBlindWholeDnfDraft,
+        penaltyCount: multiBlindPenaltyCountDraft,
+        solvedCount: multiBlindSolvedCountDraft,
+      });
+      if (!multiBlind) return;
+      const penalty = isMultiBlindWholeDnfDraft ? 'dnf' : 'none';
+
+      if (stoppedSolveId !== undefined) {
+        void updateSolveMultiBlind(stoppedSolveId, multiBlind, penalty).then((updatedSolve) => {
+          setStoppedSolvePenalty(updatedSolve.penalty);
+        });
+        setIsMultiBlindResultOpen(false);
+        return;
+      }
+
+      const savedSolve = addSolve({
+        elapsedMs: finalElapsed,
+        eventId: '333mbld',
+        listId: activeListId,
+        multiBlind,
+        penalty,
+        scramble: activeScramble.split('\n').filter(Boolean),
+      });
+      pendingStoppedSolve.current = savedSolve;
+      setStoppedSolvePenalty(penalty);
+      setIsMultiBlindResultOpen(false);
+      void savedSolve.then((solveRecord) => {
+        if (pendingStoppedSolve.current !== savedSolve) return;
+        setStoppedSolveId(solveRecord.id);
+      });
+    },
+    [
+      activeListId,
+      activeScramble,
+      addSolve,
+      finalElapsed,
+      isMultiBlindWholeDnfDraft,
+      multiBlindPenaltyCountDraft,
+      multiBlindScrambleCount,
+      multiBlindSolvedCountDraft,
+      stoppedSolveId,
+      updateSolveMultiBlind,
+    ],
+  );
+
   const loadScramble = useCallback(
     async (eventId: EventId) => {
       const requestId = latestScrambleRequestId.current + 1;
       latestScrambleRequestId.current = requestId;
       setActiveScramble('');
       setActiveScrambleEventId(eventId);
+      setActiveMultiBlindScrambleIndex(0);
       setScrambleError(undefined);
       setIsScrambleLoading(true);
 
       try {
         const result = await scrambleGenerator.generate(
           eventId,
-          getTimerScrambleGenerateOptions(eventId),
+          getTimerScrambleGenerateOptions(eventId, multiBlindCubeCount),
         );
         if (latestScrambleRequestId.current !== requestId) return;
         setActiveScrambleEventId(result.eventId);
@@ -744,7 +1346,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
         }
       }
     },
-    [scrambleGenerator],
+    [multiBlindCubeCount, scrambleGenerator],
   );
 
   useEffect(() => {
@@ -756,6 +1358,46 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   useEffect(() => {
     void loadScramble(activeList.scrambleTypeId);
   }, [activeList.scrambleTypeId, loadScramble]);
+
+  const showPreviousMultiBlindScramble = useCallback(() => {
+    setActiveMultiBlindScrambleIndex((currentIndex) => Math.max(0, currentIndex - 1));
+  }, []);
+
+  const showNextMultiBlindScramble = useCallback(() => {
+    setActiveMultiBlindScrambleIndex((currentIndex) =>
+      Math.min(multiBlindScrambleCount - 1, currentIndex + 1),
+    );
+  }, [multiBlindScrambleCount]);
+
+  const openMultiBlindSettings = useCallback(() => {
+    setMultiBlindCubeCountDraft(String(multiBlindCubeCount));
+    setIsMultiBlindSettingsOpen(true);
+  }, [multiBlindCubeCount]);
+
+  const closeMultiBlindSettings = useCallback(() => {
+    setMultiBlindCubeCountDraft(String(multiBlindCubeCount));
+    setIsMultiBlindSettingsOpen(false);
+  }, [multiBlindCubeCount]);
+
+  const handleMultiBlindSettingsSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      const nextCubeCount = Number(multiBlindCubeCountDraft);
+      if (
+        !Number.isSafeInteger(nextCubeCount) ||
+        nextCubeCount < MIN_MULTI_BLIND_CUBE_COUNT ||
+        nextCubeCount > MAX_MULTI_BLIND_CUBE_COUNT
+      ) {
+        return;
+      }
+
+      setIsMultiBlindSettingsOpen(false);
+      setActiveMultiBlindScrambleIndex(0);
+      setMultiBlindCubeCount(nextCubeCount);
+    },
+    [multiBlindCubeCountDraft],
+  );
 
   useEffect(() => {
     if (timerState !== 'inspection' && timerState !== 'inspection-armed') return undefined;
@@ -855,6 +1497,22 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   const stopTimer = useCallback(() => {
     const stoppedElapsed = stop();
     const solvePenalty = pendingSolvePenalty.current;
+    setFinalElapsed(stoppedElapsed);
+    setStoppedSolveId(undefined);
+    setStoppedSolvePenalty(solvePenalty);
+    setIsDeleteResultDialogOpen(false);
+    pendingSolvePenalty.current = 'none';
+    pendingReadyAction.current = 'solve';
+    setTimerState('stopped');
+
+    if (isMultiBlindList) {
+      setMultiBlindSolvedCountDraft(String(multiBlindScrambleCount));
+      setMultiBlindPenaltyCountDraft('0');
+      setIsMultiBlindWholeDnfDraft(false);
+      setIsMultiBlindResultOpen(true);
+      return;
+    }
+
     const savedSolve = addSolve({
       elapsedMs: stoppedElapsed,
       eventId: activeList.scrambleTypeId,
@@ -864,20 +1522,21 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     });
 
     pendingStoppedSolve.current = savedSolve;
-    setFinalElapsed(stoppedElapsed);
-    setStoppedSolveId(undefined);
-    setStoppedSolvePenalty(solvePenalty);
-    setIsDeleteResultDialogOpen(false);
     void savedSolve.then((solveRecord) => {
       if (pendingStoppedSolve.current !== savedSolve) return;
 
       setStoppedSolveId(solveRecord.id);
       setStoppedSolvePenalty(solveRecord.penalty);
     });
-    pendingSolvePenalty.current = 'none';
-    pendingReadyAction.current = 'solve';
-    setTimerState('stopped');
-  }, [activeList.scrambleTypeId, activeListId, activeScramble, addSolve, stop]);
+  }, [
+    activeList.scrambleTypeId,
+    activeListId,
+    activeScramble,
+    addSolve,
+    isMultiBlindList,
+    multiBlindScrambleCount,
+    stop,
+  ]);
 
   const armTimer = useCallback(() => {
     clearStoppedSolveState();
@@ -970,7 +1629,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   );
 
   useEffect(() => {
-    if (!isActive) return undefined;
+    if (!isActive || isMultiBlindResultOpen) return undefined;
 
     const clearKeyboardClickSuppression = () => {
       keyboardClickSuppressionTarget.current = null;
@@ -1054,7 +1713,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
           return;
         }
 
-        if (preferences.wcaInspection) {
+        if (isWcaInspectionEnabled) {
           armInspection();
           return;
         }
@@ -1097,7 +1756,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
         return;
       }
 
-      if (preferences.wcaInspection) {
+      if (isWcaInspectionEnabled) {
         startInspection();
         return;
       }
@@ -1142,7 +1801,8 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     cancelInspection,
     cancelReady,
     isActive,
-    preferences.wcaInspection,
+    isMultiBlindResultOpen,
+    isWcaInspectionEnabled,
     startInspection,
     startTimer,
     startTimerFromInspection,
@@ -1170,7 +1830,9 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
       : 'final';
   const elapsedText =
     timerState === 'stopped'
-      ? getSolveDisplayText(finalElapsed, stoppedSolvePenalty)
+      ? isMultiBlindList && stoppedSolve?.multiBlind
+        ? formatMultiBlindSolve(stoppedSolve)
+        : getSolveDisplayText(finalElapsed, stoppedSolvePenalty)
       : formatTimerDisplay({
           elapsedMs: displayElapsed,
           mode: preferences.timerDisplayMode,
@@ -1229,9 +1891,22 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
         </div>
         <TimerScrambleStrip
           ariaLabel={timerCopy.currentScrambleLabel}
+          copy={timerCopy}
           eventId={activeList.scrambleTypeId}
           isLoading={isScrambleLoading}
+          multiBlindNavigation={
+            isMultiBlindList
+              ? {
+                  currentIndex: activeMultiBlindScrambleIndex,
+                  totalCount: multiBlindScrambleCount,
+                  onNext: showNextMultiBlindScramble,
+                  onOpenSettings: openMultiBlindSettings,
+                  onPrevious: showPreviousMultiBlindScramble,
+                }
+              : undefined
+          }
           scramble={displayScramble}
+          onRefresh={() => void loadScramble(activeList.scrambleTypeId)}
         />
       </header>
 
@@ -1241,12 +1916,15 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
         <TimerFocusSurface
           copy={timerCopy}
           elapsedText={elapsedText}
+          hasStoppedSolve={stoppedSolveId !== undefined}
           isFocusMode={isTimerFocusMode}
+          isMultiBlind={isMultiBlindList}
           label={timerLabel}
           placeholder={placeholder}
           stoppedPenalty={stoppedSolvePenalty}
           state={timerState}
           onDeleteStoppedSolve={openDeleteResultDialog}
+          onEditMultiBlindResult={openMultiBlindResultEditor}
           onStoppedPenaltyChange={handleStoppedPenaltyChange}
         />
         <TimerRecentSolves
@@ -1255,7 +1933,12 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
         />
       </main>
       <footer className={styles.bottomDock} aria-label={timerCopy.bottomInfoLabel}>
-        <TimerSessionSummary copy={timerCopy} statistics={statistics} />
+        <TimerSessionSummary
+          copy={timerCopy}
+          isMultiBlind={isMultiBlindList}
+          solveRecords={activeListSolveRecords}
+          statistics={statistics}
+        />
         <TimerScramblePreview
           eventId={activeList.scrambleTypeId}
           label={timerCopy.scrambleImageLabel}
@@ -1279,6 +1962,29 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
           copy={timerCopy}
           onCancel={closeDeleteResultDialog}
           onDelete={handleDeleteStoppedSolve}
+        />
+      ) : null}
+      {isMultiBlindSettingsOpen ? (
+        <MultiBlindSettingsDialog
+          copy={timerCopy}
+          cubeCount={multiBlindCubeCountDraft}
+          onCancel={closeMultiBlindSettings}
+          onCubeCountChange={setMultiBlindCubeCountDraft}
+          onSubmit={handleMultiBlindSettingsSubmit}
+        />
+      ) : null}
+      {isMultiBlindResultOpen ? (
+        <MultiBlindResultDialog
+          attemptedCount={multiBlindScrambleCount}
+          copy={timerCopy}
+          isDnf={isMultiBlindWholeDnfDraft}
+          penaltyCount={multiBlindPenaltyCountDraft}
+          solvedCount={multiBlindSolvedCountDraft}
+          onDiscard={discardPendingMultiBlindResult}
+          onDnfChange={setIsMultiBlindWholeDnfDraft}
+          onPenaltyCountChange={setMultiBlindPenaltyCountDraft}
+          onSolvedCountChange={setMultiBlindSolvedCountDraft}
+          onSubmit={handleMultiBlindResultSubmit}
         />
       ) : null}
     </section>

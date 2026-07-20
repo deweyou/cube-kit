@@ -5,6 +5,7 @@ export type SolvePenalty = 'none' | '+2' | 'dnf';
 export interface MultiBlindSolveResult {
   attemptedCount: number;
   solvedCount: number;
+  timePenaltyCount: number;
 }
 
 export interface SolveRecord {
@@ -33,6 +34,11 @@ export interface TimerSessionRepository {
   deleteSession(sessionId: string): Promise<void>;
   listSolves(sessionId: string): Promise<SolveRecord[]>;
   addSolve(record: SolveRecord): Promise<SolveRecord>;
+  updateSolveMultiBlind(
+    solveId: string,
+    multiBlind: MultiBlindSolveResult,
+    penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
+  ): Promise<SolveRecord>;
   updateSolvePenalty(solveId: string, penalty: SolvePenalty): Promise<SolveRecord>;
   deleteSolve(solveId: string): Promise<void>;
 }

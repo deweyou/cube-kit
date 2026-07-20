@@ -11,6 +11,7 @@ import {
 import { EVENT_IDS, type EventId } from '@cubegin/shared/events';
 import {
   getEventShortLabel,
+  type MultiBlindSolveResult,
   type SolvePenalty,
   type SolveRecord,
 } from '@cubegin/shared/timer-session';
@@ -37,6 +38,7 @@ export interface AddSolveInput {
   elapsedMs: number;
   eventId: EventId;
   listId: string;
+  multiBlind?: MultiBlindSolveResult;
   penalty: SolvePenalty;
   scramble: string | string[];
 }
@@ -50,6 +52,11 @@ export interface TimerSessionDb {
   listSolves(listId: string): Promise<SolveRecord[]>;
   setActiveListId(listId: string): Promise<void>;
   updateList(list: TimerList): Promise<TimerList>;
+  updateSolveMultiBlind(
+    solveId: string,
+    multiBlind: MultiBlindSolveResult,
+    penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
+  ): Promise<SolveRecord>;
   updateSolvePenalty(solveId: string, penalty: SolvePenalty): Promise<SolveRecord>;
 }
 
@@ -66,6 +73,11 @@ interface TimerSessionStoreContextValue {
   retry(): Promise<void>;
   setActiveListId(listId: string): Promise<void>;
   updateList(input: UpdateListInput): Promise<TimerList>;
+  updateSolveMultiBlind(
+    solveId: string,
+    multiBlind: MultiBlindSolveResult,
+    penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
+  ): Promise<SolveRecord>;
   updateSolvePenalty(solveId: string, penalty: SolvePenalty): Promise<SolveRecord>;
 }
 
@@ -84,7 +96,8 @@ const TimerSessionStoreContext = createContext<TimerSessionStoreContextValue | u
   undefined,
 );
 
-const getErrorMessage = (cause: unknown) => (cause instanceof Error ? cause.message : String(cause));
+const getErrorMessage = (cause: unknown) =>
+  cause instanceof Error ? cause.message : String(cause);
 
 const sortLists = (lists: readonly TimerList[]): TimerList[] =>
   [...lists].sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id));
@@ -97,7 +110,8 @@ const getSolveOrdinalFromId = (solveId: string): number => {
 
 const sortSolvesNewestFirst = (solves: readonly SolveRecord[]): SolveRecord[] =>
   [...solves].sort(
-    (a, b) => b.createdAt - a.createdAt || getSolveOrdinalFromId(b.id) - getSolveOrdinalFromId(a.id),
+    (a, b) =>
+      b.createdAt - a.createdAt || getSolveOrdinalFromId(b.id) - getSolveOrdinalFromId(a.id),
   );
 
 const makeTimerSolveRecord = ({
@@ -112,6 +126,7 @@ const makeTimerSolveRecord = ({
   eventId: input.eventId,
   id: `${input.listId}:${solveIndex}`,
   penalty: input.penalty,
+  multiBlind: input.multiBlind === undefined ? undefined : { ...input.multiBlind },
   scramble: input.scramble,
   sessionId: input.listId,
 });
@@ -125,14 +140,16 @@ export const TimerSessionStoreProvider = ({ children, db }: TimerSessionStorePro
   const [storeDb] = useState<TimerSessionDb>(() => db ?? createIndexedDbTimerSessionDb());
   const [lists, setLists] = useState<TimerList[]>(INITIAL_TIMER_LISTS);
   const [activeListId, setActiveListIdState] = useState(FIRST_TIMER_LIST.id);
-  const [activeListSolveRecords, setActiveListSolveRecords] =
-    useState<SolveRecord[]>(EMPTY_SOLVES);
+  const [activeListSolveRecords, setActiveListSolveRecords] = useState<SolveRecord[]>(EMPTY_SOLVES);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>();
   const solveOrdinalByListId = useRef(new Map<string, number>());
 
   const getNextSolveIndex = useCallback((listId: string, solves: readonly SolveRecord[]) => {
-    const highestStoredOrdinal = Math.max(0, ...solves.map((solve) => getSolveOrdinalFromId(solve.id)));
+    const highestStoredOrdinal = Math.max(
+      0,
+      ...solves.map((solve) => getSolveOrdinalFromId(solve.id)),
+    );
     const currentOrdinal = solveOrdinalByListId.current.get(listId) ?? highestStoredOrdinal;
     const nextOrdinal = Math.max(currentOrdinal, highestStoredOrdinal) + 1;
 
@@ -254,7 +271,9 @@ export const TimerSessionStoreProvider = ({ children, db }: TimerSessionStorePro
   const addSolve = useCallback(
     async (input: AddSolveInput) => {
       const existingSolves =
-        input.listId === activeListId ? activeListSolveRecords : await storeDb.listSolves(input.listId);
+        input.listId === activeListId
+          ? activeListSolveRecords
+          : await storeDb.listSolves(input.listId);
       const record = makeTimerSolveRecord({
         input,
         solveIndex: getNextSolveIndex(input.listId, existingSolves),
@@ -275,6 +294,25 @@ export const TimerSessionStoreProvider = ({ children, db }: TimerSessionStorePro
   const updateSolvePenalty = useCallback(
     async (solveId: string, penalty: SolvePenalty) => {
       const updatedSolve = await storeDb.updateSolvePenalty(solveId, penalty);
+
+      if (updatedSolve.sessionId === activeListId) {
+        setActiveListSolveRecords((currentSolves) =>
+          currentSolves.map((solve) => (solve.id === solveId ? updatedSolve : solve)),
+        );
+      }
+
+      return updatedSolve;
+    },
+    [activeListId, storeDb],
+  );
+
+  const updateSolveMultiBlind = useCallback(
+    async (
+      solveId: string,
+      multiBlind: MultiBlindSolveResult,
+      penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
+    ) => {
+      const updatedSolve = await storeDb.updateSolveMultiBlind(solveId, multiBlind, penalty);
 
       if (updatedSolve.sessionId === activeListId) {
         setActiveListSolveRecords((currentSolves) =>
@@ -311,6 +349,7 @@ export const TimerSessionStoreProvider = ({ children, db }: TimerSessionStorePro
       retry: loadState,
       setActiveListId,
       updateList,
+      updateSolveMultiBlind,
       updateSolvePenalty,
     }),
     [
@@ -326,6 +365,7 @@ export const TimerSessionStoreProvider = ({ children, db }: TimerSessionStorePro
       loadState,
       setActiveListId,
       updateList,
+      updateSolveMultiBlind,
       updateSolvePenalty,
     ],
   );

@@ -1,4 +1,8 @@
-import type { SolvePenalty, SolveRecord } from '@cubegin/shared/timer-session';
+import type {
+  MultiBlindSolveResult,
+  SolvePenalty,
+  SolveRecord,
+} from '@cubegin/shared/timer-session';
 import type { TimerList, TimerSessionDb } from './timer-session-store';
 
 const DB_NAME = 'cubegin-timer-session';
@@ -24,13 +28,15 @@ const getSolveOrdinalFromId = (solveId: string): number => {
 
 const sortSolvesNewestFirst = (solves: readonly SolveRecord[]): SolveRecord[] =>
   [...solves].sort(
-    (a, b) => b.createdAt - a.createdAt || getSolveOrdinalFromId(b.id) - getSolveOrdinalFromId(a.id),
+    (a, b) =>
+      b.createdAt - a.createdAt || getSolveOrdinalFromId(b.id) - getSolveOrdinalFromId(a.id),
   );
 
 const cloneList = (list: TimerList): TimerList => ({ ...list });
 
 const cloneSolve = (solve: SolveRecord): SolveRecord => ({
   ...solve,
+  multiBlind: solve.multiBlind === undefined ? undefined : { ...solve.multiBlind },
   scramble: Array.isArray(solve.scramble) ? [...solve.scramble] : solve.scramble,
 });
 
@@ -85,6 +91,14 @@ export const createMemoryTimerSessionDb = (): TimerSessionDb => {
       solvesById.set(solveId, nextSolve);
       return cloneSolve(nextSolve);
     },
+    async updateSolveMultiBlind(solveId, multiBlind, penalty) {
+      const solve = solvesById.get(solveId);
+      if (solve === undefined) throw new Error(`Solve not found: ${solveId}`);
+
+      const nextSolve: SolveRecord = { ...solve, multiBlind: { ...multiBlind }, penalty };
+      solvesById.set(solveId, nextSolve);
+      return cloneSolve(nextSolve);
+    },
     async deleteSolve(solveId) {
       solvesById.delete(solveId);
     },
@@ -99,8 +113,10 @@ const requestToPromise = <T>(request: IDBRequest<T>): Promise<T> =>
 
 const transactionDone = (transaction: IDBTransaction): Promise<void> =>
   new Promise((resolve, reject) => {
-    transaction.onerror = () => reject(transaction.error ?? new Error('IndexedDB transaction failed.'));
-    transaction.onabort = () => reject(transaction.error ?? new Error('IndexedDB transaction aborted.'));
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error('IndexedDB transaction failed.'));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error('IndexedDB transaction aborted.'));
     transaction.oncomplete = () => resolve();
   });
 
@@ -177,9 +193,7 @@ export const createIndexedDbTimerSessionDb = (): TimerSessionDb => ({
     const existingIds = new Set(existingLists.map((list) => list.id));
 
     await Promise.all(
-      defaultLists
-        .filter((list) => !existingIds.has(list.id))
-        .map((list) => this.updateList(list)),
+      defaultLists.filter((list) => !existingIds.has(list.id)).map((list) => this.updateList(list)),
     );
 
     const activeListId = await this.getActiveListId();
@@ -236,6 +250,21 @@ export const createIndexedDbTimerSessionDb = (): TimerSessionDb => ({
       const nextSolve: SolveRecord = { ...solve, penalty };
       store.put(nextSolve);
 
+      return cloneSolve(nextSolve);
+    });
+  },
+  async updateSolveMultiBlind(
+    solveId: string,
+    multiBlind: MultiBlindSolveResult,
+    penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
+  ) {
+    return runStorePairTransaction([SOLVE_STORE], 'readwrite', async (transaction) => {
+      const store = transaction.objectStore(SOLVE_STORE);
+      const solve = (await requestToPromise(store.get(solveId))) as SolveRecord | undefined;
+      if (solve === undefined) throw new Error(`Solve not found: ${solveId}`);
+
+      const nextSolve: SolveRecord = { ...solve, multiBlind: { ...multiBlind }, penalty };
+      store.put(nextSolve);
       return cloneSolve(nextSolve);
     });
   },

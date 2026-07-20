@@ -300,12 +300,8 @@
 }
 
 .singleScoreTable {
-  --score-table-columns:
-    minmax(80px, 0.9fr)
-    minmax(80px, 1.1fr)
-    minmax(68px, 0.9fr)
-    minmax(72px, 1fr)
-    minmax(120px, 1.8fr);
+  --score-table-columns: minmax(80px, 0.9fr) minmax(80px, 1.1fr) minmax(68px, 0.9fr)
+    minmax(72px, 1fr) minmax(120px, 1.8fr);
 }
 
 .averageScoreTable {
@@ -444,6 +440,15 @@
   line-height: 1.35;
 }
 
+.multiBlindDetailMetrics {
+  color: var(--ui-color-text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  gap: 6px 12px;
+}
+
 .detailTimestamp {
   align-items: baseline;
   color: var(--ui-color-text-muted);
@@ -453,6 +458,19 @@
   font-weight: 560;
   gap: 6px;
   line-height: 1.35;
+}
+
+.multiBlindDetailMetrics {
+  color: var(--ui-color-text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.84rem;
+  gap: 6px 14px;
+  letter-spacing: 0;
+}
+
+.multiBlindDetailMetrics span {
+  font-variant-numeric: tabular-nums;
 }
 
 .detailTimestamp span {
@@ -624,6 +642,13 @@
   min-width: 0;
 }
 
+.multiBlindNoAverage {
+  color: var(--ui-color-text-muted);
+  font-family: var(--ui-font-serif);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
 .statsGrid {
   display: grid;
   gap: 10px;
@@ -649,6 +674,7 @@
 .statMetricLabel {
   align-items: baseline;
   display: flex;
+  font-family: var(--ui-font-serif);
   gap: 5px;
   min-width: 0;
 }
@@ -696,14 +722,14 @@
 
 .averageStatisticsHeader {
   align-items: end;
+  font-family: var(--ui-font-serif);
   gap: 12px;
 }
 
 .averageStatisticsHeader h2 {
-  color: var(--ui-color-text);
-  font-family: var(--ui-font-serif);
-  font-size: 1rem;
-  font-weight: 680;
+  color: var(--ui-color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
   letter-spacing: 0;
   line-height: 1.2;
   margin: 0;
@@ -802,7 +828,9 @@
   gap: 5px;
   opacity: 0.38;
   padding: 6px 2px;
-  transition: color 140ms ease, opacity 140ms ease;
+  transition:
+    color 140ms ease,
+    opacity 140ms ease;
   white-space: nowrap;
 }
 
@@ -980,6 +1008,29 @@
   padding: 18px;
 }
 
+.multiBlindEditForm {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.multiBlindEditRow {
+  align-items: center;
+  color: var(--ui-color-text-muted);
+  display: grid;
+  font-size: 0.86rem;
+  gap: 12px;
+  grid-template-columns: 1fr minmax(96px, 132px);
+}
+
+.multiBlindEditRow > :nth-child(3) {
+  grid-column: 2;
+}
+
+.multiBlindEditCheckbox {
+  justify-self: start;
+}
+
 .deleteConfirmTitle {
   font-size: 1.16rem;
   font-weight: 760;
@@ -1018,6 +1069,11 @@
   letter-spacing: 0;
   min-width: 68px;
   padding: 0 14px;
+}
+
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 .secondaryButton {
@@ -1241,9 +1297,7 @@
   }
 
   .scoreTable {
-    height: calc(
-      100dvh - var(--results-header-height) - var(--results-nav-zone-height) - 64px
-    );
+    height: calc(100dvh - var(--results-header-height) - var(--results-nav-zone-height) - 64px);
   }
 
   .statsGrid {
@@ -1303,6 +1357,10 @@
     font-size: 0.72rem;
   }
 
+  .averageStatisticsHeader h2 {
+    font-size: 0.72rem;
+  }
+
   .averageStatisticValue b {
     font-size: 0.9rem;
   }
@@ -1319,21 +1377,14 @@
   }
 
   .singleScoreTable {
-    --score-table-columns:
-      minmax(72px, 0.9fr)
-      minmax(72px, 1.1fr)
-      minmax(60px, 0.9fr)
-      minmax(64px, 1fr)
-      minmax(96px, 1.6fr);
+    --score-table-columns: minmax(72px, 0.9fr) minmax(72px, 1.1fr) minmax(60px, 0.9fr)
+      minmax(64px, 1fr) minmax(96px, 1.6fr);
   }
 }
 
 @container (max-width: 640px) {
   .singleScoreTable {
-    --score-table-columns:
-      minmax(68px, 0.9fr)
-      minmax(64px, 1.1fr)
-      minmax(54px, 0.9fr)
+    --score-table-columns: minmax(68px, 0.9fr) minmax(64px, 1.1fr) minmax(54px, 0.9fr)
       minmax(58px, 1fr);
   }
 

@@ -32,6 +32,18 @@ import {
 const resultsPageStyles = readFileSync(join(cwd(), 'src/results/results-page.module.css'), 'utf8');
 const resultsPageSource = readFileSync(join(cwd(), 'src/results/results-page.tsx'), 'utf8');
 
+describe('results numeric input ownership', () => {
+  it('uses the design-system NumberInput instead of native number inputs', () => {
+    expect(resultsPageSource).toContain('@deweyou-design/react/number-input');
+    expect(resultsPageSource).not.toMatch(/<input\b[^>]*\btype="number"/su);
+  });
+
+  it('uses the design-system Checkbox for the multi-blind whole-DNF control', () => {
+    expect(resultsPageSource).toContain('@deweyou-design/react/checkbox');
+    expect(resultsPageSource).not.toMatch(/<input\b[^>]*\btype="checkbox"/su);
+  });
+});
+
 const scrambleImageMock = vi.hoisted(() => ({
   renderScrambleImage: vi.fn(
     (_eventId: string, scramble: string) =>
@@ -165,6 +177,109 @@ vi.mock('@deweyou-design/react/select', () => {
   return { Select };
 });
 
+vi.mock('@deweyou-design/react/number-input', () => ({
+  NumberInput: ({
+    autoFocus,
+    className,
+    decrementLabel,
+    disabled,
+    error,
+    incrementLabel,
+    label,
+    max,
+    min,
+    required,
+    step = 1,
+    value,
+    onValueChange,
+  }: {
+    autoFocus?: boolean;
+    className?: string;
+    decrementLabel?: string;
+    disabled?: boolean;
+    error?: ReactNode;
+    incrementLabel?: string;
+    label?: ReactNode;
+    max?: number;
+    min?: number;
+    required?: boolean;
+    step?: number;
+    value?: string;
+    onValueChange?: (details: { value: string; valueAsNumber: number }) => void;
+  }) => {
+    const updateValue = (nextValue: string) =>
+      onValueChange?.({ value: nextValue, valueAsNumber: Number(nextValue) });
+    const stepValue = (direction: -1 | 1) => {
+      const current = Number(value);
+      updateValue(String((Number.isFinite(current) ? current : 0) + direction * step));
+    };
+
+    return (
+      <div className={className} data-component-number-input="true">
+        <label>
+          {label}
+          <button
+            aria-label={decrementLabel}
+            disabled={disabled}
+            type="button"
+            onClick={() => stepValue(-1)}
+          >
+            −
+          </button>
+          <input
+            aria-label={typeof label === 'string' ? label : undefined}
+            aria-invalid={Boolean(error)}
+            autoFocus={autoFocus}
+            disabled={disabled}
+            max={max}
+            min={min}
+            required={required}
+            step={step}
+            type="number"
+            value={value}
+            onChange={(event) => updateValue(event.currentTarget.value)}
+          />
+          <button
+            aria-label={incrementLabel}
+            disabled={disabled}
+            type="button"
+            onClick={() => stepValue(1)}
+          >
+            +
+          </button>
+        </label>
+        {error ? <p>{error}</p> : null}
+      </div>
+    );
+  },
+}));
+
+vi.mock('@deweyou-design/react/checkbox', () => ({
+  Checkbox: ({
+    checked,
+    children,
+    className,
+    disabled,
+    onCheckedChange,
+  }: {
+    checked?: boolean;
+    children?: ReactNode;
+    className?: string;
+    disabled?: boolean;
+    onCheckedChange?: (checked: boolean) => void;
+  }) => (
+    <label className={className} data-component-checkbox="true">
+      <input
+        checked={checked}
+        disabled={disabled}
+        type="checkbox"
+        onChange={(event) => onCheckedChange?.(event.currentTarget.checked)}
+      />
+      <span>{children}</span>
+    </label>
+  ),
+}));
+
 vi.mock('@deweyou-design/react/virtual-list', () => ({
   VirtualList: ({
     className,
@@ -224,12 +339,53 @@ const SeedSolves = () => {
   return null;
 };
 
-const renderResultsPage = ({ withSolves = true }: { withSolves?: boolean } = {}) =>
+const SeedMultiBlindSolves = () => {
+  const { activeList, addSolve, isLoading, setActiveListId } = useTimerSessionStore();
+  const didSeed = useRef(false);
+
+  useEffect(() => {
+    if (isLoading || didSeed.current) return;
+    if (activeList.scrambleTypeId !== '333mbld') {
+      void setActiveListId('main-333mbld');
+      return;
+    }
+
+    didSeed.current = true;
+    void (async () => {
+      await addSolve({
+        elapsedMs: 2_430_999,
+        eventId: '333mbld',
+        listId: activeList.id,
+        multiBlind: { attemptedCount: 5, solvedCount: 3, timePenaltyCount: 1 },
+        penalty: 'none',
+        scramble: ['1', '2', '3', '4', '5'],
+      });
+      await addSolve({
+        elapsedMs: 1_800_999,
+        eventId: '333mbld',
+        listId: activeList.id,
+        multiBlind: { attemptedCount: 7, solvedCount: 4, timePenaltyCount: 0 },
+        penalty: 'none',
+        scramble: ['1', '2', '3', '4', '5', '6', '7'],
+      });
+    })();
+  }, [activeList.id, activeList.scrambleTypeId, addSolve, isLoading, setActiveListId]);
+
+  return null;
+};
+
+const renderResultsPage = ({
+  multiBlind = false,
+  withSolves = true,
+}: {
+  multiBlind?: boolean;
+  withSolves?: boolean;
+} = {}) =>
   render(
     <AppPreferencesProvider>
       <TimerSessionStoreProvider db={createMemoryTimerSessionDb()}>
         <MemoryRouter initialEntries={['/results']}>
-          {withSolves ? <SeedSolves /> : null}
+          {withSolves ? multiBlind ? <SeedMultiBlindSolves /> : <SeedSolves /> : null}
           <ResultsPage />
         </MemoryRouter>
       </TimerSessionStoreProvider>
@@ -252,14 +408,12 @@ afterEach(() => {
 
 describe('ResultsPage', () => {
   it('includes every solve and aligned rolling averages in the trend chart', () => {
-    const trendData = buildTrendChartData(
-      [
-        ...Array.from({ length: 14 }, (_, index) =>
-          createDistributionSolve(8_000 + index * 1_000, `trend-${index}`),
-        ),
-        createDistributionSolve(0, 'trend-dnf', 'dnf'),
-      ],
-    );
+    const trendData = buildTrendChartData([
+      ...Array.from({ length: 14 }, (_, index) =>
+        createDistributionSolve(8_000 + index * 1_000, `trend-${index}`),
+      ),
+      createDistributionSolve(0, 'trend-dnf', 'dnf'),
+    ]);
 
     expect(trendData).toHaveLength(15);
     expect(trendData[0]).toMatchObject({ sequenceLabel: '#1', singleMs: null });
@@ -288,14 +442,14 @@ describe('ResultsPage', () => {
     expect(buildTrendYAxisDomain(data, ['ao5Ms'])).toEqual([9_700, 12_300]);
   });
 
-  it('uses one-second buckets for compact time ranges and expands to a capped nice interval', () => {
+  it('uses nice time buckets and omits buckets without solves', () => {
     const oneSecondBuckets = buildDistributionChartData([
       createDistributionSolve(8_005, 'short-1'),
       createDistributionSolve(8_724, 'short-2'),
       createDistributionSolve(28_903, 'short-3'),
     ]);
 
-    expect(oneSecondBuckets).toHaveLength(21);
+    expect(oneSecondBuckets).toHaveLength(2);
     expect(oneSecondBuckets[0]).toMatchObject({ count: 2, rangeLabel: '8s - 9s', tickLabel: '8' });
     expect(oneSecondBuckets.at(-1)).toMatchObject({ count: 1, tickLabel: '28' });
 
@@ -304,9 +458,8 @@ describe('ResultsPage', () => {
       createDistributionSolve(170_001, 'wide-2'),
     ]);
 
-    expect(widerBuckets).toHaveLength(20);
+    expect(widerBuckets).toHaveLength(2);
     expect(widerBuckets[0]).toMatchObject({ tickLabel: '1:15' });
-    expect(widerBuckets[1]).toMatchObject({ tickLabel: '1:20' });
     expect(widerBuckets.at(-1)).toMatchObject({ tickLabel: '2:50' });
 
     const cappedBuckets = buildDistributionChartData([
@@ -314,8 +467,8 @@ describe('ResultsPage', () => {
       createDistributionSolve(600_001, 'capped-2'),
     ]);
 
-    expect(cappedBuckets.length).toBeLessThanOrEqual(24);
-    expect(cappedBuckets[1]).toMatchObject({ tickLabel: '50' });
+    expect(cappedBuckets).toHaveLength(2);
+    expect(cappedBuckets.at(-1)).toMatchObject({ count: 1, tickLabel: '10:00' });
   });
 
   it('formats previous solve dates with compact slashed dates', () => {
@@ -406,9 +559,7 @@ describe('ResultsPage', () => {
     await waitFor(() => {
       expect(writeText).toHaveBeenCalledWith("R U R' U'");
     });
-    expect(
-      await within(detailPanel).findByRole('button', { name: '已复制打乱' }),
-    ).toBeTruthy();
+    expect(await within(detailPanel).findByRole('button', { name: '已复制打乱' })).toBeTruthy();
   });
 
   it('restores the copy scramble button after the copied acknowledgement', async () => {
@@ -635,6 +786,74 @@ describe('ResultsPage', () => {
 
     expect(ao100TrendButton.getAttribute('aria-pressed')).toBe('true');
     expect(within(statsRegion).queryByRole('img', { name: '时间分布' })).toBeNull();
+  });
+
+  it('specializes multi-blind score rows and statistics without averages', async () => {
+    renderResultsPage({ multiBlind: true });
+
+    const table = await screen.findByRole('table', { name: '成绩明细' });
+    await within(table).findByText('4/7 30:00');
+    expect(
+      within(table)
+        .getAllByRole('columnheader')
+        .map((header) => header.textContent),
+    ).toEqual(['#', '成绩', '分数', '失败数量', '创建时间']);
+    expect(within(table).getByText('3/5 40:32')).toBeTruthy();
+    expect(
+      screen.getByRole('combobox', { name: '成绩类型' }).querySelectorAll('option'),
+    ).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: '编辑成绩' }));
+    const editDialog = screen.getByRole('dialog', { name: '多盲成绩' });
+    expect(within(editDialog).queryByText('魔方数量')).toBeNull();
+    const solvedCountInput = within(editDialog).getByRole('spinbutton', {
+      name: '成功数量',
+    }) as HTMLInputElement;
+    const penaltyCountInput = within(editDialog).getByRole('spinbutton', {
+      name: '累计 +2',
+    }) as HTMLInputElement;
+    const saveButton = within(editDialog).getByRole('button', { name: '保存' });
+    const wholeDnfCheckbox = within(editDialog).getByRole('checkbox', { name: '整次 DNF' });
+
+    expect(solvedCountInput.max).toBe('7');
+    expect(penaltyCountInput.max).toBe('4');
+    expect(wholeDnfCheckbox.closest('[data-component-checkbox]')).not.toBeNull();
+    fireEvent.click(wholeDnfCheckbox);
+    expect(solvedCountInput.disabled).toBe(true);
+    expect(penaltyCountInput.disabled).toBe(true);
+    expect(solvedCountInput.required).toBe(false);
+    expect(penaltyCountInput.required).toBe(false);
+    expect(saveButton.hasAttribute('disabled')).toBe(false);
+    expect(solvedCountInput.value).toBe('4');
+    expect(penaltyCountInput.value).toBe('0');
+    fireEvent.click(wholeDnfCheckbox);
+    expect(solvedCountInput.disabled).toBe(false);
+    expect(penaltyCountInput.disabled).toBe(false);
+    fireEvent.change(solvedCountInput, { target: { value: '8' } });
+    expect(within(editDialog).getByText('成功数量需为 0–7 的整数。')).toBeTruthy();
+    expect(saveButton.hasAttribute('disabled')).toBe(true);
+
+    fireEvent.change(solvedCountInput, {
+      target: { value: '5' },
+    });
+    fireEvent.change(penaltyCountInput, { target: { value: '6' } });
+    expect(within(editDialog).getByText('累计 +2 需为 0–5 的整数。')).toBeTruthy();
+    expect(saveButton.hasAttribute('disabled')).toBe(true);
+
+    fireEvent.change(penaltyCountInput, { target: { value: '0' } });
+    fireEvent.click(saveButton);
+    await within(table).findByText('5/7 30:00');
+
+    fireEvent.click(screen.getByRole('tab', { name: '统计' }));
+    const stats = screen.getByRole('region', { name: '统计' });
+    expect(within(stats).getByText('最佳成绩')).toBeTruthy();
+    expect(within(stats).getByText('5/7 30:00')).toBeTruthy();
+    expect(within(stats).getByText('最高分')).toBeTruthy();
+    expect(within(stats).queryByText('总平均')).toBeNull();
+    expect(within(stats).queryByText('平均成绩')).toBeNull();
+    expect(
+      screen.getByRole('combobox', { name: '统计视图' }).querySelectorAll('option'),
+    ).toHaveLength(1);
   });
 
   it('returns to the score list when activating the score type control from statistics', async () => {

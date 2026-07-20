@@ -19,6 +19,11 @@ export default defineConfig({
       '@deweyou-design/styles/theme-dark.css': nm('@deweyou-design/styles/css/theme-dark.css'),
     },
   },
+  server: {
+    host: '127.0.0.1',
+    port: 4488,
+    strictPort: true,
+  },
   test: {
     environment: 'jsdom',
   },

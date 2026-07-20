@@ -1,4 +1,5 @@
 export * from './event-labels';
+export * from './multi-blind-result';
 export * from './session-rules';
 export * from './solve-average';
 export * from './solve-format';

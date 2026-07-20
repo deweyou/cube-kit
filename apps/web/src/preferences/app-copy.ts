@@ -90,6 +90,13 @@ export interface AppCopy {
     statsEmpty: string;
     retry: string;
     localHistoryError: string;
+    multiBlindBestResult: string;
+    multiBlindBestScore: string;
+    multiBlindScore: string;
+    multiBlindMissedCount: string;
+    multiBlindAttemptedCount: string;
+    multiBlindSolvedCount: string;
+    multiBlindNoAverage: string;
   };
   timer: {
     pageLabel: string;
@@ -98,6 +105,27 @@ export interface AppCopy {
     currentScrambleLabel: string;
     scrambleImageLabel: string;
     scrambleLoading: string;
+    refreshScramble: string;
+    previousMultiBlindScramble: string;
+    nextMultiBlindScramble: string;
+    multiBlindPositionLabel: string;
+    multiBlindSettings: string;
+    multiBlindCubeCountLabel: string;
+    multiBlindResultTitle: string;
+    multiBlindSolvedCountLabel: string;
+    multiBlindPenaltyCountLabel: string;
+    multiBlindSolvedCountError: string;
+    multiBlindPenaltyCountError: string;
+    decreaseValue: string;
+    increaseValue: string;
+    multiBlindWholeDnfLabel: string;
+    multiBlindBestScore: string;
+    editResult: string;
+    discard: string;
+    discardConfirmTitle: string;
+    discardConfirmDescription: string;
+    discardConfirmAction: string;
+    apply: string;
     listSelectorLabel: string;
     listToolbarLabel: string;
     listToolbarTitle: string;
@@ -217,6 +245,13 @@ const APP_COPY = {
       statsEmpty: '暂无统计',
       retry: '重试',
       localHistoryError: '本地成绩读取失败',
+      multiBlindBestResult: '最佳成绩',
+      multiBlindBestScore: '最高分',
+      multiBlindScore: '分数',
+      multiBlindMissedCount: '失败数量',
+      multiBlindAttemptedCount: '尝试数量',
+      multiBlindSolvedCount: '成功数量',
+      multiBlindNoAverage: '多盲按最佳单次排名，不计算平均成绩。',
     },
     timer: {
       pageLabel: '计时器',
@@ -225,6 +260,27 @@ const APP_COPY = {
       currentScrambleLabel: '当前打乱',
       scrambleImageLabel: '打乱图',
       scrambleLoading: '生成打乱中...',
+      refreshScramble: '刷新打乱',
+      previousMultiBlindScramble: '上一颗打乱',
+      nextMultiBlindScramble: '下一颗打乱',
+      multiBlindPositionLabel: '多盲打乱位置',
+      multiBlindSettings: '多盲设置',
+      multiBlindCubeCountLabel: '魔方数量',
+      multiBlindResultTitle: '多盲成绩',
+      multiBlindSolvedCountLabel: '成功数量',
+      multiBlindPenaltyCountLabel: '累计 +2',
+      multiBlindSolvedCountError: '成功数量需为 0–{max} 的整数。',
+      multiBlindPenaltyCountError: '累计 +2 需为 0–{max} 的整数。',
+      decreaseValue: '减少数值',
+      increaseValue: '增加数值',
+      multiBlindWholeDnfLabel: '整次 DNF',
+      multiBlindBestScore: '最高分',
+      editResult: '编辑成绩',
+      discard: '本次不记录',
+      discardConfirmTitle: '确认本次不记录？',
+      discardConfirmDescription: '本次成绩不会保存，且无法恢复。',
+      discardConfirmAction: '确认不记录',
+      apply: '应用',
       listSelectorLabel: '切换列表',
       listToolbarLabel: '列表操作',
       listToolbarTitle: '列表',
@@ -342,6 +398,13 @@ const APP_COPY = {
       statsEmpty: 'No statistics yet',
       retry: 'Retry',
       localHistoryError: 'Local history failed to load',
+      multiBlindBestResult: 'Best result',
+      multiBlindBestScore: 'Best score',
+      multiBlindScore: 'Score',
+      multiBlindMissedCount: 'Missed',
+      multiBlindAttemptedCount: 'Attempted',
+      multiBlindSolvedCount: 'Solved',
+      multiBlindNoAverage: 'Multi-Blind is ranked by best single and has no average result.',
     },
     timer: {
       pageLabel: 'Timer',
@@ -350,6 +413,27 @@ const APP_COPY = {
       currentScrambleLabel: 'Current scramble',
       scrambleImageLabel: 'Scramble image',
       scrambleLoading: 'Generating scramble...',
+      refreshScramble: 'Refresh scramble',
+      previousMultiBlindScramble: 'Previous cube scramble',
+      nextMultiBlindScramble: 'Next cube scramble',
+      multiBlindPositionLabel: 'Multi-blind scramble position',
+      multiBlindSettings: 'Multi-blind settings',
+      multiBlindCubeCountLabel: 'Cube count',
+      multiBlindResultTitle: 'Multi-Blind result',
+      multiBlindSolvedCountLabel: 'Solved',
+      multiBlindPenaltyCountLabel: 'Cumulative +2',
+      multiBlindSolvedCountError: 'Solved must be an integer from 0 to {max}.',
+      multiBlindPenaltyCountError: 'Cumulative +2 must be an integer from 0 to {max}.',
+      decreaseValue: 'Decrease value',
+      increaseValue: 'Increase value',
+      multiBlindWholeDnfLabel: 'Whole-attempt DNF',
+      multiBlindBestScore: 'best score',
+      editResult: 'Edit result',
+      discard: "Don't record",
+      discardConfirmTitle: 'Discard this result?',
+      discardConfirmDescription: 'This result will not be saved and cannot be recovered.',
+      discardConfirmAction: 'Discard result',
+      apply: 'Apply',
       listSelectorLabel: 'Switch list',
       listToolbarLabel: 'List actions',
       listToolbarTitle: 'Lists',

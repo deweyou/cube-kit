@@ -54,7 +54,7 @@ describe('solve statistics', () => {
       {
         ...solve(3_000, 1),
         eventId: '333mbld',
-        multiBlind: { attemptedCount: 3, solvedCount: 2 },
+        multiBlind: { attemptedCount: 3, solvedCount: 2, timePenaltyCount: 0 },
         scramble: ['cube 1', 'cube 2', 'cube 3'],
       },
     ]);

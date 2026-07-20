@@ -1,6 +1,10 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { EventId } from '@cubegin/shared/events';
-import { getEventShortLabel, getSolveDisplayText, type SolvePenalty } from '@cubegin/shared/timer-session';
+import {
+  formatMultiBlindSolve,
+  getEventShortLabel,
+  getSolveDisplayText,
+  type SolvePenalty,
+} from '@cubegin/shared/timer-session';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createMemoryTimerSessionDb } from './timer-session-db';
 import {
@@ -21,6 +25,7 @@ const StoreProbe = () => {
     lists,
     setActiveListId,
     updateList,
+    updateSolveMultiBlind,
     updateSolvePenalty,
   } = useTimerSessionStore();
   const newestSolve = activeListSolveRecords[0];
@@ -31,7 +36,8 @@ const StoreProbe = () => {
       eventId: input.eventId ?? activeList.scrambleTypeId,
       listId: input.listId ?? activeList.id,
       penalty: input.penalty ?? 'none',
-      scramble: input.scramble ?? 'R U R\' U\'',
+      scramble: input.scramble ?? "R U R' U'",
+      multiBlind: input.multiBlind,
     });
   };
 
@@ -53,7 +59,11 @@ const StoreProbe = () => {
       <output aria-label="list-count">{lists.length}</output>
       <output aria-label="solve-count">{activeListSolveRecords.length}</output>
       <output aria-label="newest-solve">
-        {newestSolve ? getSolveDisplayText(newestSolve.elapsedMs, newestSolve.penalty) : 'none'}
+        {newestSolve
+          ? newestSolve.multiBlind
+            ? formatMultiBlindSolve(newestSolve)
+            : getSolveDisplayText(newestSolve.elapsedMs, newestSolve.penalty)
+          : 'none'}
       </output>
       <button
         type="button"
@@ -81,6 +91,32 @@ const StoreProbe = () => {
       </button>
       <button type="button" onClick={() => addActiveSolve()}>
         add-solve
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          addActiveSolve({
+            elapsedMs: 2_430_999,
+            eventId: '333mbld',
+            multiBlind: { attemptedCount: 5, solvedCount: 3, timePenaltyCount: 0 },
+            scramble: ['1', '2', '3', '4', '5'],
+          })
+        }
+      >
+        add-mbld-solve
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          if (!newestSolve) return;
+          void updateSolveMultiBlind(
+            newestSolve.id,
+            { attemptedCount: 5, solvedCount: 4, timePenaltyCount: 2 },
+            'none',
+          );
+        }}
+      >
+        edit-mbld-solve
       </button>
       <button type="button" onClick={() => addActiveSolve({ elapsedMs: 2000, eventId: '444' })}>
         add-444-solve
@@ -169,5 +205,28 @@ describe('TimerSessionStoreProvider', () => {
 
     await waitFor(() => expect(screen.getByLabelText('solve-count').textContent).toBe('0'));
     expect(screen.getByLabelText('newest-solve').textContent).toBe('none');
+  });
+
+  it('persists and edits structured multi-blind results', async () => {
+    const db = createMemoryTimerSessionDb();
+    renderStoreProbe(db);
+
+    await waitFor(() => expect(screen.getByLabelText('loading').textContent).toBe('ready'));
+    fireEvent.click(screen.getByRole('button', { name: 'add-mbld-solve' }));
+    await waitFor(() =>
+      expect(screen.getByLabelText('newest-solve').textContent).toBe('3/5 40:30'),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'edit-mbld-solve' }));
+    await waitFor(() =>
+      expect(screen.getByLabelText('newest-solve').textContent).toBe('4/5 40:34'),
+    );
+
+    const [storedSolve] = await db.listSolves('main-333');
+    expect(storedSolve?.multiBlind).toEqual({
+      attemptedCount: 5,
+      solvedCount: 4,
+      timePenaltyCount: 2,
+    });
   });
 });
