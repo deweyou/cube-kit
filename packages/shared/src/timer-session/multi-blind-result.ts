@@ -8,6 +8,19 @@ export interface MultiBlindStatistics {
   validCount: number;
 }
 
+const MULTI_BLIND_MINUTES_PER_CUBE = 10;
+const MULTI_BLIND_MAX_TIME_MINUTES = 60;
+
+export const getMultiBlindTimeLimitMs = (attemptedCount: number): number => {
+  const normalizedAttemptedCount = Math.max(0, Math.trunc(attemptedCount));
+  return (
+    Math.min(
+      normalizedAttemptedCount * MULTI_BLIND_MINUTES_PER_CUBE,
+      MULTI_BLIND_MAX_TIME_MINUTES,
+    ) * 60_000
+  );
+};
+
 export const getMultiBlindMissedCount = (result: MultiBlindSolveResult): number =>
   result.attemptedCount - result.solvedCount;
 
@@ -24,10 +37,14 @@ export const getMultiBlindFinalTimeMs = (
 };
 
 export const isMultiBlindSolveDnf = (
-  solve: Pick<SolveRecord, 'multiBlind' | 'penalty'>,
+  solve: Pick<SolveRecord, 'elapsedMs' | 'multiBlind' | 'penalty'>,
 ): boolean => {
   if (solve.multiBlind === undefined || solve.penalty === 'dnf') return true;
-  return getMultiBlindScore(solve.multiBlind) < 0 || solve.multiBlind.solvedCount === 1;
+  return (
+    solve.elapsedMs > getMultiBlindTimeLimitMs(solve.multiBlind.attemptedCount) ||
+    getMultiBlindScore(solve.multiBlind) < 0 ||
+    solve.multiBlind.solvedCount === 1
+  );
 };
 
 export const formatMultiBlindAttempt = (

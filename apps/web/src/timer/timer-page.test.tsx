@@ -1246,7 +1246,7 @@ describe('TimerPage', () => {
   });
 
   it('records and edits a structured multi-blind result without ordinary averages', async () => {
-    timerMock.stop.mockReturnValue(2_430_999);
+    timerMock.stop.mockReturnValue(1_230_999);
     scrambleGeneratorMock.generate.mockImplementation((eventId: string) =>
       Promise.resolve({
         eventId,
@@ -1356,7 +1356,7 @@ describe('TimerPage', () => {
 
     const summary = screen.getByRole('region', { name: '成绩概要' });
     expect(within(summary).getByText('1/1')).toBeTruthy();
-    expect(within(summary).getByText('2/3 40:32')).toBeTruthy();
+    expect(within(summary).getByText('2/3 20:32')).toBeTruthy();
     expect(within(summary).getByText('最高分')).toBeTruthy();
     expect(within(summary).queryByText('平均')).toBeNull();
     expect(within(summary).queryByText('mo3')).toBeNull();
@@ -1368,7 +1368,7 @@ describe('TimerPage', () => {
     });
     fireEvent.click(within(editDialog).getByRole('button', { name: '保存' }));
 
-    await waitFor(() => expect(within(summary).getByText('3/3 40:32')).toBeTruthy());
+    await waitFor(() => expect(within(summary).getByText('3/3 20:32')).toBeTruthy());
     expect(within(summary).getByText('3')).toBeTruthy();
   });
 
@@ -1414,6 +1414,47 @@ describe('TimerPage', () => {
     expect(within(editDialog).getByRole('button', { name: '保存' }).hasAttribute('disabled')).toBe(
       false,
     );
+  });
+
+  it('keeps timing beyond the MBLD limit and derives DNF after a manual stop', async () => {
+    const timeLimitMs = 30 * 60_000;
+    timerMock.stop.mockReturnValue(timeLimitMs + 1_000);
+    scrambleGeneratorMock.generate.mockImplementation((eventId: string) =>
+      Promise.resolve({
+        eventId,
+        scramble:
+          eventId === '333mbld' ? 'cube 1\ncube 2\ncube 3' : `${eventId} generated scramble`,
+      }),
+    );
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333mbld' },
+    });
+    await within(screen.getByRole('region', { name: '当前打乱' })).findByText('cube 1');
+    expect(screen.getByRole('timer').textContent).toContain('30:00');
+
+    timerMock.elapsed = timeLimitMs + 1_000;
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    expect(timerMock.stop).not.toHaveBeenCalled();
+    expect(screen.getByRole('timer').getAttribute('data-state')).toBe('timing');
+    expect(screen.getByRole('timer').textContent?.replace(/\s/gu, '')).toBe('+0:01');
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    const dialog = await screen.findByRole('dialog', { name: '多盲成绩' });
+    expect(timerMock.stop).toHaveBeenCalledTimes(1);
+    expect(
+      (within(dialog).getByRole('checkbox', { name: '整次 DNF' }) as HTMLInputElement).checked,
+    ).toBe(false);
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '保存' }));
+
+    const summary = await screen.findByRole('region', { name: '成绩概要' });
+    expect(await within(summary).findByText('0/1')).toBeTruthy();
+    await waitFor(() => expect(screen.getByRole('timer').textContent).toContain('DNF'));
+    expect(within(summary).getAllByText('--')).toHaveLength(2);
   });
 
   it('loads a generated scramble when switching to another default event list', async () => {

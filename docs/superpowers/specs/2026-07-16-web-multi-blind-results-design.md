@@ -33,6 +33,12 @@ flowchart LR
 - Multi-Blind time is truncated to whole seconds.
 - Individual `+2` penalties are cumulative and are applied before the displayed
   final time is truncated to whole seconds.
+- The attempt time limit is 10 minutes per attempted puzzle when fewer than 6
+  puzzles are attempted, and 60 minutes when 6 or more are attempted.
+- Reaching the time limit does not stop the app timer. The user stops it
+  manually; a raw stopped time above the limit makes the result DNF. Cumulative
+  `+2` penalties do not participate in this timeout check and may make an
+  otherwise valid final displayed time exceed the limit.
 
 ## Data Model
 
@@ -62,6 +68,9 @@ the structured fields.
 ## Stop And Entry Flow
 
 Stopping an MBLD timer does not immediately create a solve record.
+
+The timer displays the remaining MBLD attempt time. It continues running after
+zero and displays overtime as `+m:ss` until the user stops it manually.
 
 1. Freeze the raw elapsed time and enter the stopped state.
 2. Open a compact `多盲成绩` / `Multi-Blind result` dialog.
@@ -143,6 +152,11 @@ MBLD instead of the ordinary `+2` and DNF buttons. Editing uses the same dialog.
 - Equal score and time use fewer missed puzzles as the final tiebreak.
 - A negative score or exactly one solved puzzle is DNF.
 - Multiple `+2` penalties accumulate into final time.
+- A 5-cube attempt starts from `50:00`; a 6-cube attempt starts from `60:00`.
+- Reaching zero continues as `+m:ss`; stopping with a raw elapsed time above the
+  limit derives DNF after the structured result is saved.
+- Cumulative `+2` penalties can produce a valid final time above the attempt
+  limit.
 - Whole-attempt DNF can be saved with empty counts and persists `0 / 0`; valid
   counts entered before selecting DNF remain unchanged.
 - Solved count cannot exceed attempted count, and cumulative `+2` cannot exceed
@@ -157,9 +171,8 @@ MBLD instead of the ordinary `+2` and DNF buttons. Editing uses the same dialog.
 
 - WCA database integer encoding and competition export.
 - Official round grouping and Best-of-X competition management.
-- Automatic enforcement of the event time limit.
 - Cloud sync and cross-device conflict resolution.
 
 ---
 
-_Last updated: 2026-07-20 | Reason: require explicit confirmation before discarding an unsaved result_
+_Last updated: 2026-07-20 | Reason: keep MBLD timing manual and derive DNF from raw overtime_

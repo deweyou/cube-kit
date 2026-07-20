@@ -6,6 +6,7 @@ import {
   getMultiBlindFinalTimeMs,
   getMultiBlindMissedCount,
   getMultiBlindScore,
+  getMultiBlindTimeLimitMs,
   isMultiBlindSolveDnf,
 } from './multi-blind-result';
 import type { SolveRecord } from './types';
@@ -36,6 +37,34 @@ const multiBlindSolve = ({
 });
 
 describe('multi-blind result', () => {
+  it('uses ten minutes per cube below six and caps the attempt at sixty minutes', () => {
+    expect(getMultiBlindTimeLimitMs(2)).toBe(20 * 60_000);
+    expect(getMultiBlindTimeLimitMs(5)).toBe(50 * 60_000);
+    expect(getMultiBlindTimeLimitMs(6)).toBe(60 * 60_000);
+    expect(getMultiBlindTimeLimitMs(99)).toBe(60 * 60_000);
+  });
+
+  it('marks raw overtime as DNF while allowing penalties to exceed the limit', () => {
+    const atLimitWithPenalty = multiBlindSolve({
+      attemptedCount: 2,
+      elapsedMs: 20 * 60_000,
+      id: '1',
+      solvedCount: 2,
+      timePenaltyCount: 1,
+    });
+    const overtime = multiBlindSolve({
+      attemptedCount: 2,
+      elapsedMs: 20 * 60_000 + 1,
+      id: '2',
+      solvedCount: 2,
+    });
+
+    expect(isMultiBlindSolveDnf(atLimitWithPenalty)).toBe(false);
+    expect(formatMultiBlindSolve(atLimitWithPenalty)).toBe('2/2 20:02');
+    expect(isMultiBlindSolveDnf(overtime)).toBe(true);
+    expect(formatMultiBlindSolve(overtime)).toBe('DNF');
+  });
+
   it('calculates score, missed count, cumulative penalties, and whole-second time', () => {
     const solve = multiBlindSolve({
       attemptedCount: 5,

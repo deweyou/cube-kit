@@ -17,6 +17,7 @@ import {
   formatMultiBlindSolve,
   formatMilliseconds,
   getEventShortLabel,
+  getMultiBlindTimeLimitMs,
   getSolveDisplayText,
   type RollingAverageStat,
   type SolvePenalty,
@@ -1175,6 +1176,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     ? (activeMultiBlindScrambles[activeMultiBlindScrambleIndex] ?? '')
     : activeScramble;
   const multiBlindScrambleCount = activeMultiBlindScrambles.length || multiBlindCubeCount;
+  const multiBlindTimeLimitMs = getMultiBlindTimeLimitMs(multiBlindScrambleCount);
   const stoppedSolve = useMemo(
     () => activeListSolveRecords.find((solveRecord) => solveRecord.id === stoppedSolveId),
     [activeListSolveRecords, stoppedSolveId],
@@ -1828,17 +1830,31 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     : timerState === 'timing'
       ? 'solve'
       : 'final';
+  const multiBlindTimeDifferenceMs = multiBlindTimeLimitMs - elapsed;
+  const multiBlindTimerClock = formatTimerDisplay({
+    elapsedMs: Math.abs(multiBlindTimeDifferenceMs),
+    mode: 'seconds',
+    phase: 'solve',
+    timingText: timerCopy.timingDisplayText,
+  });
+  const multiBlindTimerText = `${multiBlindTimeDifferenceMs < 0 ? '+' : ''}${
+    Math.abs(multiBlindTimeDifferenceMs) < 60_000
+      ? `0:${multiBlindTimerClock.padStart(2, '0')}`
+      : multiBlindTimerClock
+  }`;
   const elapsedText =
     timerState === 'stopped'
       ? isMultiBlindList && stoppedSolve?.multiBlind
         ? formatMultiBlindSolve(stoppedSolve)
         : getSolveDisplayText(finalElapsed, stoppedSolvePenalty)
-      : formatTimerDisplay({
-          elapsedMs: displayElapsed,
-          mode: preferences.timerDisplayMode,
-          phase: timerDisplayPhase,
-          timingText: timerCopy.timingDisplayText,
-        });
+      : isMultiBlindList && !isTimerInspectionState
+        ? multiBlindTimerText
+        : formatTimerDisplay({
+            elapsedMs: displayElapsed,
+            mode: preferences.timerDisplayMode,
+            phase: timerDisplayPhase,
+            timingText: timerCopy.timingDisplayText,
+          });
   const isTimerFocusMode = isTimerReadyState || isTimerInspectionState || timerState === 'timing';
   const isTimerRunning = timerState === 'timing';
   const timerLabel =

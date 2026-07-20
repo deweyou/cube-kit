@@ -95,6 +95,13 @@ selection, settings persistence, and page layout.
   including a leading `0:` below one minute). They also derive rule-based DNF and
   compare by higher score, shorter time, then fewer missed puzzles. See
   [packages/shared/src/timer-session/multi-blind-result.ts#L1](../packages/shared/src/timer-session/multi-blind-result.ts#L1).
+- The shared MBLD rule also derives the attempt limit: 10 minutes per puzzle
+  below 6 attempted puzzles, capped at 60 minutes from 6 puzzles onward. The web
+  timer presents this as a countdown, continues after zero with a `+m:ss`
+  overtime display, and waits for the user to stop manually. A raw stopped time
+  above the limit derives DNF when the structured result is evaluated.
+  Cumulative `+2` penalties are added afterward, do not trigger timeout DNF, and
+  may make a valid final time exceed the limit.
 - Stopping `333mbld` opens a required result dialog before persistence. The timer
   keeps attempted count implicit, lays out solved count and cumulative `+2` as
   compact label/input rows, and omits the result preview. New attempts initialize
@@ -183,4 +190,4 @@ selection, settings persistence, and page layout.
 
 ---
 
-_Last updated: 2026-07-20 | Reason: default new MBLD entry to the common all-success result_
+_Last updated: 2026-07-20 | Reason: keep MBLD timing manual and derive DNF from raw overtime_
