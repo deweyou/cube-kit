@@ -63,4 +63,15 @@ describe('createTimerScrambleGenerator', () => {
     generator.dispose?.();
     expect(MockWorker.instances[0].terminate).toHaveBeenCalledOnce();
   });
+
+  it('rejects pending requests when the worker is disposed', async () => {
+    vi.stubGlobal('Worker', MockWorker);
+    const generator = createTimerScrambleGenerator();
+    const pending = generator.generate('333fm');
+
+    generator.dispose?.();
+
+    await expect(pending).rejects.toThrow('scramble worker was disposed');
+    expect(MockWorker.instances[0].terminate).toHaveBeenCalledOnce();
+  });
 });

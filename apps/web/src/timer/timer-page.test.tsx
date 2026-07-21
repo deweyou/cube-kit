@@ -899,22 +899,22 @@ describe('TimerPage', () => {
       /@media \(max-height: 900px\)\s*\{[^}]*\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*line-height: 1\.22;/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 1180px\)\s*\{\s*\.root\s*\{[^}]*--timer-nav-zone-height: calc\(68px \+ env\(safe-area-inset-bottom\)\);/su,
+      /:global\(\[data-mobile-device='true'\]\) \.root\s*\{[^}]*--timer-nav-zone-height: calc\(68px \+ env\(safe-area-inset-bottom\)\);/su,
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 1180px\)\s*\{\s*\.root\s*\{[^}]*--timer-top-zone-height: clamp\(256px, 30vh, 340px\);/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 1180px\)\s*\{\s*\.root\s*\{[^}]*grid-template-areas:\s*'hero'\s*'stage'\s*'bottom'\s*'nav';/su,
+      /:global\(\[data-mobile-device='true'\]\) \.root\s*\{[^}]*grid-template-areas:\s*'hero'\s*'stage'\s*'bottom'\s*'nav';/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 1180px\)\s*\{\s*\.root\s*\{[^}]*grid-template-rows:\s*minmax\(var\(--timer-top-zone-height\), 1fr\)\s*var\(--timer-stage-height\)\s*minmax\(var\(--timer-bottom-zone-height\), 1fr\)\s*var\(--timer-nav-zone-height\);/su,
+      /:global\(\[data-mobile-device='true'\]\) \.root\s*\{[^}]*grid-template-rows:\s*minmax\(var\(--timer-top-zone-height\), 1fr\)\s*var\(--timer-stage-height\)\s*minmax\(var\(--timer-bottom-zone-height\), 1fr\)\s*var\(--timer-nav-zone-height\);/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 1180px\)\s*\{[\s\S]*?\.primaryNav\s*\{[^}]*grid-area: nav;[^}]*position: relative;[^}]*transform: none;/u,
+      /:global\(\[data-mobile-device='true'\]\) \.primaryNav\s*\{[^}]*grid-area: nav;[^}]*position: relative;[^}]*transform: none;/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 1180px\)\s*\{[\s\S]*?\.bottomDock\s*\{[^}]*padding-bottom: 0;/u,
+      /:global\(\[data-mobile-device='true'\]\) \.bottomDock\s*\{[^}]*padding-bottom: 0;/su,
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[^}]*--timer-top-zone-height: clamp\(286px, 43dvh, 328px\);/su,
@@ -927,6 +927,12 @@ describe('TimerPage', () => {
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[^}]*--timer-nav-zone-height: calc\(58px \+ env\(safe-area-inset-bottom\)\);/su,
+    );
+    expect(timerCss).toMatch(
+      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.primaryNav\s*\{[^}]*grid-area: nav;[^}]*position: relative;[^}]*transform: none;/u,
+    );
+    expect(appShellSource).toContain(
+      "data-mobile-device={isMobileWebDevice() ? 'true' : undefined}",
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[^}]*--timer-scramble-toolbar-height: 44px;/su,
@@ -1182,6 +1188,88 @@ describe('TimerPage', () => {
 
     fireEvent.click(previousButton);
     expect(within(scrambleRegion).getByText('cube 2 scramble')).toBeTruthy();
+  });
+
+  it('keeps the FMC scramble sealed until start and saves a validated formula result', async () => {
+    scrambleGeneratorMock.generate.mockImplementation((eventId: string) =>
+      Promise.resolve({
+        eventId,
+        scramble: eventId === '333fm' ? 'R U' : `${eventId} generated scramble`,
+      }),
+    );
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333fm' },
+    });
+
+    await screen.findByText('60:00');
+    expect(screen.queryByText('开始最少步')).toBeNull();
+    expect(screen.queryByText('R U')).toBeNull();
+    expect(screen.queryByRole('textbox', { name: '还原公式' })).toBeNull();
+    expect(screen.queryByLabelText('打乱图')).toBeNull();
+
+    fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+    fireEvent.keyUp(window, { code: 'Space', key: ' ' });
+
+    expect(screen.getByRole('region', { name: '计时器' }).dataset.fewestMovesActive).toBe('true');
+    expect((await screen.findAllByText('R U')).length).toBeGreaterThan(0);
+    const formulaEditor = screen.getByRole('textbox', { name: /还原公式/u });
+    for (const token of ["U'", "R'", 'F', "F'"]) {
+      for (const key of token) fireEvent.keyDown(formulaEditor, { key });
+    }
+    expect(screen.getByText('总步数 4')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '提交公式' }));
+
+    await waitFor(() => expect(screen.getAllByText('4 步').length).toBeGreaterThan(0));
+    expect(screen.queryByText("U' R' F F'")).toBeNull();
+    expect(screen.queryByRole('button', { name: '开始最少步' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '返回修改' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '保存成绩' })).toBeNull();
+  });
+
+  it('shows and cancels the FMC Space ready state before release', async () => {
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333fm' },
+    });
+
+    const startButton = await screen.findByRole('button', { name: '开始最少步' });
+    fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+    expect(startButton.dataset.armed).toBe('true');
+
+    fireEvent.keyDown(window, { code: 'Escape', key: 'Escape' });
+    expect(startButton.dataset.armed).toBeUndefined();
+
+    fireEvent.keyUp(window, { code: 'Space', key: ' ' });
+    expect(screen.queryByRole('textbox', { name: /还原公式/u })).toBeNull();
+    expect(screen.getByText('60:00')).toBeTruthy();
+  });
+
+  it('records an exact inverse FMC solution as DNF', async () => {
+    scrambleGeneratorMock.generate.mockImplementation((eventId: string) =>
+      Promise.resolve({
+        eventId,
+        scramble: eventId === '333fm' ? 'R U' : `${eventId} generated scramble`,
+      }),
+    );
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333fm' },
+    });
+    await screen.findByText('60:00');
+    fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+    fireEvent.keyUp(window, { code: 'Space', key: ' ' });
+    const formulaEditor = screen.getByRole('textbox', { name: /还原公式/u });
+    for (const key of ['U', "'", 'R', "'"]) fireEvent.keyDown(formulaEditor, { key });
+    fireEvent.click(screen.getByRole('button', { name: '提交公式' }));
+
+    await waitFor(() => expect(screen.getByText('DNF')).toBeTruthy());
+    expect(screen.queryByRole('button', { name: '返回修改' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '保存成绩' })).toBeNull();
   });
 
   it('changes multi-blind cube count through the settings dialog and refreshes the group', async () => {
@@ -1918,6 +2006,7 @@ const timerNavigationSource = readFileSync(
   `${process.cwd()}/src/timer/timer-navigation.tsx`,
   'utf8',
 ) as string;
+const appShellSource = readFileSync(`${process.cwd()}/src/layout/app-shell.tsx`, 'utf8') as string;
 
 describe('timer numeric input ownership', () => {
   it('uses the design-system NumberInput instead of native number inputs', () => {

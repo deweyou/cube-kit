@@ -1,4 +1,5 @@
 export * from './event-labels';
+export * from './fewest-moves-result';
 export * from './multi-blind-result';
 export * from './session-rules';
 export * from './solve-average';

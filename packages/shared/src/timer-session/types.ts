@@ -8,6 +8,26 @@ export interface MultiBlindSolveResult {
   timePenaltyCount: number;
 }
 
+export type FewestMovesValidationReason =
+  | 'syntax'
+  | 'unsolved'
+  | 'over-80-etm'
+  | 'inverse-scramble'
+  | 'manual'
+  | null;
+
+export interface FewestMovesSolveResult {
+  rawSolution: string;
+  normalizedSolution: string | null;
+  moveCount: number | null;
+  executionMoveCount: number | null;
+  attemptDurationMs: number;
+  validationStatus: 'valid' | 'dnf';
+  validationReason: FewestMovesValidationReason;
+  inverseScrambleReview: 'not-suspected' | 'confirmed' | 'dismissed';
+  rulesVersion: 'wca-2026-04-01';
+}
+
 export interface SolveRecord {
   id: string;
   sessionId: string;
@@ -15,6 +35,7 @@ export interface SolveRecord {
   scramble: string | string[];
   elapsedMs: number;
   penalty: SolvePenalty;
+  fewestMoves?: FewestMovesSolveResult;
   multiBlind?: MultiBlindSolveResult;
   createdAt: number;
 }

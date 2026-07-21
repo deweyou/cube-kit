@@ -125,7 +125,7 @@ const createWorkerScrambleGenerator = (): TimerScrambleGenerator => {
 
   return {
     dispose() {
-      clearWorker();
+      clearWorker(new Error('@cubegin/web: scramble worker was disposed'));
     },
     generate(eventId, options) {
       const requestId = ++nextRequestId;

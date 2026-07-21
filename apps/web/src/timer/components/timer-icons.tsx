@@ -129,6 +129,30 @@ export const NextIcon = ({ size = 18 }: TimerIconProps) => (
   </svg>
 );
 
+export const CollapseIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="m6 14.5 6-6 6 6"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
+export const ExpandIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="m6 9.5 6 6 6-6"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
 export const DeleteIcon = ({ className, size = 18 }: TimerIconProps) => (
   <svg {...iconProps(size, className)}>
     <path d="M4 7h16" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />

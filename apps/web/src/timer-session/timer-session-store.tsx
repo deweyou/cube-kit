@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { EVENT_IDS, type EventId } from '@cubegin/shared/events';
 import {
+  type FewestMovesSolveResult,
   getEventShortLabel,
   type MultiBlindSolveResult,
   type SolvePenalty,
@@ -37,6 +38,7 @@ export interface UpdateListInput extends ListInput {
 export interface AddSolveInput {
   elapsedMs: number;
   eventId: EventId;
+  fewestMoves?: FewestMovesSolveResult;
   listId: string;
   multiBlind?: MultiBlindSolveResult;
   penalty: SolvePenalty;
@@ -55,6 +57,11 @@ export interface TimerSessionDb {
   updateSolveMultiBlind(
     solveId: string,
     multiBlind: MultiBlindSolveResult,
+    penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
+  ): Promise<SolveRecord>;
+  updateSolveFewestMoves(
+    solveId: string,
+    fewestMoves: FewestMovesSolveResult,
     penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
   ): Promise<SolveRecord>;
   updateSolvePenalty(solveId: string, penalty: SolvePenalty): Promise<SolveRecord>;
@@ -76,6 +83,11 @@ interface TimerSessionStoreContextValue {
   updateSolveMultiBlind(
     solveId: string,
     multiBlind: MultiBlindSolveResult,
+    penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
+  ): Promise<SolveRecord>;
+  updateSolveFewestMoves(
+    solveId: string,
+    fewestMoves: FewestMovesSolveResult,
     penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
   ): Promise<SolveRecord>;
   updateSolvePenalty(solveId: string, penalty: SolvePenalty): Promise<SolveRecord>;
@@ -126,6 +138,7 @@ const makeTimerSolveRecord = ({
   eventId: input.eventId,
   id: `${input.listId}:${solveIndex}`,
   penalty: input.penalty,
+  fewestMoves: input.fewestMoves === undefined ? undefined : { ...input.fewestMoves },
   multiBlind: input.multiBlind === undefined ? undefined : { ...input.multiBlind },
   scramble: input.scramble,
   sessionId: input.listId,
@@ -325,6 +338,25 @@ export const TimerSessionStoreProvider = ({ children, db }: TimerSessionStorePro
     [activeListId, storeDb],
   );
 
+  const updateSolveFewestMoves = useCallback(
+    async (
+      solveId: string,
+      fewestMoves: FewestMovesSolveResult,
+      penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
+    ) => {
+      const updatedSolve = await storeDb.updateSolveFewestMoves(solveId, fewestMoves, penalty);
+
+      if (updatedSolve.sessionId === activeListId) {
+        setActiveListSolveRecords((currentSolves) =>
+          currentSolves.map((solve) => (solve.id === solveId ? updatedSolve : solve)),
+        );
+      }
+
+      return updatedSolve;
+    },
+    [activeListId, storeDb],
+  );
+
   const deleteSolve = useCallback(
     async (solveId: string) => {
       await storeDb.deleteSolve(solveId);
@@ -349,6 +381,7 @@ export const TimerSessionStoreProvider = ({ children, db }: TimerSessionStorePro
       retry: loadState,
       setActiveListId,
       updateList,
+      updateSolveFewestMoves,
       updateSolveMultiBlind,
       updateSolvePenalty,
     }),
@@ -365,6 +398,7 @@ export const TimerSessionStoreProvider = ({ children, db }: TimerSessionStorePro
       loadState,
       setActiveListId,
       updateList,
+      updateSolveFewestMoves,
       updateSolveMultiBlind,
       updateSolvePenalty,
     ],

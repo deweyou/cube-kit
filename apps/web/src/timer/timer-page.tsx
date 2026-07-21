@@ -9,17 +9,22 @@ import {
 } from 'react';
 import { CubeginAnimatedIcon } from '@cubegin/icons/react';
 import { renderScrambleImage } from '@cubegin/scramble-image';
+import { validateFewestMovesSolution, type FewestMovesValidation } from '@cubegin/solver';
 import { EVENT_IDS, type EventId } from '@cubegin/shared/events';
 import { formatTimerDisplay, resolveWcaInspectionPenalty } from '@cubegin/shared/preferences';
 import {
+  calculateFewestMovesStatistics,
   calculateMultiBlindStatistics,
   calculateSolveStatistics,
+  formatFewestMovesMean,
+  formatFewestMovesSolve,
   formatMultiBlindSolve,
   formatMilliseconds,
   getEventShortLabel,
   getMultiBlindTimeLimitMs,
   getSolveDisplayText,
   type RollingAverageStat,
+  type FewestMovesSolveResult,
   type SolvePenalty,
   type SolveRecord,
   type SolveStatistics,
@@ -34,6 +39,11 @@ import { resolveMultiBlindResultDraft } from '../timer-session/multi-blind-resul
 import { useTimerSessionStore, type TimerList } from '../timer-session/timer-session-store';
 import { ScrambleImage } from './components/scramble-image';
 import { ScrambleText } from './components/scramble-text';
+import {
+  FewestMovesWorkspace,
+  type FewestMovesInverseDecision,
+  type FewestMovesWorkspacePhase,
+} from './components/fewest-moves-workspace';
 import {
   AddIcon,
   DeleteIcon,
@@ -77,7 +87,16 @@ const WCA_INSPECTION_UNSUPPORTED_EVENT_IDS = new Set<EventId>([
   '444bld',
   '555bld',
   '333mbld',
+  '333fm',
 ]);
+const FEWEST_MOVES_TIME_LIMIT_MS = 60 * 60_000;
+
+const formatFewestMovesClock = (elapsedMs: number): string => {
+  const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1_000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+};
 const TIMER_FONT_SIZE_PRECISION = 4;
 const TIMER_FONT_SIZE_SAFETY_STEP = 0.5;
 const TIMER_MIN_FITTED_FONT_SIZE = 32;
@@ -521,6 +540,7 @@ const SummaryCountMetric = ({ label, value }: SummaryCountMetricProps) => (
 
 interface TimerSessionSummaryProps {
   copy: AppCopy['timer'];
+  isFewestMoves: boolean;
   isMultiBlind: boolean;
   solveRecords: readonly SolveRecord[];
   statistics: SolveStatistics;
@@ -528,10 +548,39 @@ interface TimerSessionSummaryProps {
 
 const TimerSessionSummary = ({
   copy,
+  isFewestMoves,
   isMultiBlind,
   solveRecords,
   statistics,
 }: TimerSessionSummaryProps) => {
+  if (isFewestMoves) {
+    const fewestMovesStatistics = calculateFewestMovesStatistics(solveRecords);
+    return (
+      <section className={styles.sessionSummary} aria-label={copy.summaryLabel}>
+        <SummaryCountMetric
+          label={copy.summaryCountLabel}
+          value={`${fewestMovesStatistics.validCount}/${fewestMovesStatistics.totalCount}`}
+        />
+        <SummaryMetric
+          label={copy.best}
+          value={
+            fewestMovesStatistics.bestSolve
+              ? `${formatFewestMovesSolve(fewestMovesStatistics.bestSolve)} ${copy.fewestMovesMoveUnit}`
+              : '--'
+          }
+        />
+        <SummaryMetric
+          label="mo3"
+          value={formatFewestMovesMean(fewestMovesStatistics.currentMean)}
+        />
+        <SummaryMetric
+          label="best mo3"
+          value={formatFewestMovesMean(fewestMovesStatistics.bestMean)}
+        />
+      </section>
+    );
+  }
+
   if (isMultiBlind) {
     const multiBlindStatistics = calculateMultiBlindStatistics(solveRecords);
     return (
@@ -606,7 +655,9 @@ const TimerRecentSolves = ({ label, solveRecords }: TimerRecentSolvesProps) => {
             <strong className={styles.recentRailTime}>
               {solveRecord.eventId === '333mbld'
                 ? formatMultiBlindSolve(solveRecord)
-                : getSolveDisplayText(solveRecord.elapsedMs, solveRecord.penalty)}
+                : solveRecord.eventId === '333fm'
+                  ? formatFewestMovesSolve(solveRecord)
+                  : getSolveDisplayText(solveRecord.elapsedMs, solveRecord.penalty)}
             </strong>
           </li>
         ))}
@@ -1117,6 +1168,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     lists,
     setActiveListId,
     updateList,
+    updateSolveFewestMoves,
     updateSolveMultiBlind,
     updateSolvePenalty,
   } = useTimerSessionStore();
@@ -1157,11 +1209,21 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   const [multiBlindSolvedCountDraft, setMultiBlindSolvedCountDraft] = useState('');
   const [multiBlindPenaltyCountDraft, setMultiBlindPenaltyCountDraft] = useState('0');
   const [isMultiBlindWholeDnfDraft, setIsMultiBlindWholeDnfDraft] = useState(false);
+  const [fewestMovesPhase, setFewestMovesPhase] = useState<FewestMovesWorkspacePhase>('sealed');
+  const [fewestMovesSolution, setFewestMovesSolution] = useState('');
+  const [fewestMovesValidation, setFewestMovesValidation] = useState<FewestMovesValidation | null>(
+    null,
+  );
+  const [fewestMovesReviewDecision, setFewestMovesReviewDecision] =
+    useState<FewestMovesInverseDecision>(null);
+  const [fewestMovesElapsedBase, setFewestMovesElapsedBase] = useState(0);
+  const [isEditingFewestMovesResult, setIsEditingFewestMovesResult] = useState(false);
   const scrambleGenerator = useMemo(() => createTimerScrambleGenerator(), []);
   const { elapsed, start, stop, reset } = useTimer();
 
   const isActiveScrambleForList = activeScrambleEventId === activeList.scrambleTypeId;
   const isMultiBlindList = activeList.scrambleTypeId === '333mbld';
+  const isFewestMovesList = activeList.scrambleTypeId === '333fm';
   const isWcaInspectionEnabled =
     preferences.wcaInspection &&
     !WCA_INSPECTION_UNSUPPORTED_EVENT_IDS.has(activeList.scrambleTypeId);
@@ -1188,12 +1250,35 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
         : '',
     [activeList.scrambleTypeId, isActiveScrambleForList, selectedScramble],
   );
+  const fewestMovesWorkspaceScramble = useMemo(() => {
+    if (!isEditingFewestMovesResult || stoppedSolve === undefined) return activeScramble;
+    return Array.isArray(stoppedSolve.scramble)
+      ? (stoppedSolve.scramble[0] ?? '')
+      : stoppedSolve.scramble;
+  }, [activeScramble, isEditingFewestMovesResult, stoppedSolve]);
+  const fewestMovesWorkspaceSvg = useMemo(
+    () =>
+      isFewestMovesList && fewestMovesWorkspaceScramble.length > 0
+        ? renderScrambleImage('333fm', fewestMovesWorkspaceScramble)
+        : '',
+    [fewestMovesWorkspaceScramble, isFewestMovesList],
+  );
   const displayScramble =
     scrambleError ??
     (isScrambleLoading || !isActiveScrambleForList ? timerCopy.scrambleLoading : selectedScramble);
   const statistics = useMemo(
     () => calculateSolveStatistics(activeListSolveRecords),
     [activeListSolveRecords],
+  );
+  const liveFewestMovesValidation = useMemo(
+    () =>
+      isFewestMovesList && activeScramble.length > 0 && fewestMovesSolution.trim().length > 0
+        ? validateFewestMovesSolution({
+            scramble: activeScramble,
+            solution: fewestMovesSolution,
+          })
+        : null,
+    [activeScramble, fewestMovesSolution, isFewestMovesList],
   );
 
   const clearStoppedSolveState = useCallback(() => {
@@ -1246,6 +1331,12 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     inspectionStartedAt.current = undefined;
     setInspectionElapsed(0);
     setTimerState('idle');
+    setFewestMovesPhase('sealed');
+    setFewestMovesSolution('');
+    setFewestMovesValidation(null);
+    setFewestMovesReviewDecision(null);
+    setFewestMovesElapsedBase(0);
+    setIsEditingFewestMovesResult(false);
 
     void (async () => {
       const resolvedSolveId = solveId ?? (await solvePromise)?.id;
@@ -1428,6 +1519,20 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     ({ penalty = 'none', resetFirst = true }: StartTimerOptions = {}) => {
       clearStoppedSolveState();
 
+      if (isFewestMovesList) {
+        reset();
+        setFinalElapsed(0);
+        setFewestMovesElapsedBase(0);
+        setFewestMovesSolution('');
+        setFewestMovesValidation(null);
+        setFewestMovesReviewDecision(null);
+        setIsEditingFewestMovesResult(false);
+        setFewestMovesPhase('attempt');
+        start();
+        setTimerState('timing');
+        return;
+      }
+
       if (resetFirst) {
         reset();
         setFinalElapsed(0);
@@ -1440,8 +1545,154 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
       start();
       setTimerState('timing');
     },
-    [clearStoppedSolveState, reset, start],
+    [clearStoppedSolveState, isFewestMovesList, reset, start],
   );
+
+  const persistFewestMovesResult = useCallback(
+    ({
+      attemptDurationMs,
+      decision,
+      scramble,
+      validation,
+    }: {
+      attemptDurationMs: number;
+      decision: Exclude<FewestMovesInverseDecision, null> | null;
+      scramble: string;
+      validation: FewestMovesValidation;
+    }) => {
+      const isDnf =
+        validation.status === 'dnf' ||
+        (validation.status === 'suspected-inverse' && decision === 'dnf');
+      const fewestMoves: FewestMovesSolveResult = {
+        attemptDurationMs,
+        executionMoveCount: validation.executionMoveCount,
+        inverseScrambleReview:
+          validation.status === 'suspected-inverse'
+            ? decision === 'dnf'
+              ? 'confirmed'
+              : 'dismissed'
+            : validation.reason === 'inverse-scramble'
+              ? 'confirmed'
+              : 'not-suspected',
+        moveCount: isDnf ? null : validation.moveCount,
+        normalizedSolution: validation.normalizedSolution,
+        rawSolution: validation.rawSolution,
+        rulesVersion: 'wca-2026-04-01',
+        validationReason: isDnf ? (validation.reason ?? 'manual') : null,
+        validationStatus: isDnf ? 'dnf' : 'valid',
+      };
+      const penalty = isDnf ? 'dnf' : 'none';
+
+      if (stoppedSolveId !== undefined) {
+        void updateSolveFewestMoves(stoppedSolveId, fewestMoves, penalty).then((updatedSolve) => {
+          setStoppedSolvePenalty(updatedSolve.penalty);
+        });
+      } else {
+        const savedSolve = addSolve({
+          elapsedMs: attemptDurationMs,
+          eventId: '333fm',
+          fewestMoves,
+          listId: activeListId,
+          penalty,
+          scramble,
+        });
+        pendingStoppedSolve.current = savedSolve;
+        void savedSolve.then((solveRecord) => {
+          if (pendingStoppedSolve.current !== savedSolve) return;
+          setStoppedSolveId(solveRecord.id);
+          setStoppedSolvePenalty(solveRecord.penalty);
+        });
+      }
+
+      setIsEditingFewestMovesResult(false);
+      setFewestMovesReviewDecision(decision);
+      setFewestMovesPhase('stopped');
+      void loadScramble('333fm');
+    },
+    [activeListId, addSolve, loadScramble, stoppedSolveId, updateSolveFewestMoves],
+  );
+
+  const submitFewestMovesAttempt = useCallback(() => {
+    if (!isFewestMovesList) return;
+
+    const stoppedElapsed = isEditingFewestMovesResult
+      ? finalElapsed
+      : Math.min(FEWEST_MOVES_TIME_LIMIT_MS, fewestMovesElapsedBase + stop());
+    const validationScramble =
+      isEditingFewestMovesResult && stoppedSolve
+        ? Array.isArray(stoppedSolve.scramble)
+          ? (stoppedSolve.scramble[0] ?? '')
+          : stoppedSolve.scramble
+        : activeScramble;
+    const validation = validateFewestMovesSolution({
+      scramble: validationScramble,
+      solution: fewestMovesSolution,
+    });
+
+    setFinalElapsed(stoppedElapsed);
+    setFewestMovesValidation(validation);
+    setFewestMovesReviewDecision(null);
+    setTimerState('stopped');
+
+    if (validation.status === 'suspected-inverse') {
+      setFewestMovesPhase('result');
+      return;
+    }
+
+    persistFewestMovesResult({
+      attemptDurationMs: stoppedElapsed,
+      decision: null,
+      scramble: validationScramble,
+      validation,
+    });
+  }, [
+    activeScramble,
+    fewestMovesElapsedBase,
+    fewestMovesSolution,
+    finalElapsed,
+    isEditingFewestMovesResult,
+    isFewestMovesList,
+    persistFewestMovesResult,
+    stop,
+    stoppedSolve,
+  ]);
+
+  const handleFewestMovesInverseDecision = useCallback(
+    (decision: Exclude<FewestMovesInverseDecision, null>) => {
+      const validation = fewestMovesValidation;
+      if (validation?.status !== 'suspected-inverse') return;
+
+      persistFewestMovesResult({
+        attemptDurationMs: finalElapsed,
+        decision,
+        scramble: fewestMovesWorkspaceScramble,
+        validation,
+      });
+    },
+    [fewestMovesValidation, fewestMovesWorkspaceScramble, finalElapsed, persistFewestMovesResult],
+  );
+
+  const editFewestMovesResult = useCallback(() => {
+    const solve = stoppedSolve;
+    const result = solve?.fewestMoves;
+    if (solve === undefined || result === undefined) return;
+    setFewestMovesSolution(result.rawSolution);
+    setFewestMovesValidation(
+      validateFewestMovesSolution({
+        scramble: Array.isArray(solve.scramble) ? (solve.scramble[0] ?? '') : solve.scramble,
+        solution: result.rawSolution,
+      }),
+    );
+    setFewestMovesReviewDecision(
+      result.inverseScrambleReview === 'confirmed'
+        ? 'dnf'
+        : result.inverseScrambleReview === 'dismissed'
+          ? 'keep'
+          : null,
+    );
+    setIsEditingFewestMovesResult(true);
+    setFewestMovesPhase('attempt');
+  }, [stoppedSolve]);
 
   const startInspection = useCallback(() => {
     clearStoppedSolveState();
@@ -1497,6 +1748,11 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   }, []);
 
   const stopTimer = useCallback(() => {
+    if (isFewestMovesList) {
+      submitFewestMovesAttempt();
+      return;
+    }
+
     const stoppedElapsed = stop();
     const solvePenalty = pendingSolvePenalty.current;
     setFinalElapsed(stoppedElapsed);
@@ -1536,8 +1792,10 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     activeScramble,
     addSolve,
     isMultiBlindList,
+    isFewestMovesList,
     multiBlindScrambleCount,
     stop,
+    submitFewestMovesAttempt,
   ]);
 
   const armTimer = useCallback(() => {
@@ -1551,6 +1809,26 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     setTimerState('armed');
   }, [clearStoppedSolveState, reset]);
 
+  useEffect(() => {
+    if (
+      !isFewestMovesList ||
+      fewestMovesPhase !== 'attempt' ||
+      isEditingFewestMovesResult ||
+      fewestMovesElapsedBase + elapsed < FEWEST_MOVES_TIME_LIMIT_MS
+    ) {
+      return;
+    }
+
+    submitFewestMovesAttempt();
+  }, [
+    elapsed,
+    fewestMovesElapsedBase,
+    fewestMovesPhase,
+    isEditingFewestMovesResult,
+    isFewestMovesList,
+    submitFewestMovesAttempt,
+  ]);
+
   const cancelReady = useCallback(() => {
     clearStoppedSolveState();
     reset();
@@ -1560,7 +1838,15 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     pendingReadyAction.current = 'solve';
     inspectionStartedAt.current = undefined;
     setTimerState('idle');
-  }, [clearStoppedSolveState, reset]);
+    if (isFewestMovesList) {
+      setFewestMovesPhase('sealed');
+      setFewestMovesSolution('');
+      setFewestMovesValidation(null);
+      setFewestMovesReviewDecision(null);
+      setFewestMovesElapsedBase(0);
+      setIsEditingFewestMovesResult(false);
+    }
+  }, [clearStoppedSolveState, isFewestMovesList, reset]);
 
   const resetListForm = useCallback(() => {
     setListFormName('');
@@ -1597,6 +1883,12 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
       pendingReadyAction.current = 'solve';
       inspectionStartedAt.current = undefined;
       setTimerState('idle');
+      setFewestMovesPhase('sealed');
+      setFewestMovesSolution('');
+      setFewestMovesValidation(null);
+      setFewestMovesReviewDecision(null);
+      setFewestMovesElapsedBase(0);
+      setIsEditingFewestMovesResult(false);
       void setActiveListId(nextListId);
     },
     [clearStoppedSolveState, reset, setActiveListId],
@@ -1866,12 +2158,29 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
           ? timerCopy.armedLabel
           : timerCopy.idleLabel;
   const placeholder = isTimerReadyState || isTimerInspectionState ? timerCopy.escCancel : undefined;
+  const currentFewestMovesElapsed =
+    fewestMovesPhase === 'attempt' && !isEditingFewestMovesResult
+      ? fewestMovesElapsedBase + elapsed
+      : finalElapsed;
+  const fewestMovesRemainingMs = Math.max(
+    0,
+    FEWEST_MOVES_TIME_LIMIT_MS - currentFewestMovesElapsed,
+  );
+  const fewestMovesElapsedText =
+    fewestMovesPhase === 'stopped'
+      ? formatFewestMovesClock(finalElapsed)
+      : formatFewestMovesClock(fewestMovesRemainingMs);
+  const displayedFewestMovesValidation =
+    fewestMovesPhase === 'attempt' ? liveFewestMovesValidation : fewestMovesValidation;
+  const isFewestMovesActiveWorkspace = isFewestMovesList && fewestMovesPhase === 'attempt';
 
   return (
     <section
       className={styles.root}
       aria-label={timerCopy.pageLabel}
       data-focus-mode={isTimerFocusMode ? 'true' : 'false'}
+      data-fewest-moves-active={isFewestMovesActiveWorkspace ? 'true' : 'false'}
+      data-fewest-moves-list={isFewestMovesList ? 'true' : 'false'}
       data-timer-running={isTimerRunning ? 'true' : 'false'}
       hidden={!isActive}
     >
@@ -1905,61 +2214,87 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
             onEditList={openEditListModal}
           />
         </div>
-        <TimerScrambleStrip
-          ariaLabel={timerCopy.currentScrambleLabel}
-          copy={timerCopy}
-          eventId={activeList.scrambleTypeId}
-          isLoading={isScrambleLoading}
-          multiBlindNavigation={
-            isMultiBlindList
-              ? {
-                  currentIndex: activeMultiBlindScrambleIndex,
-                  totalCount: multiBlindScrambleCount,
-                  onNext: showNextMultiBlindScramble,
-                  onOpenSettings: openMultiBlindSettings,
-                  onPrevious: showPreviousMultiBlindScramble,
-                }
-              : undefined
-          }
-          scramble={displayScramble}
-          onRefresh={() => void loadScramble(activeList.scrambleTypeId)}
-        />
+        {isFewestMovesList ? null : (
+          <TimerScrambleStrip
+            ariaLabel={timerCopy.currentScrambleLabel}
+            copy={timerCopy}
+            eventId={activeList.scrambleTypeId}
+            isLoading={isScrambleLoading}
+            multiBlindNavigation={
+              isMultiBlindList
+                ? {
+                    currentIndex: activeMultiBlindScrambleIndex,
+                    totalCount: multiBlindScrambleCount,
+                    onNext: showNextMultiBlindScramble,
+                    onOpenSettings: openMultiBlindSettings,
+                    onPrevious: showPreviousMultiBlindScramble,
+                  }
+                : undefined
+            }
+            scramble={displayScramble}
+            onRefresh={() => void loadScramble(activeList.scrambleTypeId)}
+          />
+        )}
       </header>
 
       <TimerTopNavigation isHidden={isTimerRunning} />
 
-      <main className={styles.stage} aria-label={timerCopy.mainTimerLabel}>
-        <TimerFocusSurface
+      {isFewestMovesList ? (
+        <FewestMovesWorkspace
           copy={timerCopy}
-          elapsedText={elapsedText}
-          hasStoppedSolve={stoppedSolveId !== undefined}
-          isFocusMode={isTimerFocusMode}
-          isMultiBlind={isMultiBlindList}
-          label={timerLabel}
-          placeholder={placeholder}
-          stoppedPenalty={stoppedSolvePenalty}
-          state={timerState}
-          onDeleteStoppedSolve={openDeleteResultDialog}
-          onEditMultiBlindResult={openMultiBlindResultEditor}
-          onStoppedPenaltyChange={handleStoppedPenaltyChange}
+          elapsedText={fewestMovesElapsedText}
+          isArmed={timerState === 'armed'}
+          isStartDisabled={isScrambleLoading || activeScramble.length === 0}
+          phase={fewestMovesPhase}
+          reviewDecision={fewestMovesReviewDecision}
+          scramble={fewestMovesWorkspaceScramble}
+          solution={fewestMovesSolution}
+          svg={fewestMovesWorkspaceSvg}
+          validation={displayedFewestMovesValidation}
+          onDelete={openDeleteResultDialog}
+          onEdit={editFewestMovesResult}
+          onInverseDecision={handleFewestMovesInverseDecision}
+          onSolutionChange={setFewestMovesSolution}
+          onStart={() => startTimer()}
+          onSubmit={submitFewestMovesAttempt}
         />
-        <TimerRecentSolves
-          label={timerCopy.recentSolvesLabel}
-          solveRecords={activeListSolveRecords}
-        />
-      </main>
+      ) : (
+        <main className={styles.stage} aria-label={timerCopy.mainTimerLabel}>
+          <TimerFocusSurface
+            copy={timerCopy}
+            elapsedText={elapsedText}
+            hasStoppedSolve={stoppedSolveId !== undefined}
+            isFocusMode={isTimerFocusMode}
+            isMultiBlind={isMultiBlindList}
+            label={timerLabel}
+            placeholder={placeholder}
+            stoppedPenalty={stoppedSolvePenalty}
+            state={timerState}
+            onDeleteStoppedSolve={openDeleteResultDialog}
+            onEditMultiBlindResult={openMultiBlindResultEditor}
+            onStoppedPenaltyChange={handleStoppedPenaltyChange}
+          />
+          <TimerRecentSolves
+            label={timerCopy.recentSolvesLabel}
+            solveRecords={activeListSolveRecords}
+          />
+        </main>
+      )}
       <footer className={styles.bottomDock} aria-label={timerCopy.bottomInfoLabel}>
         <TimerSessionSummary
           copy={timerCopy}
+          isFewestMoves={isFewestMovesList}
           isMultiBlind={isMultiBlindList}
           solveRecords={activeListSolveRecords}
           statistics={statistics}
         />
-        <TimerScramblePreview
-          eventId={activeList.scrambleTypeId}
-          label={timerCopy.scrambleImageLabel}
-          svg={scrambleSvg}
-        />
+        {isFewestMovesList ? null : (
+          <TimerScramblePreview
+            eventId={activeList.scrambleTypeId}
+            label={timerCopy.scrambleImageLabel}
+            svg={scrambleSvg}
+          />
+        )}
       </footer>
       {listFormMode !== undefined ? (
         <CreateListModal

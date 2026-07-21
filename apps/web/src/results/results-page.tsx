@@ -25,14 +25,18 @@ import { CubeginAnimatedIcon } from '@cubegin/icons/react';
 import { renderScrambleImage } from '@cubegin/scramble-image';
 import {
   calculateMultiBlindStatistics,
+  calculateFewestMovesStatistics,
   calculateRollingAverageWindows,
   calculateSolveStatistics,
   formatMultiBlindAttempt,
   formatMultiBlindSolve,
+  formatFewestMovesMean,
+  formatFewestMovesSolve,
   formatMilliseconds,
   getDisplayedElapsedMs,
   getMultiBlindMissedCount,
   getMultiBlindScore,
+  getFewestMovesMean,
   getPrimarySolveScramble,
   getSolveDisplayText,
   type RollingAverageType,
@@ -615,6 +619,7 @@ const EmptyResultsPlaceholder = ({ copy }: EmptyResultsPlaceholderProps) => (
 
 interface SingleSolveTableProps {
   copy: ReturnType<typeof useAppPreferences>['copy'];
+  isFewestMoves: boolean;
   isMultiBlind: boolean;
   rows: readonly SingleSolveRow[];
   selectedSolveId?: string;
@@ -665,6 +670,7 @@ const VirtualScoreTable = <Row,>({
 
 const SingleSolveTable = ({
   copy,
+  isFewestMoves,
   isMultiBlind,
   rows,
   selectedSolveId,
@@ -680,9 +686,17 @@ const SingleSolveTable = ({
       className={`${styles.scoreTable} ${styles.singleScoreTable}`}
       columns={[
         copy.results.sequenceColumn,
-        copy.results.resultColumn,
-        isMultiBlind ? copy.results.multiBlindScore : copy.results.ao5Column,
-        isMultiBlind ? copy.results.multiBlindMissedCount : copy.results.ao12Column,
+        isFewestMoves ? copy.results.fewestMovesResult : copy.results.resultColumn,
+        isFewestMoves
+          ? copy.results.fewestMovesMeanOfThree
+          : isMultiBlind
+            ? copy.results.multiBlindScore
+            : copy.results.ao5Column,
+        isFewestMoves
+          ? copy.results.fewestMovesDuration
+          : isMultiBlind
+            ? copy.results.multiBlindMissedCount
+            : copy.results.ao12Column,
         copy.results.createdAtColumn,
       ]}
       getRowKey={(row) => row.solve.id}
@@ -698,24 +712,32 @@ const SingleSolveTable = ({
           <div role="cell">#{row.sequence}</div>
           <div data-emphasis={row.emphasis?.result} role="cell">
             <button className={styles.rowButton} type="button" onClick={() => onSelect(row)}>
-              {isMultiBlind
-                ? formatMultiBlindSolve(row.solve)
-                : getSolveDisplayText(row.solve.elapsedMs, row.solve.penalty)}
+              {isFewestMoves
+                ? formatFewestMovesSolve(row.solve)
+                : isMultiBlind
+                  ? formatMultiBlindSolve(row.solve)
+                  : getSolveDisplayText(row.solve.elapsedMs, row.solve.penalty)}
             </button>
           </div>
           <div data-emphasis={row.emphasis?.ao5} role="cell">
-            {isMultiBlind
-              ? row.solve.multiBlind === undefined
-                ? '--'
-                : getMultiBlindScore(row.solve.multiBlind)
-              : row.ao5Text}
+            {isFewestMoves
+              ? formatFewestMovesMean(
+                  getFewestMovesMean(rows.slice(index, index + 3).map(({ solve }) => solve)),
+                )
+              : isMultiBlind
+                ? row.solve.multiBlind === undefined
+                  ? '--'
+                  : getMultiBlindScore(row.solve.multiBlind)
+                : row.ao5Text}
           </div>
           <div data-emphasis={row.emphasis?.ao12} role="cell">
-            {isMultiBlind
-              ? row.solve.multiBlind === undefined
-                ? '--'
-                : getMultiBlindMissedCount(row.solve.multiBlind)
-              : row.ao12Text}
+            {isFewestMoves
+              ? formatMilliseconds(row.solve.elapsedMs)
+              : isMultiBlind
+                ? row.solve.multiBlind === undefined
+                  ? '--'
+                  : getMultiBlindMissedCount(row.solve.multiBlind)
+                : row.ao12Text}
           </div>
           <div className={styles.createdAtCell} role="cell">
             {row.createdAtText}
@@ -857,15 +879,24 @@ const SolveDetail = ({
       <header className={styles.detailHeader}>
         <span className={styles.detailKicker}>{copy.results.detailTitle}</span>
         <strong className={styles.detailResult}>
-          {solve.eventId === '333mbld'
-            ? formatMultiBlindSolve(solve)
-            : getSolveDisplayText(solve.elapsedMs, solve.penalty)}
+          {solve.eventId === '333fm'
+            ? formatFewestMovesSolve(solve)
+            : solve.eventId === '333mbld'
+              ? formatMultiBlindSolve(solve)
+              : getSolveDisplayText(solve.elapsedMs, solve.penalty)}
         </strong>
         {solve.eventId === '333mbld' && solve.multiBlind !== undefined ? (
           <div className={styles.multiBlindDetailMetrics}>
             <span>{formatMultiBlindAttempt(solve)}</span>
             <span>{`${copy.results.multiBlindScore} ${getMultiBlindScore(solve.multiBlind)}`}</span>
             <span>{`${copy.results.multiBlindMissedCount} ${getMultiBlindMissedCount(solve.multiBlind)}`}</span>
+          </div>
+        ) : null}
+        {solve.eventId === '333fm' && solve.fewestMoves !== undefined ? (
+          <div className={styles.multiBlindDetailMetrics}>
+            <span>{`${copy.results.fewestMovesDuration} ${formatMilliseconds(solve.elapsedMs)}`}</span>
+            <span>{`OBTM ${solve.fewestMoves.moveCount ?? '--'}`}</span>
+            <span>{`ETM ${solve.fewestMoves.executionMoveCount ?? '--'}`}</span>
           </div>
         ) : null}
         <div className={styles.detailTimestamp}>
@@ -889,7 +920,7 @@ const SolveDetail = ({
           >
             {copy.timer.editResult}
           </button>
-        ) : (
+        ) : solve.eventId === '333fm' ? null : (
           <>
             <button
               className={styles.resultButton}
@@ -938,6 +969,13 @@ const SolveDetail = ({
         </button>
       </div>
 
+      {solve.eventId === '333fm' && solve.fewestMoves !== undefined ? (
+        <section className={styles.solutionBlock} aria-label={copy.results.fewestMovesSolution}>
+          <span>{copy.results.fewestMovesSolution}</span>
+          <code>{solve.fewestMoves.normalizedSolution ?? solve.fewestMoves.rawSolution}</code>
+        </section>
+      ) : null}
+
       <section className={styles.scrambleBlock} aria-label="scramble" data-event={solve.eventId}>
         <p>{primaryScramble}</p>
       </section>
@@ -978,6 +1016,7 @@ const AverageDetail = ({ copy, window }: AverageDetailProps) => (
 
 interface StatisticsViewProps {
   copy: ReturnType<typeof useAppPreferences>['copy'];
+  isFewestMoves: boolean;
   isMultiBlind: boolean;
   solves: readonly SolveRecord[];
   view: StatsViewType;
@@ -1060,7 +1099,13 @@ const renderDebouncedResultsChartTooltip = (tooltipProps: ResultsChartTooltipPro
   <DebouncedResultsChartTooltip {...tooltipProps} />
 );
 
-const StatisticsView = ({ copy, isMultiBlind, solves, view }: StatisticsViewProps) => {
+const StatisticsView = ({
+  copy,
+  isFewestMoves,
+  isMultiBlind,
+  solves,
+  view,
+}: StatisticsViewProps) => {
   const [activeTrendMetrics, setActiveTrendMetrics] =
     useState<readonly TrendMetric[]>(ALL_TREND_METRICS);
   const statistics = useMemo(() => calculateSolveStatistics(solves), [solves]);
@@ -1132,6 +1177,45 @@ const StatisticsView = ({ copy, isMultiBlind, solves, view }: StatisticsViewProp
     return (
       <section className={styles.statsView} aria-label={copy.results.stats}>
         <p className={styles.emptyState}>{copy.results.statsEmpty}</p>
+      </section>
+    );
+  }
+
+  if (isFewestMoves) {
+    const fewestMovesStatistics = calculateFewestMovesStatistics(solves);
+    return (
+      <section className={styles.statsView} aria-label={copy.results.stats}>
+        <div className={styles.statsGrid}>
+          <StatisticMetric label={copy.results.total} value={fewestMovesStatistics.totalCount} />
+          <StatisticMetric
+            label={copy.results.validCount}
+            value={fewestMovesStatistics.validCount}
+          />
+          <StatisticMetric
+            label={copy.results.validRatio}
+            value={formatValidRatio(
+              fewestMovesStatistics.totalCount === 0
+                ? 0
+                : fewestMovesStatistics.validCount / fewestMovesStatistics.totalCount,
+            )}
+          />
+          <StatisticMetric
+            label={copy.results.bestSingle}
+            value={
+              fewestMovesStatistics.bestSolve
+                ? formatFewestMovesSolve(fewestMovesStatistics.bestSolve)
+                : '--'
+            }
+          />
+          <StatisticMetric
+            label={copy.results.fewestMovesCurrentMean}
+            value={formatFewestMovesMean(fewestMovesStatistics.currentMean)}
+          />
+          <StatisticMetric
+            label={copy.results.fewestMovesBestMean}
+            value={formatFewestMovesMean(fewestMovesStatistics.bestMean)}
+          />
+        </div>
       </section>
     );
   }
@@ -1566,19 +1650,21 @@ export const ResultsPage = () => {
   const hasManualSolveSelection = useRef(false);
   const wordmarkSvg = getCubeginWordmarkSvg(resolvedTheme);
   const isMultiBlindList = activeList.scrambleTypeId === '333mbld';
+  const isFewestMovesList = activeList.scrambleTypeId === '333fm';
+  const isSpecialSingleOnlyList = isMultiBlindList || isFewestMovesList;
   const scoreTypes = useMemo<ScoreTypeOption[]>(
     () =>
-      isMultiBlindList
+      isSpecialSingleOnlyList
         ? [{ label: copy.results.singleScoreType, value: 'single' }]
         : [
             { label: copy.results.singleScoreType, value: 'single' },
             ...AVERAGE_SCORE_TYPES.map((value) => ({ label: value, value })),
           ],
-    [copy.results.singleScoreType, isMultiBlindList],
+    [copy.results.singleScoreType, isSpecialSingleOnlyList],
   );
   const statsViews = useMemo<StatsViewOption[]>(
     () =>
-      isMultiBlindList
+      isSpecialSingleOnlyList
         ? [{ label: copy.results.statsOverview, value: 'overview' }]
         : [
             { label: copy.results.statsOverview, value: 'overview' },
@@ -1589,7 +1675,7 @@ export const ResultsPage = () => {
       copy.results.lineChart,
       copy.results.statsOverview,
       copy.results.timeDistribution,
-      isMultiBlindList,
+      isSpecialSingleOnlyList,
     ],
   );
   const singleRows = useMemo(
@@ -1632,6 +1718,12 @@ export const ResultsPage = () => {
   const bodyClassName = [styles.body, hasDetailPanel ? styles.bodyWithDetail : '']
     .filter(Boolean)
     .join(' ');
+
+  useEffect(() => {
+    if (!isSpecialSingleOnlyList) return;
+    setScoreType('single');
+    setStatsView('overview');
+  }, [isSpecialSingleOnlyList]);
 
   useEffect(() => {
     if (singleRows.length === 0) {
@@ -1809,6 +1901,7 @@ export const ResultsPage = () => {
                 {mode === 'stats' ? (
                   <StatisticsView
                     copy={copy}
+                    isFewestMoves={isFewestMovesList}
                     isMultiBlind={isMultiBlindList}
                     solves={activeListSolveRecords}
                     view={statsView}
@@ -1824,6 +1917,7 @@ export const ResultsPage = () => {
                 ) : (
                   <SingleSolveTable
                     copy={copy}
+                    isFewestMoves={isFewestMovesList}
                     isMultiBlind={isMultiBlindList}
                     rows={singleRows}
                     selectedSolveId={selectedSolveId}

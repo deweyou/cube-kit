@@ -6,6 +6,13 @@ export {
   UnknownSolverTargetError,
   UnsupportedSolverMoveError,
 } from './errors.js';
+export { validateFewestMovesSolution } from './fewest-moves/validate.js';
+export type {
+  FewestMovesValidation,
+  FewestMovesValidationInput,
+  FewestMovesValidationReason,
+  FewestMovesValidationStatus,
+} from './fewest-moves/validate.js';
 export type {
   PuzzleAssistEventId,
   PuzzleAssistMethod,

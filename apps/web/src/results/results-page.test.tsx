@@ -374,10 +374,51 @@ const SeedMultiBlindSolves = () => {
   return null;
 };
 
+const SeedFewestMovesSolves = () => {
+  const { activeList, addSolve, isLoading, setActiveListId } = useTimerSessionStore();
+  const didSeed = useRef(false);
+
+  useEffect(() => {
+    if (isLoading || didSeed.current) return;
+    if (activeList.scrambleTypeId !== '333fm') {
+      void setActiveListId('main-333fm');
+      return;
+    }
+
+    didSeed.current = true;
+    void (async () => {
+      for (const [index, moveCount] of [27, 29, 31].entries()) {
+        await addSolve({
+          elapsedMs: 1_800_000 + index * 60_000,
+          eventId: '333fm',
+          fewestMoves: {
+            attemptDurationMs: 1_800_000 + index * 60_000,
+            executionMoveCount: moveCount,
+            inverseScrambleReview: 'not-suspected',
+            moveCount,
+            normalizedSolution: "R U R'",
+            rawSolution: "R U R'",
+            rulesVersion: 'wca-2026-04-01',
+            validationReason: null,
+            validationStatus: 'valid',
+          },
+          listId: activeList.id,
+          penalty: 'none',
+          scramble: "R U R'",
+        });
+      }
+    })();
+  }, [activeList.id, activeList.scrambleTypeId, addSolve, isLoading, setActiveListId]);
+
+  return null;
+};
+
 const renderResultsPage = ({
+  fewestMoves = false,
   multiBlind = false,
   withSolves = true,
 }: {
+  fewestMoves?: boolean;
   multiBlind?: boolean;
   withSolves?: boolean;
 } = {}) =>
@@ -385,7 +426,15 @@ const renderResultsPage = ({
     <AppPreferencesProvider>
       <TimerSessionStoreProvider db={createMemoryTimerSessionDb()}>
         <MemoryRouter initialEntries={['/results']}>
-          {withSolves ? multiBlind ? <SeedMultiBlindSolves /> : <SeedSolves /> : null}
+          {withSolves ? (
+            fewestMoves ? (
+              <SeedFewestMovesSolves />
+            ) : multiBlind ? (
+              <SeedMultiBlindSolves />
+            ) : (
+              <SeedSolves />
+            )
+          ) : null}
           <ResultsPage />
         </MemoryRouter>
       </TimerSessionStoreProvider>
@@ -538,6 +587,30 @@ describe('ResultsPage', () => {
     expect(table.querySelector('[data-component-virtual-list="true"]')).toBeTruthy();
     expect(within(table).queryByText('打乱')).toBeNull();
     expect(within(table).queryByText('处罚')).toBeNull();
+  });
+
+  it('specializes FMC rows, detail, and overview statistics around moves', async () => {
+    renderResultsPage({ fewestMoves: true });
+
+    const table = await screen.findByRole('table', { name: '成绩明细' });
+    await within(table).findByText('#3');
+    expect(
+      within(table)
+        .getAllByRole('columnheader')
+        .map((header) => header.textContent),
+    ).toEqual(['#', '步数', 'Mean of 3', '用时', '创建时间']);
+    expect(within(table).getByText('29.00')).toBeTruthy();
+    expect(within(table).getByText('32:00.000')).toBeTruthy();
+
+    const detail = screen.getByRole('complementary', { name: '成绩详情' });
+    expect(within(detail).getByText('31')).toBeTruthy();
+    expect(within(detail).getAllByText("R U R'").length).toBeGreaterThan(0);
+    expect(within(detail).queryByRole('button', { name: '+2' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('tab', { name: '统计' }));
+    expect(await screen.findByText('最佳 Mean')).toBeTruthy();
+    expect(screen.getAllByText('29.00')).toHaveLength(2);
+    expect(screen.queryByText('时间分布')).toBeNull();
   });
 
   it('shows the solve creation time and copies its scramble from the detail panel', async () => {

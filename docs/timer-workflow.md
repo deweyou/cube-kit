@@ -130,6 +130,47 @@ selection, settings persistence, and page layout.
   `ResultsPage` reads the same active list for score rows, rolling averages,
   detail editing, and statistics. Each list binds to one event/scramble type,
   and switching lists switches the active event for scramble generation.
+- `333fm` uses a dedicated formula-first workspace instead of the ordinary
+  stopwatch surface. Its sealed state keeps the reserved scramble, image, and
+  editor out of the DOM and shows only the `60:00` countdown. Space starts on
+  desktop, while the countdown itself remains a mobile tap target. Holding Space
+  reuses the shared green ready state, and Escape visibly cancels back to the
+  sealed countdown before release. Starting
+  reveals the scramble, image, and a ten-column token editor with two initial
+  rows; every completed token can be selected for replacement or modifier editing,
+  while a movable insertion cursor and entering the last row append another row.
+  Arrow keys, Backspace/Delete, and paste operate at the same cursor used by touch
+  input. The editor heading separates
+  the solution label from a right-aligned localized total-move count derived from
+  OBTM, without exposing solved-state validation before submission. The solution
+  editor and input panel form one bottom-aligned work area on desktop, while mobile
+  keeps the editor in normal document flow above its fixed input panel. The scramble
+  text and image can be collapsed to reclaim working space without hiding the countdown.
+  The countdown
+  stays at the scramble region's upper left in the normal layout. On small screens,
+  a compact copy appears at the viewport's upper right only after the original
+  countdown scrolls out of view; desktop never enables this pinned state. The
+  workspace keeps scrolling available while hiding its scrollbar. The formula keyboard
+  exposes one key per base face turn or rotation, shared prime/double modifiers,
+  backspace, and the submit action but no wide moves. It remains visible during
+  the attempt on both desktop and mobile, while desktop physical-keyboard input
+  continues to work in parallel. On mobile, this custom keyboard
+  suppresses the system soft keyboard, stays fixed above the safe area, and the
+  scrollable workspace reserves its height so new formula rows move into view without
+  moving or covering the keyboard. Submission delegates
+  notation, OBTM/ETM, solved-state, and inverse-scramble checks to
+  `@cubegin/solver`. Submission ends the attempt: deterministic valid or DNF
+  results persist immediately and enter the stopped result surface without a
+  return-to-edit or separate save step. A suspected inverse-scramble match is the
+  only blocking review; choosing keep or DNF persists that decision and then
+  enters the same stopped surface. That surface keeps only the primary result,
+  time/ETM metadata, and the ordinary timer's borderless edit/delete toolbar; it
+  does not repeat the formula or add a dedicated next-attempt button. Saved
+  records retain both raw and normalized formulas, move metrics, attempt
+  duration, validation outcome, and inverse-review decision.
+  The timer summary and results page rank lower valid OBTM, calculate Mean of 3
+  with DNF propagation, and do not reuse time-based averages, distributions, or
+  trends.
 - `useTimer` bridges the core timer to React with `requestAnimationFrame`; keep
   RAF cleanup on stop, reset, and unmount. See
   [apps/web/src/timer/hooks/use-timer.ts#L5](../apps/web/src/timer/hooks/use-timer.ts#L5).
@@ -179,6 +220,7 @@ selection, settings persistence, and page layout.
 - [packages/shared/src/timer/format.ts#L1](../packages/shared/src/timer/format.ts#L1) - elapsed time formatting.
 - [packages/shared/src/timer-session/solve-average.ts#L1](../packages/shared/src/timer-session/solve-average.ts#L1) - shared trimmed-average and standard-deviation rules.
 - [packages/shared/src/timer-session/multi-blind-result.ts#L1](../packages/shared/src/timer-session/multi-blind-result.ts#L1) - MBLD score, DNF, formatting, ranking, and summary rules.
+- [packages/shared/src/timer-session/fewest-moves-result.ts#L1](../packages/shared/src/timer-session/fewest-moves-result.ts#L1) - FMC move ranking, Mean of 3, and statistics semantics.
 - [packages/shared/src/preferences/index.ts#L1](../packages/shared/src/preferences/index.ts#L1) - preference defaults, normalization, display formatting, and WCA inspection rules.
 
 ## Open Questions
@@ -190,4 +232,4 @@ selection, settings persistence, and page layout.
 
 ---
 
-_Last updated: 2026-07-20 | Reason: keep MBLD timing manual and derive DNF from raw overtime_
+_Last updated: 2026-07-21 | Reason: align FMC submission and stopped-result ownership with the timer flow_

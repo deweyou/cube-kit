@@ -1,4 +1,5 @@
 import type {
+  FewestMovesSolveResult,
   MultiBlindSolveResult,
   SolvePenalty,
   SolveRecord,
@@ -36,6 +37,7 @@ const cloneList = (list: TimerList): TimerList => ({ ...list });
 
 const cloneSolve = (solve: SolveRecord): SolveRecord => ({
   ...solve,
+  fewestMoves: solve.fewestMoves === undefined ? undefined : { ...solve.fewestMoves },
   multiBlind: solve.multiBlind === undefined ? undefined : { ...solve.multiBlind },
   scramble: Array.isArray(solve.scramble) ? [...solve.scramble] : solve.scramble,
 });
@@ -96,6 +98,14 @@ export const createMemoryTimerSessionDb = (): TimerSessionDb => {
       if (solve === undefined) throw new Error(`Solve not found: ${solveId}`);
 
       const nextSolve: SolveRecord = { ...solve, multiBlind: { ...multiBlind }, penalty };
+      solvesById.set(solveId, nextSolve);
+      return cloneSolve(nextSolve);
+    },
+    async updateSolveFewestMoves(solveId, fewestMoves, penalty) {
+      const solve = solvesById.get(solveId);
+      if (solve === undefined) throw new Error(`Solve not found: ${solveId}`);
+
+      const nextSolve: SolveRecord = { ...solve, fewestMoves: { ...fewestMoves }, penalty };
       solvesById.set(solveId, nextSolve);
       return cloneSolve(nextSolve);
     },
@@ -264,6 +274,21 @@ export const createIndexedDbTimerSessionDb = (): TimerSessionDb => ({
       if (solve === undefined) throw new Error(`Solve not found: ${solveId}`);
 
       const nextSolve: SolveRecord = { ...solve, multiBlind: { ...multiBlind }, penalty };
+      store.put(nextSolve);
+      return cloneSolve(nextSolve);
+    });
+  },
+  async updateSolveFewestMoves(
+    solveId: string,
+    fewestMoves: FewestMovesSolveResult,
+    penalty: Extract<SolvePenalty, 'none' | 'dnf'>,
+  ) {
+    return runStorePairTransaction([SOLVE_STORE], 'readwrite', async (transaction) => {
+      const store = transaction.objectStore(SOLVE_STORE);
+      const solve = (await requestToPromise(store.get(solveId))) as SolveRecord | undefined;
+      if (solve === undefined) throw new Error(`Solve not found: ${solveId}`);
+
+      const nextSolve: SolveRecord = { ...solve, fewestMoves: { ...fewestMoves }, penalty };
       store.put(nextSolve);
       return cloneSolve(nextSolve);
     });
