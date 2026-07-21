@@ -90,6 +90,19 @@ export interface AppCopy {
     statsEmpty: string;
     retry: string;
     localHistoryError: string;
+    multiBlindBestResult: string;
+    multiBlindBestScore: string;
+    multiBlindScore: string;
+    multiBlindMissedCount: string;
+    multiBlindAttemptedCount: string;
+    multiBlindSolvedCount: string;
+    multiBlindNoAverage: string;
+    fewestMovesResult: string;
+    fewestMovesMeanOfThree: string;
+    fewestMovesDuration: string;
+    fewestMovesSolution: string;
+    fewestMovesBestMean: string;
+    fewestMovesCurrentMean: string;
   };
   timer: {
     pageLabel: string;
@@ -98,6 +111,48 @@ export interface AppCopy {
     currentScrambleLabel: string;
     scrambleImageLabel: string;
     scrambleLoading: string;
+    refreshScramble: string;
+    previousMultiBlindScramble: string;
+    nextMultiBlindScramble: string;
+    multiBlindPositionLabel: string;
+    multiBlindSettings: string;
+    multiBlindCubeCountLabel: string;
+    multiBlindResultTitle: string;
+    multiBlindSolvedCountLabel: string;
+    multiBlindPenaltyCountLabel: string;
+    multiBlindSolvedCountError: string;
+    multiBlindPenaltyCountError: string;
+    decreaseValue: string;
+    increaseValue: string;
+    multiBlindWholeDnfLabel: string;
+    multiBlindBestScore: string;
+    fewestMovesTitle: string;
+    fewestMovesStart: string;
+    fewestMovesRemaining: string;
+    fewestMovesSubmit: string;
+    fewestMovesSolutionLabel: string;
+    fewestMovesTotalMoves: string;
+    fewestMovesCollapseScramble: string;
+    fewestMovesExpandScramble: string;
+    fewestMovesSolutionPlaceholder: string;
+    fewestMovesValid: string;
+    fewestMovesSyntaxError: string;
+    fewestMovesUnsolved: string;
+    fewestMovesOverEtm: string;
+    fewestMovesInverse: string;
+    fewestMovesSuspectedInverse: string;
+    fewestMovesKeepResult: string;
+    fewestMovesMarkDnf: string;
+    fewestMovesReturnToEdit: string;
+    fewestMovesSaveResult: string;
+    fewestMovesTimeUsed: string;
+    fewestMovesMoveUnit: string;
+    editResult: string;
+    discard: string;
+    discardConfirmTitle: string;
+    discardConfirmDescription: string;
+    discardConfirmAction: string;
+    apply: string;
     listSelectorLabel: string;
     listToolbarLabel: string;
     listToolbarTitle: string;
@@ -217,6 +272,19 @@ const APP_COPY = {
       statsEmpty: '暂无统计',
       retry: '重试',
       localHistoryError: '本地成绩读取失败',
+      multiBlindBestResult: '最佳成绩',
+      multiBlindBestScore: '最高分',
+      multiBlindScore: '分数',
+      multiBlindMissedCount: '失败数量',
+      multiBlindAttemptedCount: '尝试数量',
+      multiBlindSolvedCount: '成功数量',
+      multiBlindNoAverage: '多盲按最佳单次排名，不计算平均成绩。',
+      fewestMovesResult: '步数',
+      fewestMovesMeanOfThree: 'Mean of 3',
+      fewestMovesDuration: '用时',
+      fewestMovesSolution: '还原公式',
+      fewestMovesBestMean: '最佳 Mean',
+      fewestMovesCurrentMean: '当前 Mean',
     },
     timer: {
       pageLabel: '计时器',
@@ -225,6 +293,48 @@ const APP_COPY = {
       currentScrambleLabel: '当前打乱',
       scrambleImageLabel: '打乱图',
       scrambleLoading: '生成打乱中...',
+      refreshScramble: '刷新打乱',
+      previousMultiBlindScramble: '上一颗打乱',
+      nextMultiBlindScramble: '下一颗打乱',
+      multiBlindPositionLabel: '多盲打乱位置',
+      multiBlindSettings: '多盲设置',
+      multiBlindCubeCountLabel: '魔方数量',
+      multiBlindResultTitle: '多盲成绩',
+      multiBlindSolvedCountLabel: '成功数量',
+      multiBlindPenaltyCountLabel: '累计 +2',
+      multiBlindSolvedCountError: '成功数量需为 0–{max} 的整数。',
+      multiBlindPenaltyCountError: '累计 +2 需为 0–{max} 的整数。',
+      decreaseValue: '减少数值',
+      increaseValue: '增加数值',
+      multiBlindWholeDnfLabel: '整次 DNF',
+      multiBlindBestScore: '最高分',
+      fewestMovesTitle: '三阶最少步',
+      fewestMovesStart: '开始最少步',
+      fewestMovesRemaining: '剩余时间',
+      fewestMovesSubmit: '提交公式',
+      fewestMovesSolutionLabel: '还原公式',
+      fewestMovesTotalMoves: '总步数',
+      fewestMovesCollapseScramble: '收起',
+      fewestMovesExpandScramble: '展开',
+      fewestMovesSolutionPlaceholder: '输入完整的还原公式',
+      fewestMovesValid: '公式有效，可以还原',
+      fewestMovesSyntaxError: '公式存在无法识别的步骤',
+      fewestMovesUnsolved: '执行公式后魔方没有还原',
+      fewestMovesOverEtm: '公式超过 80 ETM',
+      fewestMovesInverse: '公式为逆打乱，成绩记为 DNF',
+      fewestMovesSuspectedInverse: '公式疑似直接使用逆打乱，请确认',
+      fewestMovesKeepResult: '保留成绩',
+      fewestMovesMarkDnf: '判为 DNF',
+      fewestMovesReturnToEdit: '返回修改',
+      fewestMovesSaveResult: '保存成绩',
+      fewestMovesTimeUsed: '用时',
+      fewestMovesMoveUnit: '步',
+      editResult: '编辑成绩',
+      discard: '本次不记录',
+      discardConfirmTitle: '确认本次不记录？',
+      discardConfirmDescription: '本次成绩不会保存，且无法恢复。',
+      discardConfirmAction: '确认不记录',
+      apply: '应用',
       listSelectorLabel: '切换列表',
       listToolbarLabel: '列表操作',
       listToolbarTitle: '列表',
@@ -342,6 +452,19 @@ const APP_COPY = {
       statsEmpty: 'No statistics yet',
       retry: 'Retry',
       localHistoryError: 'Local history failed to load',
+      multiBlindBestResult: 'Best result',
+      multiBlindBestScore: 'Best score',
+      multiBlindScore: 'Score',
+      multiBlindMissedCount: 'Missed',
+      multiBlindAttemptedCount: 'Attempted',
+      multiBlindSolvedCount: 'Solved',
+      multiBlindNoAverage: 'Multi-Blind is ranked by best single and has no average result.',
+      fewestMovesResult: 'Moves',
+      fewestMovesMeanOfThree: 'Mean of 3',
+      fewestMovesDuration: 'Duration',
+      fewestMovesSolution: 'Solution',
+      fewestMovesBestMean: 'Best mean',
+      fewestMovesCurrentMean: 'Current mean',
     },
     timer: {
       pageLabel: 'Timer',
@@ -350,6 +473,48 @@ const APP_COPY = {
       currentScrambleLabel: 'Current scramble',
       scrambleImageLabel: 'Scramble image',
       scrambleLoading: 'Generating scramble...',
+      refreshScramble: 'Refresh scramble',
+      previousMultiBlindScramble: 'Previous cube scramble',
+      nextMultiBlindScramble: 'Next cube scramble',
+      multiBlindPositionLabel: 'Multi-blind scramble position',
+      multiBlindSettings: 'Multi-blind settings',
+      multiBlindCubeCountLabel: 'Cube count',
+      multiBlindResultTitle: 'Multi-Blind result',
+      multiBlindSolvedCountLabel: 'Solved',
+      multiBlindPenaltyCountLabel: 'Cumulative +2',
+      multiBlindSolvedCountError: 'Solved must be an integer from 0 to {max}.',
+      multiBlindPenaltyCountError: 'Cumulative +2 must be an integer from 0 to {max}.',
+      decreaseValue: 'Decrease value',
+      increaseValue: 'Increase value',
+      multiBlindWholeDnfLabel: 'Whole-attempt DNF',
+      multiBlindBestScore: 'best score',
+      fewestMovesTitle: '3x3 Fewest Moves',
+      fewestMovesStart: 'Start FMC',
+      fewestMovesRemaining: 'Time remaining',
+      fewestMovesSubmit: 'Submit solution',
+      fewestMovesSolutionLabel: 'Solution',
+      fewestMovesTotalMoves: 'Total moves',
+      fewestMovesCollapseScramble: 'Collapse',
+      fewestMovesExpandScramble: 'Expand',
+      fewestMovesSolutionPlaceholder: 'Enter the complete solution',
+      fewestMovesValid: 'Valid solution; the cube is solved',
+      fewestMovesSyntaxError: 'The solution contains an unsupported move',
+      fewestMovesUnsolved: 'The cube is not solved after this solution',
+      fewestMovesOverEtm: 'The solution exceeds 80 ETM',
+      fewestMovesInverse: 'The solution is the inverse scramble and is DNF',
+      fewestMovesSuspectedInverse: 'This solution may be derived from the inverse scramble',
+      fewestMovesKeepResult: 'Keep result',
+      fewestMovesMarkDnf: 'Mark DNF',
+      fewestMovesReturnToEdit: 'Return to edit',
+      fewestMovesSaveResult: 'Save result',
+      fewestMovesTimeUsed: 'Time used',
+      fewestMovesMoveUnit: 'moves',
+      editResult: 'Edit result',
+      discard: "Don't record",
+      discardConfirmTitle: 'Discard this result?',
+      discardConfirmDescription: 'This result will not be saved and cannot be recovered.',
+      discardConfirmAction: 'Discard result',
+      apply: 'Apply',
       listSelectorLabel: 'Switch list',
       listToolbarLabel: 'List actions',
       listToolbarTitle: 'Lists',

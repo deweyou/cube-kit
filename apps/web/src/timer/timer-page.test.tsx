@@ -15,7 +15,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppPreferencesProvider } from '../preferences/app-preferences';
 import { createMemoryTimerSessionDb } from '../timer-session/timer-session-db';
 import { TimerSessionStoreProvider } from '../timer-session/timer-session-store';
-import { TimerPage } from './timer-page';
+import { TimerPage, getBufferedTimerWidth, getSafeTimerFontSize } from './timer-page';
 
 const scrambleImageMock = vi.hoisted(() => ({
   renderScrambleImage: vi.fn(
@@ -149,6 +149,109 @@ vi.mock('@deweyou-design/react/select', () => {
   return { Select };
 });
 
+vi.mock('@deweyou-design/react/number-input', () => ({
+  NumberInput: ({
+    autoFocus,
+    className,
+    decrementLabel,
+    disabled,
+    error,
+    incrementLabel,
+    label,
+    max,
+    min,
+    required,
+    step = 1,
+    value,
+    onValueChange,
+  }: {
+    autoFocus?: boolean;
+    className?: string;
+    decrementLabel?: string;
+    disabled?: boolean;
+    error?: ReactNode;
+    incrementLabel?: string;
+    label?: ReactNode;
+    max?: number;
+    min?: number;
+    required?: boolean;
+    step?: number;
+    value?: string;
+    onValueChange?: (details: { value: string; valueAsNumber: number }) => void;
+  }) => {
+    const updateValue = (nextValue: string) =>
+      onValueChange?.({ value: nextValue, valueAsNumber: Number(nextValue) });
+    const stepValue = (direction: -1 | 1) => {
+      const current = Number(value);
+      updateValue(String((Number.isFinite(current) ? current : 0) + direction * step));
+    };
+
+    return (
+      <div className={className} data-component-number-input="true">
+        <label>
+          {label}
+          <button
+            aria-label={decrementLabel}
+            disabled={disabled}
+            type="button"
+            onClick={() => stepValue(-1)}
+          >
+            −
+          </button>
+          <input
+            aria-label={typeof label === 'string' ? label : undefined}
+            aria-invalid={Boolean(error)}
+            autoFocus={autoFocus}
+            disabled={disabled}
+            max={max}
+            min={min}
+            required={required}
+            step={step}
+            type="number"
+            value={value}
+            onChange={(event) => updateValue(event.currentTarget.value)}
+          />
+          <button
+            aria-label={incrementLabel}
+            disabled={disabled}
+            type="button"
+            onClick={() => stepValue(1)}
+          >
+            +
+          </button>
+        </label>
+        {error ? <p>{error}</p> : null}
+      </div>
+    );
+  },
+}));
+
+vi.mock('@deweyou-design/react/checkbox', () => ({
+  Checkbox: ({
+    checked,
+    children,
+    className,
+    disabled,
+    onCheckedChange,
+  }: {
+    checked?: boolean;
+    children?: ReactNode;
+    className?: string;
+    disabled?: boolean;
+    onCheckedChange?: (checked: boolean) => void;
+  }) => (
+    <label className={className} data-component-checkbox="true">
+      <input
+        checked={checked}
+        disabled={disabled}
+        type="checkbox"
+        onChange={(event) => onCheckedChange?.(event.currentTarget.checked)}
+      />
+      <span>{children}</span>
+    </label>
+  ),
+}));
+
 const setNavigatorLanguages = (languages: string[]) => {
   Object.defineProperty(window.navigator, 'languages', {
     configurable: true,
@@ -206,6 +309,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   localStorage.clear();
   delete document.documentElement.dataset.theme;
 });
@@ -331,6 +435,9 @@ describe('TimerPage', () => {
       /\.navButton:active\s*\{[^}]*transform: translateY\(1px\) scale\(0\.96\);/su,
     );
     expect(timerCss).toMatch(/\.navButton:active::before\s*\{[^}]*opacity: 1;/su);
+    expect(timerCss).toMatch(
+      /\.multiBlindNumberInput\s*\{[^}]*display: grid;[^}]*grid-template-columns: minmax\(76px, max-content\) minmax\(0, 1fr\);/su,
+    );
     expect(timerNavigationSource).toMatch(/TimerNavIcon/su);
     expect(timerNavigationSource).toMatch(/ResultsListNavIcon/su);
     expect(timerNavigationSource).toMatch(/FormulaStudyNavIcon/su);
@@ -394,6 +501,56 @@ describe('TimerPage', () => {
     expect(
       screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }).getAttribute('data-state'),
     ).toBe('idle');
+  });
+
+  it.each(['333bld', '444bld', '555bld', '333mbld'] as const)(
+    'skips WCA inspection for the %s blindfolded event',
+    async (eventId) => {
+      setStoredPreferences({ wcaInspection: true });
+      renderTimerPage();
+
+      fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+        target: { value: `main-${eventId}` },
+      });
+      await within(screen.getByRole('region', { name: '当前打乱' })).findByText(
+        `${eventId} generated scramble`,
+      );
+
+      fireEvent.keyDown(document, { code: 'Space', key: ' ' });
+
+      expect(
+        screen
+          .getByRole('timer', { name: '松开 Space 开始计时，按 Esc 取消' })
+          .getAttribute('data-state'),
+      ).toBe('armed');
+
+      fireEvent.keyUp(document, { code: 'Space', key: ' ' });
+
+      expect(timerMock.start).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole('timer', { name: '计时中，按 Space 或 Enter 结束' })).toBeTruthy();
+      expect(
+        screen.queryByRole('timer', {
+          name: '观察中，按 Space 或 Enter 开始计时，按 Esc 取消',
+        }),
+      ).toBeNull();
+    },
+  );
+
+  it('starts a multi-blind solve immediately with Enter when WCA inspection is enabled', async () => {
+    setStoredPreferences({ wcaInspection: true });
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333mbld' },
+    });
+    await within(screen.getByRole('region', { name: '当前打乱' })).findByText(
+      '333mbld generated scramble',
+    );
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    expect(timerMock.start).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('timer', { name: '计时中，按 Space 或 Enter 结束' })).toBeTruthy();
   });
 
   it('does not claim timer shortcuts while inactive', () => {
@@ -560,7 +717,8 @@ describe('TimerPage', () => {
     expect(editListButton.textContent).toBe('');
     expect(createListButton.querySelector('svg')).not.toBeNull();
     expect(editListButton.querySelector('svg')).not.toBeNull();
-    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*font-size: 0\.98rem;/su);
+    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*font-size: 0\.9rem;/su);
+    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*font-weight: 500;/su);
     expect(timerCss).toMatch(
       /\.listTrigger\s*\{[^}]*background:[^;]*var\(--ui-color-surface-raised\)/su,
     );
@@ -569,13 +727,14 @@ describe('TimerPage', () => {
     expect(timerCss).toMatch(
       /\.listTrigger\s*\{[^}]*color:\s*color-mix\(in srgb,\s*var\(--ui-color-text\) 52%,\s*transparent\);/su,
     );
-    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*height: 36px;/su);
-    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*min-height: 36px;/su);
-    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*min-width: 76px;/su);
+    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*height: 32px;/su);
+    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*min-height: 32px;/su);
+    expect(timerCss).toMatch(/\.listTrigger\s*\{[^}]*min-width: 68px;/su);
+    expect(timerCss).toMatch(/\.listTrigger::after\s*\{[^}]*inset: -4px;/su);
     expect(timerCss).toMatch(
       /\.listTrigger:hover\s*:global\(svg\)\s*\{[^}]*color:\s*color-mix\(in srgb,\s*var\(--ui-color-text\) 70%,\s*transparent\);/su,
     );
-    expect(timerCss).toMatch(/\.listTrigger\s*:global\(svg\)\s*\{[^}]*height: 14px;/su);
+    expect(timerCss).toMatch(/\.listTrigger\s*:global\(svg\)\s*\{[^}]*height: 12px;/su);
     expect(timerCss).toMatch(/\.listToolbar\s*\{[^}]*display: flex;/su);
     expect(timerCss).toMatch(/\.listToolbar\s*\{[^}]*gap: 8px;/su);
     expect(timerCss).toMatch(/\.listToolbar\s*\{[^}]*justify-content: space-between;/su);
@@ -673,19 +832,20 @@ describe('TimerPage', () => {
     expect(within(summaryRegion).queryByText('ao50')).toBeNull();
     expect(within(summaryRegion).queryByText('ao100')).toBeNull();
     expect(within(summaryRegion).getAllByText('--')).toHaveLength(4);
-    expect(container.querySelector('[data-scramble-toolbar-placeholder]')).not.toBeNull();
-    expect(container.querySelectorAll('[data-scramble-toolbar-placeholder] span')).toHaveLength(3);
+    expect(within(scrambleRegion).getByRole('button', { name: '刷新打乱' })).toBeTruthy();
+    expect(container.querySelector('[data-scramble-toolbar-placeholder]')).toBeNull();
 
     expect(timerCss).toMatch(/--timer-top-zone-height: clamp\(292px, 28vh, 392px\);/u);
     expect(timerCss).toMatch(/--timer-page-inline-padding: 16px;/u);
     expect(timerCss).toMatch(/--timer-scramble-line-height: 1\.26;/u);
     expect(timerCss).toMatch(/--timer-scramble-toolbar-height: 36px;/u);
-    expect(timerCss).toMatch(/--timer-stage-center-offset: calc\(/u);
+    expect(timerCss).toMatch(/--timer-stage-height: clamp\(220px, 24dvh, 240px\);/u);
+    expect(timerCss).not.toMatch(/--timer-stage-center-offset:/u);
     expect(timerCss).toMatch(/--timer-bottom-zone-height: clamp\(190px, 22vh, 236px\);/u);
     expect(timerCss).toMatch(/--timer-nav-zone-height: 0px;/u);
     expect(timerCss).not.toMatch(/radial-gradient/u);
     expect(timerCss).toMatch(
-      /grid-template-rows:\s*var\(--timer-top-zone-height\)\s*minmax\(0, 1fr\)\s*var\(--timer-bottom-zone-height\);/u,
+      /grid-template-rows:\s*minmax\(var\(--timer-top-zone-height\), 1fr\)\s*var\(--timer-stage-height\)\s*minmax\(var\(--timer-bottom-zone-height\), 1fr\);/u,
     );
     expect(timerCss).toMatch(/\.hero\s*\{[^}]*grid-template-rows: auto minmax\(0, 1fr\);/su);
     expect(timerCss).toMatch(
@@ -696,7 +856,6 @@ describe('TimerPage', () => {
     expect(timerCss).toMatch(
       /\.scrambleStrip\s*\{[^}]*grid-template-rows: minmax\(0, 1fr\) var\(--timer-scramble-toolbar-height\);/su,
     );
-    expect(timerCss).toMatch(/\.scrambleStrip\s*\{[^}]*align-content: stretch;/su);
     expect(timerCss).toMatch(/\.scrambleStrip\s*\{[^}]*align-items: stretch;/su);
     expect(timerCss).toMatch(/\.scrambleStrip\s*\{[^}]*max-height: 100%;/su);
     expect(timerCss).toMatch(/\.scrambleStrip\s*\{[^}]*min-height: 0;/su);
@@ -705,7 +864,7 @@ describe('TimerPage', () => {
     );
     expect(timerCss).not.toMatch(/\.scrambleStrip\s*\{[^}]*font-size:/su);
     expect(timerCss).toMatch(
-      /\.scrambleText\s*:global\(\[data-density\]\)\s*\{[^}]*max-width: min\(1280px, 100%\);/su,
+      /\.scrambleText\s*:global\(\[data-density\]\)\s*\{[^}]*--scramble-fit-max-size: 32px;[^}]*--scramble-fit-min-size: 12px;[^}]*max-width: min\(1280px, var\(--scramble-auto-fit-width, 100%\)\);/su,
     );
     expect(timerCss).toMatch(
       /\.scrambleText\s*:global\(\[data-density='regular'\]\)\s*\{[^}]*--scramble-text-size: clamp\(1\.6rem, 2\.25vw \+ 0\.34rem, 2\.9rem\);/su,
@@ -717,14 +876,21 @@ describe('TimerPage', () => {
     expect(timerCss).toMatch(/\.scrambleText\s*\{[^}]*align-self: stretch;/su);
     expect(timerCss).toMatch(/\.scrambleText\s*\{[^}]*height: 100%;/su);
     expect(timerCss).toMatch(/\.scrambleText\s*\{[^}]*max-height: 100%;/su);
+    expect(timerCss).toMatch(/\.scrambleText\s*\{[^}]*position: relative;/su);
     expect(timerCss).toMatch(/\.scrambleText\s*\{[^}]*min-height: 0;/su);
-    expect(timerCss).toMatch(/\.scrambleText\s*\{[^}]*overflow: auto;/su);
-    expect(timerCss).toMatch(/\.scrambleText\s*\{[^}]*scrollbar-width: none;/su);
+    expect(timerCss).toMatch(/\.scrambleText\s*\{[^}]*overflow: visible;/su);
     expect(timerCss).toMatch(
-      /\.scrambleToolbarSlot\s*\{[^}]*min-height: var\(--timer-scramble-toolbar-height\);/su,
+      /\.scrambleText\s*:global\(\[data-density\]\)\s*\{[^}]*max-height: 100%;[^}]*overflow: auto;[^}]*overscroll-behavior: contain;[^}]*scrollbar-width: none;/su,
     );
-    expect(timerCss).toMatch(/\.scrambleToolbarPlaceholder\s*\{[^}]*display: inline-flex;/su);
-    expect(timerCss).toMatch(/\.scrambleToolbarPlaceholderItem\s*\{[^}]*border-radius: 999px;/su);
+    expect(timerCss).toMatch(
+      /\.scrambleToolbarSlot\s*\{[^}]*inset-block-start: calc\(50% \+ var\(--scramble-rendered-half-height, 0px\) \+ 12px\);[^}]*position: absolute;/su,
+    );
+    expect(timerCss).toMatch(/\.scrambleToolbarButton\s*\{[^}]*border-radius: 999px;/su);
+    expect(timerCss).toMatch(/\.scrambleToolbarButton\s*\{[^}]*height: 36px;/su);
+    expect(timerCss).toMatch(
+      /\.scrambleRefreshButton\[data-loading='true'\]\s+\.scrambleRefreshIcon\s*\{[^}]*animation: scramble-refresh-spin 720ms linear infinite;/su,
+    );
+    expect(timerCss).toMatch(/@media \(prefers-reduced-motion: reduce\)/u);
     expect(timerCss).not.toMatch(/@media \(max-width: 980px\) and \(min-height: 1200px\)/u);
     expect(timerCss).toMatch(
       /@media \(max-height: 900px\)\s*\{[^}]*\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*--scramble-text-size: clamp\(1\.02rem, 0\.52vw \+ 0\.62rem, 1\.14rem\);/su,
@@ -733,22 +899,22 @@ describe('TimerPage', () => {
       /@media \(max-height: 900px\)\s*\{[^}]*\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*line-height: 1\.22;/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 1180px\)\s*\{\s*\.root\s*\{[^}]*--timer-nav-zone-height: calc\(68px \+ env\(safe-area-inset-bottom\)\);/su,
+      /:global\(\[data-mobile-device='true'\]\) \.root\s*\{[^}]*--timer-nav-zone-height: calc\(68px \+ env\(safe-area-inset-bottom\)\);/su,
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 1180px\)\s*\{\s*\.root\s*\{[^}]*--timer-top-zone-height: clamp\(256px, 30vh, 340px\);/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 1180px\)\s*\{\s*\.root\s*\{[^}]*grid-template-areas:\s*'hero'\s*'stage'\s*'bottom'\s*'nav';/su,
+      /:global\(\[data-mobile-device='true'\]\) \.root\s*\{[^}]*grid-template-areas:\s*'hero'\s*'stage'\s*'bottom'\s*'nav';/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 1180px\)\s*\{\s*\.root\s*\{[^}]*grid-template-rows:\s*var\(--timer-top-zone-height\)\s*minmax\(0, 1fr\)\s*var\(--timer-bottom-zone-height\)\s*var\(--timer-nav-zone-height\);/su,
+      /:global\(\[data-mobile-device='true'\]\) \.root\s*\{[^}]*grid-template-rows:\s*minmax\(var\(--timer-top-zone-height\), 1fr\)\s*var\(--timer-stage-height\)\s*minmax\(var\(--timer-bottom-zone-height\), 1fr\)\s*var\(--timer-nav-zone-height\);/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 1180px\)\s*\{[\s\S]*?\.primaryNav\s*\{[^}]*grid-area: nav;[^}]*position: relative;[^}]*transform: none;/u,
+      /:global\(\[data-mobile-device='true'\]\) \.primaryNav\s*\{[^}]*grid-area: nav;[^}]*position: relative;[^}]*transform: none;/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 1180px\)\s*\{[\s\S]*?\.bottomDock\s*\{[^}]*padding-bottom: 0;/u,
+      /:global\(\[data-mobile-device='true'\]\) \.bottomDock\s*\{[^}]*padding-bottom: 0;/su,
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[^}]*--timer-top-zone-height: clamp\(286px, 43dvh, 328px\);/su,
@@ -763,8 +929,22 @@ describe('TimerPage', () => {
       /@media \(max-width: 720px\)\s*\{[^}]*--timer-nav-zone-height: calc\(58px \+ env\(safe-area-inset-bottom\)\);/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 720px\)\s*\{[^}]*--timer-scramble-toolbar-height: 30px;/su,
+      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.primaryNav\s*\{[^}]*grid-area: nav;[^}]*position: relative;[^}]*transform: none;/u,
     );
+    expect(appShellSource).toContain(
+      "data-mobile-device={isMobileWebDevice() ? 'true' : undefined}",
+    );
+    expect(timerCss).toMatch(
+      /@media \(max-width: 720px\)\s*\{[^}]*--timer-scramble-toolbar-height: 44px;/su,
+    );
+    expect(timerCss).toMatch(/@media \(max-width: 720px\)\s*\{[^}]*--timer-stage-height: 180px;/su);
+    expect(timerCss).toMatch(
+      /\.timerSurface\s*\{[^}]*display: grid;[^}]*grid-template-rows: minmax\(0, 1fr\) var\(--timer-feedback-height\);/su,
+    );
+    expect(timerCss).toMatch(
+      /\.feedbackSlot\s*\{[^}]*position: static;[^}]*transform: none;[^}]*width: min\(420px, 100%\);/su,
+    );
+    expect(timerCss).not.toMatch(/--timer-feedback-offset:/u);
     expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*--scramble-text-size: clamp\(0\.8rem, 1\.35vw \+ 0\.3rem, 0\.94rem\);/u,
     );
@@ -775,7 +955,10 @@ describe('TimerPage', () => {
       /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*line-height: 1\.1;/u,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*max-inline-size: 100%;/u,
+      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*max-inline-size: var\(--scramble-auto-fit-width, 100%\);/u,
+    );
+    expect(timerCss).toMatch(
+      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density\]\)\s*\{[^}]*--scramble-fit-max-size: 24px;/u,
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scrambleText\s*:global\(\[data-density='dense'\]\)\s*\{[^}]*text-align: center;/u,
@@ -803,17 +986,19 @@ describe('TimerPage', () => {
     expect(timerCss).toMatch(/\.bottomDock\s*\{[^}]*height: 100%;/su);
     expect(timerCss).toMatch(/\.bottomDock\s*\{[^}]*min-height: 0;/su);
     expect(timerCss).toMatch(
+      /\.root\s*\{[^}]*--timer-scramble-preview-size: clamp\(128px, min\(26vw, 22dvh\), 192px\);/su,
+    );
+    expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[\s\S]*?\.bottomDock\s*\{[^}]*align-items: flex-end;[^}]*display: flex;[^}]*gap: 14px;/u,
     );
     expect(timerCss).toMatch(
       /@media \(max-width: 720px\)\s*\{[\s\S]*?\.sessionSummary\s*\{[^}]*align-self: flex-end;[^}]*flex: 0 1 max-content;[^}]*inline-size: max-content;[^}]*max-inline-size: min\(42vw, 152px\);[^}]*min-inline-size: min\(36vw, 128px\);[^}]*min-height: 0;/u,
     );
     expect(timerCss).toMatch(
-      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scramblePreview\s*\{[^}]*align-self: flex-end;[^}]*block-size: min\(100%, 126px\);[^}]*flex: 1 1 auto;[^}]*inline-size: auto;[^}]*min-height: 0;/u,
+      /@media \(max-width: 720px\)\s*\{[\s\S]*?\.scramblePreview\s*\{[^}]*align-self: flex-end;[^}]*flex: 1 1 auto;[^}]*inline-size: auto;/u,
     );
-    expect(timerCss).toMatch(
-      /\.timerSurface\s*\{[^}]*transform: translateY\(var\(--timer-stage-center-offset\)\);/su,
-    );
+    expect(timerCss).toMatch(/\.timerSurface\s*\{[^}]*height: 100%;/su);
+    expect(timerCss).not.toMatch(/\.timerSurface\s*\{[^}]*transform:/su);
     expect(timerCss).toMatch(
       /\.timeFace\s*\{[^}]*--timer-time-wide-size: clamp\(4\.6rem, 15vw, 10\.4rem\);/su,
     );
@@ -824,10 +1009,12 @@ describe('TimerPage', () => {
       /\.timeFace\s*\{[^}]*--timer-time-label-size: clamp\(3\.4rem, 9vw, 6\.6rem\);/su,
     );
     expect(timerCss).not.toMatch(/--timer-time-size:/u);
-    expect(timerCss).toMatch(/\.timeFace\s*\{[^}]*font-size: var\(--timer-time-wide-size\);/su);
+    expect(timerCss).toMatch(
+      /\.timeFace\s*\{[^}]*font-size: var\(--timer-time-fitted-size, var\(--timer-time-wide-size\)\);/su,
+    );
     expect(timerCss).not.toMatch(/\.timeFace\[data-time-width='wide'\]/u);
     expect(timerCss).toMatch(
-      /\.timeFace\[data-time-width='max'\]\s*\{[^}]*font-size: var\(--timer-time-max-size\);/su,
+      /\.timeFace\[data-time-width='max'\]\s*\{[^}]*font-size: var\(--timer-time-fitted-size, var\(--timer-time-max-size\)\);/su,
     );
     expect(timerCss).toMatch(
       /\.timeFace\[data-timer-display='label'\]\s*\{[^}]*font-size: var\(--timer-time-label-size\);/su,
@@ -836,6 +1023,11 @@ describe('TimerPage', () => {
     expect(timerCss).toMatch(/\.timeFace\s*\{[^}]*font-variant-numeric: tabular-nums;/su);
     expect(timerCss).toMatch(
       /\.timerText\s*\{[^}]*align-items: baseline;[^}]*display: inline-flex;[^}]*font-feature-settings: inherit;[^}]*font-size: inherit;[^}]*font-variant-numeric: inherit;/su,
+    );
+    expect(timerCss).toMatch(/\.timerText\s*\{[^}]*white-space: nowrap;/su);
+    expect(timerCss).toMatch(/\.timerWhole\s*\{[^}]*flex: 0 0 auto;/su);
+    expect(timerCss).toMatch(
+      /\.timerFraction\s*\{[^}]*display: inline-flex;[^}]*flex: 0 0 auto;/su,
     );
     expect(timerCss).toMatch(/\.timerFraction\s*\{[^}]*font-size: inherit;/su);
     expect(timerCss).toMatch(/\.timerFraction\s*\{[^}]*font-variant-numeric: inherit;/su);
@@ -846,10 +1038,11 @@ describe('TimerPage', () => {
     expect(timerCss).toMatch(
       /\.timerLabelText\s*\{[^}]*letter-spacing: 0;[^}]*white-space: nowrap;/su,
     );
-    expect(timerCss).toMatch(/\.timerGlyph\s*\{[^}]*--timer-glyph-width: 0\.58em;/su);
+    expect(timerCss).toMatch(/\.timerGlyph\s*\{[^}]*--timer-glyph-width: 1ch;/su);
     expect(timerCss).toMatch(/\.timerGlyph\s*\{[^}]*flex: 0 0 var\(--timer-glyph-width\);/su);
+    expect(timerCss).toMatch(/\.timerGlyph\s*\{[^}]*width: var\(--timer-glyph-width\);/su);
     expect(timerCss).toMatch(
-      /\.timerGlyph\[data-timer-glyph='separator'\]\s*\{[^}]*--timer-glyph-width: 0\.32em;/su,
+      /\.timerGlyph\[data-timer-glyph='separator'\]\s*\{[^}]*--timer-glyph-width: 0\.4ch;/su,
     );
     expect(timerCss).toMatch(
       /\.summaryMetric\s*\{[^}]*display: flex;[^}]*justify-content: flex-start;/su,
@@ -857,7 +1050,11 @@ describe('TimerPage', () => {
     expect(timerCss).not.toMatch(/\.summaryMetric\s*\{[^}]*grid-template-columns:/su);
     expect(timerCss).toMatch(/\.summaryLabel\s*\{[^}]*font-size: 0\.86rem;/su);
     expect(timerCss).toMatch(/\.summaryValue\s*\{[^}]*font-size: 0\.86rem;/su);
-    expect(timerCss).toMatch(/\.scramblePreview\s*\{[^}]*align-self: stretch;/su);
+    expect(timerCss).toMatch(
+      /\.scramblePreview\s*\{[^}]*align-self: end;[^}]*block-size: min\(100%, var\(--timer-scramble-preview-size\)\);/su,
+    );
+    expect(timerCss).toMatch(/\.scramblePreview\s*\{[^}]*min-height: 0;/su);
+    expect(timerCss).not.toMatch(/block-size: min\(100%, 126px\);/u);
     expect(timerCss).toMatch(
       /\.scramblePreview\s*:global\(\[data-scramble-image\]\)\s*\{[^}]*height: 100%;[^}]*max-width: 100%;[^}]*width: auto;/su,
     );
@@ -884,16 +1081,13 @@ describe('TimerPage', () => {
       /@media \(max-height: 520px\) and \(orientation: landscape\)\s*\{[^}]*--timer-top-zone-height: clamp\(180px, 48vh, 204px\);/su,
     );
     expect(timerCss).toMatch(
-      /@media \(max-height: 520px\) and \(orientation: landscape\)\s*\{[^}]*--timer-stage-center-offset: 0px;/su,
+      /@media \(max-height: 520px\) and \(orientation: landscape\)\s*\{[^}]*--timer-stage-height: 120px;/su,
     );
     expect(timerCss).toMatch(
       /@media \(max-height: 520px\) and \(orientation: landscape\)\s*\{[\s\S]*?\.bottomDock\s*\{[^}]*display: none;/u,
     );
     expect(timerCss).toMatch(
       /@media \(max-height: 520px\) and \(orientation: landscape\)\s*\{[\s\S]*?\.timerSurface\s*\{[^}]*--timer-feedback-height: 32px;/u,
-    );
-    expect(timerCss).toMatch(
-      /@media \(max-height: 520px\) and \(orientation: landscape\)\s*\{[\s\S]*?\.timerSurface\s*\{[^}]*--timer-feedback-offset: clamp\(2\.35rem, 9\.8vh, 2\.55rem\);/u,
     );
     expect(timerCss).toMatch(
       /@media \(max-height: 520px\) and \(orientation: landscape\)\s*\{[\s\S]*?\.timeFace\s*\{[^}]*--timer-time-wide-size: clamp\(3rem, 17vh, 4\.4rem\);/u,
@@ -904,6 +1098,451 @@ describe('TimerPage', () => {
     expect(timerCss).toMatch(
       /@media \(max-height: 520px\) and \(orientation: landscape\)\s*\{[\s\S]*?\.resultButton\s*\{[^}]*min-width: 44px;/u,
     );
+  });
+
+  it('refreshes the active scramble once and disables the icon button while loading', async () => {
+    renderTimerPage();
+
+    const scrambleRegion = screen.getByRole('region', { name: '当前打乱' });
+    expect(await within(scrambleRegion).findByText('333 generated scramble')).toBeTruthy();
+
+    let resolveRefresh: ((value: { eventId: '333'; scramble: string }) => void) | undefined;
+    scrambleGeneratorMock.generate.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRefresh = resolve;
+        }),
+    );
+
+    const refreshButton = within(scrambleRegion).getByRole('button', { name: '刷新打乱' });
+    fireEvent.click(refreshButton);
+
+    expect(refreshButton.hasAttribute('disabled')).toBe(true);
+    expect(refreshButton.getAttribute('data-loading')).toBe('true');
+    expect(scrambleGeneratorMock.generate).toHaveBeenCalledTimes(2);
+
+    fireEvent.click(refreshButton);
+    expect(scrambleGeneratorMock.generate).toHaveBeenCalledTimes(2);
+
+    resolveRefresh?.({ eventId: '333', scramble: '333 refreshed scramble' });
+
+    expect(await within(scrambleRegion).findByText('333 refreshed scramble')).toBeTruthy();
+    await waitFor(() => expect(refreshButton.hasAttribute('disabled')).toBe(false));
+    expect(refreshButton.getAttribute('data-loading')).toBe('false');
+  });
+
+  it('shows and navigates one multi-blind cube scramble without regenerating the group', async () => {
+    scrambleGeneratorMock.generate.mockImplementation(
+      (eventId: string, options?: { multiBlindCubeCount?: number }) =>
+        Promise.resolve({
+          eventId,
+          scramble:
+            eventId === '333mbld'
+              ? Array.from(
+                  { length: options?.multiBlindCubeCount ?? 3 },
+                  (_, index) => `cube ${index + 1} scramble`,
+                ).join('\n')
+              : `${eventId} generated scramble`,
+        }),
+    );
+    renderTimerPage();
+
+    const listSelector = screen.getByRole('combobox', { name: '切换列表' });
+    fireEvent.change(listSelector, { target: { value: 'main-333mbld' } });
+
+    const scrambleRegion = screen.getByRole('region', { name: '当前打乱' });
+    expect(await within(scrambleRegion).findByText('cube 1 scramble')).toBeTruthy();
+
+    const previousButton = within(scrambleRegion).getByRole('button', { name: '上一颗打乱' });
+    const nextButton = within(scrambleRegion).getByRole('button', { name: '下一颗打乱' });
+    const settingsButton = within(scrambleRegion).getByRole('button', { name: '多盲设置' });
+
+    expect(
+      within(scrambleRegion).getByRole('status', { name: '多盲打乱位置: 1 / 3' }),
+    ).toBeTruthy();
+    expect(previousButton.hasAttribute('disabled')).toBe(true);
+    expect(nextButton.hasAttribute('disabled')).toBe(false);
+    expect(settingsButton).toBeTruthy();
+    expect(scrambleGeneratorMock.generate).toHaveBeenCalledWith('333mbld', {
+      multiBlindCubeCount: 3,
+    });
+
+    const generateCallCount = scrambleGeneratorMock.generate.mock.calls.length;
+    fireEvent.click(nextButton);
+
+    expect(within(scrambleRegion).getByText('cube 2 scramble')).toBeTruthy();
+    expect(
+      within(scrambleRegion).getByRole('status', { name: '多盲打乱位置: 2 / 3' }),
+    ).toBeTruthy();
+    expect(scrambleGeneratorMock.generate).toHaveBeenCalledTimes(generateCallCount);
+    await waitFor(() =>
+      expect(scrambleImageMock.renderScrambleImage).toHaveBeenCalledWith(
+        '333mbld',
+        'cube 2 scramble',
+      ),
+    );
+
+    fireEvent.click(nextButton);
+    expect(within(scrambleRegion).getByText('cube 3 scramble')).toBeTruthy();
+    expect(nextButton.hasAttribute('disabled')).toBe(true);
+
+    fireEvent.click(previousButton);
+    expect(within(scrambleRegion).getByText('cube 2 scramble')).toBeTruthy();
+  });
+
+  it('keeps the FMC scramble sealed until start and saves a validated formula result', async () => {
+    scrambleGeneratorMock.generate.mockImplementation((eventId: string) =>
+      Promise.resolve({
+        eventId,
+        scramble: eventId === '333fm' ? 'R U' : `${eventId} generated scramble`,
+      }),
+    );
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333fm' },
+    });
+
+    await screen.findByText('60:00');
+    expect(screen.queryByText('开始最少步')).toBeNull();
+    expect(screen.queryByText('R U')).toBeNull();
+    expect(screen.queryByRole('textbox', { name: '还原公式' })).toBeNull();
+    expect(screen.queryByLabelText('打乱图')).toBeNull();
+
+    fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+    fireEvent.keyUp(window, { code: 'Space', key: ' ' });
+
+    expect(screen.getByRole('region', { name: '计时器' }).dataset.fewestMovesActive).toBe('true');
+    expect((await screen.findAllByText('R U')).length).toBeGreaterThan(0);
+    const formulaEditor = screen.getByRole('textbox', { name: /还原公式/u });
+    for (const token of ["U'", "R'", 'F', "F'"]) {
+      for (const key of token) fireEvent.keyDown(formulaEditor, { key });
+    }
+    expect(screen.getByText('总步数 4')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '提交公式' }));
+
+    await waitFor(() => expect(screen.getAllByText('4 步').length).toBeGreaterThan(0));
+    expect(screen.queryByText("U' R' F F'")).toBeNull();
+    expect(screen.queryByRole('button', { name: '开始最少步' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '返回修改' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '保存成绩' })).toBeNull();
+  });
+
+  it('shows and cancels the FMC Space ready state before release', async () => {
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333fm' },
+    });
+
+    const startButton = await screen.findByRole('button', { name: '开始最少步' });
+    fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+    expect(startButton.dataset.armed).toBe('true');
+
+    fireEvent.keyDown(window, { code: 'Escape', key: 'Escape' });
+    expect(startButton.dataset.armed).toBeUndefined();
+
+    fireEvent.keyUp(window, { code: 'Space', key: ' ' });
+    expect(screen.queryByRole('textbox', { name: /还原公式/u })).toBeNull();
+    expect(screen.getByText('60:00')).toBeTruthy();
+  });
+
+  it('records an exact inverse FMC solution as DNF', async () => {
+    scrambleGeneratorMock.generate.mockImplementation((eventId: string) =>
+      Promise.resolve({
+        eventId,
+        scramble: eventId === '333fm' ? 'R U' : `${eventId} generated scramble`,
+      }),
+    );
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333fm' },
+    });
+    await screen.findByText('60:00');
+    fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+    fireEvent.keyUp(window, { code: 'Space', key: ' ' });
+    const formulaEditor = screen.getByRole('textbox', { name: /还原公式/u });
+    for (const key of ['U', "'", 'R', "'"]) fireEvent.keyDown(formulaEditor, { key });
+    fireEvent.click(screen.getByRole('button', { name: '提交公式' }));
+
+    await waitFor(() => expect(screen.getByText('DNF')).toBeTruthy());
+    expect(screen.queryByRole('button', { name: '返回修改' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '保存成绩' })).toBeNull();
+  });
+
+  it('changes multi-blind cube count through the settings dialog and refreshes the group', async () => {
+    scrambleGeneratorMock.generate.mockImplementation(
+      (eventId: string, options?: { multiBlindCubeCount?: number }) =>
+        Promise.resolve({
+          eventId,
+          scramble:
+            eventId === '333mbld'
+              ? Array.from(
+                  { length: options?.multiBlindCubeCount ?? 3 },
+                  (_, index) => `cube ${index + 1} of ${options?.multiBlindCubeCount ?? 3}`,
+                ).join('\n')
+              : `${eventId} generated scramble`,
+        }),
+    );
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333mbld' },
+    });
+
+    const scrambleRegion = screen.getByRole('region', { name: '当前打乱' });
+    expect(await within(scrambleRegion).findByText('cube 1 of 3')).toBeTruthy();
+
+    fireEvent.click(within(scrambleRegion).getByRole('button', { name: '多盲设置' }));
+
+    const dialog = screen.getByRole('dialog', { name: '多盲设置' });
+    const cubeCountInput = within(dialog).getByRole('spinbutton', {
+      name: '魔方数量',
+    }) as HTMLInputElement;
+    expect(cubeCountInput.value).toBe('3');
+    expect(cubeCountInput.min).toBe('2');
+    expect(cubeCountInput.max).toBe('99');
+    expect(cubeCountInput.closest('[data-component-number-input]')?.className).toContain(
+      'multiBlindNumberInput',
+    );
+
+    fireEvent.change(cubeCountInput, { target: { value: '5' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: '应用' }));
+
+    expect(await within(scrambleRegion).findByText('cube 1 of 5')).toBeTruthy();
+    expect(
+      within(scrambleRegion).getByRole('status', { name: '多盲打乱位置: 1 / 5' }),
+    ).toBeTruthy();
+    expect(scrambleGeneratorMock.generate).toHaveBeenLastCalledWith('333mbld', {
+      multiBlindCubeCount: 5,
+    });
+    expect(screen.queryByRole('dialog', { name: '多盲设置' })).toBeNull();
+
+    const generateCallCount = scrambleGeneratorMock.generate.mock.calls.length;
+    fireEvent.click(within(scrambleRegion).getByRole('button', { name: '多盲设置' }));
+    fireEvent.change(screen.getByRole('spinbutton', { name: '魔方数量' }), {
+      target: { value: '7' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '取消' }));
+
+    expect(scrambleGeneratorMock.generate).toHaveBeenCalledTimes(generateCallCount);
+    expect(
+      within(scrambleRegion).getByRole('status', { name: '多盲打乱位置: 1 / 5' }),
+    ).toBeTruthy();
+  });
+
+  it('records and edits a structured multi-blind result without ordinary averages', async () => {
+    timerMock.stop.mockReturnValue(1_230_999);
+    scrambleGeneratorMock.generate.mockImplementation((eventId: string) =>
+      Promise.resolve({
+        eventId,
+        scramble:
+          eventId === '333mbld' ? 'cube 1\ncube 2\ncube 3' : `${eventId} generated scramble`,
+      }),
+    );
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333mbld' },
+    });
+    await within(screen.getByRole('region', { name: '当前打乱' })).findByText('cube 1');
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    const dialog = await screen.findByRole('dialog', { name: '多盲成绩' });
+    expect(within(dialog).queryByText('魔方数量')).toBeNull();
+    expect(within(dialog).queryByRole('status', { name: '成绩预览' })).toBeNull();
+    expect(screen.queryByRole('toolbar', { name: '成绩操作' })).toBeNull();
+
+    const solvedCountInput = within(dialog).getByRole('spinbutton', {
+      name: '成功数量',
+    }) as HTMLInputElement;
+    const penaltyCountInput = within(dialog).getByRole('spinbutton', {
+      name: '累计 +2',
+    }) as HTMLInputElement;
+    const saveButton = within(dialog).getByRole('button', { name: '保存' });
+    const discardButton = within(dialog).getByRole('button', { name: '本次不记录' });
+    const wholeDnfCheckbox = within(dialog).getByRole('checkbox', { name: '整次 DNF' });
+
+    expect(solvedCountInput.max).toBe('3');
+    expect(solvedCountInput.value).toBe('3');
+    expect(penaltyCountInput.value).toBe('0');
+    expect(penaltyCountInput.max).toBe('3');
+    expect(wholeDnfCheckbox.closest('[data-component-checkbox]')).not.toBeNull();
+    expect(solvedCountInput.disabled).toBe(false);
+    expect(penaltyCountInput.disabled).toBe(false);
+    expect(saveButton.hasAttribute('disabled')).toBe(false);
+    expect(discardButton.hasAttribute('disabled')).toBe(false);
+    expect(discardButton.className).toContain('discardButton');
+
+    fireEvent.click(discardButton);
+    expect(screen.queryByRole('dialog', { name: '多盲成绩' })).toBeNull();
+    const discardDialog = screen.getByRole('dialog', { name: '确认本次不记录？' });
+    expect(within(discardDialog).getByText('本次成绩不会保存，且无法恢复。')).toBeTruthy();
+    expect(within(discardDialog).getByRole('button', { name: '确认不记录' })).toBeTruthy();
+    fireEvent.click(within(discardDialog).getByRole('button', { name: '取消' }));
+
+    const restoredDialog = screen.getByRole('dialog', { name: '多盲成绩' });
+    expect(document.activeElement).toBe(discardButton);
+    expect(
+      (within(restoredDialog).getByRole('spinbutton', { name: '成功数量' }) as HTMLInputElement)
+        .value,
+    ).toBe('3');
+
+    fireEvent.click(wholeDnfCheckbox);
+    expect(solvedCountInput.disabled).toBe(true);
+    expect(penaltyCountInput.disabled).toBe(true);
+    expect(solvedCountInput.required).toBe(false);
+    expect(penaltyCountInput.required).toBe(false);
+    expect(saveButton.hasAttribute('disabled')).toBe(false);
+    fireEvent.click(wholeDnfCheckbox);
+    expect(saveButton.hasAttribute('disabled')).toBe(false);
+
+    fireEvent.change(solvedCountInput, { target: { value: '1' } });
+    fireEvent.click(wholeDnfCheckbox);
+    expect(solvedCountInput.disabled).toBe(true);
+    expect(penaltyCountInput.disabled).toBe(true);
+    fireEvent.click(wholeDnfCheckbox);
+    expect(solvedCountInput.disabled).toBe(false);
+    expect(penaltyCountInput.disabled).toBe(false);
+    expect(solvedCountInput.value).toBe('1');
+
+    fireEvent.change(solvedCountInput, { target: { value: '4' } });
+    expect(solvedCountInput.getAttribute('aria-invalid')).toBe('true');
+    expect(within(dialog).getByText('成功数量需为 0–3 的整数。')).toBeTruthy();
+    expect(saveButton.hasAttribute('disabled')).toBe(true);
+
+    fireEvent.change(solvedCountInput, {
+      target: { value: '2' },
+    });
+    expect(penaltyCountInput.max).toBe('2');
+    fireEvent.change(penaltyCountInput, {
+      target: { value: '3' },
+    });
+    expect(penaltyCountInput.getAttribute('aria-invalid')).toBe('true');
+    expect(within(dialog).getByText('累计 +2 需为 0–2 的整数。')).toBeTruthy();
+    expect(saveButton.hasAttribute('disabled')).toBe(true);
+    fireEvent.submit(dialog.querySelector('form')!);
+    expect(screen.getByRole('dialog', { name: '多盲成绩' })).toBeTruthy();
+    expect(screen.queryByRole('toolbar', { name: '成绩操作' })).toBeNull();
+
+    fireEvent.change(penaltyCountInput, {
+      target: { value: '1' },
+    });
+    expect(penaltyCountInput.getAttribute('aria-invalid')).toBe('false');
+    fireEvent.click(saveButton);
+
+    const toolbar = await screen.findByRole('toolbar', { name: '成绩操作' });
+    expect(within(toolbar).queryByRole('button', { name: '+2' })).toBeNull();
+    expect(within(toolbar).queryByRole('button', { name: 'DNF' })).toBeNull();
+    const editResultButton = within(toolbar).getByRole('button', { name: '编辑成绩' });
+    expect(editResultButton.textContent).toBe('');
+    expect(editResultButton.querySelector('svg')).not.toBeNull();
+
+    const summary = screen.getByRole('region', { name: '成绩概要' });
+    expect(within(summary).getByText('1/1')).toBeTruthy();
+    expect(within(summary).getByText('2/3 20:32')).toBeTruthy();
+    expect(within(summary).getByText('最高分')).toBeTruthy();
+    expect(within(summary).queryByText('平均')).toBeNull();
+    expect(within(summary).queryByText('mo3')).toBeNull();
+
+    fireEvent.click(editResultButton);
+    const editDialog = await screen.findByRole('dialog', { name: '多盲成绩' });
+    fireEvent.change(within(editDialog).getByRole('spinbutton', { name: '成功数量' }), {
+      target: { value: '3' },
+    });
+    fireEvent.click(within(editDialog).getByRole('button', { name: '保存' }));
+
+    await waitFor(() => expect(within(summary).getByText('3/3 20:32')).toBeTruthy());
+    expect(within(summary).getByText('3')).toBeTruthy();
+  });
+
+  it('stores empty multi-blind counts as 0 / 0 when the whole attempt is DNF', async () => {
+    timerMock.stop.mockReturnValue(12_345);
+    scrambleGeneratorMock.generate.mockImplementation((eventId: string) =>
+      Promise.resolve({
+        eventId,
+        scramble:
+          eventId === '333mbld' ? 'cube 1\ncube 2\ncube 3' : `${eventId} generated scramble`,
+      }),
+    );
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333mbld' },
+    });
+    await within(screen.getByRole('region', { name: '当前打乱' })).findByText('cube 1');
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    const dialog = await screen.findByRole('dialog', { name: '多盲成绩' });
+    fireEvent.change(within(dialog).getByRole('spinbutton', { name: '成功数量' }), {
+      target: { value: '' },
+    });
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: '整次 DNF' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: '保存' }));
+
+    const toolbar = await screen.findByRole('toolbar', { name: '成绩操作' });
+    fireEvent.click(within(toolbar).getByRole('button', { name: '编辑成绩' }));
+
+    const editDialog = await screen.findByRole('dialog', { name: '多盲成绩' });
+    expect(
+      (within(editDialog).getByRole('spinbutton', { name: '成功数量' }) as HTMLInputElement).value,
+    ).toBe('0');
+    expect(
+      (within(editDialog).getByRole('spinbutton', { name: '累计 +2' }) as HTMLInputElement).value,
+    ).toBe('0');
+    expect(
+      (within(editDialog).getByRole('checkbox', { name: '整次 DNF' }) as HTMLInputElement).checked,
+    ).toBe(true);
+    expect(within(editDialog).getByRole('button', { name: '保存' }).hasAttribute('disabled')).toBe(
+      false,
+    );
+  });
+
+  it('keeps timing beyond the MBLD limit and derives DNF after a manual stop', async () => {
+    const timeLimitMs = 30 * 60_000;
+    timerMock.stop.mockReturnValue(timeLimitMs + 1_000);
+    scrambleGeneratorMock.generate.mockImplementation((eventId: string) =>
+      Promise.resolve({
+        eventId,
+        scramble:
+          eventId === '333mbld' ? 'cube 1\ncube 2\ncube 3' : `${eventId} generated scramble`,
+      }),
+    );
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333mbld' },
+    });
+    await within(screen.getByRole('region', { name: '当前打乱' })).findByText('cube 1');
+    expect(screen.getByRole('timer').textContent).toContain('30:00');
+
+    timerMock.elapsed = timeLimitMs + 1_000;
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    expect(timerMock.stop).not.toHaveBeenCalled();
+    expect(screen.getByRole('timer').getAttribute('data-state')).toBe('timing');
+    expect(screen.getByRole('timer').textContent?.replace(/\s/gu, '')).toBe('+0:01');
+
+    fireEvent.keyDown(document, { code: 'Enter', key: 'Enter' });
+
+    const dialog = await screen.findByRole('dialog', { name: '多盲成绩' });
+    expect(timerMock.stop).toHaveBeenCalledTimes(1);
+    expect(
+      (within(dialog).getByRole('checkbox', { name: '整次 DNF' }) as HTMLInputElement).checked,
+    ).toBe(false);
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '保存' }));
+
+    const summary = await screen.findByRole('region', { name: '成绩概要' });
+    expect(await within(summary).findByText('0/1')).toBeTruthy();
+    await waitFor(() => expect(screen.getByRole('timer').textContent).toContain('DNF'));
+    expect(within(summary).getAllByText('--')).toHaveLength(2);
   });
 
   it('loads a generated scramble when switching to another default event list', async () => {
@@ -1022,9 +1661,9 @@ describe('TimerPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '+2' }));
 
     await waitFor(() =>
-      expect(screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }).textContent).toContain(
-        '3.234+',
-      ),
+      expect(
+        screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }).textContent,
+      ).toContain('3.234+'),
     );
 
     const summaryRegion = screen.getByRole('region', { name: '成绩概要' });
@@ -1035,9 +1674,9 @@ describe('TimerPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'DNF' }));
 
     await waitFor(() =>
-      expect(screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }).textContent).toContain(
-        'DNF',
-      ),
+      expect(
+        screen.getByRole('timer', { name: '按 Space 或 Enter 开始计时' }).textContent,
+      ).toContain('DNF'),
     );
     expect(within(summaryRegion).getByText('0/1')).toBeTruthy();
     expect(within(summaryRegion).getByText('DNF')).toBeTruthy();
@@ -1252,6 +1891,67 @@ describe('TimerPage', () => {
     expect(timerPageSource).toMatch(/splitTimerElapsedText/su);
   });
 
+  it('fits the timer against its measured width with a safety buffer', () => {
+    expect(getBufferedTimerWidth(375)).toBe(351);
+    expect(getBufferedTimerWidth(1000)).toBe(940);
+    expect(
+      getSafeTimerFontSize({
+        availableWidth: 375,
+        baseFontSize: 67.2,
+        minFontSize: 32,
+        renderedWidth: 420,
+      }),
+    ).toBe(55.5);
+    expect(
+      getSafeTimerFontSize({
+        availableWidth: 375,
+        baseFontSize: 67.2,
+        minFontSize: 32,
+        renderedWidth: 340,
+      }),
+    ).toBe(67.2);
+    expect(timerPageSource).toMatch(/new ResizeObserver\(measure\)/su);
+    expect(timerPageSource).toMatch(/document\.fonts\?\.ready\.then\(measure\)/su);
+  });
+
+  it('shrinks a rendered long timer value to the buffered mobile width', () => {
+    const resizeCallbacks = new Map<Element, ResizeObserverCallback>();
+
+    class ResizeObserverMock {
+      readonly callback: ResizeObserverCallback;
+
+      constructor(callback: ResizeObserverCallback) {
+        this.callback = callback;
+      }
+
+      observe(target: Element) {
+        resizeCallbacks.set(target, this.callback);
+      }
+
+      disconnect() {}
+    }
+
+    vi.stubGlobal('ResizeObserver', ResizeObserverMock);
+    timerMock.elapsed = 813_481;
+
+    const { container } = renderTimerPage();
+
+    const timerSurface = container.querySelector<HTMLElement>('[role="timer"]');
+    if (!timerSurface) throw new Error('Expected timer surface');
+    const timeFace = timerSurface.querySelector<HTMLElement>('[data-time-width="max"]');
+    const timerText = timerSurface.querySelector<HTMLElement>('[data-timer-text="true"]');
+    if (!timerText) throw new Error('Expected timer text');
+
+    Object.defineProperty(timerSurface, 'clientWidth', { configurable: true, value: 375 });
+    Object.defineProperty(timerText, 'scrollWidth', { configurable: true, value: 420 });
+    vi.stubGlobal('getComputedStyle', () => ({ fontSize: '67.2px' }));
+    resizeCallbacks.get(timerSurface)?.([], {} as ResizeObserver);
+
+    expect(timerText?.textContent).toBe('13:33.481');
+    expect(timeFace?.dataset.autoFit).toBe('measured');
+    expect(timeFace?.style.getPropertyValue('--timer-time-fitted-size')).toBe('55.5px');
+  });
+
   it('cancels Space ready with Escape before release', () => {
     renderTimerPage();
 
@@ -1284,6 +1984,10 @@ describe('TimerPage', () => {
   it('keeps result action spacing and hover feedback visually consistent', () => {
     expect(timerCss).toMatch(/\.resultToolbar\s*\{[^}]*gap: 8px;/su);
     expect(timerCss).toMatch(/\.resultButton\s*\{[^}]*min-width: 52px;/su);
+    expect(timerCss).toMatch(/\.resultToolbar\[data-compact='true'\]\s*\{[^}]*gap: 0;/su);
+    expect(timerCss).toMatch(
+      /\.resultToolbar\[data-compact='true'\] \.resultButton\s*\{[^}]*min-width: 44px;/su,
+    );
     expect(timerCss).toMatch(/\.resultButton\s*\{[^}]*opacity: 0\.62;/su);
     expect(timerCss).toMatch(/\.resultButton:hover\s*\{[^}]*opacity: 1;/su);
     expect(timerCss).not.toMatch(/\.resultButton:hover\s*\{[^}]*text-decoration: underline;/su);
@@ -1302,3 +2006,16 @@ const timerNavigationSource = readFileSync(
   `${process.cwd()}/src/timer/timer-navigation.tsx`,
   'utf8',
 ) as string;
+const appShellSource = readFileSync(`${process.cwd()}/src/layout/app-shell.tsx`, 'utf8') as string;
+
+describe('timer numeric input ownership', () => {
+  it('uses the design-system NumberInput instead of native number inputs', () => {
+    expect(timerPageSource).toContain('@deweyou-design/react/number-input');
+    expect(timerPageSource).not.toMatch(/<input\b[^>]*\btype="number"/su);
+  });
+
+  it('uses the design-system Checkbox for the multi-blind whole-DNF control', () => {
+    expect(timerPageSource).toContain('@deweyou-design/react/checkbox');
+    expect(timerPageSource).not.toMatch(/<input\b[^>]*\btype="checkbox"/su);
+  });
+});

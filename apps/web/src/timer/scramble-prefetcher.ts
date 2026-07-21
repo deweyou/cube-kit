@@ -7,14 +7,21 @@ import {
 } from './scramble-performance-log';
 import type { TimerScrambleGenerator } from './scramble-worker-client';
 
-const DEFAULT_MULTI_BLIND_CUBE_COUNT = 3;
+export const DEFAULT_MULTI_BLIND_CUBE_COUNT = 3;
+export const MIN_MULTI_BLIND_CUBE_COUNT = 2;
+export const MAX_MULTI_BLIND_CUBE_COUNT = 99;
 const PREFETCH_QUEUE_LIMIT = 1;
 
-const getMultiBlindCubeCount = (eventId: EventId): number | undefined =>
-  eventId === '333mbld' ? DEFAULT_MULTI_BLIND_CUBE_COUNT : undefined;
+const getMultiBlindCubeCount = (
+  eventId: EventId,
+  multiBlindCubeCount: number,
+): number | undefined => (eventId === '333mbld' ? multiBlindCubeCount : undefined);
 
-export const getTimerScrambleGenerateOptions = (eventId: EventId): GenerateOptions => ({
-  multiBlindCubeCount: getMultiBlindCubeCount(eventId),
+export const getTimerScrambleGenerateOptions = (
+  eventId: EventId,
+  multiBlindCubeCount = DEFAULT_MULTI_BLIND_CUBE_COUNT,
+): GenerateOptions => ({
+  multiBlindCubeCount: getMultiBlindCubeCount(eventId, multiBlindCubeCount),
 });
 
 const getPrefetchKey = (eventId: EventId, options: GenerateOptions = {}) => {

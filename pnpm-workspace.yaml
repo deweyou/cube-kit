@@ -3,14 +3,15 @@ packages:
   - packages/*
 
 catalog:
-  '@deweyou-design/react': ^0.3.3
-  '@deweyou-design/styles': ^0.3.3
+  '@deweyou-design/react': ^0.3.4
+  '@deweyou-design/styles': ^0.3.4
   '@testing-library/user-event': ^14.6.1
   '@types/node': ^24
   '@types/react': ^19
   '@types/react-dom': ^19
   '@vitejs/plugin-react': ^4
   '@vitest/coverage-v8': 4.1.4
+  is-mobile: ^5.0.0
   react: ^19
   react-dom: ^19
   react-is: ^19.2.5

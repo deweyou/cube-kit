@@ -120,7 +120,10 @@ rerun the sync script.
 ## Startup Path
 
 - Web starts at [apps/web/src/main.tsx#L1](../apps/web/src/main.tsx#L1), which
-  renders React without the removed cstimer browser shim.
+  renders React without the removed cstimer browser shim. Its Vite development
+  server binds to `127.0.0.1` on the project-specific strict port `4488`, so
+  `pnpm dev:web` fails clearly instead of falling back to another port when that
+  port is occupied.
 - [apps/web/src/app.tsx#L1](../apps/web/src/app.tsx#L1) wraps
   [AppRouter](../apps/web/src/app-router.tsx#L1) in the app shell and app
   preferences provider.
@@ -220,4 +223,4 @@ rerun the sync script.
 
 ---
 
-_Last updated: 2026-07-07 | Reason: add web settings route and shared preference boundary_
+_Last updated: 2026-07-20 | Reason: document the dedicated web development port_

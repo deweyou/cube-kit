@@ -5,6 +5,7 @@ flowchart TD
     Public["@cubegin/solver public API"] --> Facade["solvePuzzleAssist"]
     Public --> FullFacade["solvePuzzleFull"]
     Public --> ThreeFacade["solveThreeByThreeAssist"]
+    Public --> FMC["validateFewestMovesSolution"]
     Public --> Full["full solver primitives"]
     Public --> Methods["method helpers"]
     Facade --> Methods
@@ -12,6 +13,7 @@ flowchart TD
     FullFacade --> Full
     Methods --> Search["Coordinate search, pruning tables, and focused BFS"]
     Full --> Search
+    FMC --> Puzzle
     Search --> Puzzle["@cubegin/scramble-puzzle"]
     Playground["apps/playground"] --> Public
 ```
@@ -44,6 +46,11 @@ packages.
   accepts Skewb face turns, and Square-1 shape uses tuple/slash notation.
 - Results are structured by method, target, setup rotation, solution, depth, and
   FTM/QTM metrics; callers own display formatting.
+- `validateFewestMovesSolution` is the platform-agnostic FMC adjudication
+  facade. It normalizes accepted 3x3 notation, reports OBTM and ETM, applies the
+  scramble followed by the submitted formula, enforces the 80 ETM ceiling, and
+  identifies exact or suspicious inverse-scramble solutions. UI packages own
+  countdowns, review decisions, and persistence.
 
 ## Verify
 
@@ -72,7 +79,8 @@ pnpm --filter @cubegin/solver build
 - [packages/solver/src/assist/skewb/face.ts#L1](../../../packages/solver/src/assist/skewb/face.ts#L1) - Skewb Face helper.
 - [packages/solver/src/full/clock-solver.ts#L1](../../../packages/solver/src/full/clock-solver.ts#L1) - Clock full state solver.
 - [packages/solver/src/full/min2phase/search-wca.ts#L1](../../../packages/solver/src/full/min2phase/search-wca.ts#L1) - 3x3 WCA min2phase search wrapper.
+- [packages/solver/src/fewest-moves/validate.ts#L1](../../../packages/solver/src/fewest-moves/validate.ts#L1) - FMC notation, move metrics, solved-state, and inverse-scramble validation.
 
 ---
 
-_Last updated: 2026-06-09 | Reason: add unified full solver facade_
+_Last updated: 2026-07-20 | Reason: add the platform-agnostic Fewest Moves validator_

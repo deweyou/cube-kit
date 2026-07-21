@@ -93,6 +93,66 @@ export const EditIcon = ({ size = 18 }: TimerIconProps) => (
   </svg>
 );
 
+export const RefreshIcon = ({ className, size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size, className)}>
+    <path
+      d="M19 8a8 8 0 1 0 1 6M19 8V3M19 8h-5"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
+export const PreviousIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="m14.5 6-6 6 6 6"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
+export const NextIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="m9.5 6 6 6-6 6"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
+export const CollapseIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="m6 14.5 6-6 6 6"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
+export const ExpandIcon = ({ size = 18 }: TimerIconProps) => (
+  <svg {...iconProps(size)}>
+    <path
+      d="m6 9.5 6 6 6-6"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+    />
+  </svg>
+);
+
 export const DeleteIcon = ({ className, size = 18 }: TimerIconProps) => (
   <svg {...iconProps(size, className)}>
     <path d="M4 7h16" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
@@ -110,37 +170,19 @@ export const DeleteIcon = ({ className, size = 18 }: TimerIconProps) => (
       strokeLinejoin="round"
       strokeWidth="1.8"
     />
-    <path
-      d="M10 11v6M14 11v6"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeWidth="1.8"
-    />
+    <path d="M10 11v6M14 11v6" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
   </svg>
 );
 
 export const CloseIcon = ({ className, size = 18 }: TimerIconProps) => (
   <svg {...iconProps(size, className)}>
-    <path
-      d="M7 7l10 10M17 7 7 17"
-      stroke="currentColor"
-      strokeLinecap="square"
-      strokeWidth="2"
-    />
+    <path d="M7 7l10 10M17 7 7 17" stroke="currentColor" strokeLinecap="square" strokeWidth="2" />
   </svg>
 );
 
 export const CopyIcon = ({ className, size = 18 }: TimerIconProps) => (
   <svg {...iconProps(size, className)}>
-    <rect
-      height="12"
-      rx="1.5"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      width="10"
-      x="9"
-      y="8"
-    />
+    <rect height="12" rx="1.5" stroke="currentColor" strokeWidth="1.8" width="10" x="9" y="8" />
     <path
       d="M15 6.5V5.8A1.8 1.8 0 0 0 13.2 4H6.8A1.8 1.8 0 0 0 5 5.8v9.4A1.8 1.8 0 0 0 6.8 17H7"
       stroke="currentColor"

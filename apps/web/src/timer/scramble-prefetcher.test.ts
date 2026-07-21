@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ScrambleResult } from '@cubegin/scramble-core';
 import { EVENT_IDS } from '@cubegin/shared/events';
-import { createTimerScramblePrefetcher } from './scramble-prefetcher';
+import {
+  createTimerScramblePrefetcher,
+  getTimerScrambleGenerateOptions,
+} from './scramble-prefetcher';
 import type { TimerScrambleGenerator } from './scramble-worker-client';
 
 const result = (eventId: ScrambleResult['eventId'], scramble: string): ScrambleResult => ({
@@ -16,6 +19,15 @@ afterEach(() => {
 });
 
 describe('createTimerScramblePrefetcher', () => {
+  it('uses the selected multi-blind cube count in timer generation options', () => {
+    expect(getTimerScrambleGenerateOptions('333mbld', 5)).toEqual({
+      multiBlindCubeCount: 5,
+    });
+    expect(getTimerScrambleGenerateOptions('333', 5)).toEqual({
+      multiBlindCubeCount: undefined,
+    });
+  });
+
   it('consumes prefetched scrambles once and never reuses displayed scrambles', async () => {
     const generate = vi
       .fn<TimerScrambleGenerator['generate']>()

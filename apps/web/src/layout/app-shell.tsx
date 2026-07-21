@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { isMobileWebDevice } from '../platform/web-device';
 import styles from './app-shell.module.css';
 
 interface AppShellProps {
@@ -6,7 +7,7 @@ interface AppShellProps {
 }
 
 export const AppShell = ({ children }: AppShellProps) => (
-  <div className={styles.root}>
+  <div className={styles.root} data-mobile-device={isMobileWebDevice() ? 'true' : undefined}>
     <main className={styles.main}>{children}</main>
   </div>
 );

@@ -19,6 +19,7 @@
     "@cubegin/solver": "workspace:*",
     "@deweyou-design/react": "catalog:",
     "@deweyou-design/styles": "catalog:",
+    "is-mobile": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-is": "catalog:",

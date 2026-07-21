@@ -1,10 +1,16 @@
 .root {
+  --scramble-fit-max-size: 32px;
+  --scramble-fit-min-size: 12px;
+
   color: var(--ui-color-text);
   font-family: var(--ui-font-mono);
-  font-size: var(--scramble-text-size, clamp(1.25rem, 1.45vw + 0.28rem, 2.05rem));
+  font-size: var(
+    --scramble-auto-fit-size,
+    var(--scramble-text-size, clamp(1.25rem, 1.45vw + 0.28rem, 2.05rem))
+  );
   line-height: 1.75;
   margin: 0;
-  max-width: min(980px, 100%);
+  max-width: min(980px, var(--scramble-auto-fit-width, 100%));
   overflow-wrap: anywhere;
   text-align: center;
   white-space: pre-line;
