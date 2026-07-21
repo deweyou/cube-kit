@@ -48,12 +48,22 @@ describe('fewest-moves result rules', () => {
     expect(
       formatFewestMovesSolve({ ...solve('3', 24), fewestMoves: undefined, penalty: 'none' }),
     ).toBe('1.000');
+    expect(
+      formatFewestMovesSolve({ ...solve('4', 24), fewestMoves: undefined, penalty: 'dnf' }),
+    ).toBe('DNF');
   });
 
   it('derives DNF from penalty or validation status', () => {
     expect(isFewestMovesSolveDnf(solve('1', 24))).toBe(false);
     expect(isFewestMovesSolveDnf({ ...solve('2', 24), penalty: 'dnf' })).toBe(true);
     expect(isFewestMovesSolveDnf(solve('3', null))).toBe(true);
+    expect(isFewestMovesSolveDnf({ ...solve('4', 24), fewestMoves: undefined })).toBe(true);
+    expect(
+      isFewestMovesSolveDnf({
+        ...solve('5', 24),
+        fewestMoves: result(24, { validationStatus: 'dnf' }),
+      }),
+    ).toBe(true);
   });
 
   it('ranks valid lower move counts before DNF and legacy records', () => {
@@ -62,6 +72,20 @@ describe('fewest-moves result rules', () => {
     expect(
       compareFewestMovesSolves({ ...solve('1', 24), fewestMoves: undefined }, solve('2', 24)),
     ).toBeGreaterThan(0);
+    expect(
+      compareFewestMovesSolves(solve('1', 24), {
+        ...solve('2', 24),
+        fewestMoves: undefined,
+      }),
+    ).toBeLessThan(0);
+    expect(
+      compareFewestMovesSolves(
+        { ...solve('1', 24), fewestMoves: undefined },
+        { ...solve('2', 24), fewestMoves: undefined },
+      ),
+    ).toBe(0);
+    expect(compareFewestMovesSolves(solve('1', null), solve('2', 24))).toBeGreaterThan(0);
+    expect(compareFewestMovesSolves(solve('1', null), solve('2', null))).toBe(0);
   });
 
   it('calculates Mean of 3 and propagates DNF', () => {
@@ -91,6 +115,28 @@ describe('fewest-moves result rules', () => {
       totalCount: 5,
       validCount: 5,
       worstSolve: { id: '3' },
+    });
+  });
+
+  it('reports empty and all-DNF statistics without inventing a mean', () => {
+    expect(calculateFewestMovesStatistics([])).toMatchObject({
+      bestMean: undefined,
+      bestSolve: null,
+      currentMean: undefined,
+      totalCount: 0,
+      validCount: 0,
+      worstSolve: null,
+    });
+
+    expect(
+      calculateFewestMovesStatistics([solve('3', null), solve('2', null), solve('1', null)]),
+    ).toMatchObject({
+      bestMean: null,
+      bestSolve: null,
+      currentMean: null,
+      totalCount: 3,
+      validCount: 0,
+      worstSolve: null,
     });
   });
 });
