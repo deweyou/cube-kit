@@ -18,6 +18,7 @@
     "@cubegin/shared": "workspace:*",
     "@cubegin/solver": "workspace:*",
     "@deweyou-design/react": "catalog:",
+    "@deweyou-design/react-icons": "catalog:",
     "@deweyou-design/styles": "catalog:",
     "is-mobile": "catalog:",
     "react": "catalog:",

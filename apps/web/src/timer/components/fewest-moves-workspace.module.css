@@ -297,7 +297,10 @@
 }
 
 .backspaceKey {
+  align-items: center;
+  display: flex;
   grid-column: span 1;
+  justify-content: center;
 }
 
 .formulaKeyboard .modifierKey[data-active='true'] {

@@ -32,6 +32,15 @@ import {
 import { Checkbox } from '@deweyou-design/react/checkbox';
 import { Select } from '@deweyou-design/react/select';
 import { NumberInput } from '@deweyou-design/react/number-input';
+import {
+  AddIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  EditIcon,
+  RefreshIcon,
+  SettingsIcon,
+  TrashIcon,
+} from '@deweyou-design/react-icons';
 import { getCubeginWordmarkSvg } from '../brand/wordmark';
 import type { AppCopy } from '../preferences/app-copy';
 import { useAppPreferences } from '../preferences/app-preferences';
@@ -44,15 +53,6 @@ import {
   type FewestMovesInverseDecision,
   type FewestMovesWorkspacePhase,
 } from './components/fewest-moves-workspace';
-import {
-  AddIcon,
-  DeleteIcon,
-  EditIcon,
-  NextIcon,
-  PreviousIcon,
-  RefreshIcon,
-  SettingsGearNavIcon,
-} from './components/timer-icons';
 import { useTimer } from './hooks/use-timer';
 import {
   DEFAULT_MULTI_BLIND_CUBE_COUNT,
@@ -463,7 +463,7 @@ const TimerScrambleStrip = ({
                 title={copy.previousMultiBlindScramble}
                 onClick={multiBlindNavigation.onPrevious}
               >
-                <PreviousIcon size={18} />
+                <ChevronLeftIcon size={18} />
               </button>
               <span
                 className={styles.multiBlindPosition}
@@ -483,7 +483,7 @@ const TimerScrambleStrip = ({
                 title={copy.nextMultiBlindScramble}
                 onClick={multiBlindNavigation.onNext}
               >
-                <NextIcon size={18} />
+                <ChevronRightIcon size={18} />
               </button>
             </>
           ) : null}
@@ -506,7 +506,7 @@ const TimerScrambleStrip = ({
               title={copy.multiBlindSettings}
               onClick={multiBlindNavigation.onOpenSettings}
             >
-              <SettingsGearNavIcon size={18} />
+              <SettingsIcon size={18} />
             </button>
           ) : null}
         </div>
@@ -751,7 +751,7 @@ const ResultToolbar = ({
       aria-label={copy.deleteResult}
       onClick={onDelete}
     >
-      <DeleteIcon className={styles.deleteIcon} size={18} />
+      <TrashIcon className={styles.deleteIcon} size={18} />
     </button>
   </div>
 );

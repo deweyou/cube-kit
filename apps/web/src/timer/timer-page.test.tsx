@@ -438,11 +438,12 @@ describe('TimerPage', () => {
     expect(timerCss).toMatch(
       /\.multiBlindNumberInput\s*\{[^}]*display: grid;[^}]*grid-template-columns: minmax\(76px, max-content\) minmax\(0, 1fr\);/su,
     );
-    expect(timerNavigationSource).toMatch(/TimerNavIcon/su);
-    expect(timerNavigationSource).toMatch(/ResultsListNavIcon/su);
-    expect(timerNavigationSource).toMatch(/FormulaStudyNavIcon/su);
-    expect(timerNavigationSource).toMatch(/SettingsGearNavIcon/su);
-    expect(timerNavigationSource).not.toMatch(/SettingsSlidersNavIcon/su);
+    expect(timerNavigationSource).toMatch(/from '@deweyou-design\/react-icons'/su);
+    expect(timerNavigationSource).toMatch(/TimeIcon/su);
+    expect(timerNavigationSource).toMatch(/ViewListIcon/su);
+    expect(timerNavigationSource).toMatch(/FormulaIcon/su);
+    expect(timerNavigationSource).toMatch(/SettingsIcon/su);
+    expect(timerNavigationSource).not.toMatch(/components\/timer-icons/su);
   });
 
   it('localizes timer chrome while preserving event and user-authored list names', () => {
