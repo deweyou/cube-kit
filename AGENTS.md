@@ -3,6 +3,23 @@
 Cubegin is a Rubik's cube tooling monorepo for a web/H5 timer, scramble
 generation, scramble visualization, and a WeChat miniprogram shell.
 
+## Development Workflow
+
+- Route every development task in this repository through the globally
+  installed `ddev` skill. Follow DDev from orientation and requirement alignment
+  through implementation, evidence, and handoff; keep mechanical edits light.
+- Do not install or copy `ddev` or its module skills into this repository.
+  DDev loads its modules from the global Dewey asset cache.
+- Install DDev globally once, then verify the runtime:
+
+  ```bash
+  npm install -g deweyou-cli
+  deweyou-cli agent update
+  deweyou-cli agent init --skills ddev --mode link --global --yes
+  deweyou-cli dev install
+  deweyou-cli dev doctor
+  ```
+
 ## Knowledge Base
 
 | Document                                                                         | What it covers                                            |
