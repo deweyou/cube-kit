@@ -741,11 +741,7 @@ describe('ResultsPage', () => {
     const deleteButton = within(toolbar).getByRole('button', { name: '删除成绩' });
 
     expect(deleteButton.textContent).toBe('');
-    expect(
-      deleteButton.querySelector(
-        'path[d="M6.5 7 7.4 19.3A2 2 0 0 0 9.4 21h5.2a2 2 0 0 0 2-1.7L17.5 7"]',
-      ),
-    ).not.toBeNull();
+    expect(deleteButton.querySelector('svg')).not.toBeNull();
     expect(within(detail).queryByText(/#6/u)).toBeNull();
     expect(within(detail).queryByText(/3x3x3 · 3x3x3/u)).toBeNull();
     expect(within(detail).getAllByText("R U R' U'").length).toBeGreaterThan(0);

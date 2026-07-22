@@ -6,6 +6,7 @@ flowchart TD
     Icons --> Brand["brand: Cubegin logo, lockup, app icons"]
     Icons --> React["react: animated Cubegin mark components"]
     Icons --> StaticFiles["dist/<group>/svg/*.svg"]
+    WebUI["apps/web generic controls"] --> DeweyIcons["@deweyou-design/react-icons"]
     Tests["asset and event alignment tests"] --> Icons
     Playground["apps/playground Icons tab"] --> Icons
     Public["cubegin/icons"] --> Icons
@@ -14,6 +15,17 @@ flowchart TD
 `packages/icons` owns SVG assets and React icon components for Cubegin. Static
 asset groups expose SVG strings and direct SVG files; the React subpath owns
 interactive Cubegin mark animation behavior.
+
+## Ownership Boundary
+
+- Keep Cubegin brand marks, event glyphs, and animated Cubegin marks in
+  `@cubegin/icons`.
+- Generic application controls such as navigation, add, edit, delete, copy,
+  settings, refresh, expand, and close use `@deweyou-design/react-icons`; do not
+  redraw them in app-local SVG components or text/emoji glyphs.
+- Scramble renderings remain generated output owned by
+  [`@cubegin/scramble-image`](../scramble-image/index.md#L1). Framework-owned
+  icons, such as VitePress theme icons, remain with their framework.
 
 ## Public API
 
@@ -43,4 +55,4 @@ pnpm --filter playground test -- src/app.test.tsx
 
 ---
 
-_Last updated: 2026-06-09 | Reason: move animated Cubegin mark behavior to React components_
+_Last updated: 2026-07-22 | Reason: record the domain-versus-generic icon ownership boundary_

@@ -4,6 +4,7 @@ packages:
 
 catalog:
   '@deweyou-design/react': ^0.3.4
+  '@deweyou-design/react-icons': ^0.3.4
   '@deweyou-design/styles': ^0.3.4
   '@testing-library/user-event': ^14.6.1
   '@types/node': ^24

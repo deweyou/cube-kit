@@ -49,9 +49,9 @@ import { Checkbox } from '@deweyou-design/react/checkbox';
 import { Select } from '@deweyou-design/react/select';
 import { NumberInput } from '@deweyou-design/react/number-input';
 import { VirtualList } from '@deweyou-design/react/virtual-list';
+import { CheckIcon, CopyIcon, TrashIcon, XIcon } from '@deweyou-design/react-icons';
 import { getCubeginWordmarkSvg } from '../brand/wordmark';
 import { useAppPreferences } from '../preferences/app-preferences';
-import { CheckIcon, CloseIcon, CopyIcon, DeleteIcon } from '../timer/components/timer-icons';
 import { ScrambleImage } from '../timer/components/scramble-image';
 import { TimerTopNavigation } from '../timer/timer-navigation';
 import { resolveMultiBlindResultDraft } from '../timer-session/multi-blind-result-draft';
@@ -954,7 +954,7 @@ const SolveDetail = ({
           aria-label={copy.results.deleteSolve}
           onClick={() => onDelete(solve.id)}
         >
-          <DeleteIcon className={styles.deleteIcon} size={18} />
+          <TrashIcon className={styles.deleteIcon} size={18} />
         </button>
         <button
           className={`${styles.resultButton} ${styles.copyButton}`}
@@ -1958,7 +1958,7 @@ export const ResultsPage = () => {
               aria-label={copy.results.closeDetail}
               onClick={() => setSheetSolveId(undefined)}
             >
-              <CloseIcon size={18} />
+              <XIcon size={18} />
             </button>
             <SolveDetail
               copy={copy}
@@ -1985,7 +1985,7 @@ export const ResultsPage = () => {
               aria-label={copy.results.closeDetail}
               onClick={() => setSheetAverageKey(undefined)}
             >
-              <CloseIcon size={18} />
+              <XIcon size={18} />
             </button>
             <AverageDetail copy={copy} window={sheetAverageWindow} />
           </div>

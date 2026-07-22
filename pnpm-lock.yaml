@@ -9,6 +9,9 @@ catalogs:
     '@deweyou-design/react':
       specifier: ^0.3.4
       version: 0.3.4
+    '@deweyou-design/react-icons':
+      specifier: ^0.3.4
+      version: 0.3.4
     '@deweyou-design/styles':
       specifier: ^0.3.4
       version: 0.3.4
@@ -155,6 +158,9 @@ importers:
       '@deweyou-design/react':
         specifier: 'catalog:'
         version: 0.3.4(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(yjs@13.6.31)
+      '@deweyou-design/react-icons':
+        specifier: 'catalog:'
+        version: 0.3.4(react@19.2.5)
       '@deweyou-design/styles':
         specifier: 'catalog:'
         version: 0.3.4

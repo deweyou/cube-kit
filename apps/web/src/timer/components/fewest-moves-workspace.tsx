@@ -7,8 +7,14 @@ import {
   type Ref,
 } from 'react';
 import type { FewestMovesValidation } from '@cubegin/solver';
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  EditIcon,
+  RollbackIcon,
+  TrashIcon,
+} from '@deweyou-design/react-icons';
 import type { AppCopy } from '../../preferences/app-copy';
-import { CollapseIcon, DeleteIcon, EditIcon, ExpandIcon } from './timer-icons';
 import { ScrambleImage } from './scramble-image';
 import styles from './fewest-moves-workspace.module.css';
 
@@ -355,7 +361,7 @@ export const FewestMovesWorkspace = ({
             title={copy.deleteResult}
             onClick={onDelete}
           >
-            <DeleteIcon size={18} />
+            <TrashIcon size={18} />
           </button>
         </div>
       </main>
@@ -459,7 +465,7 @@ export const FewestMovesWorkspace = ({
             {isScrambleCollapsed
               ? copy.fewestMovesExpandScramble
               : copy.fewestMovesCollapseScramble}
-            {isScrambleCollapsed ? <ExpandIcon size={16} /> : <CollapseIcon size={16} />}
+            {isScrambleCollapsed ? <ChevronDownIcon size={16} /> : <ChevronUpIcon size={16} />}
           </button>
         </div>
         {isScrambleCollapsed ? null : (
@@ -581,7 +587,7 @@ export const FewestMovesWorkspace = ({
             disabled={solutionTokens.length === 0}
             onClick={() => applyEditorAction({ type: 'delete-backward' })}
           >
-            ⌫
+            <RollbackIcon size={20} />
           </button>
           <button
             className={styles.submitKey}

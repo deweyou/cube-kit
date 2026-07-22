@@ -1,12 +1,7 @@
 import { useLocation, useNavigate } from 'react-router';
+import { FormulaIcon, SettingsIcon, TimeIcon, ViewListIcon } from '@deweyou-design/react-icons';
 import { getAppRoute, getAppRoutePath } from '../app-routes';
 import { useAppPreferences } from '../preferences/app-preferences';
-import {
-  FormulaStudyNavIcon,
-  ResultsListNavIcon,
-  SettingsGearNavIcon,
-  TimerNavIcon,
-} from './components/timer-icons';
 import styles from './timer-page.module.css';
 
 interface TimerTopNavigationProps {
@@ -14,10 +9,10 @@ interface TimerTopNavigationProps {
 }
 
 const TIMER_NAV_ITEMS = [
-  { id: 'timer', labelKey: 'timer', Icon: TimerNavIcon },
-  { id: 'results', labelKey: 'results', Icon: ResultsListNavIcon },
-  { id: 'formulas', labelKey: 'formulas', Icon: FormulaStudyNavIcon },
-  { id: 'settings', labelKey: 'settings', Icon: SettingsGearNavIcon },
+  { id: 'timer', labelKey: 'timer', Icon: TimeIcon },
+  { id: 'results', labelKey: 'results', Icon: ViewListIcon },
+  { id: 'formulas', labelKey: 'formulas', Icon: FormulaIcon },
+  { id: 'settings', labelKey: 'settings', Icon: SettingsIcon },
 ] as const;
 
 export const TimerTopNavigation = ({ isHidden }: TimerTopNavigationProps) => {
