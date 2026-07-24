@@ -48,6 +48,35 @@ selection, settings persistence, and page layout.
   The text keeps the full reserved fitting viewport. After fitting, its rendered
   height positions the toolbar immediately below the text without shrinking the
   font-measurement area or sticking the toolbar to the viewport edge.
+- Auxiliary solution formulas are an opt-in timer preference, disabled by
+  default. When enabled, supported ordinary events place a formula icon beside
+  scramble refresh, while `333fm` places the same action beside its
+  collapse/expand control. The dialog remembers the last method independently
+  for `333`, `333oh`, `333fm`, `222`, `sq1`, `pyram`, and `skewb`; list changes
+  do not merge those choices. `333` and `333oh` expose Cross, XCross, EOline,
+  Roux S1/S2, CFOP F2L, and ZZ F2L. `333fm` exposes Cross, XCross, EOline, EOFC,
+  Petrus S1/S2, EO+DR, and 2x2x2 Block. The advanced 3x3 TwoPhase and General
+  Mask helpers remain outside the timer UI.
+- Formula calculation loads only the selected method in a dedicated worker.
+  Alternative-target methods show every returned target, prefix the formula
+  with `setupRotation`, and emphasize every tied minimum beside its target as
+  `本组最短 · N FTM`; staged methods show numbered sequential steps without
+  treating the shortest stage as an optimum. Alternative-target rows expose a
+  full-height right-side drag rail for pointer, touch, and keyboard reordering
+  without competing with selectable formula content. Their target order is
+  stored by formula method rather than event, so a preferred Roux S1 order is
+  shared by `333` and `333oh`; newly supported or previously unknown targets
+  append in solver order. Single and staged methods retain solver-defined
+  semantic order, and shortest highlighting remains metric-driven after a row
+  moves. The dialog keeps a stable height while its result region scrolls
+  independently, so changing methods does not move the surrounding surface.
+  Loading, failure, retry, and stale request handling belong to the dialog.
+  Opening the dialog pauses timer shortcuts, but viewing a formula does not mark
+  the solve or change statistics.
+  See
+  [apps/web/src/solver-assist/solver-assist-dialog.tsx#L1](../apps/web/src/solver-assist/solver-assist-dialog.tsx#L1)
+  and
+  [apps/web/src/solver-assist/solver-assist-config.ts#L1](../apps/web/src/solver-assist/solver-assist-config.ts#L1).
 - The `333mbld` scramble strip keeps the generated newline-separated group as
   the solve-record source while displaying one cube at a time. Previous and next
   icon buttons navigate within the group, and a settings dialog owns the
@@ -74,8 +103,8 @@ selection, settings persistence, and page layout.
   to fill that height. Width breakpoints may change summary/preview arrangement,
   not introduce a discontinuous preview-size jump.
 - `SettingsPage` owns the first settings surface: theme, language, WCA
-  inspection, and timer display mode. Changes apply immediately and persist
-  across reloads.
+  inspection, auxiliary solution formulas, and timer display mode. Changes
+  apply immediately and persist across reloads.
 - `@cubegin/shared/timer` is platform-agnostic state only. It uses
   `performance.now()` and exposes `start`, `stop`, `reset`, and `getState`
   through [packages/shared/src/timer/timer.ts#L13](../packages/shared/src/timer/timer.ts#L13).
@@ -211,6 +240,10 @@ selection, settings persistence, and page layout.
 - [apps/web/src/app-router.tsx#L1](../apps/web/src/app-router.tsx#L1) - app route switch.
 - [apps/web/src/preferences/app-preferences.tsx#L1](../apps/web/src/preferences/app-preferences.tsx#L1) - preference persistence, resolved theme, and localized copy.
 - [apps/web/src/settings/settings-page.tsx#L1](../apps/web/src/settings/settings-page.tsx#L1) - settings route for general and timer preferences.
+- [apps/web/src/solver-assist/solver-assist-config.ts#L1](../apps/web/src/solver-assist/solver-assist-config.ts#L1) - event-specific method availability and presentation modes.
+- [apps/web/src/solver-assist/solver-assist-worker-client.ts#L1](../apps/web/src/solver-assist/solver-assist-worker-client.ts#L1) - lazy worker lifecycle and solver request boundary.
+- [apps/web/src/solver-assist/solver-assist-dialog.tsx#L1](../apps/web/src/solver-assist/solver-assist-dialog.tsx#L1) - method memory, async states, and formula result presentation.
+- [apps/web/src/solver-assist/solver-assist-preferences.ts#L1](../apps/web/src/solver-assist/solver-assist-preferences.ts#L1) - per-event method selection and per-method alternative target order.
 - [apps/web/src/timer/timer-page.tsx#L1](../apps/web/src/timer/timer-page.tsx#L1) - redesigned timer state and layout.
 - [apps/web/src/results/results-page.tsx#L1](../apps/web/src/results/results-page.tsx#L1) - persisted score history, detail surfaces, and statistics views.
 - [apps/web/src/timer-session/timer-session-store.tsx#L1](../apps/web/src/timer-session/timer-session-store.tsx#L1) - React store over the IndexedDB list and solve adapter.
@@ -232,4 +265,4 @@ selection, settings persistence, and page layout.
 
 ---
 
-_Last updated: 2026-07-21 | Reason: align FMC submission and stopped-result ownership with the timer flow_
+_Last updated: 2026-07-24 | Reason: document the full-height drag rail for persistent alternative-target ordering_

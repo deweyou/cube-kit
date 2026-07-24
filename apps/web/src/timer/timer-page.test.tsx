@@ -88,6 +88,7 @@ vi.mock('@deweyou-design/react/select', () => {
       children,
       className,
       'data-hidden': dataHidden,
+      disabled,
       label,
       style,
       value,
@@ -97,6 +98,7 @@ vi.mock('@deweyou-design/react/select', () => {
       children: ReactNode;
       className?: string;
       'data-hidden'?: 'true';
+      disabled?: boolean;
       label?: ReactNode;
       style?: CSSProperties;
       value?: string[];
@@ -132,6 +134,7 @@ vi.mock('@deweyou-design/react/select', () => {
             <select
               aria-label={getAccessibleLabel(label)}
               data-component-select="true"
+              disabled={disabled}
               value={value?.[0] ?? ''}
               onChange={(event) => onValueChange?.([event.target.value])}
             >
@@ -333,6 +336,30 @@ describe('TimerPage', () => {
 
     expect(logo.getAttribute('data-trigger')).toBe('manual');
     expect(screen.queryByText('V2')).toBeNull();
+  });
+
+  it('keeps solution hints opt-in', async () => {
+    renderTimerPage();
+
+    await screen.findAllByText('333 generated scramble');
+    expect(screen.queryByRole('button', { name: '查看辅助还原公式' })).toBeNull();
+  });
+
+  it('shows the solution-hint entry for enabled supported events only', async () => {
+    setStoredPreferences({ solverAssistEnabled: true });
+    renderTimerPage();
+
+    await screen.findAllByText('333 generated scramble');
+    expect(screen.getByRole('button', { name: '查看辅助还原公式' }).hasAttribute('disabled')).toBe(
+      false,
+    );
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-444' },
+    });
+    await screen.findAllByText('444 generated scramble');
+
+    expect(screen.queryByRole('button', { name: '查看辅助还原公式' })).toBeNull();
   });
 
   it('matches the previous hero behavior by animating the mark on hover', () => {
@@ -772,6 +799,54 @@ describe('TimerPage', () => {
     expect(listSelector.value).toBe(`custom:${EVENT_IDS.length + 1}`);
   });
 
+  it('moves the selected list to the first option without changing the original order', async () => {
+    renderTimerPage();
+
+    const listSelector = screen.getByRole('combobox', {
+      name: '切换列表',
+    }) as HTMLSelectElement;
+    const defaultListValues = EVENT_IDS.map((eventId) => `main-${eventId}`);
+
+    fireEvent.change(listSelector, { target: { value: 'main-skewb' } });
+
+    await waitFor(() => expect(listSelector.value).toBe('main-skewb'));
+    expect(screen.getAllByRole('option').map((option) => option.getAttribute('value'))).toEqual([
+      'main-skewb',
+      ...defaultListValues.filter((listId) => listId !== 'main-skewb'),
+    ]);
+
+    fireEvent.change(listSelector, { target: { value: 'main-333' } });
+
+    await waitFor(() => expect(listSelector.value).toBe('main-333'));
+    expect(screen.getAllByRole('option').map((option) => option.getAttribute('value'))).toEqual(
+      defaultListValues,
+    );
+  });
+
+  it('disables list submission until the name contains non-whitespace text', () => {
+    renderTimerPage();
+
+    fireEvent.click(screen.getByRole('combobox', { name: '切换列表' }));
+    fireEvent.click(screen.getByRole('button', { name: '新增列表' }));
+
+    const dialog = screen.getByRole('dialog', { name: '新增列表' });
+    const nameInput = within(dialog).getByRole('textbox', {
+      name: '列表名称',
+    }) as HTMLInputElement;
+    const createButton = within(dialog).getByRole('button', {
+      name: '创建',
+    }) as HTMLButtonElement;
+
+    expect(nameInput.required).toBe(false);
+    expect(createButton.disabled).toBe(true);
+
+    fireEvent.change(nameInput, { target: { value: '   ' } });
+    expect(createButton.disabled).toBe(true);
+
+    fireEvent.change(nameInput, { target: { value: 'Skewb 练习' } });
+    expect(createButton.disabled).toBe(false);
+  });
+
   it('edits the active list from the list selector toolbar without adding an option row', () => {
     renderTimerPage();
 
@@ -790,6 +865,7 @@ describe('TimerPage', () => {
 
     expect(nameInput.value).toBe('3x3x3');
     expect(scrambleSelector.value).toBe('333');
+    expect(scrambleSelector.disabled).toBe(false);
 
     fireEvent.change(nameInput, { target: { value: '三阶主练习' } });
     fireEvent.change(scrambleSelector, { target: { value: '444' } });
@@ -799,6 +875,24 @@ describe('TimerPage', () => {
     expect(screen.getByRole('option', { name: '三阶主练习' })).toBeTruthy();
     expect(screen.queryByRole('option', { name: '3x3x3' })).toBeNull();
     expect(listSelector.value).toBe('main-333');
+  });
+
+  it('locks the event when editing a list that already has solve records', async () => {
+    renderTimerPage();
+    await finishOneSolve();
+
+    const listToolbar = screen.getByRole('toolbar', { name: '列表操作' });
+    fireEvent.click(within(listToolbar).getByRole('button', { name: '编辑列表' }));
+
+    const dialog = screen.getByRole('dialog', { name: '编辑列表' });
+    const nameInput = within(dialog).getByLabelText('列表名称') as HTMLInputElement;
+    const scrambleSelector = within(dialog).getByRole('combobox', {
+      name: '项目',
+    }) as HTMLSelectElement;
+
+    expect(nameInput.disabled).toBe(false);
+    expect(scrambleSelector.value).toBe('333');
+    expect(scrambleSelector.disabled).toBe(true);
   });
 
   it('lays out the scramble, session summary, and scramble image around the timer', async () => {
@@ -1228,6 +1322,23 @@ describe('TimerPage', () => {
     expect(screen.queryByRole('button', { name: '开始最少步' })).toBeNull();
     expect(screen.queryByRole('button', { name: '返回修改' })).toBeNull();
     expect(screen.queryByRole('button', { name: '保存成绩' })).toBeNull();
+  });
+
+  it('places the enabled solution-hint entry beside the FMC scramble controls', async () => {
+    setStoredPreferences({ solverAssistEnabled: true });
+    renderTimerPage();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '切换列表' }), {
+      target: { value: 'main-333fm' },
+    });
+
+    await screen.findByRole('button', { name: '开始最少步' });
+    expect(screen.queryByRole('button', { name: '查看辅助还原公式' })).toBeNull();
+
+    fireEvent.keyDown(window, { code: 'Space', key: ' ' });
+    fireEvent.keyUp(window, { code: 'Space', key: ' ' });
+
+    expect(await screen.findByRole('button', { name: '查看辅助还原公式' })).toBeTruthy();
   });
 
   it('shows and cancels the FMC Space ready state before release', async () => {
@@ -2010,6 +2121,11 @@ const timerNavigationSource = readFileSync(
 const appShellSource = readFileSync(`${process.cwd()}/src/layout/app-shell.tsx`, 'utf8') as string;
 
 describe('timer numeric input ownership', () => {
+  it('uses the design-system Input for list names instead of a native text input', () => {
+    expect(timerPageSource).toContain('@deweyou-design/react/input');
+    expect(timerPageSource).not.toMatch(/<input\b/su);
+  });
+
   it('uses the design-system NumberInput instead of native number inputs', () => {
     expect(timerPageSource).toContain('@deweyou-design/react/number-input');
     expect(timerPageSource).not.toMatch(/<input\b[^>]*\btype="number"/su);

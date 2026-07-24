@@ -5,8 +5,10 @@ import type {
   PlaygroundFullSolverInput,
   PlaygroundGenerateInput,
   PlaygroundManualRenderInput,
+  PlaygroundSolverComparisonInput,
+  PlaygroundSolverInput,
 } from './types';
-import { usePlayground } from './use-playground';
+import { type PlaygroundService, usePlayground } from './use-playground';
 
 describe('usePlayground', () => {
   it('generates a batch and selects the first scramble', async () => {
@@ -87,6 +89,27 @@ describe('usePlayground', () => {
     expect(result.current.solverTargetText).toBe('D');
   });
 
+  it('previews the first Assist solution and updates the result image when selected', () => {
+    const { result } = renderHook(() => usePlayground({ service: fakeService() }));
+
+    act(() => {
+      result.current.solvePuzzleAssist();
+    });
+
+    expect(result.current.selectedSolverSolution?.target).toBe('D');
+    expect(result.current.solverComparison?.solutionFormula).toBe("R U R' U' y R");
+
+    const alternateSolution = result.current.solverResult?.results[0]?.solutions[1];
+    expect(alternateSolution).toBeTruthy();
+
+    act(() => {
+      if (alternateSolution) result.current.selectSolverSolution(alternateSolution);
+    });
+
+    expect(result.current.selectedSolverSolution?.target).toBe('U');
+    expect(result.current.solverComparison?.solutionFormula).toBe("R U R' U' x F");
+  });
+
   it('auto-generates a player scramble when changing player event', async () => {
     const { result } = renderHook(() => usePlayground({ service: fakeService() }));
 
@@ -125,10 +148,11 @@ describe('usePlayground', () => {
     expect(result.current.solverEventId).toBe('clock');
     expect(result.current.solverScramble).toBe('clock-scramble');
     expect(result.current.fullSolverResult?.result?.engine).toBe('clock-inverse');
+    expect(result.current.solverComparison?.solutionFormula).toBe('clock-scramble UR1- y2 DR1+');
   });
 });
 
-const fakeService = () => ({
+const fakeService = (): PlaygroundService => ({
   async generate(input: PlaygroundGenerateInput) {
     return {
       scrambles: [
@@ -148,7 +172,19 @@ const fakeService = () => ({
       error: undefined,
     };
   },
-  async generateSolverScramble(eventId: EventId) {
+  renderSolverComparison(input: PlaygroundSolverComparisonInput) {
+    const solutionFormula = [input.scramble, input.setupRotation, input.solution]
+      .filter(Boolean)
+      .join(' ');
+
+    return {
+      scrambleSvg: '<svg>scrambled</svg>',
+      solutionSvg: `<svg>${solutionFormula}</svg>`,
+      solutionFormula,
+      error: undefined,
+    };
+  },
+  async generateSolverScramble(eventId) {
     return {
       eventId,
       scramble: `${eventId}-scramble`,
@@ -164,10 +200,35 @@ const fakeService = () => ({
       error: undefined,
     };
   },
-  solvePuzzleAssist() {
+  solvePuzzleAssist(input: PlaygroundSolverInput) {
     return {
-      results: [],
-      diagnostics: { durationMs: 1, resultCount: 0 },
+      results: [
+        {
+          method: input.methods[0] ?? 'cross',
+          scramble: input.scramble,
+          solutions: [
+            {
+              method: input.methods[0] ?? 'cross',
+              target: 'D',
+              targetLabel: 'D face',
+              setupRotation: 'y',
+              solution: 'R',
+              depth: 1,
+              metric: { ftm: 1, qtm: 1 },
+            },
+            {
+              method: input.methods[0] ?? 'cross',
+              target: 'U',
+              targetLabel: 'U face',
+              setupRotation: 'x',
+              solution: 'F',
+              depth: 1,
+              metric: { ftm: 1, qtm: 1 },
+            },
+          ],
+        },
+      ],
+      diagnostics: { durationMs: 1, resultCount: 2 },
       error: undefined,
     };
   },

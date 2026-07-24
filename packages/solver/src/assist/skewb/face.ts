@@ -21,11 +21,68 @@ const TARGETS = SKEWB_FACES;
 const DEFAULT_MAX_DEPTH = 7;
 
 type SkewbFaceTarget = (typeof TARGETS)[number];
+type SkewbCorner = 'UBL' | 'UBR' | 'UFR' | 'UFL' | 'DFL' | 'DFR' | 'DBR' | 'DBL';
+type SkewbCornerSticker = Readonly<{
+  face: SkewbFace;
+  sticker: 1 | 2 | 3 | 4;
+}>;
 type SearchMove = Readonly<{
   face: SkewbAxis;
   amount: 1 | 2;
   token: string;
 }>;
+
+const CORNER_STICKERS: Readonly<Record<SkewbCorner, readonly SkewbCornerSticker[]>> = {
+  UBL: [
+    { face: 'U', sticker: 1 },
+    { face: 'L', sticker: 1 },
+    { face: 'B', sticker: 2 },
+  ],
+  UBR: [
+    { face: 'U', sticker: 2 },
+    { face: 'R', sticker: 2 },
+    { face: 'B', sticker: 1 },
+  ],
+  UFR: [
+    { face: 'U', sticker: 4 },
+    { face: 'F', sticker: 2 },
+    { face: 'R', sticker: 1 },
+  ],
+  UFL: [
+    { face: 'U', sticker: 3 },
+    { face: 'F', sticker: 1 },
+    { face: 'L', sticker: 2 },
+  ],
+  DFL: [
+    { face: 'D', sticker: 1 },
+    { face: 'F', sticker: 3 },
+    { face: 'L', sticker: 4 },
+  ],
+  DFR: [
+    { face: 'D', sticker: 2 },
+    { face: 'F', sticker: 4 },
+    { face: 'R', sticker: 3 },
+  ],
+  DBR: [
+    { face: 'D', sticker: 4 },
+    { face: 'R', sticker: 4 },
+    { face: 'B', sticker: 3 },
+  ],
+  DBL: [
+    { face: 'D', sticker: 3 },
+    { face: 'L', sticker: 3 },
+    { face: 'B', sticker: 4 },
+  ],
+};
+
+const FACE_CORNER_ORDER: Readonly<Record<SkewbFaceTarget, readonly SkewbCorner[]>> = {
+  U: ['UBL', 'UBR', 'UFR', 'UFL'],
+  R: ['UFR', 'UBR', 'DBR', 'DFR'],
+  F: ['UFL', 'UFR', 'DFR', 'DFL'],
+  D: ['DFL', 'DFR', 'DBR', 'DBL'],
+  L: ['UBL', 'UFL', 'DFL', 'DBL'],
+  B: ['UBR', 'UBL', 'DBL', 'DBR'],
+};
 
 const SEARCH_MOVES: readonly SearchMove[] = SKEWB_AXES.flatMap((face) => [
   { face, amount: 1, token: face },
@@ -38,6 +95,39 @@ const isKnownTarget = (target: string): target is SkewbFaceTarget =>
   TARGETS.includes(target as SkewbFaceTarget);
 
 const targetIndex = (target: SkewbFace): number => TARGETS.indexOf(target);
+
+const cornerColorMask = (state: SkewbState, corner: SkewbCorner): number =>
+  CORNER_STICKERS[corner].reduce(
+    (mask, coordinate) =>
+      mask | (1 << state.image[targetIndex(coordinate.face)][coordinate.sticker]),
+    0,
+  );
+
+const cornerOrder = (state: SkewbState, target: SkewbFaceTarget): readonly number[] =>
+  FACE_CORNER_ORDER[target].map((corner) => cornerColorMask(state, corner));
+
+const SOLVED_CORNER_ORDERS = {
+  U: cornerOrder(SOLVED_STATE, 'U'),
+  R: cornerOrder(SOLVED_STATE, 'R'),
+  F: cornerOrder(SOLVED_STATE, 'F'),
+  D: cornerOrder(SOLVED_STATE, 'D'),
+  L: cornerOrder(SOLVED_STATE, 'L'),
+  B: cornerOrder(SOLVED_STATE, 'B'),
+} satisfies Readonly<Record<SkewbFaceTarget, readonly number[]>>;
+
+export const hasSameCyclicOrder = (
+  actual: readonly number[],
+  expected: readonly number[],
+): boolean => {
+  if (actual.length !== expected.length) return false;
+  if (actual.length === 0) return true;
+
+  return expected.some((_, offset) =>
+    actual.every(
+      (cornerIdentity, index) => cornerIdentity === expected[(index + offset) % expected.length],
+    ),
+  );
+};
 
 const parseSkewbSolverAlgorithm = (algorithm: string): readonly SkewbMove[] => {
   try {
@@ -64,8 +154,13 @@ const stateKey = (state: SkewbState): string => state.image.map((face) => face.j
 const isFaceTargetSolved = (state: SkewbState, target: SkewbFaceTarget): boolean => {
   const face = targetIndex(target);
 
-  return state.image[face].every(
+  const isTargetFaceMonochrome = state.image[face].every(
     (sticker, stickerIndex) => sticker === SOLVED_STATE.image[face][stickerIndex],
+  );
+
+  return (
+    isTargetFaceMonochrome &&
+    hasSameCyclicOrder(cornerOrder(state, target), SOLVED_CORNER_ORDERS[target])
   );
 };
 

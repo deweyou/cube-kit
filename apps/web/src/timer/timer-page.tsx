@@ -30,13 +30,15 @@ import {
   type SolveStatistics,
 } from '@cubegin/shared/timer-session';
 import { Checkbox } from '@deweyou-design/react/checkbox';
-import { Select } from '@deweyou-design/react/select';
+import { Input } from '@deweyou-design/react/input';
 import { NumberInput } from '@deweyou-design/react/number-input';
+import { Select } from '@deweyou-design/react/select';
 import {
   AddIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   EditIcon,
+  FormulaIcon,
   RefreshIcon,
   SettingsIcon,
   TrashIcon,
@@ -44,6 +46,11 @@ import {
 import { getCubeginWordmarkSvg } from '../brand/wordmark';
 import type { AppCopy } from '../preferences/app-copy';
 import { useAppPreferences } from '../preferences/app-preferences';
+import { SolverAssistDialog } from '../solver-assist/solver-assist-dialog';
+import {
+  isSolverAssistEvent,
+  type SolverAssistEventId,
+} from '../solver-assist/solver-assist-config';
 import { resolveMultiBlindResultDraft } from '../timer-session/multi-blind-result-draft';
 import { useTimerSessionStore, type TimerList } from '../timer-session/timer-session-store';
 import { ScrambleImage } from './components/scramble-image';
@@ -233,6 +240,14 @@ interface TimerListSelectorProps {
   onEditList: () => void;
 }
 
+const prioritizeActiveList = (lists: readonly TimerList[], activeListId: string) => {
+  const activeListIndex = lists.findIndex((list) => list.id === activeListId);
+  if (activeListIndex <= 0) return lists;
+
+  const activeList = lists[activeListIndex]!;
+  return [activeList, ...lists.slice(0, activeListIndex), ...lists.slice(activeListIndex + 1)];
+};
+
 const TimerListSelector = ({
   activeListId,
   copy,
@@ -241,52 +256,62 @@ const TimerListSelector = ({
   onChange,
   onCreateList,
   onEditList,
-}: TimerListSelectorProps) => (
-  <Select.Root
-    className={styles.listControl}
-    aria-hidden={isHidden ? 'true' : undefined}
-    data-hidden={isHidden ? 'true' : undefined}
-    label={<span className={styles.visuallyHidden}>{copy.listSelectorLabel}</span>}
-    value={[activeListId]}
-    onValueChange={(nextValue) => {
-      const nextListId = nextValue[0];
-      if (nextListId) onChange(nextListId);
-    }}
-  >
-    <Select.Trigger className={styles.listTrigger} />
-    <Select.Content className={styles.listContent}>
-      <div className={styles.listToolbar} role="toolbar" aria-label={copy.listToolbarLabel}>
-        <span className={styles.listToolbarLabel}>{copy.listToolbarTitle}</span>
-        <div className={styles.listToolbarActions}>
-          <button
-            className={styles.listToolbarButton}
-            type="button"
-            aria-label={copy.createList}
-            title={copy.createList}
-            onClick={onCreateList}
-          >
-            <AddIcon size={15} />
-          </button>
-          <button
-            className={styles.listToolbarButton}
-            type="button"
-            aria-label={copy.editList}
-            title={copy.editList}
-            onClick={onEditList}
-          >
-            <EditIcon size={15} />
-          </button>
+}: TimerListSelectorProps) => {
+  const orderedLists = prioritizeActiveList(lists, activeListId);
+
+  return (
+    <Select.Root
+      className={styles.listControl}
+      aria-hidden={isHidden ? 'true' : undefined}
+      data-hidden={isHidden ? 'true' : undefined}
+      label={<span className={styles.visuallyHidden}>{copy.listSelectorLabel}</span>}
+      value={[activeListId]}
+      onValueChange={(nextValue) => {
+        const nextListId = nextValue[0];
+        if (nextListId) onChange(nextListId);
+      }}
+    >
+      <Select.Trigger className={styles.listTrigger} />
+      <Select.Content className={styles.listContent}>
+        <div className={styles.listToolbar} role="toolbar" aria-label={copy.listToolbarLabel}>
+          <span className={styles.listToolbarLabel}>{copy.listToolbarTitle}</span>
+          <div className={styles.listToolbarActions}>
+            <button
+              className={styles.listToolbarButton}
+              type="button"
+              aria-label={copy.createList}
+              title={copy.createList}
+              onClick={onCreateList}
+            >
+              <AddIcon size={15} />
+            </button>
+            <button
+              className={styles.listToolbarButton}
+              type="button"
+              aria-label={copy.editList}
+              title={copy.editList}
+              onClick={onEditList}
+            >
+              <EditIcon size={15} />
+            </button>
+          </div>
         </div>
-      </div>
-      {lists.map((list) => (
-        <Select.Item key={list.id} className={styles.listItem} value={list.id} label={list.name} />
-      ))}
-    </Select.Content>
-  </Select.Root>
-);
+        {orderedLists.map((list) => (
+          <Select.Item
+            key={list.id}
+            className={styles.listItem}
+            value={list.id}
+            label={list.name}
+          />
+        ))}
+      </Select.Content>
+    </Select.Root>
+  );
+};
 
 interface CreateListModalProps {
   copy: AppCopy['timer'];
+  isScrambleTypeLocked: boolean;
   mode: TimerListFormMode;
   name: string;
   scrambleTypeId: EventId;
@@ -298,6 +323,7 @@ interface CreateListModalProps {
 
 const CreateListModal = ({
   copy,
+  isScrambleTypeLocked,
   mode,
   name,
   scrambleTypeId,
@@ -321,44 +347,44 @@ const CreateListModal = ({
         <h2 className={styles.modalTitle} id="timer-create-list-title">
           {mode === 'create' ? copy.createList : copy.editList}
         </h2>
-        <label className={styles.fieldGroup}>
-          <span className={styles.fieldLabel}>{copy.listNameLabel}</span>
-          <input
-            className={styles.fieldInput}
-            autoFocus
-            required
-            value={name}
-            onChange={(event) => onNameChange(event.currentTarget.value)}
-          />
-        </label>
-        <div className={styles.fieldGroup}>
-          <Select.Root
-            className={styles.fieldSelect}
-            label={<span className={styles.fieldLabel}>{copy.eventLabel}</span>}
-            value={[scrambleTypeId]}
-            onValueChange={(nextValue) => {
-              const nextScrambleTypeId = nextValue[0] as EventId | undefined;
-              if (nextScrambleTypeId) onScrambleTypeChange(nextScrambleTypeId);
-            }}
-          >
-            <Select.Trigger className={styles.fieldSelectTrigger} />
-            <Select.Content className={styles.fieldSelectContent}>
-              {TIMER_SCRAMBLE_TYPES.map((scrambleType) => (
-                <Select.Item
-                  key={scrambleType.id}
-                  className={styles.fieldSelectItem}
-                  value={scrambleType.id}
-                  label={scrambleType.label}
-                />
-              ))}
-            </Select.Content>
-          </Select.Root>
-        </div>
+        <Input
+          aria-label={copy.listNameLabel}
+          autoFocus
+          label={copy.listNameLabel}
+          value={name}
+          onChange={(event) => onNameChange(event.currentTarget.value)}
+        />
+        <Select.Root
+          className={styles.fieldSelect}
+          disabled={isScrambleTypeLocked}
+          label={copy.eventLabel}
+          value={[scrambleTypeId]}
+          onValueChange={(nextValue) => {
+            const nextScrambleTypeId = nextValue[0] as EventId | undefined;
+            if (nextScrambleTypeId) onScrambleTypeChange(nextScrambleTypeId);
+          }}
+        >
+          <Select.Trigger className={styles.fieldSelectTrigger} />
+          <Select.Content className={styles.fieldSelectContent}>
+            {TIMER_SCRAMBLE_TYPES.map((scrambleType) => (
+              <Select.Item
+                key={scrambleType.id}
+                className={styles.fieldSelectItem}
+                value={scrambleType.id}
+                label={scrambleType.label}
+              />
+            ))}
+          </Select.Content>
+        </Select.Root>
         <div className={styles.modalActions}>
           <button className={styles.secondaryButton} type="button" onClick={onCancel}>
             {copy.cancel}
           </button>
-          <button className={styles.primaryButton} type="submit">
+          <button
+            className={styles.primaryButton}
+            type="submit"
+            disabled={name.trim().length === 0}
+          >
             {mode === 'create' ? copy.create : copy.save}
           </button>
         </div>
@@ -434,8 +460,10 @@ interface TimerScrambleStripProps {
   copy: AppCopy['timer'];
   eventId: EventId;
   isLoading: boolean;
+  isSolverAssistDisabled?: boolean;
   multiBlindNavigation?: MultiBlindScrambleNavigation;
   scramble: string;
+  onOpenSolverAssist?: () => void;
   onRefresh: () => void;
 }
 
@@ -444,8 +472,10 @@ const TimerScrambleStrip = ({
   copy,
   eventId,
   isLoading,
+  isSolverAssistDisabled = false,
   multiBlindNavigation,
   scramble,
+  onOpenSolverAssist,
   onRefresh,
 }: TimerScrambleStripProps) => (
   <section className={styles.scrambleStrip} aria-label={ariaLabel} data-scramble-event-id={eventId}>
@@ -486,6 +516,18 @@ const TimerScrambleStrip = ({
                 <ChevronRightIcon size={18} />
               </button>
             </>
+          ) : null}
+          {onOpenSolverAssist ? (
+            <button
+              className={styles.scrambleToolbarButton}
+              type="button"
+              aria-label={copy.solverAssistOpen}
+              disabled={isSolverAssistDisabled}
+              title={copy.solverAssistOpen}
+              onClick={onOpenSolverAssist}
+            >
+              <FormulaIcon size={18} />
+            </button>
           ) : null}
           <button
             className={`${styles.scrambleToolbarButton} ${styles.scrambleRefreshButton}`}
@@ -1206,6 +1248,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   );
   const [isMultiBlindSettingsOpen, setIsMultiBlindSettingsOpen] = useState(false);
   const [isMultiBlindResultOpen, setIsMultiBlindResultOpen] = useState(false);
+  const [isSolverAssistOpen, setIsSolverAssistOpen] = useState(false);
   const [multiBlindSolvedCountDraft, setMultiBlindSolvedCountDraft] = useState('');
   const [multiBlindPenaltyCountDraft, setMultiBlindPenaltyCountDraft] = useState('0');
   const [isMultiBlindWholeDnfDraft, setIsMultiBlindWholeDnfDraft] = useState(false);
@@ -1224,6 +1267,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   const isActiveScrambleForList = activeScrambleEventId === activeList.scrambleTypeId;
   const isMultiBlindList = activeList.scrambleTypeId === '333mbld';
   const isFewestMovesList = activeList.scrambleTypeId === '333fm';
+  const isListScrambleTypeLocked = listFormMode === 'edit' && activeListSolveRecords.length > 0;
   const isWcaInspectionEnabled =
     preferences.wcaInspection &&
     !WCA_INSPECTION_UNSUPPORTED_EVENT_IDS.has(activeList.scrambleTypeId);
@@ -1266,6 +1310,19 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
   const displayScramble =
     scrambleError ??
     (isScrambleLoading || !isActiveScrambleForList ? timerCopy.scrambleLoading : selectedScramble);
+  const solverAssistEventId: SolverAssistEventId | undefined = isSolverAssistEvent(
+    activeList.scrambleTypeId,
+  )
+    ? activeList.scrambleTypeId
+    : undefined;
+  const solverAssistScramble = isFewestMovesList ? fewestMovesWorkspaceScramble : selectedScramble;
+  const isSolverAssistEnabled =
+    preferences.solverAssistEnabled && solverAssistEventId !== undefined;
+  const isSolverAssistDisabled =
+    isScrambleLoading ||
+    !isActiveScrambleForList ||
+    scrambleError !== undefined ||
+    solverAssistScramble.length === 0;
   const statistics = useMemo(
     () => calculateSolveStatistics(activeListSolveRecords),
     [activeListSolveRecords],
@@ -1416,6 +1473,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     async (eventId: EventId) => {
       const requestId = latestScrambleRequestId.current + 1;
       latestScrambleRequestId.current = requestId;
+      setIsSolverAssistOpen(false);
       setActiveScramble('');
       setActiveScrambleEventId(eventId);
       setActiveMultiBlindScrambleIndex(0);
@@ -1889,6 +1947,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
       setFewestMovesReviewDecision(null);
       setFewestMovesElapsedBase(0);
       setIsEditingFewestMovesResult(false);
+      setIsSolverAssistOpen(false);
       void setActiveListId(nextListId);
     },
     [clearStoppedSolveState, reset, setActiveListId],
@@ -1909,7 +1968,13 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
         setEditingListId(undefined);
         setListFormName('');
         setListFormScrambleTypeId(listFormScrambleTypeId);
-        void updateList({ listId, name, scrambleTypeId: listFormScrambleTypeId });
+        void updateList({
+          listId,
+          name,
+          scrambleTypeId: isListScrambleTypeLocked
+            ? activeList.scrambleTypeId
+            : listFormScrambleTypeId,
+        });
         return;
       }
 
@@ -1919,11 +1984,20 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
       setListFormScrambleTypeId(listFormScrambleTypeId);
       void createList({ name, scrambleTypeId: listFormScrambleTypeId });
     },
-    [createList, editingListId, listFormMode, listFormName, listFormScrambleTypeId, updateList],
+    [
+      activeList.scrambleTypeId,
+      createList,
+      editingListId,
+      isListScrambleTypeLocked,
+      listFormMode,
+      listFormName,
+      listFormScrambleTypeId,
+      updateList,
+    ],
   );
 
   useEffect(() => {
-    if (!isActive || isMultiBlindResultOpen) return undefined;
+    if (!isActive || isMultiBlindResultOpen || isSolverAssistOpen) return undefined;
 
     const clearKeyboardClickSuppression = () => {
       keyboardClickSuppressionTarget.current = null;
@@ -2096,6 +2170,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
     cancelReady,
     isActive,
     isMultiBlindResultOpen,
+    isSolverAssistOpen,
     isWcaInspectionEnabled,
     startInspection,
     startTimer,
@@ -2232,6 +2307,10 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
                 : undefined
             }
             scramble={displayScramble}
+            isSolverAssistDisabled={isSolverAssistDisabled}
+            onOpenSolverAssist={
+              isSolverAssistEnabled ? () => setIsSolverAssistOpen(true) : undefined
+            }
             onRefresh={() => void loadScramble(activeList.scrambleTypeId)}
           />
         )}
@@ -2254,6 +2333,11 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
           onDelete={openDeleteResultDialog}
           onEdit={editFewestMovesResult}
           onInverseDecision={handleFewestMovesInverseDecision}
+          onOpenSolverAssist={
+            isSolverAssistEnabled && !isSolverAssistDisabled
+              ? () => setIsSolverAssistOpen(true)
+              : undefined
+          }
           onSolutionChange={setFewestMovesSolution}
           onStart={() => startTimer()}
           onSubmit={submitFewestMovesAttempt}
@@ -2299,6 +2383,7 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
       {listFormMode !== undefined ? (
         <CreateListModal
           copy={timerCopy}
+          isScrambleTypeLocked={isListScrambleTypeLocked}
           mode={listFormMode}
           name={listFormName}
           scrambleTypeId={listFormScrambleTypeId}
@@ -2336,6 +2421,15 @@ export const TimerPage = ({ isActive = true }: TimerPageProps) => {
           onPenaltyCountChange={setMultiBlindPenaltyCountDraft}
           onSolvedCountChange={setMultiBlindSolvedCountDraft}
           onSubmit={handleMultiBlindResultSubmit}
+        />
+      ) : null}
+      {solverAssistEventId !== undefined ? (
+        <SolverAssistDialog
+          copy={timerCopy}
+          eventId={solverAssistEventId}
+          open={isSolverAssistOpen}
+          scramble={solverAssistScramble}
+          onOpenChange={setIsSolverAssistOpen}
         />
       ) : null}
     </section>

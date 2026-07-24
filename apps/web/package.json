@@ -20,6 +20,8 @@
     "@deweyou-design/react": "catalog:",
     "@deweyou-design/react-icons": "catalog:",
     "@deweyou-design/styles": "catalog:",
+    "@dnd-kit/helpers": "catalog:",
+    "@dnd-kit/react": "catalog:",
     "is-mobile": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

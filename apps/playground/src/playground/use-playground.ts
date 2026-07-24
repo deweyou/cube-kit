@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
 import type { EventId } from '@cubegin/shared/events';
-import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleFullEventId } from '@cubegin/solver';
+import type {
+  PuzzleAssistEventId,
+  PuzzleAssistMethod,
+  PuzzleAssistSolution,
+  PuzzleFullEventId,
+} from '@cubegin/solver';
 import { getBrowserSeed } from './browser-seed';
 import { createPlaygroundService } from './playground-service';
 import type {
@@ -9,6 +14,7 @@ import type {
   PlaygroundImageView,
   PlaygroundManualRenderResult,
   PlaygroundScramble,
+  PlaygroundSolverComparison,
   PlaygroundSolverResult,
 } from './types';
 
@@ -66,6 +72,8 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   );
   const [solverResult, setSolverResult] = useState<PlaygroundSolverResult>();
   const [fullSolverResult, setFullSolverResult] = useState<PlaygroundFullSolverResult>();
+  const [selectedSolverSolution, setSelectedSolverSolution] = useState<PuzzleAssistSolution>();
+  const [solverComparison, setSolverComparison] = useState<PlaygroundSolverComparison>();
   const [solverGenerationError, setSolverGenerationError] = useState<string>();
   const [playerDraftEventId, setPlayerDraftEventIdState] = useState<EventId>('333');
   const [playerEventId, setPlayerEventId] = useState<EventId>('333');
@@ -132,6 +140,8 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
       setSolverScramble(result.scramble);
       setSolverResult(undefined);
       setFullSolverResult(undefined);
+      setSelectedSolverSolution(undefined);
+      setSolverComparison(undefined);
     }
   };
 
@@ -143,6 +153,8 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     }
     setSolverResult(undefined);
     setFullSolverResult(undefined);
+    setSelectedSolverSolution(undefined);
+    setSolverComparison(undefined);
     setSolverGenerationError(undefined);
     setSolverScramble('');
 
@@ -161,6 +173,8 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     }
     setSolverResult(undefined);
     setFullSolverResult(undefined);
+    setSelectedSolverSolution(undefined);
+    setSolverComparison(undefined);
     setSolverGenerationError(undefined);
     setSolverScramble('');
 
@@ -222,6 +236,22 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     });
   };
 
+  const selectSolverSolution = (
+    solution: PuzzleAssistSolution,
+    nextImageView: PlaygroundImageView = imageView,
+  ) => {
+    setSelectedSolverSolution(solution);
+    setSolverComparison(
+      packageService.renderSolverComparison({
+        eventId: solverEventId,
+        scramble: solverScramble,
+        setupRotation: solution.setupRotation,
+        solution: solution.solution,
+        imageView: nextImageView,
+      }),
+    );
+  };
+
   const solvePuzzleAssist = () => {
     if (!isPuzzleAssistEventId(solverEventId)) return;
 
@@ -233,6 +263,16 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     });
 
     setSolverResult(result);
+    setFullSolverResult(undefined);
+
+    const firstSolution = result.results.find(({ solutions }) => solutions.length > 0)
+      ?.solutions[0];
+    if (firstSolution && !result.error) {
+      selectSolverSolution(firstSolution);
+    } else {
+      setSelectedSolverSolution(undefined);
+      setSolverComparison(undefined);
+    }
   };
 
   const solvePuzzleFull = () => {
@@ -242,6 +282,18 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     });
 
     setFullSolverResult(result);
+    setSolverResult(undefined);
+    setSelectedSolverSolution(undefined);
+    setSolverComparison(
+      result.result && !result.error
+        ? packageService.renderSolverComparison({
+            eventId: result.result.eventId,
+            scramble: result.result.scramble,
+            solution: result.result.solution,
+            imageView,
+          })
+        : undefined,
+    );
   };
 
   const setImageView = (nextImageView: PlaygroundImageView) => {
@@ -286,6 +338,19 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
       setPlayerSvg(result.svg);
       setPlayerImageError(result.error);
     }
+
+    if (solverMode === 'assist' && selectedSolverSolution) {
+      selectSolverSolution(selectedSolverSolution, nextImageView);
+    } else if (solverMode === 'full' && fullSolverResult?.result) {
+      setSolverComparison(
+        packageService.renderSolverComparison({
+          eventId: fullSolverResult.result.eventId,
+          scramble: fullSolverResult.result.scramble,
+          solution: fullSolverResult.result.solution,
+          imageView: nextImageView,
+        }),
+      );
+    }
   };
 
   return {
@@ -324,6 +389,9 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     setSolverMethod,
     solverResult,
     fullSolverResult,
+    selectedSolverSolution,
+    selectSolverSolution,
+    solverComparison,
     solverGenerationError,
     generateSolverScramble,
     solvePuzzleAssist,

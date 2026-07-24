@@ -7,6 +7,8 @@ import type {
   PlaygroundFullSolverInput,
   PlaygroundGenerateInput,
   PlaygroundManualRenderInput,
+  PlaygroundSolverComparisonInput,
+  PlaygroundSolverInput,
 } from './playground/types';
 import type { PlaygroundService } from './playground/use-playground';
 
@@ -210,6 +212,36 @@ describe('App', () => {
     expect(screen.getByText(/Result count/i)).toBeTruthy();
   });
 
+  it('shows solver state images and switches the selected Assist solution', async () => {
+    renderTestApp();
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Solvers' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Solve' }));
+
+    const scrambledPreview = screen.getByTestId('solver-scramble-preview');
+    const solutionPreview = screen.getByTestId('solver-solution-preview');
+    const firstSolution = screen.getByRole('button', {
+      name: 'Preview cross D face solution',
+    });
+    const alternateSolution = screen.getByRole('button', {
+      name: 'Preview cross U face solution',
+    });
+
+    expect(scrambledPreview.querySelector('svg')).toBeTruthy();
+    expect(solutionPreview.querySelector('svg')?.getAttribute('data-formula')).toBe(
+      "R U R' U' y R",
+    );
+    expect(firstSolution.getAttribute('aria-pressed')).toBe('true');
+
+    await userEvent.click(alternateSolution);
+
+    expect(firstSolution.getAttribute('aria-pressed')).toBe('false');
+    expect(alternateSolution.getAttribute('aria-pressed')).toBe('true');
+    expect(solutionPreview.querySelector('svg')?.getAttribute('data-formula')).toBe(
+      "R U R' U' x F",
+    );
+  });
+
   it('shows cstimer-style 3x3 staged helper methods in the solver page', async () => {
     render(<App />);
 
@@ -305,6 +337,8 @@ describe('App', () => {
     expect(await screen.findByText('clock-inverse')).toBeTruthy();
     expect(screen.getByText('UR1- y2 DR1+')).toBeTruthy();
     expect(screen.getByText(/Move count/i)).toBeTruthy();
+    expect(screen.getByTestId('solver-scramble-preview').querySelector('svg')).toBeTruthy();
+    expect(screen.getByTestId('solver-solution-preview').querySelector('svg')).toBeTruthy();
   });
 
   it('shows solver errors without leaving the solver page', async () => {
@@ -340,6 +374,18 @@ const fakeService = (): PlaygroundService => ({
       error: undefined,
     };
   },
+  renderSolverComparison(input: PlaygroundSolverComparisonInput) {
+    const solutionFormula = [input.scramble, input.setupRotation, input.solution]
+      .filter(Boolean)
+      .join(' ');
+
+    return {
+      scrambleSvg: '<svg data-state="scramble"></svg>',
+      solutionSvg: `<svg data-formula="${solutionFormula}"></svg>`,
+      solutionFormula,
+      error: undefined,
+    };
+  },
   async generateSolverScramble(eventId) {
     return {
       eventId,
@@ -356,10 +402,35 @@ const fakeService = (): PlaygroundService => ({
       error: undefined,
     };
   },
-  solvePuzzleAssist() {
+  solvePuzzleAssist(input: PlaygroundSolverInput) {
     return {
-      results: [],
-      diagnostics: { durationMs: 1, resultCount: 0 },
+      results: [
+        {
+          method: 'cross' as const,
+          scramble: input.scramble,
+          solutions: [
+            {
+              method: 'cross' as const,
+              target: 'D',
+              targetLabel: 'D face',
+              setupRotation: 'y',
+              solution: 'R',
+              depth: 1,
+              metric: { ftm: 1, qtm: 1 },
+            },
+            {
+              method: 'cross' as const,
+              target: 'U',
+              targetLabel: 'U face',
+              setupRotation: 'x',
+              solution: 'F',
+              depth: 1,
+              metric: { ftm: 1, qtm: 1 },
+            },
+          ],
+        },
+      ],
+      diagnostics: { durationMs: 1, resultCount: 2 },
       error: undefined,
     };
   },

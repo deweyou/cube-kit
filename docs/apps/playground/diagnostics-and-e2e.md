@@ -7,6 +7,9 @@ flowchart TD
     Rows --> Preview["SVG preview"]
     Preview --> Diagnostics["duration / chars / bytes"]
     Manual["manual scramble"] --> Preview
+    Solve["Assist / Full solve"] --> Select["Selected solution"]
+    Select --> Before["Scrambled state"]
+    Select --> After["State after solution"]
 ```
 
 Playground diagnostics are intentionally lightweight. They exist to make package
@@ -19,6 +22,9 @@ integration failures visible during local testing and future E2E smoke checks.
   `scramble-image` -> SVG preview.
 - E2E for image rendering should exercise the `2D` / `3D` switch and assert that
   supported events change SVG shape while fallback families still render.
+- Solver E2E should assert that solving produces both state images, the first
+  Assist result is selected by default, and selecting a different result updates
+  the post-solution image.
 - E2E should not replace package unit tests or golden WCA rule coverage.
 - Copy/download actions are convenience checks for generated rows and selected
   SVG output.
@@ -31,4 +37,4 @@ integration failures visible during local testing and future E2E smoke checks.
 
 ---
 
-_Last updated: 2026-06-06 | Reason: add image-view switch smoke guidance_
+_Last updated: 2026-07-24 | Reason: add Solver comparison smoke guidance_

@@ -11,6 +11,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   EditIcon,
+  FormulaIcon,
   RollbackIcon,
   TrashIcon,
 } from '@deweyou-design/react-icons';
@@ -35,6 +36,7 @@ interface FewestMovesWorkspaceProps {
   onDelete: () => void;
   onEdit: () => void;
   onInverseDecision: (decision: Exclude<FewestMovesInverseDecision, null>) => void;
+  onOpenSolverAssist?: () => void;
   onSolutionChange: (solution: string) => void;
   onStart: () => void;
   onSubmit: () => void;
@@ -232,6 +234,7 @@ export const FewestMovesWorkspace = ({
   onDelete,
   onEdit,
   onInverseDecision,
+  onOpenSolverAssist,
   onSolutionChange,
   onStart,
   onSubmit,
@@ -450,23 +453,36 @@ export const FewestMovesWorkspace = ({
           <strong ref={countdownRef} className={styles.countdown} aria-live="off">
             {elapsedText}
           </strong>
-          <button
-            className={styles.scrambleToggle}
-            type="button"
-            aria-label={`${
-              isScrambleCollapsed
+          <div className={styles.scrambleActions}>
+            {onOpenSolverAssist ? (
+              <button
+                className={styles.solverAssistButton}
+                type="button"
+                aria-label={copy.solverAssistOpen}
+                title={copy.solverAssistOpen}
+                onClick={onOpenSolverAssist}
+              >
+                <FormulaIcon size={18} />
+              </button>
+            ) : null}
+            <button
+              className={styles.scrambleToggle}
+              type="button"
+              aria-label={`${
+                isScrambleCollapsed
+                  ? copy.fewestMovesExpandScramble
+                  : copy.fewestMovesCollapseScramble
+              } ${copy.currentScrambleLabel}`}
+              aria-controls="fewest-moves-scramble-content"
+              aria-expanded={!isScrambleCollapsed}
+              onClick={() => setIsScrambleCollapsed((collapsed) => !collapsed)}
+            >
+              {isScrambleCollapsed
                 ? copy.fewestMovesExpandScramble
-                : copy.fewestMovesCollapseScramble
-            } ${copy.currentScrambleLabel}`}
-            aria-controls="fewest-moves-scramble-content"
-            aria-expanded={!isScrambleCollapsed}
-            onClick={() => setIsScrambleCollapsed((collapsed) => !collapsed)}
-          >
-            {isScrambleCollapsed
-              ? copy.fewestMovesExpandScramble
-              : copy.fewestMovesCollapseScramble}
-            {isScrambleCollapsed ? <ChevronDownIcon size={16} /> : <ChevronUpIcon size={16} />}
-          </button>
+                : copy.fewestMovesCollapseScramble}
+              {isScrambleCollapsed ? <ChevronDownIcon size={16} /> : <ChevronUpIcon size={16} />}
+            </button>
+          </div>
         </div>
         {isScrambleCollapsed ? null : (
           <div id="fewest-moves-scramble-content" className={styles.scrambleBody}>

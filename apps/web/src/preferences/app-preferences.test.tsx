@@ -50,6 +50,7 @@ describe('app preferences provider', () => {
       theme: 'system',
       language: 'browser',
       wcaInspection: false,
+      solverAssistEnabled: false,
       timerDisplayMode: 'realtime',
     });
   });

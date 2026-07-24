@@ -172,6 +172,7 @@ describe('FewestMovesWorkspace', () => {
 
   it('supports editable tokens and keeps the compact move keyboard available during an attempt', () => {
     const onSubmit = vi.fn();
+    const onOpenSolverAssist = vi.fn();
     const Harness = () => {
       const [solution, setSolution] = useState('R');
       return (
@@ -181,6 +182,7 @@ describe('FewestMovesWorkspace', () => {
           onDelete={vi.fn()}
           onEdit={vi.fn()}
           onInverseDecision={vi.fn()}
+          onOpenSolverAssist={onOpenSolverAssist}
           onSolutionChange={setSolution}
           onStart={vi.fn()}
           onSubmit={onSubmit}
@@ -208,6 +210,8 @@ describe('FewestMovesWorkspace', () => {
     expect(screen.getByText(`${copy.fewestMovesTotalMoves} --`)).toBeTruthy();
     expect(screen.queryByText(copy.fewestMovesRemaining)).toBeNull();
     expect(screen.queryByText(/OBTM|ETM/u)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: copy.solverAssistOpen }));
+    expect(onOpenSolverAssist).toHaveBeenCalledOnce();
     expect(
       screen.getByRole('button', {
         name: `${copy.fewestMovesCollapseScramble} ${copy.currentScrambleLabel}`,

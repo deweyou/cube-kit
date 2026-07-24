@@ -1036,10 +1036,18 @@ const SolverPage = ({ playground }: { readonly playground: PlaygroundState }) =>
                             <li
                               key={`${solution.target}-${solution.setupRotation}-${solution.solution}`}
                             >
-                              <span>{solution.targetLabel}</span>
-                              <code>{solution.setupRotation || '-'}</code>
-                              <strong>{solution.solution || '-'}</strong>
-                              <span>{solution.metric.ftm} FTM</span>
+                              <button
+                                aria-label={`Preview ${result.method} ${solution.targetLabel} solution`}
+                                aria-pressed={playground.selectedSolverSolution === solution}
+                                className="solution-select"
+                                type="button"
+                                onClick={() => playground.selectSolverSolution(solution)}
+                              >
+                                <span>{solution.targetLabel}</span>
+                                <code>{solution.setupRotation || '-'}</code>
+                                <strong>{solution.solution || '-'}</strong>
+                                <span>{solution.metric.ftm} FTM</span>
+                              </button>
                             </li>
                           ))}
                         </ol>
@@ -1077,9 +1085,58 @@ const SolverPage = ({ playground }: { readonly playground: PlaygroundState }) =>
           <p className="empty-state">{EMPTY_FULL_SOLVER_TEXT[playground.solverEventId]}</p>
         )}
       </section>
+
+      {playground.solverComparison ? (
+        <SolverComparison comparison={playground.solverComparison} />
+      ) : null}
     </section>
   );
 };
+
+const SolverComparison = ({
+  comparison,
+}: {
+  readonly comparison: NonNullable<PlaygroundState['solverComparison']>;
+}) => (
+  <section className="panel solver-comparison-panel" aria-label="Solver state comparison">
+    <div className="panel-heading">
+      <p className="eyebrow">scramble-image</p>
+      <h2>State comparison</h2>
+    </div>
+
+    <div className="solver-comparison-grid">
+      <article className="solver-comparison-pane">
+        <h3>Scrambled state</h3>
+        <div
+          className="svg-preview solver-state-preview"
+          dangerouslySetInnerHTML={{ __html: comparison.scrambleSvg }}
+          data-testid="solver-scramble-preview"
+          style={SVG_PREVIEW_STYLE}
+        />
+      </article>
+
+      <span className="solver-comparison-arrow" aria-hidden="true">
+        →
+      </span>
+
+      <article className="solver-comparison-pane">
+        <h3>After selected solution</h3>
+        <div
+          className="svg-preview solver-state-preview"
+          dangerouslySetInnerHTML={{ __html: comparison.solutionSvg }}
+          data-testid="solver-solution-preview"
+          style={SVG_PREVIEW_STYLE}
+        />
+      </article>
+    </div>
+
+    {comparison.error ? (
+      <p className="error" role="alert">
+        {comparison.error}
+      </p>
+    ) : null}
+  </section>
+);
 
 const Diagnostics = ({
   title,

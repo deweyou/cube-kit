@@ -26,6 +26,9 @@ solver packages without wiring them into production apps.
 - The Solvers tab has Assist and Full modes. Assist keeps method/target
   diagnostics; Full calls `solvePuzzleFull` for 3x3, 4x4, 2x2, Pyraminx,
   Skewb, Square-1, Clock, and FTO restore checks.
+- Solver results render a side-by-side scramble-state comparison. Assist selects
+  the first solution by default and lets each solution row update the result
+  image; Full renders its single restore result automatically.
 - In the Solvers tab, changing the solver event resets event-specific method and
   target defaults and auto-generates a scramble for the selected event.
 - The 3x3 solver method list includes the cstimer-style staged helpers,
@@ -62,4 +65,4 @@ pnpm --filter playground build
 
 ---
 
-_Last updated: 2026-07-02 | Reason: document Square-1 Player tab support_
+_Last updated: 2026-07-24 | Reason: document Solver state comparisons_

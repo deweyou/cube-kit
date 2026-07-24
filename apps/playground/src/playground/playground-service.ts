@@ -24,6 +24,8 @@ import type {
   PlaygroundPlayerScrambleResult,
   PlaygroundRenderDiagnostics,
   PlaygroundScramble,
+  PlaygroundSolverComparison,
+  PlaygroundSolverComparisonInput,
   PlaygroundSolverInput,
   PlaygroundSolverResult,
   PlaygroundSolverScrambleResult,
@@ -68,6 +70,36 @@ export const createPlaygroundService = ({
       };
     }
   };
+  const renderFormula = (input: PlaygroundManualRenderInput): PlaygroundManualRenderResult => {
+    const renderStart = now();
+
+    try {
+      const svg = renderScrambleImage(input.eventId, input.scramble, { view: input.imageView });
+      const renderEnd = now();
+
+      return {
+        svg,
+        render: createRenderDiagnostics({
+          durationMs: renderEnd - renderStart,
+          scramble: input.scramble,
+          svg,
+        }),
+        error: undefined,
+      };
+    } catch (error) {
+      const renderEnd = now();
+
+      return {
+        svg: '',
+        render: createRenderDiagnostics({
+          durationMs: renderEnd - renderStart,
+          scramble: input.scramble,
+          svg: '',
+        }),
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  };
 
   return {
     async generate(input: PlaygroundGenerateInput): Promise<PlaygroundGenerateResult> {
@@ -108,35 +140,29 @@ export const createPlaygroundService = ({
         }),
       };
     },
-    renderManual(input: PlaygroundManualRenderInput): PlaygroundManualRenderResult {
-      const renderStart = now();
+    renderManual: renderFormula,
+    renderSolverComparison(input: PlaygroundSolverComparisonInput): PlaygroundSolverComparison {
+      const solutionFormula = [input.scramble, input.setupRotation, input.solution]
+        .map((formula) => formula?.trim())
+        .filter(Boolean)
+        .join(' ');
+      const scrambleRender = renderFormula({
+        eventId: input.eventId,
+        scramble: input.scramble,
+        imageView: input.imageView,
+      });
+      const solutionRender = renderFormula({
+        eventId: input.eventId,
+        scramble: solutionFormula,
+        imageView: input.imageView,
+      });
 
-      try {
-        const svg = renderScrambleImage(input.eventId, input.scramble, { view: input.imageView });
-        const renderEnd = now();
-
-        return {
-          svg,
-          render: createRenderDiagnostics({
-            durationMs: renderEnd - renderStart,
-            scramble: input.scramble,
-            svg,
-          }),
-          error: undefined,
-        };
-      } catch (error) {
-        const renderEnd = now();
-
-        return {
-          svg: '',
-          render: createRenderDiagnostics({
-            durationMs: renderEnd - renderStart,
-            scramble: input.scramble,
-            svg: '',
-          }),
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
+      return {
+        scrambleSvg: scrambleRender.svg,
+        solutionSvg: solutionRender.svg,
+        solutionFormula,
+        error: scrambleRender.error ?? solutionRender.error,
+      };
     },
     async generateSolverScramble(
       eventId: PuzzleAssistEventId | PuzzleFullEventId,
