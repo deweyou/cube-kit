@@ -11,6 +11,7 @@ flowchart TD
     Icons --> PublicPackage
     Three["three MIT"] --> Player["@cubegin/player GPL-3.0-only"]
     Three --> PublicPackage
+    DndKit["dnd-kit MIT"] --> Apps
     CubingGeometry["cubing.js PuzzleGeometry MPL-2.0 OR GPL-3.0-or-later"] -. "Static non-cube player geometry and move maps" .-> Player
     ScramblePuzzle --> Player
     Player --> Apps
@@ -56,6 +57,10 @@ decisions as licensing decisions, not only build decisions.
   package and the public `cubegin/player` facade remain GPL-3.0-only because
   they are distributed inside this repository and parse cube notation through
   the GPL Cubegin puzzle packages.
+- `@dnd-kit/react` and `@dnd-kit/helpers` are MIT-licensed runtime dependencies
+  used only by the private web app for accessible pointer, touch, and keyboard
+  sorting. Their published package license fields and shipped `LICENSE` files
+  were both reviewed at version `0.4.0`.
 - Pyraminx, Skewb, and Megaminx player geometry may reference static sticker
   coordinates and move mappings from `cubing.js` PuzzleGeometry under its
   `MPL-2.0 OR GPL-3.0-or-later` license. Keep the attribution in
@@ -76,4 +81,4 @@ decisions as licensing decisions, not only build decisions.
 
 ---
 
-_Last updated: 2026-06-30 | Reason: record player Three.js dependency and Megaminx geometry provenance_
+_Last updated: 2026-07-23 | Reason: record the web app's MIT-licensed dnd-kit dependencies_

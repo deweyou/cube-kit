@@ -617,11 +617,6 @@
   margin: 0;
 }
 
-.fieldGroup {
-  display: grid;
-  gap: 7px;
-}
-
 .multiBlindNumberInput {
   align-items: center;
   display: grid;

@@ -213,6 +213,24 @@ describe('createPlaygroundService', () => {
     expect(result.error).toBeUndefined();
   });
 
+  it('renders scrambled and selected Assist solution states in execution order', () => {
+    const service = createPlaygroundService({ seed: 42 });
+
+    const comparison = service.renderSolverComparison({
+      eventId: '333',
+      scramble: 'R',
+      setupRotation: 'y',
+      solution: "F'",
+      imageView: 'net',
+    });
+
+    expect(comparison.scrambleSvg).toContain('<svg');
+    expect(comparison.solutionSvg).toContain('<svg');
+    expect(comparison.solutionFormula).toBe("R y F'");
+    expect(comparison.solutionSvg).not.toBe(comparison.scrambleSvg);
+    expect(comparison.error).toBeUndefined();
+  });
+
   it('renders generated and manual SVGs with the requested image view', async () => {
     const generator = fakeGenerator([{ eventId: '333', scramble: "R U R' U'" }]);
     const netService = createPlaygroundService({

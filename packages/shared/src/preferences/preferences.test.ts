@@ -13,6 +13,7 @@ describe('app preferences', () => {
       theme: 'system',
       language: 'browser',
       wcaInspection: false,
+      solverAssistEnabled: false,
       timerDisplayMode: 'realtime',
     });
   });
@@ -23,12 +24,14 @@ describe('app preferences', () => {
         theme: 'dark',
         language: 'fr',
         wcaInspection: true,
+        solverAssistEnabled: true,
         timerDisplayMode: 'seconds',
       }),
     ).toEqual({
       theme: 'dark',
       language: 'browser',
       wcaInspection: true,
+      solverAssistEnabled: true,
       timerDisplayMode: 'seconds',
     });
 

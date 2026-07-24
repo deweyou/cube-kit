@@ -418,12 +418,18 @@ button {
 
 .solver-controls-panel,
 .solver-results-panel,
+.solver-comparison-panel,
 .player-controls-panel,
 .player-stage-panel,
 .player-image-panel,
 .icons-panel {
   min-height: 520px;
   padding: 18px;
+}
+
+.solver-comparison-panel {
+  grid-column: 1 / -1;
+  min-height: auto;
 }
 
 .player-stage-panel {
@@ -800,20 +806,68 @@ button {
   list-style: none;
 }
 
-.solution-list li {
+.solution-select {
   display: grid;
   grid-template-columns: minmax(92px, 0.8fr) minmax(42px, 0.4fr) minmax(86px, 1fr) auto;
   gap: 8px;
   align-items: center;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid transparent;
   border-radius: 6px;
   background: #f8fafb;
   padding: 7px 8px;
+  color: #172026;
+  text-align: left;
+}
+
+.solution-select:hover {
+  border-color: #9fb1ba;
+}
+
+.solution-select[aria-pressed='true'] {
+  border-color: #257b6e;
+  background: #eef8f5;
+}
+
+.solution-select:focus-visible {
+  outline: 3px solid rgb(37 123 110 / 20%);
+  outline-offset: 1px;
 }
 
 .solution-list code,
 .solution-list strong {
   color: #172026;
   overflow-wrap: anywhere;
+}
+
+.solver-comparison-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.solver-comparison-pane {
+  min-width: 0;
+}
+
+.solver-comparison-pane h3 {
+  margin: 0 0 8px;
+  color: #26343b;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.solver-state-preview {
+  min-height: 280px;
+}
+
+.solver-comparison-arrow {
+  color: #60717b;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
 }
 
 @media (max-width: 1220px) {
@@ -835,6 +889,7 @@ button {
   .image-panel,
   .solver-controls-panel,
   .solver-results-panel,
+  .solver-comparison-panel,
   .player-controls-panel,
   .player-stage-panel,
   .player-image-panel,
@@ -869,6 +924,14 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .solver-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .solver-comparison-arrow {
+    transform: rotate(90deg);
+  }
+
   .icons-panel-header {
     align-items: stretch;
     flex-direction: column;
@@ -883,7 +946,7 @@ button {
     grid-column: 1 / -1;
   }
 
-  .solution-list li {
+  .solution-select {
     grid-template-columns: 1fr;
   }
 }

@@ -6,6 +6,8 @@ catalog:
   '@deweyou-design/react': ^0.3.4
   '@deweyou-design/react-icons': ^0.3.4
   '@deweyou-design/styles': ^0.3.4
+  '@dnd-kit/helpers': ^0.4.0
+  '@dnd-kit/react': ^0.4.0
   '@testing-library/user-event': ^14.6.1
   '@types/node': ^24
   '@types/react': ^19

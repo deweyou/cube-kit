@@ -187,7 +187,11 @@ describe('SettingsPage', () => {
       '仅观察',
     ]);
     const wcaSwitch = screen.getByRole('switch', { name: 'WCA 观察' }) as HTMLInputElement;
+    const solverAssistSwitch = screen.getByRole('switch', {
+      name: '辅助求解显示',
+    }) as HTMLInputElement;
     expect(wcaSwitch.checked).toBe(false);
+    expect(solverAssistSwitch.checked).toBe(false);
     expect(
       wcaSwitch.closest('label')?.querySelector('[class*="visuallyHidden"]')?.textContent,
     ).toBe('WCA 观察');
@@ -213,11 +217,13 @@ describe('SettingsPage', () => {
       target: { value: 'seconds' },
     });
     fireEvent.click(screen.getByRole('switch', { name: 'WCA 观察' }));
+    fireEvent.click(screen.getByRole('switch', { name: '辅助求解显示' }));
 
     expect(JSON.parse(localStorage.getItem('cubegin-app-preferences')!)).toMatchObject({
       theme: 'dark',
       timerDisplayMode: 'seconds',
       wcaInspection: true,
+      solverAssistEnabled: true,
     });
 
     fireEvent.change(screen.getByRole('combobox', { name: '语言' }), {
@@ -249,6 +255,27 @@ describe('SettingsPage', () => {
     });
   });
 
+  it('toggles solution hints from the row copy area', () => {
+    setNavigatorLanguages(['zh-CN']);
+
+    renderSettingsPage();
+
+    const solverAssistSwitch = screen.getByRole('switch', {
+      name: '辅助求解显示',
+    }) as HTMLInputElement;
+    const solverAssistRow = solverAssistSwitch.closest('[class*="settingRow"]') as HTMLElement;
+    const solverAssistTitle = solverAssistRow.querySelector(
+      '[class*="settingTitle"]',
+    ) as HTMLElement;
+
+    fireEvent.click(solverAssistTitle);
+
+    expect(solverAssistSwitch.checked).toBe(true);
+    expect(JSON.parse(localStorage.getItem('cubegin-app-preferences')!)).toMatchObject({
+      solverAssistEnabled: true,
+    });
+  });
+
   it('uses the light wordmark asset on a dark theme', () => {
     setNavigatorLanguages(['zh-CN']);
     localStorage.setItem(
@@ -276,9 +303,7 @@ describe('SettingsPage', () => {
   });
 
   it('uses serif section typography while keeping setting controls sans', () => {
-    expect(settingsPageStyles).toMatch(
-      /\.title\s*\{[^}]*font-family:\s*var\(--ui-font-serif\);/su,
-    );
+    expect(settingsPageStyles).toMatch(/\.title\s*\{[^}]*font-family:\s*var\(--ui-font-serif\);/su);
     expect(settingsPageStyles).toMatch(/\.title\s*\{[^}]*font-size:\s*1\.45rem;/su);
     expect(settingsPageStyles).toMatch(
       /\.groupTitle\s*\{[^}]*font-family:\s*var\(--ui-font-serif\);/su,
@@ -294,7 +319,9 @@ describe('SettingsPage', () => {
   });
 
   it('keeps the settings list rhythm dense without shrinking tap targets too far', () => {
-    expect(settingsPageStyles).toMatch(/\.main\s*\{[^}]*padding:\s*32px var\(--settings-inline-padding\)/su);
+    expect(settingsPageStyles).toMatch(
+      /\.main\s*\{[^}]*padding:\s*32px var\(--settings-inline-padding\)/su,
+    );
     expect(settingsPageStyles).toMatch(/\.group\s*\{[^}]*gap:\s*10px;/su);
     expect(settingsPageStyles).toMatch(/\.group\s*\{[^}]*padding-top:\s*12px;/su);
     expect(settingsPageStyles).toMatch(/\.settingRow\s*\{[^}]*gap:\s*16px;/su);

@@ -10,6 +10,7 @@ export interface AppPreferences {
   theme: ThemePreference;
   language: LanguagePreference;
   wcaInspection: boolean;
+  solverAssistEnabled: boolean;
   timerDisplayMode: TimerDisplayMode;
 }
 
@@ -24,6 +25,7 @@ export const DEFAULT_APP_PREFERENCES: AppPreferences = {
   theme: 'system',
   language: 'browser',
   wcaInspection: false,
+  solverAssistEnabled: false,
   timerDisplayMode: 'realtime',
 };
 
@@ -47,6 +49,10 @@ export const normalizeAppPreferences = (value: unknown): AppPreferences => {
       typeof value.wcaInspection === 'boolean'
         ? value.wcaInspection
         : DEFAULT_APP_PREFERENCES.wcaInspection,
+    solverAssistEnabled:
+      typeof value.solverAssistEnabled === 'boolean'
+        ? value.solverAssistEnabled
+        : DEFAULT_APP_PREFERENCES.solverAssistEnabled,
     timerDisplayMode: includesValue(TIMER_DISPLAY_MODES, value.timerDisplayMode)
       ? value.timerDisplayMode
       : DEFAULT_APP_PREFERENCES.timerDisplayMode,

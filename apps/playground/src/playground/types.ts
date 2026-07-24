@@ -83,6 +83,21 @@ export interface PlaygroundFullSolverResult {
   readonly error: string | undefined;
 }
 
+export interface PlaygroundSolverComparisonInput {
+  readonly eventId: PuzzleFullEventId;
+  readonly scramble: string;
+  readonly setupRotation?: string;
+  readonly solution: string;
+  readonly imageView: PlaygroundImageView;
+}
+
+export interface PlaygroundSolverComparison {
+  readonly scrambleSvg: string;
+  readonly solutionSvg: string;
+  readonly solutionFormula: string;
+  readonly error: string | undefined;
+}
+
 export interface PlaygroundSolverScrambleResult {
   readonly eventId: PuzzleAssistEventId | PuzzleFullEventId;
   readonly scramble: string;

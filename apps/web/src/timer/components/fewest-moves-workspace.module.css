@@ -123,6 +123,34 @@
   margin-top: 1rem;
 }
 
+.scrambleActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.solverAssistButton {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+
+.solverAssistButton:hover {
+  background: color-mix(in srgb, var(--ui-color-text) 7%, transparent);
+  color: var(--ui-color-text);
+}
+
+.solverAssistButton:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ui-color-brand-text) 42%, transparent);
+  outline-offset: 2px;
+}
+
 .scrambleToggle {
   display: inline-flex;
   align-items: center;

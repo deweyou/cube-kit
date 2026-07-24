@@ -99,6 +99,12 @@ export const SettingsPage = () => {
       wcaInspection: !currentPreferences.wcaInspection,
     }));
   };
+  const toggleSolverAssist = () => {
+    setPreferences((currentPreferences) => ({
+      ...currentPreferences,
+      solverAssistEnabled: !currentPreferences.solverAssistEnabled,
+    }));
+  };
 
   const themeOptions: SettingsSelectOption<ThemePreference>[] = THEME_PREFERENCES.map((value) => ({
     value,
@@ -189,6 +195,16 @@ export const SettingsPage = () => {
                   onCheckedChange={(wcaInspection) => updatePreferences({ wcaInspection })}
                 >
                   <span className={styles.visuallyHidden}>{copy.settings.wcaInspectionLabel}</span>
+                </Switch>
+              </SettingsRow>
+              <SettingsRow title={copy.settings.solverAssistLabel} onRowPress={toggleSolverAssist}>
+                <Switch
+                  checked={preferences.solverAssistEnabled}
+                  onCheckedChange={(solverAssistEnabled) =>
+                    updatePreferences({ solverAssistEnabled })
+                  }
+                >
+                  <span className={styles.visuallyHidden}>{copy.settings.solverAssistLabel}</span>
                 </Switch>
               </SettingsRow>
               <SettingsRow title={copy.settings.timerDisplayLabel}>

@@ -33,6 +33,7 @@ export interface AppCopy {
     languageChinese: string;
     languageEnglish: string;
     wcaInspectionLabel: string;
+    solverAssistLabel: string;
     timerDisplayLabel: string;
     timerDisplayRealtime: string;
     timerDisplaySeconds: string;
@@ -112,6 +113,18 @@ export interface AppCopy {
     scrambleImageLabel: string;
     scrambleLoading: string;
     refreshScramble: string;
+    solverAssistOpen: string;
+    solverAssistTitle: string;
+    solverAssistMethodLabel: string;
+    solverAssistLoading: string;
+    solverAssistError: string;
+    solverAssistRetry: string;
+    solverAssistShortest: string;
+    solverAssistEmptyFormula: string;
+    solverAssistNoSolutions: string;
+    solverAssistStage: string;
+    solverAssistReorder: string;
+    solverAssistClose: string;
     previousMultiBlindScramble: string;
     nextMultiBlindScramble: string;
     multiBlindPositionLabel: string;
@@ -215,6 +228,7 @@ const APP_COPY = {
       languageChinese: '简体中文',
       languageEnglish: 'English',
       wcaInspectionLabel: 'WCA 观察',
+      solverAssistLabel: '辅助求解显示',
       timerDisplayLabel: '计时显示',
       timerDisplayRealtime: '实时',
       timerDisplaySeconds: '到秒',
@@ -294,6 +308,18 @@ const APP_COPY = {
       scrambleImageLabel: '打乱图',
       scrambleLoading: '生成打乱中...',
       refreshScramble: '刷新打乱',
+      solverAssistOpen: '查看辅助还原公式',
+      solverAssistTitle: '辅助求解公式',
+      solverAssistMethodLabel: '公式类型',
+      solverAssistLoading: '正在计算公式…',
+      solverAssistError: '公式计算失败，请重试。',
+      solverAssistRetry: '重试',
+      solverAssistShortest: '最短',
+      solverAssistEmptyFormula: '已达到目标',
+      solverAssistNoSolutions: '没有可展示的公式。',
+      solverAssistStage: '阶段 {index}',
+      solverAssistReorder: '调整 {target} 的显示顺序',
+      solverAssistClose: '关闭辅助还原公式',
       previousMultiBlindScramble: '上一颗打乱',
       nextMultiBlindScramble: '下一颗打乱',
       multiBlindPositionLabel: '多盲打乱位置',
@@ -395,6 +421,7 @@ const APP_COPY = {
       languageChinese: '简体中文',
       languageEnglish: 'English',
       wcaInspectionLabel: 'WCA inspection',
+      solverAssistLabel: 'Solution hints display',
       timerDisplayLabel: 'Timer display',
       timerDisplayRealtime: 'Realtime',
       timerDisplaySeconds: 'Seconds',
@@ -474,6 +501,18 @@ const APP_COPY = {
       scrambleImageLabel: 'Scramble image',
       scrambleLoading: 'Generating scramble...',
       refreshScramble: 'Refresh scramble',
+      solverAssistOpen: 'View solution hints',
+      solverAssistTitle: 'Solution hints',
+      solverAssistMethodLabel: 'Hint type',
+      solverAssistLoading: 'Calculating formulas…',
+      solverAssistError: 'Could not calculate formulas. Try again.',
+      solverAssistRetry: 'Retry',
+      solverAssistShortest: 'Shortest',
+      solverAssistEmptyFormula: 'Target already reached',
+      solverAssistNoSolutions: 'No formulas to display.',
+      solverAssistStage: 'Stage {index}',
+      solverAssistReorder: 'Reorder {target}',
+      solverAssistClose: 'Close solution hints',
       previousMultiBlindScramble: 'Previous cube scramble',
       nextMultiBlindScramble: 'Next cube scramble',
       multiBlindPositionLabel: 'Multi-blind scramble position',
