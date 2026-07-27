@@ -25,6 +25,13 @@ export interface PyraminxSolverState {
   readonly tips: number;
 }
 
+export interface PyraminxCubieState {
+  readonly edgePermutation: readonly number[];
+  readonly edgeOrientation: readonly number[];
+  readonly cornerOrientation: readonly number[];
+  readonly tipOrientation: readonly number[];
+}
+
 interface Tables {
   moveEdgePerm: readonly Uint16Array[];
   moveEdgeOrient: readonly Uint8Array[];
@@ -297,6 +304,34 @@ const validateState = (state: PyraminxSolverState): void => {
   validateCoordinate('tips', state.tips, N_TIPS);
 };
 
+const validatePermutation = (permutation: readonly number[]): void => {
+  if (
+    permutation.length !== 6 ||
+    new Set(permutation).size !== 6 ||
+    permutation.some((piece) => !Number.isSafeInteger(piece) || piece < 0 || piece >= 6)
+  ) {
+    throw new RangeError(
+      `${ERROR_PREFIX}: Pyraminx edge permutation must contain 0 through 5 once`,
+    );
+  }
+};
+
+const validateOrientation = (
+  name: string,
+  orientation: readonly number[],
+  length: number,
+  modulus: number,
+  requireZeroSum: boolean,
+): void => {
+  if (
+    orientation.length !== length ||
+    orientation.some((value) => !Number.isSafeInteger(value) || value < 0 || value >= modulus) ||
+    (requireZeroSum && orientation.reduce((sum, value) => sum + value, 0) % modulus !== 0)
+  ) {
+    throw new RangeError(`${ERROR_PREFIX}: invalid Pyraminx ${name}`);
+  }
+};
+
 const validateLength = (length: number): void => {
   if (!Number.isSafeInteger(length) || length < 0 || length > MAX_LENGTH) {
     throw new RangeError(
@@ -411,6 +446,98 @@ const formatSolution = (
 };
 
 export class PyraminxSolver {
+  stateFromCubies(cubies: PyraminxCubieState): PyraminxSolverState {
+    validatePermutation(cubies.edgePermutation);
+    validateOrientation('edge orientation', cubies.edgeOrientation, 6, 2, true);
+    validateOrientation('corner orientation', cubies.cornerOrientation, 4, 3, false);
+    validateOrientation('tip orientation', cubies.tipOrientation, 4, 3, false);
+
+    const state = {
+      edgePerm: packEdgePerm(cubies.edgePermutation),
+      edgeOrient: packEdgeOrient(cubies.edgeOrientation.map((value) => value << 3)),
+      cornerOrient: packCornerOrient(cubies.cornerOrientation),
+      tips: packCornerOrient(cubies.tipOrientation),
+    };
+    validateState(state);
+    if (getTables().prunPerm[state.edgePerm] === -1) {
+      throw new RangeError(`${ERROR_PREFIX}: Pyraminx edge permutation must be even`);
+    }
+
+    return state;
+  }
+
+  cubiesFromState(state: PyraminxSolverState): PyraminxCubieState {
+    validateState(state);
+    const edgePermutation = Array.from({ length: 6 }, () => 0);
+    const packedEdgeOrientation = Array.from({ length: 6 }, () => 0);
+    const cornerOrientation = Array.from({ length: 4 }, () => 0);
+    const tipOrientation = Array.from({ length: 4 }, () => 0);
+    unpackEdgePerm(state.edgePerm, edgePermutation);
+    unpackEdgeOrient(state.edgeOrient, packedEdgeOrientation);
+    unpackCornerOrient(state.cornerOrient, cornerOrientation);
+    unpackCornerOrient(state.tips, tipOrientation);
+
+    return {
+      edgePermutation,
+      edgeOrientation: packedEdgeOrientation.map((value) => value >> 3),
+      cornerOrientation,
+      tipOrientation,
+    };
+  }
+
+  isNoBarState(state: PyraminxSolverState): boolean {
+    const cubies = this.cubiesFromState(state);
+    const cornerFacelets = [
+      [3, 16, 11],
+      [4, 23, 15],
+      [5, 9, 22],
+      [10, 17, 21],
+    ] as const;
+    const edgeFacelets = [
+      [1, 7],
+      [2, 14],
+      [0, 18],
+      [6, 12],
+      [8, 20],
+      [13, 19],
+    ] as const;
+    const facelets = Array.from({ length: 24 }, () => -1);
+
+    fillFacelets(cornerFacelets, facelets, [0, 1, 2, 3], cubies.cornerOrientation, 6);
+    fillFacelets(edgeFacelets, facelets, cubies.edgePermutation, cubies.edgeOrientation, 6);
+
+    const neighboringStickers = [4, 2, 3, 1, 5, 0] as const;
+    for (let edge = 0; edge < edgeFacelets.length; edge += 1) {
+      for (let direction = 0; direction < 2; direction += 1) {
+        const first = edgeFacelets[edge][direction] as number;
+        const second = edgeFacelets[edge][direction ^ 1] as number;
+        const firstFaceOffset = Math.floor(first / 6) * 6;
+        const secondFaceOffset = Math.floor(second / 6) * 6;
+        const firstNeighbor =
+          firstFaceOffset +
+          neighboringStickers[
+            (neighboringStickers.indexOf((first % 6) as (typeof neighboringStickers)[number]) + 5) %
+              6
+          ];
+        const secondNeighbor =
+          secondFaceOffset +
+          neighboringStickers[
+            (neighboringStickers.indexOf((second % 6) as (typeof neighboringStickers)[number]) +
+              1) %
+              6
+          ];
+        if (
+          facelets[firstNeighbor] === facelets[first] &&
+          facelets[secondNeighbor] === facelets[second]
+        ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   stateFromScramble(scramble: string): PyraminxSolverState {
     const tables = getTables();
     const tipOrientations = Array.from({ length: 4 }, () => 0);
@@ -540,3 +667,23 @@ export class PyraminxSolver {
     return null;
   }
 }
+
+const fillFacelets = (
+  pieceFacelets: readonly (readonly number[])[],
+  facelets: number[],
+  permutation: readonly number[],
+  orientation: readonly number[],
+  stickersPerFace: number,
+): void => {
+  for (let position = 0; position < pieceFacelets.length; position += 1) {
+    const piece = permutation[position] as number;
+    const pieceOrientation = orientation[position] as number;
+    const targetFacelets = pieceFacelets[position] as readonly number[];
+    const sourceFacelets = pieceFacelets[piece] as readonly number[];
+
+    for (let sticker = 0; sticker < targetFacelets.length; sticker += 1) {
+      const target = targetFacelets[(sticker + pieceOrientation) % targetFacelets.length] as number;
+      facelets[target] = Math.floor((sourceFacelets[sticker] as number) / stickersPerFace);
+    }
+  }
+};

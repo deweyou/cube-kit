@@ -78,4 +78,18 @@ describe('Square-1 full cube coordinate', () => {
       '@cubegin/solver: Square-1 random source returned 3678 for max 3678',
     );
   });
+
+  it('constructs inspectable coordinate states for training generators', () => {
+    const cube = FullCube.fromCoordinates({
+      shapeIndex: 1037,
+      cornerPermutation: [1, 2, 3, 0, 4, 5, 6, 7],
+      edgePermutation: [0, 1, 2, 3, 5, 6, 7, 4],
+      middleLayer: 1,
+    });
+
+    expect(cube.getShapeIndex()).toBe(1037);
+    expect(cube.pieces()).toHaveLength(24);
+    expect(cube.getParity()).toBeTypeOf('number');
+    expect(cube.ml).toBe(1);
+  });
 });

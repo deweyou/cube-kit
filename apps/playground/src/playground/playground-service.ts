@@ -3,6 +3,7 @@ import {
   type GenerateOptions,
   type RandomSource,
   type ScrambleGenerator,
+  type TrainingScrambleResult,
 } from '@cubegin/scramble-core';
 import { renderScrambleImage } from '@cubegin/scramble-image';
 import type { EventId } from '@cubegin/shared/events';
@@ -104,15 +105,19 @@ export const createPlaygroundService = ({
   return {
     async generate(input: PlaygroundGenerateInput): Promise<PlaygroundGenerateResult> {
       const generationStart = now();
-      const results = await generator.generateBatch(input.eventId, input.count, {
+      const results = await generator.generateTypeBatch(input.scrambleTypeId, input.count, {
         multiBlindCubeCount: input.multiBlindCubeCount,
+        ...(input.enabledCaseIds === undefined ? {} : { enabledCaseIds: input.enabledCaseIds }),
+        ...(input.mode === undefined ? {} : { mode: input.mode }),
       });
       const generationEnd = now();
 
       const scrambles = results.flatMap((result, index) =>
         toPlaygroundScrambles({
           eventId: result.eventId,
+          scrambleTypeId: result.scrambleTypeId,
           scramble: result.scramble,
+          caseId: result.caseId,
           index,
         }),
       );
@@ -314,19 +319,25 @@ const countSolutions = (results: readonly { readonly solutions: readonly unknown
 
 const toPlaygroundScrambles = ({
   eventId,
+  scrambleTypeId,
   scramble,
+  caseId,
   index,
 }: {
-  readonly eventId: PlaygroundScramble['eventId'];
-  readonly scramble: string;
+  readonly eventId: TrainingScrambleResult['eventId'];
+  readonly scrambleTypeId: TrainingScrambleResult['scrambleTypeId'];
+  readonly scramble: TrainingScrambleResult['scramble'];
+  readonly caseId: TrainingScrambleResult['caseId'];
   readonly index: number;
 }): PlaygroundScramble[] => {
   if (eventId !== '333mbld') {
     return [
       {
-        id: `${eventId}-${index + 1}`,
+        id: `${scrambleTypeId}-${index + 1}`,
         eventId,
+        scrambleTypeId,
         scramble,
+        ...(caseId === undefined ? {} : { caseId }),
       },
     ];
   }
@@ -336,8 +347,10 @@ const toPlaygroundScrambles = ({
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
     .map((line, cubeIndex) => ({
-      id: `${eventId}-${index + 1}-${cubeIndex + 1}`,
+      id: `${scrambleTypeId}-${index + 1}-${cubeIndex + 1}`,
       eventId,
+      scrambleTypeId,
       scramble: line,
+      ...(caseId === undefined ? {} : { caseId }),
     }));
 };

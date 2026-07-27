@@ -3,6 +3,9 @@
 ```mermaid
 flowchart TD
     Controls["Controls"] --> Service["playground service"]
+    Catalog["official + training catalog"] --> Controls
+    Controls --> Cases["distribution + enabled case ids"]
+    Cases --> Service
     Service --> Core["@cubegin/scramble-core"]
     Service --> Image["@cubegin/scramble-image"]
     Service --> Solver["@cubegin/solver"]
@@ -20,6 +23,14 @@ solver packages without wiring them into production apps.
 - It imports package source through Vite aliases for fast local feedback.
 - It is allowed to run generation on the main thread because it is not a
   production app.
+- The Scrambles tab reads the package-owned `SCRAMBLE_TYPE_CATALOG`, groups all
+  18 official and 94 training ids, and routes batches through `generateTypeBatch`.
+  It displays stable type/case ids while rendering against the returned base
+  event id.
+- Case-backed types expose uniform/natural selection and an optional
+  comma-separated stable-id filter. A single canonical case may only support one
+  unique result; use count `1` when the core unique-batch guard reports exhausted
+  diversity.
 - The Solvers tab calls `@cubegin/solver` through the playground service boundary
   and is for manual auxiliary/full-solver diagnostics, not production timer
   integration.
@@ -59,10 +70,11 @@ pnpm --filter playground build
 - [apps/playground/src/playground/playground-service.ts#L1](../../../apps/playground/src/playground/playground-service.ts#L1) - package adapter.
 - [apps/playground/src/playground/use-playground.ts#L1](../../../apps/playground/src/playground/use-playground.ts#L1) - React state boundary.
 - [apps/playground/src/app.tsx#L1](../../../apps/playground/src/app.tsx#L1) - Scrambles and Solvers tab composition.
+- [packages/scramble-core/src/catalog.ts#L1](../../../packages/scramble-core/src/catalog.ts#L1) - official/training type metadata rendered by the workbench.
 - [packages/solver/src/index.ts#L1](../../../packages/solver/src/index.ts#L1) - auxiliary and full solver APIs used by the Solvers tab.
 - [packages/player/src/react/player.tsx#L1](../../../packages/player/src/react/player.tsx#L1) - Three.js player wrapper used by the Player tab.
 - [docs/apps/playground/diagnostics-and-e2e.md](diagnostics-and-e2e.md) - diagnostics and E2E guidance.
 
 ---
 
-_Last updated: 2026-07-24 | Reason: document Solver state comparisons_
+_Last updated: 2026-07-27 | Reason: document training catalog and Case controls_

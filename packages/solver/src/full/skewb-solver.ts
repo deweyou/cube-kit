@@ -32,6 +32,13 @@ export interface SkewbSolverState {
   readonly twst: number;
 }
 
+export interface SkewbCubieState {
+  readonly centerPermutation: readonly number[];
+  readonly cornerPermutation: readonly number[];
+  readonly fixedCornerOrientation: readonly number[];
+  readonly cornerOrientation: readonly number[];
+}
+
 interface Tables {
   movePerm: readonly Uint16Array[];
   moveTwist: readonly Uint16Array[];
@@ -78,6 +85,32 @@ const unpackCenterPerm = (centerIndex: number): number[] => {
   return centerPerm;
 };
 
+const unpackCornerPerm = (cornerIndex: number): number[] => unpackEvenPermutation(cornerIndex, 4);
+
+const unpackEvenPermutation = (coordinate: number, length: number): number[] => {
+  let remaining = coordinate;
+  let parity = 0;
+  const available = Array.from({ length }, (_, index) => index);
+  const permutation = Array.from({ length }, () => 0);
+
+  for (let position = 0; position < length - 1; position += 1) {
+    const divisor = FACT[length - 1 - position] as number;
+    const selectedIndex = Math.floor(remaining / divisor);
+    remaining -= selectedIndex * divisor;
+    parity ^= selectedIndex;
+    permutation[position] = available.splice(selectedIndex, 1)[0] as number;
+  }
+
+  if ((parity & 1) === 0) {
+    permutation[length - 1] = available[0] as number;
+  } else {
+    permutation[length - 1] = permutation[length - 2] as number;
+    permutation[length - 2] = available[0] as number;
+  }
+
+  return permutation;
+};
+
 const packCenterPerm = (centerPerm: readonly number[]): number => {
   const available = createAvailableCenters();
   let centerIndex = 0;
@@ -90,6 +123,61 @@ const packCenterPerm = (centerPerm: readonly number[]): number => {
   }
 
   return centerIndex;
+};
+
+const packCornerPerm = (cornerPerm: readonly number[]): number => packEvenPermutation(cornerPerm);
+
+const packEvenPermutation = (permutation: readonly number[]): number => {
+  const available = Array.from({ length: permutation.length }, (_, index) => index);
+  let coordinate = 0;
+
+  for (let position = 0; position < permutation.length - 2; position += 1) {
+    const selectedIndex = available.indexOf(permutation[position] as number);
+    coordinate *= permutation.length - position;
+    coordinate += selectedIndex;
+    available.splice(selectedIndex, 1);
+  }
+
+  return coordinate;
+};
+
+const unpackTwist = (
+  twistCoordinate: number,
+): Pick<SkewbCubieState, 'fixedCornerOrientation' | 'cornerOrientation'> => {
+  let remaining = twistCoordinate;
+  const fixedCornerOrientation = Array.from({ length: 4 }, () => 0);
+  const cornerOrientation = Array.from({ length: 4 }, () => 0);
+
+  for (let position = 0; position < 4; position += 1) {
+    fixedCornerOrientation[position] = remaining % 3;
+    remaining = Math.floor(remaining / 3);
+  }
+  for (let position = 0; position < 3; position += 1) {
+    cornerOrientation[position] = remaining % 3;
+    remaining = Math.floor(remaining / 3);
+  }
+  cornerOrientation[3] =
+    (6 -
+      (cornerOrientation[0] as number) -
+      (cornerOrientation[1] as number) -
+      (cornerOrientation[2] as number)) %
+    3;
+
+  return { fixedCornerOrientation, cornerOrientation };
+};
+
+const packTwist = ({
+  fixedCornerOrientation,
+  cornerOrientation,
+}: Pick<SkewbCubieState, 'fixedCornerOrientation' | 'cornerOrientation'>): number => {
+  let coordinate = 0;
+  for (let position = 2; position >= 0; position -= 1) {
+    coordinate = coordinate * 3 + (cornerOrientation[position] as number);
+  }
+  for (let position = 3; position >= 0; position -= 1) {
+    coordinate = coordinate * 3 + (fixedCornerOrientation[position] as number);
+  }
+  return coordinate;
 };
 
 const moveCenterPerm = (centerPerm: number[], move: number): void => {
@@ -289,6 +377,45 @@ const validateState = (state: SkewbSolverState): void => {
   validateCoordinate('twst', state.twst, N_TWIST);
 };
 
+const validateEvenPermutation = (
+  name: string,
+  permutation: readonly number[],
+  length: number,
+): void => {
+  if (
+    permutation.length !== length ||
+    new Set(permutation).size !== length ||
+    permutation.some((piece) => !Number.isSafeInteger(piece) || piece < 0 || piece >= length) ||
+    permutationParity(permutation) !== 0
+  ) {
+    throw new RangeError(`${ERROR_PREFIX}: ${name} must be an even permutation`);
+  }
+};
+
+const validateOrientation = (
+  name: string,
+  orientation: readonly number[],
+  requireZeroSum: boolean,
+): void => {
+  if (
+    orientation.length !== 4 ||
+    orientation.some((value) => !Number.isSafeInteger(value) || value < 0 || value >= 3) ||
+    (requireZeroSum && orientation.reduce((sum, value) => sum + value, 0) % 3 !== 0)
+  ) {
+    throw new RangeError(`${ERROR_PREFIX}: invalid ${name}`);
+  }
+};
+
+const permutationParity = (permutation: readonly number[]): number => {
+  let parity = 0;
+  for (let left = 0; left < permutation.length; left += 1) {
+    for (let right = left + 1; right < permutation.length; right += 1) {
+      if ((permutation[left] as number) > (permutation[right] as number)) parity ^= 1;
+    }
+  }
+  return parity;
+};
+
 const validateLength = (length: number): void => {
   if (!Number.isSafeInteger(length) || length < 0 || length > MAX_SOLUTION_LENGTH) {
     throw new RangeError(
@@ -402,6 +529,68 @@ const formatSolution = (solution: readonly number[], solutionLength: number): st
 };
 
 export class SkewbSolver {
+  stateFromCubies(cubies: SkewbCubieState): SkewbSolverState {
+    validateEvenPermutation('Skewb center permutation', cubies.centerPermutation, 6);
+    validateEvenPermutation('Skewb corner permutation', cubies.cornerPermutation, 4);
+    validateOrientation('Skewb fixed-corner orientation', cubies.fixedCornerOrientation, false);
+    validateOrientation('Skewb corner orientation', cubies.cornerOrientation, true);
+
+    const state = {
+      perm:
+        packCenterPerm(cubies.centerPermutation) * 12 + packCornerPerm(cubies.cornerPermutation),
+      twst: packTwist(cubies),
+    };
+    validateState(state);
+    if (!isSolvable(state)) {
+      throw new RangeError(`${ERROR_PREFIX}: Skewb cubie state is not reachable`);
+    }
+    return state;
+  }
+
+  cubiesFromState(state: SkewbSolverState): SkewbCubieState {
+    validateState(state);
+    return {
+      centerPermutation: unpackCenterPerm(Math.floor(state.perm / 12)),
+      cornerPermutation: unpackCornerPerm(state.perm % 12),
+      ...unpackTwist(state.twst),
+    };
+  }
+
+  isNoBarState(state: SkewbSolverState): boolean {
+    const cubies = this.cubiesFromState(state);
+    const fixedCornerFacelets = [
+      [4, 16, 7],
+      [1, 11, 22],
+      [26, 14, 8],
+      [29, 19, 23],
+    ] as const;
+    const cornerFacelets = [
+      [3, 6, 12],
+      [2, 21, 17],
+      [27, 9, 18],
+      [28, 24, 13],
+    ] as const;
+    const facelets = Array.from({ length: 30 }, () => -1);
+    cubies.centerPermutation.forEach((piece, position) => {
+      facelets[position * 5] = piece;
+    });
+    fillCornerFacelets(fixedCornerFacelets, facelets, [0, 1, 2, 3], cubies.fixedCornerOrientation);
+    fillCornerFacelets(
+      cornerFacelets,
+      facelets,
+      cubies.cornerPermutation,
+      cubies.cornerOrientation,
+    );
+
+    for (let face = 0; face < 6; face += 1) {
+      const offset = face * 5;
+      for (let sticker = 1; sticker < 5; sticker += 1) {
+        if (facelets[offset] === facelets[offset + sticker]) return false;
+      }
+    }
+    return true;
+  }
+
   stateFromScramble(scramble: string): SkewbSolverState {
     const tables = getTables();
     const moveNames = [...SOLUTION_MOVES];
@@ -498,3 +687,20 @@ export class SkewbSolver {
     return null;
   }
 }
+
+const fillCornerFacelets = (
+  pieceFacelets: readonly (readonly number[])[],
+  facelets: number[],
+  permutation: readonly number[],
+  orientation: readonly number[],
+): void => {
+  for (let position = 0; position < pieceFacelets.length; position += 1) {
+    const piece = permutation[position] as number;
+    const pieceOrientation = orientation[position] as number;
+    for (let sticker = 0; sticker < 3; sticker += 1) {
+      const target = pieceFacelets[position][(sticker + pieceOrientation) % 3] as number;
+      const source = pieceFacelets[piece][sticker] as number;
+      facelets[target] = Math.floor(source / 5);
+    }
+  }
+};

@@ -66,7 +66,7 @@ export const solvePuzzleFull = <EventId extends PuzzleFullEventId>(
     case 'clock':
       return createResult(eventId, scramble, solveClock(scramble), 'clock-inverse');
     case 'fto':
-      return createResult(eventId, scramble, solveFto(scramble), 'fto-inverse');
+      return createResult(eventId, scramble, solveFto(scramble), 'fto-three-phase');
     default:
       throw new SolverError(`unsupported full solver event: ${String(eventId)}`);
   }

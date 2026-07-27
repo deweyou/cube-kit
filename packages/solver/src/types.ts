@@ -41,7 +41,7 @@ export type PuzzleFullEngine =
   | 'skewb-coordinate'
   | 'square-one-two-phase'
   | 'clock-inverse'
-  | 'fto-inverse';
+  | 'fto-three-phase';
 
 export interface PuzzleAssistOptions {
   readonly targets?: readonly string[];

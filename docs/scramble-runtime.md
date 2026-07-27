@@ -23,6 +23,10 @@ flowchart TD
     Image --> Shared
     Image --> Puzzle
     Core --> Generators["event generator dispatch"]
+    Core --> Catalog["official + training type catalog"]
+    Catalog --> Training["case/subgroup/state dispatch"]
+    Training --> Solver
+    Training --> Puzzle
     Image --> Renderers["SVG renderer dispatch"]
 ```
 
@@ -44,6 +48,10 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 - `@cubegin/scramble-core` exposes `createDefaultScrambleGenerator` for all 18
   supported events. The web timer calls it behind a Worker client so slow generation
   does not block touch and timer UI.
+- The same facade exposes 94 training ids through `generateType` and
+  `generateTypeBatch`. Training results preserve their stable `scrambleTypeId`
+  while returning a base event id for image and solve-record routing. See
+  [docs/training-scramble-system.md](training-scramble-system.md).
 - `@cubegin/scramble-core` delegates full solver-backed generation to
   `@cubegin/solver`; Clock uses the solver package's linear state solver.
 - `@cubegin/scramble-image` exposes `renderScrambleImage(eventId, scramble)` and
@@ -92,6 +100,8 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 - [apps/web/package.json#L7](../apps/web/package.json#L7) - `prepare:deps` for workspace package exports.
 - [packages/shared/src/events/events.ts#L1](../packages/shared/src/events/events.ts#L1) - canonical supported event list for the packages.
 - [packages/scramble-core/src/generator.ts#L1](../packages/scramble-core/src/generator.ts#L1) - async generator facade and default event dispatch.
+- [packages/scramble-core/src/catalog.ts#L1](../packages/scramble-core/src/catalog.ts#L1) - official and training type metadata.
+- [docs/training-scramble-system.md#L1](training-scramble-system.md#L1) - training state, case, solver, and provenance contract.
 - [packages/solver/src/full/clock-solver.ts#L1](../packages/solver/src/full/clock-solver.ts#L1) - Clock random-state solver used by scramble generation.
 - [packages/scramble-image/src/render.ts#L1](../packages/scramble-image/src/render.ts#L1) - event dispatch for SVG rendering.
 - [docs/packages/scramble-puzzle/index.md#L1](packages/scramble-puzzle/index.md#L1) - puzzle package knowledge.
@@ -103,4 +113,4 @@ The web timer now consumes the TNoodle-compatible scramble packages directly.
 
 ---
 
-_Last updated: 2026-07-07 | Reason: align web scramble runtime docs with the primary TimerPage implementation_
+_Last updated: 2026-07-27 | Reason: add the complete training scramble catalog and solver routing_

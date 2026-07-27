@@ -31,6 +31,11 @@ export interface TwoByTwoState {
   orientation: number;
 }
 
+export interface TwoByTwoCubieState {
+  readonly permutation: readonly number[];
+  readonly orientation: readonly number[];
+}
+
 interface Tables {
   movePerm: readonly Uint16Array[];
   moveOrient: readonly Uint16Array[];
@@ -234,6 +239,31 @@ const validateState = (state: TwoByTwoState): void => {
   validateCoordinate('orientation', state.orientation, N_ORIENT);
 };
 
+const validatePermutation = (permutation: readonly number[]): void => {
+  if (
+    permutation.length !== 7 ||
+    new Set(permutation).size !== 7 ||
+    permutation.some((piece) => !Number.isSafeInteger(piece) || piece < 0 || piece >= 7)
+  ) {
+    throw new RangeError(`${ERROR_PREFIX}: 2x2 cubie permutation must contain 0 through 6 once`);
+  }
+};
+
+const validateOrientation = (orientation: readonly number[]): void => {
+  if (
+    orientation.length !== 7 ||
+    orientation.some(
+      (pieceOrientation) =>
+        !Number.isSafeInteger(pieceOrientation) || pieceOrientation < 0 || pieceOrientation >= 3,
+    ) ||
+    orientation.reduce((sum, pieceOrientation) => sum + pieceOrientation, 0) % 3 !== 0
+  ) {
+    throw new RangeError(
+      `${ERROR_PREFIX}: 2x2 cubie orientation must contain seven values from 0 to 2 with zero twist sum`,
+    );
+  }
+};
+
 const validateLength = (length: number): void => {
   if (!Number.isSafeInteger(length) || length < 0 || length > MAX_LENGTH) {
     throw new RangeError(
@@ -408,6 +438,64 @@ const formatSolution = (solution: readonly number[], length: number, inverse: bo
 };
 
 export class TwoByTwoSolver {
+  stateFromCubies(cubies: TwoByTwoCubieState): TwoByTwoState {
+    validatePermutation(cubies.permutation);
+    validateOrientation(cubies.orientation);
+
+    return {
+      permutation: packPerm(cubies.permutation),
+      orientation: packOrient(cubies.orientation.map((value) => value << 3)),
+    };
+  }
+
+  cubiesFromState(state: TwoByTwoState): TwoByTwoCubieState {
+    validateState(state);
+    const permutation = Array.from({ length: 7 }, () => 0);
+    const packedOrientation = Array.from({ length: 7 }, () => 0);
+    unpackPerm(state.permutation, permutation);
+    unpackOrient(state.orientation, packedOrientation);
+
+    return {
+      permutation,
+      orientation: packedOrientation.map((value) => value >> 3),
+    };
+  }
+
+  isNoBarState(state: TwoByTwoState): boolean {
+    const { permutation, orientation } = this.cubiesFromState(state);
+    const facelets = Array.from({ length: 24 }, (_, index) => Math.floor(index / 4));
+    const cornerFacelets = [
+      [3, 4, 9],
+      [2, 8, 17],
+      [1, 20, 5],
+      [0, 16, 21],
+      [13, 11, 6],
+      [12, 19, 10],
+      [15, 7, 22],
+    ] as const;
+
+    for (let position = 0; position < cornerFacelets.length; position += 1) {
+      const piece = permutation[position] as number;
+      const pieceOrientation = orientation[position] as number;
+      for (let sticker = 0; sticker < 3; sticker += 1) {
+        const target = cornerFacelets[position][(sticker + pieceOrientation) % 3] as number;
+        const source = cornerFacelets[piece][sticker] as number;
+        facelets[target] = Math.floor(source / 4);
+      }
+    }
+
+    for (let face = 0; face < 6; face += 1) {
+      const offset = face * 4;
+      const firstDiagonal =
+        (1 << (facelets[offset] as number)) | (1 << (facelets[offset + 3] as number));
+      const secondDiagonal =
+        (1 << (facelets[offset + 1] as number)) | (1 << (facelets[offset + 2] as number));
+      if ((firstDiagonal & secondDiagonal) !== 0) return false;
+    }
+
+    return true;
+  }
+
   stateFromScramble(scramble: string): TwoByTwoState {
     const tables = getTables();
     let permutation = 0;

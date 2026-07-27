@@ -1,3 +1,4 @@
+import { createCubeDefinition } from '@cubegin/scramble-puzzle';
 import { describe, expect, it } from 'vitest';
 import {
   NoSolverSolutionError,
@@ -11,6 +12,118 @@ import {
 } from '../index.js';
 
 describe('solvePuzzleFull', () => {
+  it('round-trips 2x2 cubie states and evaluates the no-bar predicate', () => {
+    const solver = new TwoByTwoSolver();
+    const cubies = {
+      permutation: [1, 2, 0, 3, 4, 5, 6],
+      orientation: [1, 2, 0, 0, 0, 0, 0],
+    };
+
+    expect(solver.cubiesFromState(solver.stateFromCubies(cubies))).toEqual(cubies);
+    expect(solver.isNoBarState(solver.stateFromScramble("R U R' F2"))).toBeTypeOf('boolean');
+  });
+
+  it('evaluates 2x2 no-bar states against the independent sticker model', () => {
+    const solver = new TwoByTwoSolver();
+    const cube = createCubeDefinition(2, ['222']);
+    const faces = ['U', 'R', 'F'] as const;
+    const suffixes = ['', '2', "'"] as const;
+    let seed = 0x222;
+
+    for (let sample = 0; sample < 200; sample += 1) {
+      const moves: string[] = [];
+      let previousFace = -1;
+      for (let index = 0; index < 11; index += 1) {
+        seed = (Math.imul(seed, 1_664_525) + 1_013_904_223) >>> 0;
+        const face = (seed + previousFace + 1) % faces.length;
+        previousFace = face;
+        seed = (Math.imul(seed, 1_664_525) + 1_013_904_223) >>> 0;
+        moves.push(`${faces[face]}${suffixes[seed % suffixes.length]}`);
+      }
+
+      const scramble = moves.join(' ');
+      const stickerState = cube.applyAlgorithm(cube.createSolvedState(), scramble);
+      const isVisuallyBarFree = stickerState.image.every((face) => {
+        const [topLeft, topRight, bottomLeft, bottomRight] = face.flat();
+        return (
+          topLeft !== topRight &&
+          topLeft !== bottomLeft &&
+          topRight !== bottomRight &&
+          bottomLeft !== bottomRight
+        );
+      });
+
+      expect(solver.isNoBarState(solver.stateFromScramble(scramble)), scramble).toBe(
+        isVisuallyBarFree,
+      );
+    }
+
+    const diagonalOnlyRegression = "U' R' F R' U' F R' U2 F U R2";
+    const regressionState = cube.applyAlgorithm(cube.createSolvedState(), diagonalOnlyRegression);
+    const isRegressionBarFree = regressionState.image.every((face) => {
+      const [topLeft, topRight, bottomLeft, bottomRight] = face.flat();
+      return (
+        topLeft !== topRight &&
+        topLeft !== bottomLeft &&
+        topRight !== bottomRight &&
+        bottomLeft !== bottomRight
+      );
+    });
+    expect(
+      solver.isNoBarState(solver.stateFromScramble(diagonalOnlyRegression)),
+      diagonalOnlyRegression,
+    ).toBe(isRegressionBarFree);
+  });
+
+  it('generates the exact sampled 2x2 state used by no-bar training', () => {
+    const solver = new TwoByTwoSolver();
+    let seed = 0x222;
+    const random = {
+      nextInt(maxExclusive: number) {
+        seed = (Math.imul(seed, 1_664_525) + 1_013_904_223) >>> 0;
+        return seed % maxExclusive;
+      },
+    };
+    let checked = 0;
+
+    for (let attempt = 0; attempt < 10_000 && checked < 30; attempt += 1) {
+      const target = solver.randomState(random);
+      if (!solver.isNoBarState(target)) continue;
+
+      const scramble = solver.generateExactly(target, 11);
+      expect(solver.stateFromScramble(scramble), scramble).toEqual(target);
+      checked += 1;
+    }
+
+    expect(checked).toBe(30);
+  }, 120_000);
+
+  it('round-trips Pyraminx cubie states and evaluates the no-bar predicate', () => {
+    const solver = new PyraminxSolver();
+    const cubies = {
+      edgePermutation: [1, 2, 0, 3, 4, 5],
+      edgeOrientation: [1, 1, 0, 0, 0, 0],
+      cornerOrientation: [1, 0, 2, 0],
+      tipOrientation: [2, 0, 1, 0],
+    };
+
+    expect(solver.cubiesFromState(solver.stateFromCubies(cubies))).toEqual(cubies);
+    expect(solver.isNoBarState(solver.stateFromScramble("U L R' B"))).toBeTypeOf('boolean');
+  });
+
+  it('round-trips Skewb cubie states and evaluates the no-bar predicate', () => {
+    const solver = new SkewbSolver();
+    const cubies = {
+      centerPermutation: [1, 2, 0, 3, 4, 5],
+      cornerPermutation: [0, 1, 2, 3],
+      fixedCornerOrientation: [1, 2, 0, 0],
+      cornerOrientation: [1, 2, 0, 0],
+    };
+
+    expect(solver.cubiesFromState(solver.stateFromCubies(cubies))).toEqual(cubies);
+    expect(solver.isNoBarState(solver.stateFromScramble("R U' B L"))).toBeTypeOf('boolean');
+  });
+
   it('solves a 3x3 scramble through the full solver facade', () => {
     const result = solvePuzzleFull('333', "R U R' U'");
 
@@ -71,8 +184,8 @@ describe('solvePuzzleFull', () => {
     const restored = new FtoSolver().stateFromScramble(`${result.scramble} ${result.solution}`);
 
     expect(result.eventId).toBe('fto');
-    expect(result.engine).toBe('fto-inverse');
-    expect(result.solution).toBe("BR U BR' BL' R' L' B' F' D' U'");
+    expect(result.engine).toBe('fto-three-phase');
+    expect(result.solution.length).toBeGreaterThan(0);
     expect(restored).toEqual(new FtoSolver().stateFromScramble(''));
   });
 

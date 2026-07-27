@@ -58,9 +58,12 @@ export {
 export {
   applyFtoMove,
   areFtoStatesEqual,
+  createFtoCubieFromState,
   createSolvedFtoState,
+  createFtoStateFromCubie,
   getFtoMoveSourceByTarget,
 } from './fto/fto-state.js';
+export { createFtoCubieFromFacelets, FtoCubie, FTO_MOVE_CUBIES } from './fto/fto-cubie.js';
 export {
   applySquareOneMove,
   areSquareOneStatesEqual,
@@ -134,7 +137,14 @@ export type {
   SquareOneState,
   SquareOneSuccessor,
 } from './square1/square1-state.js';
-export type { CubeFace, CubeLayerMove, CubeMove, CubeRotationMove } from './cube/cube-move.js';
+export type {
+  CubeFace,
+  CubeLayerMove,
+  CubeMove,
+  CubeRotationMove,
+  CubeSlice,
+  CubeSliceMove,
+} from './cube/cube-move.js';
 export type { CubeFacelet, CubeFaceState, CubeImage, CubeState } from './cube/cube-state.js';
 export { createPuzzleRegistry } from './registry.js';
 export type { AnyPuzzleDefinition, PuzzleRegistry } from './registry.js';

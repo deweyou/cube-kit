@@ -71,6 +71,130 @@ describe('createScrambleGenerator', () => {
     });
   });
 
+  it('preserves event generation while exposing typed training generation', async () => {
+    const generator = createScrambleGenerator({
+      random: deterministicRandom,
+      generators: {
+        333() {
+          return { eventId: '333', scramble: 'official' };
+        },
+      },
+      trainingGenerators: {
+        '333.pll'({ random, enabledCaseIds, mode }) {
+          return {
+            scrambleTypeId: '333.pll',
+            eventId: '333',
+            scramble: `training-${random.nextInt(10)}-${mode}`,
+            caseId: enabledCaseIds?.[0],
+          };
+        },
+      },
+    });
+
+    await expect(generator.generate('333')).resolves.toEqual({
+      eventId: '333',
+      scramble: 'official',
+    });
+    await expect(
+      generator.generateType('333.pll', {
+        enabledCaseIds: ['pll.aa'],
+        mode: 'uniform',
+      }),
+    ).resolves.toEqual({
+      scrambleTypeId: '333.pll',
+      eventId: '333',
+      scramble: 'training-9-uniform',
+      caseId: 'pll.aa',
+    });
+  });
+
+  it('routes official ids through generateType without changing generate output', async () => {
+    const generator = createScrambleGenerator({
+      random: deterministicRandom,
+      generators: {
+        333() {
+          return { eventId: '333', scramble: 'official' };
+        },
+      },
+      trainingGenerators: {},
+    });
+
+    await expect(generator.generateType('333')).resolves.toEqual({
+      scrambleTypeId: '333',
+      eventId: '333',
+      scramble: 'official',
+    });
+  });
+
+  it('transforms supported training scrambles and returns the resolved orientation', async () => {
+    const generator = createScrambleGenerator({
+      random: deterministicRandom,
+      generators: {},
+      trainingGenerators: {
+        '333.pll'() {
+          return {
+            scrambleTypeId: '333.pll',
+            eventId: '333',
+            scramble: "R U F'",
+            caseId: '333.pll.aa',
+          };
+        },
+      },
+    });
+
+    await expect(
+      generator.generateType('333.pll', {
+        orientation: { bottomColor: 'white', frontColor: 'green' },
+      }),
+    ).resolves.toEqual({
+      scrambleTypeId: '333.pll',
+      eventId: '333',
+      scramble: "L D F'",
+      caseId: '333.pll.aa',
+      orientation: { bottomColor: 'white', frontColor: 'green' },
+    });
+  });
+
+  it('rejects orientations for official and unsupported training types', async () => {
+    const generator = createScrambleGenerator({
+      random: deterministicRandom,
+      generators: {
+        333() {
+          return { eventId: '333', scramble: 'R U' };
+        },
+      },
+      trainingGenerators: {
+        '222.no_bar'() {
+          return {
+            scrambleTypeId: '222.no_bar',
+            eventId: '222',
+            scramble: 'R U',
+          };
+        },
+      },
+    });
+    const orientation = { bottomColor: 'yellow' } as const;
+
+    await expect(generator.generateType('333', { orientation })).rejects.toThrow(
+      "scramble type '333' does not support training orientation",
+    );
+    await expect(generator.generateType('222.no_bar', { orientation })).rejects.toThrow(
+      "scramble type '222.no_bar' does not support training orientation",
+    );
+  });
+
+  it('reports missing training generators at the training boundary', async () => {
+    const generator = createScrambleGenerator({
+      random: deterministicRandom,
+      generators: {},
+      trainingGenerators: {},
+    });
+
+    await expect(generator.generateType('333.pll')).rejects.toThrow(
+      "@cubegin/scramble-core: scramble type '333.pll' has no generator",
+    );
+  });
+
   it('returns unique batch scramble strings and retries duplicates', async () => {
     let calls = 0;
     const generator = createScrambleGenerator({

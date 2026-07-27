@@ -7,6 +7,8 @@ flowchart TD
     Parsers --> States["State transitions"]
     States --> Core["@cubegin/scramble-core"]
     States --> Image["@cubegin/scramble-image"]
+    States --> Cubies["FTO state / cubie boundary"]
+    Cubies --> Solver["@cubegin/solver"]
 ```
 
 `@cubegin/scramble-puzzle` is the shared puzzle-domain layer for the new
@@ -24,6 +26,9 @@ application, and registry helpers. Event metadata lives in
   `applyAlgorithm`, `createSolvedState`, and `isSolved`.
 - State objects should be immutable at creation boundaries where the existing
   implementation already freezes them.
+- FTO exposes validated `FtoState`/`FtoCubie` conversion for solver ownership.
+  The conversion rejects invalid color counts, corner orientation, and
+  corner/edge parity instead of passing malformed coordinates downstream.
 
 ## Verify
 
@@ -39,9 +44,10 @@ pnpm --filter @cubegin/scramble-puzzle typecheck
 - [packages/scramble-puzzle/src/events.ts#L1](../../../packages/scramble-puzzle/src/events.ts#L1) - re-export of shared event metadata.
 - [packages/shared/src/events/events.ts#L1](../../../packages/shared/src/events/events.ts#L1) - canonical event metadata.
 - [packages/scramble-puzzle/src/puzzle-definition.ts#L1](../../../packages/scramble-puzzle/src/puzzle-definition.ts#L1) - shared puzzle interface.
+- [packages/scramble-puzzle/src/fto/fto-cubie.ts#L1](../../../packages/scramble-puzzle/src/fto/fto-cubie.ts#L1) - FTO cubies, legal-state decoding, and move tables.
 - [docs/packages/scramble-puzzle/wca-notation-and-state.md](wca-notation-and-state.md) - notation and state invariants.
 - [docs/packages/scramble-puzzle/test-coverage.md](test-coverage.md) - coverage policy and remaining gaps.
 
 ---
 
-_Last updated: 2026-06-30 | Reason: event metadata renamed and FTO puzzle added_
+_Last updated: 2026-07-27 | Reason: document the validated FTO solver state boundary_

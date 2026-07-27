@@ -1,5 +1,5 @@
 import { InvalidMoveError } from '../errors.js';
-import type { CubeFace, CubeMove } from './cube-move.js';
+import type { CubeFace, CubeMove, CubeSlice } from './cube-move.js';
 
 const CUBE_FACES = ['R', 'U', 'F', 'L', 'D', 'B'] as const;
 
@@ -21,6 +21,9 @@ const isCubeFace = (face: unknown): face is CubeFace =>
 
 const isMoveAmount = (amount: unknown): amount is CubeMove['amount'] =>
   amount === 1 || amount === 2 || amount === 3;
+
+const isCubeSlice = (sliceName: unknown): sliceName is CubeSlice =>
+  sliceName === 'M' || sliceName === 'E' || sliceName === 'S';
 
 const oppositeFace = (face: CubeFace): CubeFace =>
   CUBE_FACES[(faceIndex(face) + 3) % CUBE_FACES.length];
@@ -163,6 +166,9 @@ const rotationName = (face: CubeFace): string => {
 };
 
 const moveToString = (move: CubeMove): string => {
+  if (move.slice !== undefined) {
+    return `${move.slice}${moveSuffix(move.amount)}`;
+  }
   if (move.isRotation) {
     return `${rotationName(move.face)}${moveSuffix(move.amount)}`;
   }
@@ -188,6 +194,20 @@ const validateMove = (state: CubeState, move: CubeMove): CubeMove => {
       (move.face !== 'R' && move.face !== 'U' && move.face !== 'F')
     ) {
       throw new InvalidMoveError(MALFORMED_MOVE, 'cube');
+    }
+    return move;
+  }
+
+  if (move.slice !== undefined) {
+    if (
+      !isCubeSlice(move.slice) ||
+      move.width !== 1 ||
+      (move.slice === 'M' && move.face !== 'L') ||
+      (move.slice === 'E' && move.face !== 'D') ||
+      (move.slice === 'S' && move.face !== 'F') ||
+      state.size % 2 === 0
+    ) {
+      throw new InvalidMoveError(moveToString(move), 'cube');
     }
     return move;
   }
@@ -220,6 +240,15 @@ export const applyCubeMove = (state: CubeState, move: CubeMove): CubeState => {
   const validMove = validateMove(state, move);
 
   const nextImage = cloneCubeImage(state.image);
+  if (validMove.slice !== undefined) {
+    const middleSlice = Math.floor(state.size / 2);
+    for (let turn = 0; turn < validMove.amount; turn += 1) {
+      slice(validMove.face, middleSlice, nextImage);
+    }
+
+    return createCubeState(state.size, nextImage);
+  }
+
   const width = validMove.isRotation ? state.size : validMove.width;
 
   for (let turn = 0; turn < validMove.amount; turn += 1) {

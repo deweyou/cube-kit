@@ -39,6 +39,7 @@ export { solvePuzzleFull } from './full/facade.js';
 export { ClockSolver } from './full/clock-solver.js';
 export type { ClockSolverSolution } from './full/clock-solver.js';
 export { FtoSolver } from './full/fto-solver.js';
+export type { FtoSolverInitializationStats } from './full/fto-solver.js';
 export { SearchWCA } from './full/min2phase/search-wca.js';
 export { Search as Min2PhaseSearch } from './full/min2phase/search.js';
 export { randomCube, randomState as randomThreeByThreeState } from './full/min2phase/tools.js';
@@ -48,10 +49,11 @@ export {
   splitAlgorithm as splitMin2PhaseAlgorithm,
 } from './full/min2phase/util.js';
 export { PyraminxSolver } from './full/pyraminx-solver.js';
-export type { PyraminxSolverState } from './full/pyraminx-solver.js';
+export type { PyraminxCubieState, PyraminxSolverState } from './full/pyraminx-solver.js';
 export { SkewbSolver } from './full/skewb-solver.js';
-export type { SkewbSolverState } from './full/skewb-solver.js';
+export type { SkewbCubieState, SkewbSolverState } from './full/skewb-solver.js';
 export { FullCube as SquareOneFullCube } from './full/sq12phase/full-cube.js';
+export type { SquareOneCoordinateState } from './full/sq12phase/full-cube.js';
 export {
   INVERSE_SOLUTION as SQUARE_ONE_INVERSE_SOLUTION,
   Search as SquareOneSearch,
@@ -59,7 +61,33 @@ export {
 } from './full/sq12phase/search.js';
 export { Search as FourByFourThreephaseSearch } from './full/threephase/search.js';
 export { TwoByTwoSolver } from './full/two-by-two-solver.js';
-export type { TwoByTwoState } from './full/two-by-two-solver.js';
+export type { TwoByTwoCubieState, TwoByTwoState } from './full/two-by-two-solver.js';
+export { SubgroupSolver } from './training/subgroup-solver.js';
+export type {
+  SubgroupGenerator,
+  SubgroupSample,
+  SubgroupSampleOptions,
+  SubgroupSolverOptions,
+} from './training/subgroup-solver.js';
+export {
+  createThreeByThreeTrainingState,
+  getThreeByThreeCubieState,
+  getThreeByThreeCubieStateFromScramble,
+  scrambleThreeByThreeState,
+} from './training/three-by-three-state.js';
+export type {
+  ThreeByThreeCubieState,
+  ThreeByThreeStatePart,
+  ThreeByThreeTrainingStateConstraints,
+} from './training/three-by-three-state.js';
+export {
+  createSolvedFourByFourState,
+  getFourByFourStateFromScramble,
+  scrambleFourByFourState,
+} from './training/four-by-four-state.js';
+export type { FourByFourState } from './training/four-by-four-state.js';
+export { MegaminxLsllSolver } from './training/megaminx-lsll-solver.js';
+export type { MegaminxLsllState } from './training/megaminx-lsll-solver.js';
 import { solvePuzzleAssist as solvePuzzleAssistImpl } from './assist/facade.js';
 import { solvePyraminxV as solvePyraminxVImpl } from './assist/pyraminx/v.js';
 import { solveSkewbFace as solveSkewbFaceImpl } from './assist/skewb/face.js';

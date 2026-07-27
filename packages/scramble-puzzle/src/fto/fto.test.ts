@@ -6,7 +6,9 @@ import { parseFtoAlgorithm } from './fto-parser.js';
 import {
   applyFtoMove,
   areFtoStatesEqual,
+  createFtoCubieFromState,
   createSolvedFtoState,
+  createFtoStateFromCubie,
   getFtoMoveSourceByTarget,
 } from './fto-state.js';
 
@@ -51,6 +53,27 @@ describe('parseFtoAlgorithm', () => {
 });
 
 describe('FTO state transitions', () => {
+  it('round-trips legal facelet states through the cubie boundary', () => {
+    const definition = createFtoDefinition();
+    const state = definition.applyAlgorithm(
+      definition.createSolvedState(),
+      "U D F B L R BL BR U' BR'",
+    );
+
+    expect(createFtoStateFromCubie(createFtoCubieFromState(state))).toEqual(state);
+  });
+
+  it('rejects impossible FTO color counts at the cubie boundary', () => {
+    const state = createSolvedFtoState();
+    const malformed = {
+      image: state.image.map((face, faceIndex) =>
+        face.map((color, stickerIndex) => (faceIndex === 0 && stickerIndex === 0 ? 1 : color)),
+      ),
+    };
+
+    expect(() => createFtoCubieFromState(malformed)).toThrow('each face color exactly nine times');
+  });
+
   it('creates immutable solved FTO states', () => {
     const state = createSolvedFtoState();
 

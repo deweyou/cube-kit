@@ -4,6 +4,12 @@ import { EVENT_ICON_SVGS } from '@cubegin/icons/events';
 import { CubeginAnimatedIcon, type CubeginAnimatedIconTrigger } from '@cubegin/icons/react';
 import { getPlayerPuzzleSupport } from '@cubegin/player';
 import { CubeginPlayer } from '@cubegin/player/react';
+import {
+  SCRAMBLE_TYPE_CATALOG,
+  SCRAMBLE_TYPE_IDS,
+  type ScrambleCategoryId,
+  type ScrambleTypeId,
+} from '@cubegin/scramble-core';
 import { EVENT_IDS, EVENT_INFO, type EventId } from '@cubegin/shared/events';
 import type { PuzzleAssistEventId, PuzzleAssistMethod, PuzzleFullEventId } from '@cubegin/solver';
 import { writeScramblesToClipboard } from './playground/copy';
@@ -12,6 +18,48 @@ import type { PlaygroundImageView } from './playground/types';
 import { type PlaygroundService, usePlayground } from './playground/use-playground';
 
 type PlaygroundState = ReturnType<typeof usePlayground>;
+
+const SCRAMBLE_CATEGORY_LABELS = {
+  official: 'Official events',
+  '222': '2x2 training',
+  '333.cfop': '3x3 CFOP and state stages',
+  '333.state': '3x3 piece-state training',
+  '333.roux': '3x3 Roux',
+  '333.mehta': '3x3 Mehta',
+  '333.subset': '3x3 move subsets',
+  '444': '4x4 training',
+  'big-cube': '5x5–7x7 training',
+  minx: 'Megaminx training',
+  pyram: 'Pyraminx training',
+  skewb: 'Skewb training',
+  sq1: 'Square-1 training',
+  fto: 'FTO training',
+} satisfies Record<ScrambleCategoryId, string>;
+
+const SCRAMBLE_CATEGORY_IDS = [
+  'official',
+  '222',
+  '333.cfop',
+  '333.state',
+  '333.roux',
+  '333.mehta',
+  '333.subset',
+  '444',
+  'big-cube',
+  'minx',
+  'pyram',
+  'skewb',
+  'sq1',
+  'fto',
+] as const satisfies readonly ScrambleCategoryId[];
+
+const SCRAMBLE_TYPE_GROUPS = SCRAMBLE_CATEGORY_IDS.map((categoryId) => ({
+  categoryId,
+  label: SCRAMBLE_CATEGORY_LABELS[categoryId],
+  scrambleTypeIds: SCRAMBLE_TYPE_IDS.filter(
+    (scrambleTypeId) => SCRAMBLE_TYPE_CATALOG[scrambleTypeId].categoryId === categoryId,
+  ),
+}));
 
 const ICON_PREVIEW_SIZES = [24, 64, 100, 128, 160] as const;
 type IconPreviewSize = (typeof ICON_PREVIEW_SIZES)[number];
@@ -626,22 +674,36 @@ const ScramblePage = ({
       id="scramble-panel"
       role="tabpanel"
     >
-      <aside className="panel controls-panel" aria-label="Controls">
+      <aside
+        aria-busy={playground.isGenerating}
+        className="panel controls-panel"
+        aria-label="Controls"
+      >
         <div className="panel-heading">
           <p className="eyebrow">Controls</p>
           <h2>Generate</h2>
         </div>
 
         <label className="field">
-          <span>Event</span>
+          <span>Scramble type</span>
           <select
-            value={playground.eventId}
-            onChange={(event) => playground.setEventId(event.currentTarget.value as EventId)}
+            value={playground.scrambleTypeId}
+            onChange={(event) =>
+              playground.setScrambleTypeId(event.currentTarget.value as ScrambleTypeId)
+            }
           >
-            {EVENT_IDS.map((eventId) => (
-              <option key={eventId} value={eventId}>
-                {eventId} - {EVENT_INFO[eventId].label}
-              </option>
+            {SCRAMBLE_TYPE_GROUPS.map((group) => (
+              <optgroup key={group.categoryId} label={group.label}>
+                {group.scrambleTypeIds.map((scrambleTypeId) => {
+                  const definition = SCRAMBLE_TYPE_CATALOG[scrambleTypeId];
+
+                  return (
+                    <option key={scrambleTypeId} value={scrambleTypeId}>
+                      {scrambleTypeId} · {EVENT_INFO[definition.baseEventId].label}
+                    </option>
+                  );
+                })}
+              </optgroup>
             ))}
           </select>
         </label>
@@ -676,8 +738,57 @@ const ScramblePage = ({
           </label>
         ) : null}
 
-        <button className="primary-action" type="button" onClick={() => void playground.generate()}>
-          Generate
+        {playground.scrambleTypeDefinition.caseSetId === undefined ? null : (
+          <>
+            <label className="field">
+              <span>Distribution</span>
+              <select
+                value={playground.caseSelectionMode}
+                onChange={(event) =>
+                  playground.setCaseSelectionMode(
+                    event.currentTarget.value as 'uniform' | 'natural',
+                  )
+                }
+              >
+                <option value="uniform">Uniform</option>
+                <option value="natural">Natural</option>
+              </select>
+            </label>
+
+            <div className="field">
+              <label htmlFor="enabled-case-ids">Enabled case IDs</label>
+              <input
+                aria-describedby="case-filter-hint"
+                id="enabled-case-ids"
+                placeholder="Optional, comma separated"
+                value={playground.enabledCaseIdsText}
+                onChange={(event) => playground.setEnabledCaseIdsText(event.currentTarget.value)}
+              />
+              <small className="field-hint" id="case-filter-hint">
+                Case set: {playground.scrambleTypeDefinition.caseSetId}. Use count 1 when a
+                canonical case exhausts unique batch generation.
+              </small>
+            </div>
+          </>
+        )}
+
+        <Diagnostics
+          title="Type metadata"
+          values={[
+            ['Base event', `${playground.eventId} · ${EVENT_INFO[playground.eventId].label}`],
+            ['Kind', playground.scrambleTypeDefinition.kind],
+            ['Generator', playground.scrambleTypeDefinition.generatorKind],
+            ['Puzzle', playground.scrambleTypeDefinition.puzzleId],
+          ]}
+        />
+
+        <button
+          className="primary-action"
+          disabled={playground.isGenerating}
+          type="button"
+          onClick={() => void playground.generate()}
+        >
+          {playground.isGenerating ? 'Generating…' : 'Generate'}
         </button>
 
         <div className="action-stack">
@@ -721,7 +832,13 @@ const ScramblePage = ({
                 onClick={() => playground.selectScramble(scramble)}
               >
                 <span className="scramble-index">{index + 1}</span>
-                <span>{scramble.scramble}</span>
+                <span className="scramble-copy">
+                  <span>{scramble.scramble}</span>
+                  <span className="scramble-meta">
+                    {scramble.scrambleTypeId}
+                    {scramble.caseId === undefined ? '' : ` · case ${scramble.caseId}`}
+                  </span>
+                </span>
               </button>
             </li>
           ))}

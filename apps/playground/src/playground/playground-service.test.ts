@@ -31,7 +31,7 @@ describe('createPlaygroundService', () => {
     });
 
     const result = await service.generate({
-      eventId: '333',
+      scrambleTypeId: '333',
       count: 2,
       multiBlindCubeCount: 3,
       imageView: 'net',
@@ -55,7 +55,7 @@ describe('createPlaygroundService', () => {
     });
 
     const result = await service.generate({
-      eventId: '333mbld',
+      scrambleTypeId: '333mbld',
       count: 2,
       multiBlindCubeCount: 3,
       imageView: 'net',
@@ -66,6 +66,62 @@ describe('createPlaygroundService', () => {
     expect(result.selectedScramble?.id).toBe('333mbld-1-1');
     expect(result.scrambles.every((scramble) => !scramble.scramble.includes('\n'))).toBe(true);
     expect(result.render.scrambleLength).toBe(result.scrambles[0]?.scramble.length);
+  });
+
+  it('generates training types with case options and preserves stable metadata', async () => {
+    const requests: unknown[] = [];
+    const service = createPlaygroundService({
+      generator: {
+        async generate() {
+          throw new Error('generate should not be called');
+        },
+        async generateBatch() {
+          throw new Error('generateBatch should not be called');
+        },
+        async generateType() {
+          throw new Error('generateType should not be called');
+        },
+        async generateTypeBatch(scrambleTypeId, count, options) {
+          requests.push({ scrambleTypeId, count, options });
+
+          return [
+            {
+              scrambleTypeId,
+              eventId: '333',
+              scramble: "R U R' U'",
+              caseId: '333.pll.aa',
+            },
+          ];
+        },
+      },
+      now: fixedClock([10, 22, 25, 30]),
+    });
+
+    const result = await service.generate({
+      scrambleTypeId: '333.pll',
+      count: 1,
+      multiBlindCubeCount: 3,
+      imageView: 'net',
+      enabledCaseIds: ['333.pll.aa'],
+      mode: 'natural',
+    });
+
+    expect(requests).toEqual([
+      {
+        scrambleTypeId: '333.pll',
+        count: 1,
+        options: {
+          enabledCaseIds: ['333.pll.aa'],
+          mode: 'natural',
+          multiBlindCubeCount: 3,
+        },
+      },
+    ]);
+    expect(result.selectedScramble).toMatchObject({
+      scrambleTypeId: '333.pll',
+      eventId: '333',
+      caseId: '333.pll.aa',
+    });
   });
 
   it('renders manual scramble text without generating a batch', () => {
@@ -116,6 +172,12 @@ describe('createPlaygroundService', () => {
           requestedBatches.push({ eventId, count, options });
 
           return [{ eventId, scramble: "R U R' U'" }];
+        },
+        async generateType() {
+          throw new Error('generateType should not be called');
+        },
+        async generateTypeBatch() {
+          throw new Error('generateTypeBatch should not be called');
         },
       },
     });
@@ -243,13 +305,13 @@ describe('createPlaygroundService', () => {
     });
 
     const net = await netService.generate({
-      eventId: '333',
+      scrambleTypeId: '333',
       count: 1,
       multiBlindCubeCount: 3,
       imageView: 'net',
     });
     const isometric = await isometricService.generate({
-      eventId: '333',
+      scrambleTypeId: '333',
       count: 1,
       multiBlindCubeCount: 3,
       imageView: 'isometric',
@@ -281,5 +343,14 @@ const fakeGenerator = (results: readonly ScrambleResult[]): ScrambleGenerator =>
   },
   async generateBatch() {
     return results;
+  },
+  async generateType(scrambleTypeId) {
+    const [firstResult] = results;
+    if (!firstResult) throw new Error('No fake scramble result configured');
+
+    return { ...firstResult, scrambleTypeId };
+  },
+  async generateTypeBatch(scrambleTypeId) {
+    return results.map((result) => ({ ...result, scrambleTypeId }));
   },
 });

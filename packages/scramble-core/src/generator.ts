@@ -19,6 +19,55 @@ import {
 } from './generators/three-by-three.js';
 import { generateTwoByTwoScramble } from './generators/two-by-two.js';
 import type { RandomSource } from './random-source.js';
+import type { CaseSelectionOptions } from './case-selection.js';
+import {
+  getScrambleTypeDefinition,
+  TRAINING_SCRAMBLE_TYPE_IDS,
+  type ScrambleTypeId,
+  type TrainingScrambleTypeId,
+} from './catalog.js';
+import {
+  generateThreeByThreeTrainingScramble,
+  type ThreeByThreeTrainingScrambleTypeId,
+} from './generators/training-three-by-three.js';
+import {
+  generateTwoByTwoTrainingScramble,
+  type TwoByTwoTrainingScrambleTypeId,
+} from './generators/training-two-by-two.js';
+import {
+  generatePyraminxTrainingScramble,
+  type PyraminxTrainingScrambleTypeId,
+} from './generators/training-pyraminx.js';
+import {
+  generateSkewbTrainingScramble,
+  type SkewbTrainingScrambleTypeId,
+} from './generators/training-skewb.js';
+import {
+  generateSquareOneTrainingScramble,
+  type SquareOneTrainingScrambleTypeId,
+} from './generators/training-square-one.js';
+import {
+  generateFourByFourTrainingScramble,
+  type FourByFourTrainingScrambleTypeId,
+} from './generators/training-four-by-four.js';
+import {
+  generateBigCubeTrainingScramble,
+  type BigCubeTrainingScrambleTypeId,
+} from './generators/training-big-cube.js';
+import {
+  generateMegaminxTrainingScramble,
+  type MegaminxTrainingScrambleTypeId,
+} from './generators/training-megaminx.js';
+import {
+  generateFtoTrainingScramble,
+  type FtoTrainingScrambleTypeId,
+} from './generators/training-fto.js';
+import {
+  resolveTrainingOrientation,
+  transformCubeScrambleForOrientation,
+  type ResolvedTrainingOrientation,
+  type TrainingOrientationPreference,
+} from './training-orientation.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 
@@ -27,18 +76,36 @@ export interface GenerateOptions {
   multiBlindCubeCount?: number;
 }
 
+export interface GenerateTypeOptions extends GenerateOptions, CaseSelectionOptions {
+  orientation?: TrainingOrientationPreference;
+}
+
 export interface ScrambleResult {
   eventId: EventId;
   scramble: string;
+}
+
+export interface TrainingScrambleResult extends ScrambleResult {
+  scrambleTypeId: ScrambleTypeId;
+  caseId?: string;
+  orientation?: ResolvedTrainingOrientation;
 }
 
 export type EventScrambleGenerator = (
   options: GenerateOptions & { random: RandomSource },
 ) => ScrambleResult | Promise<ScrambleResult>;
 
+export type TrainingScrambleGenerator = (
+  options: GenerateTypeOptions & {
+    random: RandomSource;
+    resolvedOrientation?: ResolvedTrainingOrientation;
+  },
+) => TrainingScrambleResult | Promise<TrainingScrambleResult>;
+
 export interface ScrambleGeneratorOptions {
   random: RandomSource;
   generators: Partial<Record<EventId, EventScrambleGenerator>>;
+  trainingGenerators?: Partial<Record<TrainingScrambleTypeId, TrainingScrambleGenerator>>;
 }
 
 export interface DefaultScrambleGeneratorOptions {
@@ -52,11 +119,21 @@ export interface ScrambleGenerator {
     count: number,
     options?: GenerateOptions,
   ): Promise<readonly ScrambleResult[]>;
+  generateType(
+    scrambleTypeId: ScrambleTypeId,
+    options?: GenerateTypeOptions,
+  ): Promise<TrainingScrambleResult>;
+  generateTypeBatch(
+    scrambleTypeId: ScrambleTypeId,
+    count: number,
+    options?: GenerateTypeOptions,
+  ): Promise<readonly TrainingScrambleResult[]>;
 }
 
 export const createScrambleGenerator = ({
   random,
   generators,
+  trainingGenerators = {},
 }: ScrambleGeneratorOptions): ScrambleGenerator => {
   const api: ScrambleGenerator = {
     async generate(eventId, options = {}) {
@@ -67,6 +144,47 @@ export const createScrambleGenerator = ({
     async generateBatch(eventId, count, options = {}) {
       return generateUniqueScrambleBatch(count, () => api.generate(eventId, options));
     },
+    async generateType(scrambleTypeId, options = {}) {
+      const definition = getScrambleTypeDefinition(scrambleTypeId);
+      if (options.orientation !== undefined && definition.orientationTarget === undefined) {
+        throw new Error(
+          `${ERROR_PREFIX}: scramble type '${scrambleTypeId}' does not support training orientation`,
+        );
+      }
+      if (definition.kind === 'official') {
+        const officialResult = await api.generate(definition.baseEventId, options);
+        return { ...officialResult, scrambleTypeId };
+      }
+
+      const generator = trainingGenerators[scrambleTypeId as TrainingScrambleTypeId];
+      if (generator === undefined) {
+        throw new Error(`${ERROR_PREFIX}: scramble type '${scrambleTypeId}' has no generator`);
+      }
+
+      const generationRandom = options.random ?? random;
+      const orientation =
+        options.orientation === undefined
+          ? undefined
+          : resolveTrainingOrientation(options.orientation, generationRandom);
+      const generated = await generator({
+        ...options,
+        random: generationRandom,
+        ...(orientation === undefined ? {} : { resolvedOrientation: orientation }),
+      });
+      if (orientation === undefined) return generated;
+
+      return {
+        ...generated,
+        scramble:
+          definition.puzzleId === 'cube'
+            ? transformCubeScrambleForOrientation(generated.scramble, orientation)
+            : generated.scramble,
+        orientation,
+      };
+    },
+    async generateTypeBatch(scrambleTypeId, count, options = {}) {
+      return generateUniqueScrambleBatch(count, () => api.generateType(scrambleTypeId, options));
+    },
   };
 
   return api;
@@ -75,7 +193,11 @@ export const createScrambleGenerator = ({
 export const createDefaultScrambleGenerator = ({
   random,
 }: DefaultScrambleGeneratorOptions): ScrambleGenerator =>
-  createScrambleGenerator({ random, generators: DEFAULT_GENERATORS });
+  createScrambleGenerator({
+    random,
+    generators: DEFAULT_GENERATORS,
+    trainingGenerators: DEFAULT_TRAINING_GENERATORS,
+  });
 
 const DEFAULT_GENERATORS = {
   333: ({ random }) => result('333', generateThreeByThreeScramble({ random })),
@@ -109,6 +231,102 @@ const DEFAULT_GENERATORS = {
   },
   fto: ({ random }) => result('fto', generateFtoScramble({ random })),
 } satisfies Record<EventId, EventScrambleGenerator>;
+
+const DEFAULT_TRAINING_GENERATORS = Object.fromEntries(
+  TRAINING_SCRAMBLE_TYPE_IDS.flatMap((scrambleTypeId) => {
+    if (scrambleTypeId.startsWith('222.')) {
+      const twoByTwoType = scrambleTypeId as TwoByTwoTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateTwoByTwoTrainingScramble(twoByTwoType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('333.')) {
+      const threeByThreeType = scrambleTypeId as ThreeByThreeTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateThreeByThreeTrainingScramble(threeByThreeType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('pyram.')) {
+      const pyraminxType = scrambleTypeId as PyraminxTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generatePyraminxTrainingScramble(pyraminxType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('skewb.')) {
+      const skewbType = scrambleTypeId as SkewbTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateSkewbTrainingScramble(skewbType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('sq1.')) {
+      const squareOneType = scrambleTypeId as SquareOneTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateSquareOneTrainingScramble(squareOneType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('444.')) {
+      const fourByFourType = scrambleTypeId as FourByFourTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateFourByFourTrainingScramble(fourByFourType, options),
+        ],
+      ];
+    }
+    if (/^(?:555|666|777)\./.test(scrambleTypeId)) {
+      const bigCubeType = scrambleTypeId as BigCubeTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateBigCubeTrainingScramble(bigCubeType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('minx.')) {
+      const megaminxType = scrambleTypeId as MegaminxTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateMegaminxTrainingScramble(megaminxType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('fto.')) {
+      const ftoType = scrambleTypeId as FtoTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateFtoTrainingScramble(ftoType, options),
+        ],
+      ];
+    }
+    return [];
+  }),
+) as Partial<Record<TrainingScrambleTypeId, TrainingScrambleGenerator>>;
 
 const FIVE_BY_FIVE_NO_INSPECTION_ORIENTATION_SEQUENCES = [
   [],
