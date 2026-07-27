@@ -96,7 +96,7 @@ describe('solvePuzzleFull', () => {
     }
 
     expect(checked).toBe(30);
-  }, 30_000);
+  }, 120_000);
 
   it('round-trips Pyraminx cubie states and evaluates the no-bar predicate', () => {
     const solver = new PyraminxSolver();

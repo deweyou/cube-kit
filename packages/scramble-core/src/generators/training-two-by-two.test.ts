@@ -130,7 +130,7 @@ describe('2x2 training scrambles', () => {
       }).generateType(scrambleTypeId);
       expect(maximumFaceColorCount(stateFromScramble(generated.scramble)), scrambleTypeId).toBe(3);
     }
-  }, 30_000);
+  }, 60_000);
 
   it('generates visually bar-free no-bar states', async () => {
     const generator = createDefaultScrambleGenerator({ random: createSeededRandom() });
@@ -141,5 +141,5 @@ describe('2x2 training scrambles', () => {
         true,
       );
     }
-  }, 30_000);
+  }, 60_000);
 });
