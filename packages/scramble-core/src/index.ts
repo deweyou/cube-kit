@@ -45,6 +45,12 @@ export type {
 } from './generators/three-by-three.js';
 export { generateTwoByTwoScramble } from './generators/two-by-two.js';
 export type { TwoByTwoScrambleOptions } from './generators/two-by-two.js';
+export {
+  doesThreeByThreeTrainingStateMatch,
+  generateThreeByThreeTrainingScramble,
+  getThreeByThreeTrainingCaseDefinitions,
+} from './generators/training-three-by-three.js';
+export type { ThreeByThreeTrainingScrambleTypeId } from './generators/training-three-by-three.js';
 export { PyraminxSolver, SkewbSolver, TwoByTwoSolver } from '@cubegin/solver';
 export type { PyraminxSolverState, SkewbSolverState, TwoByTwoState } from '@cubegin/solver';
 export type {

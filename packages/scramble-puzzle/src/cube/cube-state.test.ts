@@ -68,6 +68,15 @@ describe('cube state transitions', () => {
     expect(cube.isSolved(rotated)).toBe(true);
   });
 
+  it('applies middle-slice moves and their inverses on odd cubes', () => {
+    const cube = createCubeDefinition(3, ['333']);
+    const moved = cube.applyAlgorithm(cube.createSolvedState(), "M E2 S'");
+    const restored = cube.applyAlgorithm(moved, "S E2 M'");
+
+    expect(cube.isSolved(moved)).toBe(false);
+    expect(cube.isSolved(restored)).toBe(true);
+  });
+
   it('rotates odd-sized faces with TNoodle integer loop bounds', () => {
     const cube = createCubeDefinition(3, ['333']);
     const moved = cube

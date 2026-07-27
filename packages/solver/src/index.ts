@@ -60,6 +60,24 @@ export {
 export { Search as FourByFourThreephaseSearch } from './full/threephase/search.js';
 export { TwoByTwoSolver } from './full/two-by-two-solver.js';
 export type { TwoByTwoState } from './full/two-by-two-solver.js';
+export { SubgroupSolver } from './training/subgroup-solver.js';
+export type {
+  SubgroupGenerator,
+  SubgroupSample,
+  SubgroupSampleOptions,
+  SubgroupSolverOptions,
+} from './training/subgroup-solver.js';
+export {
+  createThreeByThreeTrainingState,
+  getThreeByThreeCubieState,
+  getThreeByThreeCubieStateFromScramble,
+  scrambleThreeByThreeState,
+} from './training/three-by-three-state.js';
+export type {
+  ThreeByThreeCubieState,
+  ThreeByThreeStatePart,
+  ThreeByThreeTrainingStateConstraints,
+} from './training/three-by-three-state.js';
 import { solvePuzzleAssist as solvePuzzleAssistImpl } from './assist/facade.js';
 import { solvePyraminxV as solvePyraminxVImpl } from './assist/pyraminx/v.js';
 import { solveSkewbFace as solveSkewbFaceImpl } from './assist/skewb/face.js';

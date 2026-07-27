@@ -22,9 +22,14 @@ import type { RandomSource } from './random-source.js';
 import type { CaseSelectionOptions } from './case-selection.js';
 import {
   getScrambleTypeDefinition,
+  TRAINING_SCRAMBLE_TYPE_IDS,
   type ScrambleTypeId,
   type TrainingScrambleTypeId,
 } from './catalog.js';
+import {
+  generateThreeByThreeTrainingScramble,
+  type ThreeByThreeTrainingScrambleTypeId,
+} from './generators/training-three-by-three.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 
@@ -120,7 +125,11 @@ export const createScrambleGenerator = ({
 export const createDefaultScrambleGenerator = ({
   random,
 }: DefaultScrambleGeneratorOptions): ScrambleGenerator =>
-  createScrambleGenerator({ random, generators: DEFAULT_GENERATORS });
+  createScrambleGenerator({
+    random,
+    generators: DEFAULT_GENERATORS,
+    trainingGenerators: DEFAULT_TRAINING_GENERATORS,
+  });
 
 const DEFAULT_GENERATORS = {
   333: ({ random }) => result('333', generateThreeByThreeScramble({ random })),
@@ -154,6 +163,16 @@ const DEFAULT_GENERATORS = {
   },
   fto: ({ random }) => result('fto', generateFtoScramble({ random })),
 } satisfies Record<EventId, EventScrambleGenerator>;
+
+const DEFAULT_TRAINING_GENERATORS = Object.fromEntries(
+  TRAINING_SCRAMBLE_TYPE_IDS.filter((id): id is ThreeByThreeTrainingScrambleTypeId =>
+    id.startsWith('333.'),
+  ).map((scrambleTypeId) => [
+    scrambleTypeId,
+    (options: GenerateTypeOptions & { random: RandomSource }) =>
+      generateThreeByThreeTrainingScramble(scrambleTypeId, options),
+  ]),
+) as Partial<Record<TrainingScrambleTypeId, TrainingScrambleGenerator>>;
 
 const FIVE_BY_FIVE_NO_INSPECTION_ORIENTATION_SEQUENCES = [
   [],

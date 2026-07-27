@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { parseCubeAlgorithm } from './cube-parser.js';
 
 describe('parseCubeAlgorithm', () => {
-  it('parses face, wide, prefixed wide, and rotations', () => {
-    expect(parseCubeAlgorithm("R U2 R' Rw 3Fw2 x y' z")).toEqual([
+  it('parses face, wide, prefixed wide, rotations, and slices', () => {
+    expect(parseCubeAlgorithm("R U2 R' Rw 3Fw2 x y' z M E2 S'")).toEqual([
       { face: 'R', amount: 1, width: 1, isRotation: false },
       { face: 'U', amount: 2, width: 1, isRotation: false },
       { face: 'R', amount: 3, width: 1, isRotation: false },
@@ -27,6 +27,9 @@ describe('parseCubeAlgorithm', () => {
         width: Number.POSITIVE_INFINITY,
         isRotation: true,
       },
+      { face: 'L', amount: 1, width: 1, isRotation: false, slice: 'M' },
+      { face: 'D', amount: 2, width: 1, isRotation: false, slice: 'E' },
+      { face: 'F', amount: 3, width: 1, isRotation: false, slice: 'S' },
     ]);
   });
 
@@ -34,7 +37,6 @@ describe('parseCubeAlgorithm', () => {
     expect(() => parseCubeAlgorithm('R4')).toThrow("move 'R4' is invalid for puzzle 'cube'");
     expect(() => parseCubeAlgorithm('Q')).toThrow("move 'Q' is invalid for puzzle 'cube'");
     expect(() => parseCubeAlgorithm('r')).toThrow("move 'r' is invalid for puzzle 'cube'");
-    expect(() => parseCubeAlgorithm('M')).toThrow("move 'M' is invalid for puzzle 'cube'");
     expect(() => parseCubeAlgorithm('X')).toThrow("move 'X' is invalid for puzzle 'cube'");
   });
 
