@@ -18,6 +18,13 @@ const SQUARE_ONE_TO_FULL_CUBE_POSITION = [
   5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 17, 16, 15, 14, 13, 12, 23, 22, 21, 20, 19, 18,
 ] as const;
 
+export interface SquareOneCoordinateState {
+  readonly shapeIndex: number;
+  readonly cornerPermutation: readonly number[];
+  readonly edgePermutation: readonly number[];
+  readonly middleLayer: 0 | 1;
+}
+
 export class FullCube {
   private permutationScratch = Array.from({ length: 8 }, () => 0);
   private parityScratch = Array.from({ length: 16 }, () => 0);
@@ -56,6 +63,44 @@ export class FullCube {
 
     cube.ml = drawRandomInt(random, 2);
 
+    return cube;
+  }
+
+  static fromCoordinates(state: SquareOneCoordinateState): FullCube {
+    validatePermutation('cornerPermutation', state.cornerPermutation);
+    validatePermutation('edgePermutation', state.edgePermutation);
+    if (state.middleLayer !== 0 && state.middleLayer !== 1) {
+      throw new RangeError(`${ERROR_PREFIX}: Square-1 middleLayer must be 0 or 1`);
+    }
+
+    const { shapeIdx } = getShapeTables();
+    if (
+      !Number.isSafeInteger(state.shapeIndex) ||
+      state.shapeIndex < 0 ||
+      state.shapeIndex >= shapeIdx.length
+    ) {
+      throw new RangeError(
+        `${ERROR_PREFIX}: Square-1 shapeIndex must be an integer from 0 to ${shapeIdx.length - 1}`,
+      );
+    }
+
+    const shape = shapeIdx[state.shapeIndex] as number;
+    const cube = new FullCube();
+    let cornerIndex = 0;
+    let edgeIndex = 0;
+    for (let index = 0; index < 24; index += 1) {
+      if (((shape >> index) & 1) === 0) {
+        cube.setPiece(23 - index, (state.edgePermutation[edgeIndex] as number) << 1);
+        edgeIndex += 1;
+      } else {
+        const corner = ((state.cornerPermutation[cornerIndex] as number) << 1) | 1;
+        cube.setPiece(23 - index, corner);
+        cube.setPiece(22 - index, corner);
+        cornerIndex += 1;
+        index += 1;
+      }
+    }
+    cube.ml = state.middleLayer;
     return cube;
   }
 
@@ -155,6 +200,39 @@ export class FullCube {
     );
   }
 
+  getShapeIndex(): number {
+    return this.getShapeIdx() >> 1;
+  }
+
+  getParity(): number {
+    const pieces = this.parityScratch;
+    let pieceCount = 0;
+    pieces[0] = this.pieceAt(0);
+
+    for (let index = 1; index < 24; index += 1) {
+      const piece = this.pieceAt(index);
+      if (piece !== pieces[pieceCount]) {
+        pieceCount += 1;
+        pieces[pieceCount] = piece;
+      }
+    }
+
+    let parity = 0;
+    for (let first = 0; first < 16; first += 1) {
+      for (let second = first + 1; second < 16; second += 1) {
+        if ((pieces[first] as number) > (pieces[second] as number)) {
+          parity ^= 1;
+        }
+      }
+    }
+
+    return parity;
+  }
+
+  pieces(): readonly number[] {
+    return Array.from({ length: 24 }, (_, index) => this.pieceAt(index));
+  }
+
   getSquare(square: SquareCoordinate = createSquareCoordinate()): SquareCoordinate {
     const pieces = this.permutationScratch;
 
@@ -197,31 +275,6 @@ export class FullCube {
 
     return piece & 0xf;
   }
-
-  private getParity(): number {
-    const pieces = this.parityScratch;
-    let pieceCount = 0;
-    pieces[0] = this.pieceAt(0);
-
-    for (let index = 1; index < 24; index += 1) {
-      const piece = this.pieceAt(index);
-      if (piece !== pieces[pieceCount]) {
-        pieceCount += 1;
-        pieces[pieceCount] = piece;
-      }
-    }
-
-    let parity = 0;
-    for (let first = 0; first < 16; first += 1) {
-      for (let second = first + 1; second < 16; second += 1) {
-        if (pieces[first] > pieces[second]) {
-          parity ^= 1;
-        }
-      }
-    }
-
-    return parity;
-  }
 }
 
 const extractShapeBits = (face: number): number => {
@@ -247,4 +300,14 @@ const drawRandomInt = (random: RandomSource, maxExclusive: number): number => {
   }
 
   return value;
+};
+
+const validatePermutation = (name: string, permutation: readonly number[]): void => {
+  if (
+    permutation.length !== 8 ||
+    new Set(permutation).size !== 8 ||
+    permutation.some((piece) => !Number.isSafeInteger(piece) || piece < 0 || piece >= 8)
+  ) {
+    throw new RangeError(`${ERROR_PREFIX}: Square-1 ${name} must contain 0 through 7 once`);
+  }
 };

@@ -11,6 +11,43 @@ import {
 } from '../index.js';
 
 describe('solvePuzzleFull', () => {
+  it('round-trips 2x2 cubie states and evaluates the no-bar predicate', () => {
+    const solver = new TwoByTwoSolver();
+    const cubies = {
+      permutation: [1, 2, 0, 3, 4, 5, 6],
+      orientation: [1, 2, 0, 0, 0, 0, 0],
+    };
+
+    expect(solver.cubiesFromState(solver.stateFromCubies(cubies))).toEqual(cubies);
+    expect(solver.isNoBarState(solver.stateFromScramble("R U R' F2"))).toBeTypeOf('boolean');
+  });
+
+  it('round-trips Pyraminx cubie states and evaluates the no-bar predicate', () => {
+    const solver = new PyraminxSolver();
+    const cubies = {
+      edgePermutation: [1, 2, 0, 3, 4, 5],
+      edgeOrientation: [1, 1, 0, 0, 0, 0],
+      cornerOrientation: [1, 0, 2, 0],
+      tipOrientation: [2, 0, 1, 0],
+    };
+
+    expect(solver.cubiesFromState(solver.stateFromCubies(cubies))).toEqual(cubies);
+    expect(solver.isNoBarState(solver.stateFromScramble("U L R' B"))).toBeTypeOf('boolean');
+  });
+
+  it('round-trips Skewb cubie states and evaluates the no-bar predicate', () => {
+    const solver = new SkewbSolver();
+    const cubies = {
+      centerPermutation: [1, 2, 0, 3, 4, 5],
+      cornerPermutation: [0, 1, 2, 3],
+      fixedCornerOrientation: [1, 2, 0, 0],
+      cornerOrientation: [1, 2, 0, 0],
+    };
+
+    expect(solver.cubiesFromState(solver.stateFromCubies(cubies))).toEqual(cubies);
+    expect(solver.isNoBarState(solver.stateFromScramble("R U' B L"))).toBeTypeOf('boolean');
+  });
+
   it('solves a 3x3 scramble through the full solver facade', () => {
     const result = solvePuzzleFull('333', "R U R' U'");
 

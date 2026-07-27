@@ -30,6 +30,22 @@ import {
   generateThreeByThreeTrainingScramble,
   type ThreeByThreeTrainingScrambleTypeId,
 } from './generators/training-three-by-three.js';
+import {
+  generateTwoByTwoTrainingScramble,
+  type TwoByTwoTrainingScrambleTypeId,
+} from './generators/training-two-by-two.js';
+import {
+  generatePyraminxTrainingScramble,
+  type PyraminxTrainingScrambleTypeId,
+} from './generators/training-pyraminx.js';
+import {
+  generateSkewbTrainingScramble,
+  type SkewbTrainingScrambleTypeId,
+} from './generators/training-skewb.js';
+import {
+  generateSquareOneTrainingScramble,
+  type SquareOneTrainingScrambleTypeId,
+} from './generators/training-square-one.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 
@@ -165,13 +181,59 @@ const DEFAULT_GENERATORS = {
 } satisfies Record<EventId, EventScrambleGenerator>;
 
 const DEFAULT_TRAINING_GENERATORS = Object.fromEntries(
-  TRAINING_SCRAMBLE_TYPE_IDS.filter((id): id is ThreeByThreeTrainingScrambleTypeId =>
-    id.startsWith('333.'),
-  ).map((scrambleTypeId) => [
-    scrambleTypeId,
-    (options: GenerateTypeOptions & { random: RandomSource }) =>
-      generateThreeByThreeTrainingScramble(scrambleTypeId, options),
-  ]),
+  TRAINING_SCRAMBLE_TYPE_IDS.flatMap((scrambleTypeId) => {
+    if (scrambleTypeId.startsWith('222.')) {
+      const twoByTwoType = scrambleTypeId as TwoByTwoTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateTwoByTwoTrainingScramble(twoByTwoType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('333.')) {
+      const threeByThreeType = scrambleTypeId as ThreeByThreeTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateThreeByThreeTrainingScramble(threeByThreeType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('pyram.')) {
+      const pyraminxType = scrambleTypeId as PyraminxTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generatePyraminxTrainingScramble(pyraminxType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('skewb.')) {
+      const skewbType = scrambleTypeId as SkewbTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateSkewbTrainingScramble(skewbType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('sq1.')) {
+      const squareOneType = scrambleTypeId as SquareOneTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateSquareOneTrainingScramble(squareOneType, options),
+        ],
+      ];
+    }
+    return [];
+  }),
 ) as Partial<Record<TrainingScrambleTypeId, TrainingScrambleGenerator>>;
 
 const FIVE_BY_FIVE_NO_INSPECTION_ORIENTATION_SEQUENCES = [

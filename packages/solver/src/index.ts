@@ -48,10 +48,11 @@ export {
   splitAlgorithm as splitMin2PhaseAlgorithm,
 } from './full/min2phase/util.js';
 export { PyraminxSolver } from './full/pyraminx-solver.js';
-export type { PyraminxSolverState } from './full/pyraminx-solver.js';
+export type { PyraminxCubieState, PyraminxSolverState } from './full/pyraminx-solver.js';
 export { SkewbSolver } from './full/skewb-solver.js';
-export type { SkewbSolverState } from './full/skewb-solver.js';
+export type { SkewbCubieState, SkewbSolverState } from './full/skewb-solver.js';
 export { FullCube as SquareOneFullCube } from './full/sq12phase/full-cube.js';
+export type { SquareOneCoordinateState } from './full/sq12phase/full-cube.js';
 export {
   INVERSE_SOLUTION as SQUARE_ONE_INVERSE_SOLUTION,
   Search as SquareOneSearch,
@@ -59,7 +60,7 @@ export {
 } from './full/sq12phase/search.js';
 export { Search as FourByFourThreephaseSearch } from './full/threephase/search.js';
 export { TwoByTwoSolver } from './full/two-by-two-solver.js';
-export type { TwoByTwoState } from './full/two-by-two-solver.js';
+export type { TwoByTwoCubieState, TwoByTwoState } from './full/two-by-two-solver.js';
 export { SubgroupSolver } from './training/subgroup-solver.js';
 export type {
   SubgroupGenerator,
