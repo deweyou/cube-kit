@@ -27,20 +27,51 @@ describe('scramble type catalog', () => {
     }
   });
 
+  it('limits holding orientation to explicit bottom-layer and complete-face training', () => {
+    const orientedTypes = TRAINING_SCRAMBLE_TYPE_IDS.filter(
+      (id) => getScrambleTypeDefinition(id).orientationTarget !== undefined,
+    );
+
+    expect(orientedTypes).toHaveLength(33);
+    expect(orientedTypes.filter((id) => id.startsWith('222.'))).toHaveLength(9);
+    expect(orientedTypes.filter((id) => id.startsWith('333.'))).toHaveLength(19);
+    expect(orientedTypes.filter((id) => id.startsWith('444.'))).toHaveLength(4);
+    expect(orientedTypes.filter((id) => id.startsWith('skewb.'))).toEqual(['skewb.l2l']);
+
+    for (const unsupportedType of [
+      '222.no_bar',
+      '333.edges_only',
+      '333.subset.ru',
+      '444.edge_pairing',
+      '555.edge_pairing',
+      'skewb.no_bar',
+    ] as const) {
+      expect(getScrambleTypeDefinition(unsupportedType).orientationTarget).toBeUndefined();
+    }
+  });
+
   it.each([
-    ['222.cll', '222', 'cube', '222', 'case-state', '222.cll'],
-    ['333.easy_cross', '333', 'cube', '333.cfop', 'random-state', undefined],
-    ['333.subset.ru', '333', 'cube', '333.subset', 'subgroup', undefined],
-    ['444.poll', '444', 'cube', '444', 'case-state', '444.poll'],
-    ['555.edge_pairing', '555', 'cube', 'big-cube', 'template', undefined],
-    ['minx.lsll', 'minx', 'megaminx', 'minx', 'case-state', 'minx.lsll'],
-    ['pyram.no_bar', 'pyram', 'pyraminx', 'pyram', 'random-state', undefined],
-    ['skewb.l2l', 'skewb', 'skewb', 'skewb', 'case-state', 'skewb.l2l'],
-    ['sq1.csp', 'sq1', 'square1', 'sq1', 'case-state', 'sq1.csp'],
-    ['fto.centers_only', 'fto', 'face-turning-octahedron', 'fto', 'random-state', undefined],
+    ['222.cll', '222', 'cube', '222', 'case-state', '222.cll', 'bottom-layer'],
+    ['333.easy_cross', '333', 'cube', '333.cfop', 'random-state', undefined, 'bottom-layer'],
+    ['333.subset.ru', '333', 'cube', '333.subset', 'subgroup', undefined, undefined],
+    ['444.poll', '444', 'cube', '444', 'case-state', '444.poll', 'bottom-layer'],
+    ['555.edge_pairing', '555', 'cube', 'big-cube', 'template', undefined, undefined],
+    ['minx.lsll', 'minx', 'megaminx', 'minx', 'case-state', 'minx.lsll', undefined],
+    ['pyram.no_bar', 'pyram', 'pyraminx', 'pyram', 'random-state', undefined, undefined],
+    ['skewb.l2l', 'skewb', 'skewb', 'skewb', 'case-state', 'skewb.l2l', 'complete-face'],
+    ['sq1.csp', 'sq1', 'square1', 'sq1', 'case-state', 'sq1.csp', undefined],
+    [
+      'fto.centers_only',
+      'fto',
+      'face-turning-octahedron',
+      'fto',
+      'random-state',
+      undefined,
+      undefined,
+    ],
   ] as const)(
     'describes %s with stable routing metadata',
-    (id, baseEventId, puzzleId, categoryId, generatorKind, caseSetId) => {
+    (id, baseEventId, puzzleId, categoryId, generatorKind, caseSetId, orientationTarget) => {
       expect(getScrambleTypeDefinition(id)).toEqual({
         id,
         baseEventId,
@@ -49,6 +80,7 @@ describe('scramble type catalog', () => {
         kind: id.includes('.subset.') ? 'subset' : 'training',
         generatorKind,
         ...(caseSetId === undefined ? {} : { caseSetId }),
+        ...(orientationTarget === undefined ? {} : { orientationTarget }),
       });
     },
   );

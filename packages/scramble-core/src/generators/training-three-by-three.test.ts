@@ -1,5 +1,6 @@
+import { createCubeDefinition, splitAlgorithm, type CubeState } from '@cubegin/scramble-puzzle';
+import { getThreeByThreeCubieState, getThreeByThreeCubieStateFromScramble } from '@cubegin/solver';
 import { describe, expect, it } from 'vitest';
-import { createCubeDefinition, splitAlgorithm } from '@cubegin/scramble-puzzle';
 import { getScrambleTypeDefinition, TRAINING_SCRAMBLE_TYPE_IDS } from '../catalog.js';
 import { createDefaultScrambleGenerator } from '../generator.js';
 import {
@@ -24,6 +25,9 @@ const createSeededRandom = (seed = 0x333): RandomSource => {
   };
 };
 
+const toUrfdlbFacelets = (state: CubeState): string =>
+  [1, 0, 2, 4, 3, 5].flatMap((faceIndex) => state.image[faceIndex]?.flat() ?? []).join('');
+
 describe('3x3 training scrambles', () => {
   it('covers the complete accepted 3x3 training catalog', () => {
     expect(THREE_BY_THREE_TYPES).toHaveLength(48);
@@ -44,7 +48,12 @@ describe('3x3 training scrambles', () => {
       expect(first.scrambleTypeId).toBe(scrambleTypeId);
       expect(first.eventId).toBe('333');
       expect(first.scramble.trim().length).toBeGreaterThan(2);
-      expect(() => cube.applyAlgorithm(cube.createSolvedState(), first.scramble)).not.toThrow();
+      const stickerState = cube.applyAlgorithm(cube.createSolvedState(), first.scramble);
+      if (splitAlgorithm(first.scramble).every((move) => /^[URFLDB](?:2|')?$/.test(move))) {
+        expect(getThreeByThreeCubieState(toUrfdlbFacelets(stickerState)), scrambleTypeId).toEqual(
+          getThreeByThreeCubieStateFromScramble(first.scramble),
+        );
+      }
       expect(
         doesThreeByThreeTrainingStateMatch(scrambleTypeId, first.scramble),
         scrambleTypeId,
@@ -74,6 +83,34 @@ describe('3x3 training scrambles', () => {
       generator.generateType('333.pll', { enabledCaseIds: ['333.pll.unknown'] }),
     ).rejects.toThrow("@cubegin/scramble-core: unknown case id '333.pll.unknown'");
   });
+
+  it.each([
+    ['white', 'green', 1, 'U'],
+    ['yellow', 'green', 4, 'D'],
+    ['red', 'white', 0, 'R'],
+    ['orange', 'white', 3, 'L'],
+    ['green', 'white', 2, 'F'],
+    ['blue', 'white', 5, 'B'],
+  ] as const)(
+    'moves PLL training onto the requested %s bottom',
+    async (bottomColor, frontColor, targetFace, targetSticker) => {
+      const cube = createCubeDefinition(3, ['333']);
+      const generated = await createDefaultScrambleGenerator({
+        random: createSeededRandom(),
+      }).generateType('333.pll', {
+        orientation: { bottomColor, frontColor },
+      });
+      const state = cube.applyAlgorithm(cube.createSolvedState(), generated.scramble);
+
+      expect(generated.orientation).toEqual({ bottomColor, frontColor });
+      expect(state.image[targetFace]?.flat().every((sticker) => sticker === targetSticker)).toBe(
+        true,
+      );
+      expect(
+        doesThreeByThreeTrainingStateMatch('333.pll', generated.scramble, generated.orientation),
+      ).toBe(true);
+    },
+  );
 
   it.each([
     ['333.subset.ru', /^(?:R|U)(?:2|')?$/],

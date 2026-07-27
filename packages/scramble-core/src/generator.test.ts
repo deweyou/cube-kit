@@ -126,6 +126,63 @@ describe('createScrambleGenerator', () => {
     });
   });
 
+  it('transforms supported training scrambles and returns the resolved orientation', async () => {
+    const generator = createScrambleGenerator({
+      random: deterministicRandom,
+      generators: {},
+      trainingGenerators: {
+        '333.pll'() {
+          return {
+            scrambleTypeId: '333.pll',
+            eventId: '333',
+            scramble: "R U F'",
+            caseId: '333.pll.aa',
+          };
+        },
+      },
+    });
+
+    await expect(
+      generator.generateType('333.pll', {
+        orientation: { bottomColor: 'white', frontColor: 'green' },
+      }),
+    ).resolves.toEqual({
+      scrambleTypeId: '333.pll',
+      eventId: '333',
+      scramble: "L D F'",
+      caseId: '333.pll.aa',
+      orientation: { bottomColor: 'white', frontColor: 'green' },
+    });
+  });
+
+  it('rejects orientations for official and unsupported training types', async () => {
+    const generator = createScrambleGenerator({
+      random: deterministicRandom,
+      generators: {
+        333() {
+          return { eventId: '333', scramble: 'R U' };
+        },
+      },
+      trainingGenerators: {
+        '222.no_bar'() {
+          return {
+            scrambleTypeId: '222.no_bar',
+            eventId: '222',
+            scramble: 'R U',
+          };
+        },
+      },
+    });
+    const orientation = { bottomColor: 'yellow' } as const;
+
+    await expect(generator.generateType('333', { orientation })).rejects.toThrow(
+      "scramble type '333' does not support training orientation",
+    );
+    await expect(generator.generateType('222.no_bar', { orientation })).rejects.toThrow(
+      "scramble type '222.no_bar' does not support training orientation",
+    );
+  });
+
   it('reports missing training generators at the training boundary', async () => {
     const generator = createScrambleGenerator({
       random: deterministicRandom,

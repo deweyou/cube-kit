@@ -3,6 +3,8 @@
 ```mermaid
 flowchart TD
     Seed["?seed=<integer>"] --> Generate["Generate"]
+    Type["ScrambleTypeId"] --> Generate
+    Cases["case mode / ids"] --> Generate
     Generate --> Rows["Scramble rows"]
     Rows --> Preview["SVG preview"]
     Preview --> Diagnostics["duration / chars / bytes"]
@@ -20,6 +22,9 @@ integration failures visible during local testing and future E2E smoke checks.
 - Use `http://127.0.0.1:5173/?seed=42` for deterministic browser checks.
 - E2E should verify the integration chain: UI controls -> `scramble-core` ->
   `scramble-image` -> SVG preview.
+- Training E2E should select a case-backed id, generate count `1` with one
+  enabled stable Case ID, assert the returned type/case metadata, then exercise a
+  constrained non-Case family such as `fto.centers_only`.
 - E2E for image rendering should exercise the `2D` / `3D` switch and assert that
   supported events change SVG shape while fallback families still render.
 - Solver E2E should assert that solving produces both state images, the first
@@ -37,4 +42,4 @@ integration failures visible during local testing and future E2E smoke checks.
 
 ---
 
-_Last updated: 2026-07-24 | Reason: add Solver comparison smoke guidance_
+_Last updated: 2026-07-27 | Reason: add training catalog and Case-filter smoke guidance_

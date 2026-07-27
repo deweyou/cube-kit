@@ -3,6 +3,10 @@ import { selectScrambleCase, type ScrambleCaseDefinition } from '../case-selecti
 import type { TrainingScrambleTypeId } from '../catalog.js';
 import type { GenerateTypeOptions, TrainingScrambleResult } from '../generator.js';
 import type { RandomSource } from '../random-source.js';
+import {
+  restoreCubeScrambleFromOrientation,
+  type ResolvedTrainingOrientation,
+} from '../training-orientation.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 const SCRAMBLE_LENGTH = 11;
@@ -168,8 +172,13 @@ export const getTwoByTwoTrainingCaseDefinitions = (
 export const doesTwoByTwoTrainingStateMatch = (
   scrambleTypeId: TwoByTwoTrainingScrambleTypeId,
   scramble: string,
+  orientation?: ResolvedTrainingOrientation,
 ): boolean => {
-  const state = solver.stateFromScramble(scramble);
+  const canonicalScramble =
+    orientation === undefined
+      ? scramble
+      : restoreCubeScrambleFromOrientation(scramble, orientation);
+  const state = solver.stateFromScramble(canonicalScramble);
   if (scrambleTypeId === '222.no_bar') return solver.isNoBarState(state);
 
   const cubies = solver.cubiesFromState(state);

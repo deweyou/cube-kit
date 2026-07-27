@@ -3,12 +3,16 @@
 ```mermaid
 flowchart TD
     Catalog["112 stable ScrambleTypeId values"] --> Facade["generateType / generateTypeBatch"]
+    Catalog --> OrientationSupport["orientationTarget capability"]
     Facade --> Cases["uniform or natural case selection"]
+    OrientationSupport --> Holding["bottom color + optional front color"]
     Cases --> Constructors["subgroup, template, or constrained state"]
+    Holding --> Constructors
     Constructors --> Solver["@cubegin/solver"]
     Constructors --> Puzzle["@cubegin/scramble-puzzle"]
-    Solver --> Result["scramble + base eventId + optional caseId"]
-    Puzzle --> Verify["parse, apply, and state predicates"]
+    Solver --> Result["scramble + eventId + caseId? + resolved orientation?"]
+    Result --> Verify["independent sticker-level stage checks"]
+    Puzzle --> Verify
 ```
 
 `@cubegin/scramble-core` owns one catalog for 18 official event ids and 94
@@ -19,14 +23,34 @@ render images and record solves with the returned base `eventId`.
 
 - [`SCRAMBLE_TYPE_CATALOG`](../packages/scramble-core/src/catalog.ts#L1) is the
   stable metadata source for `baseEventId`, `puzzleId`, category, generator kind,
-  and optional case-set id.
+  optional case-set id, and optional `orientationTarget`.
 - [`createDefaultScrambleGenerator`](../packages/scramble-core/src/generator.ts#L1)
   exposes `generateType` and unique `generateTypeBatch` without changing the
   existing official-event `generate` API.
 - Case-backed types accept `enabledCaseIds` and `mode: 'uniform' | 'natural'`.
   Empty, duplicate, or unknown filters fail instead of silently widening scope.
+- Orientation-enabled types accept `orientation: { bottomColor, frontColor? }`.
+  The bottom color is required; an omitted front color is sampled from the four
+  adjacent colors and returned in the result as a resolved orientation.
 - All randomness enters through `RandomSource`; generators do not read or mutate
   global random state.
+
+## Holding Orientation
+
+- The catalog exposes orientation only for 33 types with explicit
+  bottom-layer/complete-face meaning: nine 2x2 types, 19 3x3 CFOP-stage types,
+  four 4x4 last-layer types, and `skewb.l2l`.
+- Official events, no-bar practice, arbitrary state/subset practice, and
+  edge-pairing templates reject orientation instead of silently ignoring it.
+- Cube-family output remaps the actual outer, wide, rotation, and slice moves.
+  Matchers accept the resolved orientation and restore the canonical frame before
+  checking the original stage constraint.
+- Skewb L2L builds target states for the requested physical face color. Do not
+  implement it as face-token substitution: TNoodle fixed-corner notation is not
+  a six-face cube move alphabet.
+- The canonical cube scheme is white/yellow, red/orange, and green/blue as
+  opposite pairs. Skewb keeps its renderer scheme while resolving the same six
+  public color names.
 
 | Family                      | Training ids | State strategy                                            |
 | --------------------------- | -----------: | --------------------------------------------------------- |
@@ -45,6 +69,13 @@ render images and record solves with the returned base `eventId`.
 - FTO accepts any legal `FtoState`, validates facelet/cubie parity, caches its
   coordinate tables, and restores the fixed color orientation in
   [`fto-solver.ts`](../packages/solver/src/full/fto-solver.ts#L1).
+- A coordinate matcher is not sufficient evidence for a visual training stage.
+  Skewb L2L must preserve one complete face, 2x2 no-bar must have no adjacent
+  same-color facelets, and 4x4-7x7 edge-pairing templates must preserve solved
+  centers while leaving a non-trivial edge state.
+- Edge-pairing templates use the DCTimer misalignment/trigger/correction flow for
+  each supported size. Matchers apply the generated algorithm through
+  `@cubegin/scramble-puzzle` before accepting the stage.
 - On the 2026-07-27 local Node 24 verification host, FTO table initialization was
   about 181 ms with an estimated 13.1 MB logical table footprint. A long arbitrary
   state solved in about 1.0-1.2 seconds; constrained training states in the focused
@@ -60,8 +91,9 @@ references:
   `2x2x2.js`, `pyraminx.js`, `skewb.js`, `scramble_sq1_new.js`,
   `scramble_444.js`, `mgmlsll.js`, `scramble_fto.js`, and `solver/ftocta.js`.
 - `MeigenChou/DCTimer-Android@fe806bd28953276cea2fe8d2cbd2f227a27d3f2f`:
-  `arrays.xml` plus the 2x2, Skewb, Square-1, Yau/Hoya, POLL, and PPLL
-  implementations used as behavioral and taxonomy cross-checks.
+  `arrays.xml`, `MegaScramble.edgescramble`, and the 2x2, Skewb, Square-1,
+  Yau/Hoya, POLL, and PPLL implementations used as behavioral and taxonomy
+  cross-checks.
 
 Package NOTICE files carry distribution attribution. No runtime dependency on
 either upstream repository is introduced.
@@ -69,9 +101,12 @@ either upstream repository is introduced.
 ## Verification
 
 - [`training-catalog.test.ts`](../packages/scramble-core/src/training-catalog.test.ts#L1)
-  generates a unique two-item batch for every training id.
+  generates a unique two-item batch for every training id and rechecks all 33
+  orientation-enabled types after remapping.
 - Owner-scoped generator tests verify deterministic seeds, parser/apply behavior,
-  state constraints, stable case ids, and filters.
+  state constraints, stable case ids, filters, and independent sticker-level
+  stage signatures. The independent checks intentionally catch coordinate/facelet
+  mapping drift.
 - Solver tests verify coordinate round trips, arbitrary legal FTO states, fixed
   color restoration, cached initialization stats, and invalid-state rejection.
 
@@ -91,4 +126,4 @@ either upstream repository is introduced.
 
 ---
 
-_Last updated: 2026-07-27 | Reason: document the complete auxiliary training scramble catalog and solver boundaries_
+_Last updated: 2026-07-27 | Reason: document user-selectable training holding orientation and its physical-state invariants_

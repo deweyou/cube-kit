@@ -8,6 +8,8 @@ flowchart TD
     Dispatch --> Batch["Unique batch wrapper"]
     Facade --> Catalog["ScrambleType catalog"]
     Catalog --> Training["case / subgroup / constrained-state generators"]
+    Catalog --> Orientation["bottom/front orientation capability"]
+    Orientation --> Training
     Training --> Solver["@cubegin/solver"]
     RandomState --> Puzzle["@cubegin/scramble-puzzle"]
 ```
@@ -25,6 +27,9 @@ coordinate-heavy paths to `@cubegin/solver`.
 - Training metadata is owned by
   [packages/scramble-core/src/catalog.ts#L1](../../../packages/scramble-core/src/catalog.ts#L1);
   apps must not rebuild the id taxonomy.
+- Apps must gate bottom/front controls with `orientationTarget`. The public
+  `orientation` option rotates physical cube output or selects the matching
+  Skewb L2L face and returns the resolved colors.
 - `333mbld` returns one multi-line attempt containing one 3x3 no-inspection
   scramble per cube.
 - Heavy solvers and random-state implementations stay internal to this package.
@@ -43,10 +48,11 @@ pnpm --filter @cubegin/scramble-core typecheck
 
 - [packages/scramble-core/src/generator.ts#L1](../../../packages/scramble-core/src/generator.ts#L1) - facade and event dispatch.
 - [packages/scramble-core/src/batch.ts#L1](../../../packages/scramble-core/src/batch.ts#L1) - unique batch generation.
+- [packages/scramble-core/src/training-orientation.ts#L1](../../../packages/scramble-core/src/training-orientation.ts#L1) - color validation, front resolution, and cube notation remapping.
 - [docs/training-scramble-system.md](../../training-scramble-system.md) - training catalog, state, case, and source contract.
 - [docs/packages/scramble-core/wca-generation-rules.md](wca-generation-rules.md) - WCA rule mapping.
 - [docs/packages/scramble-core/test-coverage.md](test-coverage.md) - coverage policy and residual solver gaps.
 
 ---
 
-_Last updated: 2026-07-27 | Reason: document the complete training scramble facade_
+_Last updated: 2026-07-27 | Reason: add the public training holding-orientation contract_

@@ -1,4 +1,5 @@
 import { EVENT_IDS, EVENT_INFO, type EventId, type PuzzleId } from '@cubegin/shared/events';
+import type { TrainingOrientationTarget } from './training-orientation.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 
@@ -133,18 +134,22 @@ export interface ScrambleTypeDefinition {
   readonly kind: 'official' | 'training' | 'subset';
   readonly generatorKind: ScrambleGeneratorKind;
   readonly caseSetId?: string;
+  readonly orientationTarget?: TrainingOrientationTarget;
 }
 
 type TrainingDefinitionSpec = readonly [
   id: TrainingScrambleTypeId,
   generatorKind: ScrambleGeneratorKind,
   caseSetId?: string,
+  orientationTarget?: TrainingOrientationTarget,
 ];
 
 const CASE_STATE = 'case-state';
 const RANDOM_STATE = 'random-state';
 const SUBGROUP = 'subgroup';
 const TEMPLATE = 'template';
+const BOTTOM_LAYER = 'bottom-layer';
+const COMPLETE_FACE = 'complete-face';
 
 const TRAINING_DEFINITION_GROUPS: readonly {
   baseEventId: EventId;
@@ -157,16 +162,16 @@ const TRAINING_DEFINITION_GROUPS: readonly {
     puzzleId: 'cube',
     categoryId: '222',
     definitions: [
-      ['222.cll', CASE_STATE, '222.cll'],
-      ['222.eg1', CASE_STATE, '222.eg1'],
-      ['222.eg2', CASE_STATE, '222.eg2'],
-      ['222.pbl', CASE_STATE, '222.pbl'],
-      ['222.tcll_plus', CASE_STATE, '222.tcll_plus'],
-      ['222.tcll_minus', CASE_STATE, '222.tcll_minus'],
-      ['222.ls', CASE_STATE, '222.ls'],
+      ['222.cll', CASE_STATE, '222.cll', BOTTOM_LAYER],
+      ['222.eg1', CASE_STATE, '222.eg1', BOTTOM_LAYER],
+      ['222.eg2', CASE_STATE, '222.eg2', BOTTOM_LAYER],
+      ['222.pbl', CASE_STATE, '222.pbl', BOTTOM_LAYER],
+      ['222.tcll_plus', CASE_STATE, '222.tcll_plus', BOTTOM_LAYER],
+      ['222.tcll_minus', CASE_STATE, '222.tcll_minus', BOTTOM_LAYER],
+      ['222.ls', CASE_STATE, '222.ls', BOTTOM_LAYER],
       ['222.no_bar', RANDOM_STATE],
-      ['222.teg1', CASE_STATE, '222.teg1'],
-      ['222.teg2', CASE_STATE, '222.teg2'],
+      ['222.teg1', CASE_STATE, '222.teg1', BOTTOM_LAYER],
+      ['222.teg2', CASE_STATE, '222.teg2', BOTTOM_LAYER],
     ],
   },
   {
@@ -176,25 +181,25 @@ const TRAINING_DEFINITION_GROUPS: readonly {
     definitions: [
       ['333.edges_only', RANDOM_STATE],
       ['333.corners_only', RANDOM_STATE],
-      ['333.ll', RANDOM_STATE],
-      ['333.pll', CASE_STATE, '333.pll'],
-      ['333.oll', CASE_STATE, '333.oll'],
-      ['333.lsll', RANDOM_STATE],
-      ['333.zbll', CASE_STATE, '333.zbll'],
-      ['333.coll', CASE_STATE, '333.coll'],
-      ['333.cll', CASE_STATE, '333.cll'],
-      ['333.ell', CASE_STATE, '333.ell'],
-      ['333.2gll', CASE_STATE, '333.2gll'],
-      ['333.zzll', CASE_STATE, '333.zzll'],
-      ['333.zbls', CASE_STATE, '333.zbls'],
-      ['333.eols', CASE_STATE, '333.eols'],
-      ['333.wvls', CASE_STATE, '333.wvls'],
-      ['333.vls', CASE_STATE, '333.vls'],
-      ['333.f2l', RANDOM_STATE],
-      ['333.easy_cross', RANDOM_STATE],
-      ['333.easy_xcross', RANDOM_STATE],
-      ['333.eoline', RANDOM_STATE],
-      ['333.eo_cross', RANDOM_STATE],
+      ['333.ll', RANDOM_STATE, undefined, BOTTOM_LAYER],
+      ['333.pll', CASE_STATE, '333.pll', BOTTOM_LAYER],
+      ['333.oll', CASE_STATE, '333.oll', BOTTOM_LAYER],
+      ['333.lsll', RANDOM_STATE, undefined, BOTTOM_LAYER],
+      ['333.zbll', CASE_STATE, '333.zbll', BOTTOM_LAYER],
+      ['333.coll', CASE_STATE, '333.coll', BOTTOM_LAYER],
+      ['333.cll', CASE_STATE, '333.cll', BOTTOM_LAYER],
+      ['333.ell', CASE_STATE, '333.ell', BOTTOM_LAYER],
+      ['333.2gll', CASE_STATE, '333.2gll', BOTTOM_LAYER],
+      ['333.zzll', CASE_STATE, '333.zzll', BOTTOM_LAYER],
+      ['333.zbls', CASE_STATE, '333.zbls', BOTTOM_LAYER],
+      ['333.eols', CASE_STATE, '333.eols', BOTTOM_LAYER],
+      ['333.wvls', CASE_STATE, '333.wvls', BOTTOM_LAYER],
+      ['333.vls', CASE_STATE, '333.vls', BOTTOM_LAYER],
+      ['333.f2l', RANDOM_STATE, undefined, BOTTOM_LAYER],
+      ['333.easy_cross', RANDOM_STATE, undefined, BOTTOM_LAYER],
+      ['333.easy_xcross', RANDOM_STATE, undefined, BOTTOM_LAYER],
+      ['333.eoline', RANDOM_STATE, undefined, BOTTOM_LAYER],
+      ['333.eo_cross', RANDOM_STATE, undefined, BOTTOM_LAYER],
     ],
   },
   {
@@ -259,8 +264,8 @@ const TRAINING_DEFINITION_GROUPS: readonly {
     definitions: [
       ['444.edge_pairing', TEMPLATE],
       ['444.subset.rruu', SUBGROUP],
-      ['444.ll', RANDOM_STATE],
-      ['444.ell', RANDOM_STATE],
+      ['444.ll', RANDOM_STATE, undefined, BOTTOM_LAYER],
+      ['444.ell', RANDOM_STATE, undefined, BOTTOM_LAYER],
       ['444.edges_only', RANDOM_STATE],
       ['444.centers_only', RANDOM_STATE],
       ['444.yau.ud_centers', RANDOM_STATE],
@@ -269,8 +274,8 @@ const TRAINING_DEFINITION_GROUPS: readonly {
       ['444.hoya.rl_centers', RANDOM_STATE],
       ['444.hoya.rldx_centers', RANDOM_STATE],
       ['444.hoya.rldx_cross', RANDOM_STATE],
-      ['444.poll', CASE_STATE, '444.poll'],
-      ['444.ppll', CASE_STATE, '444.ppll'],
+      ['444.poll', CASE_STATE, '444.poll', BOTTOM_LAYER],
+      ['444.ppll', CASE_STATE, '444.ppll', BOTTOM_LAYER],
     ],
   },
   {
@@ -318,7 +323,7 @@ const TRAINING_DEFINITION_GROUPS: readonly {
     puzzleId: 'skewb',
     categoryId: 'skewb',
     definitions: [
-      ['skewb.l2l', CASE_STATE, 'skewb.l2l'],
+      ['skewb.l2l', CASE_STATE, 'skewb.l2l', COMPLETE_FACE],
       ['skewb.no_bar', RANDOM_STATE],
     ],
   },
@@ -365,7 +370,7 @@ const officialDefinition = (eventId: EventId): ScrambleTypeDefinition => ({
 
 const trainingDefinitions = (): readonly ScrambleTypeDefinition[] =>
   TRAINING_DEFINITION_GROUPS.flatMap(({ baseEventId, puzzleId, categoryId, definitions }) =>
-    definitions.map(([id, generatorKind, caseSetId]) => ({
+    definitions.map(([id, generatorKind, caseSetId, orientationTarget]) => ({
       id,
       baseEventId,
       puzzleId,
@@ -373,6 +378,7 @@ const trainingDefinitions = (): readonly ScrambleTypeDefinition[] =>
       kind: categoryId === '333.subset' || id === '444.subset.rruu' ? 'subset' : 'training',
       generatorKind,
       ...(caseSetId === undefined ? {} : { caseSetId }),
+      ...(orientationTarget === undefined ? {} : { orientationTarget }),
     })),
   );
 

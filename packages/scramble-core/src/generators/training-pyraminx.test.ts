@@ -1,4 +1,4 @@
-import { parsePyraminxAlgorithm } from '@cubegin/scramble-puzzle';
+import { createPyraminxDefinition, parsePyraminxAlgorithm } from '@cubegin/scramble-puzzle';
 import { describe, expect, it } from 'vitest';
 import { createDefaultScrambleGenerator } from '../generator.js';
 import type { RandomSource } from '../random-source.js';
@@ -46,5 +46,29 @@ describe('Pyraminx training scrambles', () => {
 
     expect(generated.caseId).toBe(selectedCase.id);
     expect(doesPyraminxTrainingStateMatch('pyram.l4e', generated.scramble)).toBe(true);
+  });
+
+  it('scrambles only the four tips in four-tips practice states', async () => {
+    const pyraminx = createPyraminxDefinition();
+    const solved = pyraminx.createSolvedState();
+    const generator = createDefaultScrambleGenerator({ random: createSeededRandom() });
+    const bodyStickerIndexes = [1, 2, 4, 5, 7, 8] as const;
+    const tipStickerIndexes = [0, 3, 6] as const;
+
+    for (let sample = 0; sample < 30; sample += 1) {
+      const generated = await generator.generateType('pyram.four_tips');
+      const state = pyraminx.applyAlgorithm(solved, generated.scramble);
+
+      for (let face = 0; face < state.image.length; face += 1) {
+        for (const sticker of bodyStickerIndexes) {
+          expect(state.image[face]?.[sticker]).toBe(solved.image[face]?.[sticker]);
+        }
+      }
+      expect(
+        state.image.some((face, faceIndex) =>
+          tipStickerIndexes.some((sticker) => face[sticker] !== solved.image[faceIndex]?.[sticker]),
+        ),
+      ).toBe(true);
+    }
   });
 });

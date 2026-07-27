@@ -62,6 +62,12 @@ import {
   generateFtoTrainingScramble,
   type FtoTrainingScrambleTypeId,
 } from './generators/training-fto.js';
+import {
+  resolveTrainingOrientation,
+  transformCubeScrambleForOrientation,
+  type ResolvedTrainingOrientation,
+  type TrainingOrientationPreference,
+} from './training-orientation.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 
@@ -70,7 +76,9 @@ export interface GenerateOptions {
   multiBlindCubeCount?: number;
 }
 
-export interface GenerateTypeOptions extends GenerateOptions, CaseSelectionOptions {}
+export interface GenerateTypeOptions extends GenerateOptions, CaseSelectionOptions {
+  orientation?: TrainingOrientationPreference;
+}
 
 export interface ScrambleResult {
   eventId: EventId;
@@ -80,6 +88,7 @@ export interface ScrambleResult {
 export interface TrainingScrambleResult extends ScrambleResult {
   scrambleTypeId: ScrambleTypeId;
   caseId?: string;
+  orientation?: ResolvedTrainingOrientation;
 }
 
 export type EventScrambleGenerator = (
@@ -87,7 +96,10 @@ export type EventScrambleGenerator = (
 ) => ScrambleResult | Promise<ScrambleResult>;
 
 export type TrainingScrambleGenerator = (
-  options: GenerateTypeOptions & { random: RandomSource },
+  options: GenerateTypeOptions & {
+    random: RandomSource;
+    resolvedOrientation?: ResolvedTrainingOrientation;
+  },
 ) => TrainingScrambleResult | Promise<TrainingScrambleResult>;
 
 export interface ScrambleGeneratorOptions {
@@ -134,6 +146,11 @@ export const createScrambleGenerator = ({
     },
     async generateType(scrambleTypeId, options = {}) {
       const definition = getScrambleTypeDefinition(scrambleTypeId);
+      if (options.orientation !== undefined && definition.orientationTarget === undefined) {
+        throw new Error(
+          `${ERROR_PREFIX}: scramble type '${scrambleTypeId}' does not support training orientation`,
+        );
+      }
       if (definition.kind === 'official') {
         const officialResult = await api.generate(definition.baseEventId, options);
         return { ...officialResult, scrambleTypeId };
@@ -144,7 +161,26 @@ export const createScrambleGenerator = ({
         throw new Error(`${ERROR_PREFIX}: scramble type '${scrambleTypeId}' has no generator`);
       }
 
-      return await generator({ ...options, random: options.random ?? random });
+      const generationRandom = options.random ?? random;
+      const orientation =
+        options.orientation === undefined
+          ? undefined
+          : resolveTrainingOrientation(options.orientation, generationRandom);
+      const generated = await generator({
+        ...options,
+        random: generationRandom,
+        ...(orientation === undefined ? {} : { resolvedOrientation: orientation }),
+      });
+      if (orientation === undefined) return generated;
+
+      return {
+        ...generated,
+        scramble:
+          definition.puzzleId === 'cube'
+            ? transformCubeScrambleForOrientation(generated.scramble, orientation)
+            : generated.scramble,
+        orientation,
+      };
     },
     async generateTypeBatch(scrambleTypeId, count, options = {}) {
       return generateUniqueScrambleBatch(count, () => api.generateType(scrambleTypeId, options));

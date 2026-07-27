@@ -1,5 +1,10 @@
 import { useMemo, useState } from 'react';
 import type { EventId } from '@cubegin/shared/events';
+import {
+  getScrambleTypeDefinition,
+  type CaseSelectionOptions,
+  type ScrambleTypeId,
+} from '@cubegin/scramble-core';
 import type {
   PuzzleAssistEventId,
   PuzzleAssistMethod,
@@ -49,7 +54,15 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     () => service ?? createPlaygroundService({ seed: getBrowserSeed() }),
     [service],
   );
-  const [eventId, setEventId] = useState<EventId>('333');
+  const [scrambleTypeId, setScrambleTypeIdState] = useState<ScrambleTypeId>('333');
+  const scrambleTypeDefinition = useMemo(
+    () => getScrambleTypeDefinition(scrambleTypeId),
+    [scrambleTypeId],
+  );
+  const eventId = scrambleTypeDefinition.baseEventId;
+  const [caseSelectionMode, setCaseSelectionMode] =
+    useState<NonNullable<CaseSelectionOptions['mode']>>('uniform');
+  const [enabledCaseIdsText, setEnabledCaseIdsText] = useState('');
   const [count, setCount] = useState(5);
   const [multiBlindCubeCount, setMultiBlindCubeCount] = useState(3);
   const [imageView, setImageViewState] = useState<PlaygroundImageView>('net');
@@ -62,6 +75,7 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   const [generationResult, setGenerationResult] = useState<PlaygroundGenerateResult>();
   const [manualResult, setManualResult] = useState<PlaygroundManualRenderResult>();
   const [generationError, setGenerationError] = useState<string>();
+  const [isGenerating, setIsGenerating] = useState(false);
   const [activePage, setActivePage] = useState<PlaygroundPage>('scrambles');
   const [solverMode, setSolverModeState] = useState<PlaygroundSolverMode>('assist');
   const [solverEventId, setSolverEventIdState] = useState<PuzzleFullEventId>('333');
@@ -83,15 +97,30 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   const [playerSvg, setPlayerSvg] = useState('');
   const [playerImageError, setPlayerImageError] = useState<string>();
 
+  const setScrambleTypeId = (nextScrambleTypeId: ScrambleTypeId) => {
+    setScrambleTypeIdState(nextScrambleTypeId);
+    setCaseSelectionMode('uniform');
+    setEnabledCaseIdsText('');
+    setGenerationError(undefined);
+  };
+
   const generate = async () => {
     setGenerationError(undefined);
+    setIsGenerating(true);
+    const enabledCaseIds = parseCaseIdText(enabledCaseIdsText);
 
     try {
       const result = await packageService.generate({
-        eventId,
+        scrambleTypeId,
         count,
         multiBlindCubeCount,
         imageView,
+        ...(scrambleTypeDefinition.caseSetId === undefined
+          ? {}
+          : {
+              mode: caseSelectionMode,
+              ...(enabledCaseIds === undefined ? {} : { enabledCaseIds }),
+            }),
       });
 
       setGenerationResult(result);
@@ -102,6 +131,8 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
       setManualScramble(result.selectedScramble?.scramble ?? '');
     } catch (error) {
       setGenerationError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -356,8 +387,14 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
   return {
     activePage,
     setActivePage,
+    scrambleTypeId,
+    setScrambleTypeId,
+    scrambleTypeDefinition,
     eventId,
-    setEventId,
+    caseSelectionMode,
+    setCaseSelectionMode,
+    enabledCaseIdsText,
+    setEnabledCaseIdsText,
     count,
     setCount,
     multiBlindCubeCount,
@@ -375,6 +412,7 @@ export const usePlayground = ({ service }: UsePlaygroundOptions = {}) => {
     generationResult,
     manualResult,
     generationError,
+    isGenerating,
     generate,
     renderManual,
     solverEventId,
@@ -416,6 +454,15 @@ const parseTargetText = (value: string): readonly string[] | undefined => {
     .filter((target) => target.length > 0);
 
   return targets.length > 0 ? targets : undefined;
+};
+
+const parseCaseIdText = (value: string): readonly string[] | undefined => {
+  const caseIds = value
+    .split(',')
+    .map((caseId) => caseId.trim())
+    .filter((caseId) => caseId.length > 0);
+
+  return caseIds.length > 0 ? caseIds : undefined;
 };
 
 const isPuzzleAssistEventId = (eventId: PuzzleFullEventId): eventId is PuzzleAssistEventId =>

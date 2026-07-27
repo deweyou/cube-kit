@@ -1,4 +1,5 @@
 import type { EventId } from '@cubegin/shared/events';
+import type { CaseSelectionOptions, ScrambleTypeId } from '@cubegin/scramble-core';
 import type {
   PuzzleAssistEventId,
   PuzzleAssistMethod,
@@ -13,7 +14,9 @@ export type PlaygroundImageView = ScrambleImageView;
 export interface PlaygroundScramble {
   readonly id: string;
   readonly eventId: EventId;
+  readonly scrambleTypeId: ScrambleTypeId;
   readonly scramble: string;
+  readonly caseId?: string;
 }
 
 export interface PlaygroundGenerationDiagnostics {
@@ -28,10 +31,12 @@ export interface PlaygroundRenderDiagnostics {
 }
 
 export interface PlaygroundGenerateInput {
-  readonly eventId: EventId;
+  readonly scrambleTypeId: ScrambleTypeId;
   readonly count: number;
   readonly multiBlindCubeCount: number;
   readonly imageView: PlaygroundImageView;
+  readonly enabledCaseIds?: readonly string[];
+  readonly mode?: CaseSelectionOptions['mode'];
 }
 
 export interface PlaygroundManualRenderInput {

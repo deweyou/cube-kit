@@ -11,6 +11,10 @@ import {
 import { selectScrambleCase, type ScrambleCaseDefinition } from '../case-selection.js';
 import type { GenerateTypeOptions, TrainingScrambleResult } from '../generator.js';
 import type { RandomSource } from '../random-source.js';
+import {
+  restoreCubeScrambleFromOrientation,
+  type ResolvedTrainingOrientation,
+} from '../training-orientation.js';
 import type { TrainingScrambleTypeId } from '../catalog.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
@@ -465,13 +469,18 @@ export const getThreeByThreeTrainingCaseDefinitions = (
 export const doesThreeByThreeTrainingStateMatch = (
   scrambleTypeId: ThreeByThreeTrainingScrambleTypeId,
   scramble: string,
+  orientation?: ResolvedTrainingOrientation,
 ): boolean => {
+  const canonicalScramble =
+    orientation === undefined
+      ? scramble
+      : restoreCubeScrambleFromOrientation(scramble, orientation);
   if (scrambleTypeId in SUBGROUP_MOVES) {
     const allowedMoves = new Set(expandMoveTokens(SUBGROUP_MOVES[subgroupType(scrambleTypeId)]));
-    return splitAlgorithm(scramble).every((move) => allowedMoves.has(move));
+    return splitAlgorithm(canonicalScramble).every((move) => allowedMoves.has(move));
   }
 
-  const cubies = getThreeByThreeCubieStateFromScramble(scramble);
+  const cubies = getThreeByThreeCubieStateFromScramble(canonicalScramble);
   const constraints = THREE_BY_THREE_CONSTRAINTS[scrambleTypeId];
   if (constraints === undefined) return false;
 

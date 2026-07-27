@@ -2,7 +2,7 @@ import type { EventId } from '@cubegin/shared/events';
 import type { TrainingScrambleTypeId } from '../catalog.js';
 import type { GenerateTypeOptions, TrainingScrambleResult } from '../generator.js';
 import type { RandomSource } from '../random-source.js';
-import { generateEdgePairingTemplate, isEdgePairingTemplate } from './training-four-by-four.js';
+import { generateEdgePairingTemplate, isEdgePairingState } from './training-four-by-four.js';
 
 export type BigCubeTrainingScrambleTypeId = Extract<
   TrainingScrambleTypeId,
@@ -31,4 +31,4 @@ export const generateBigCubeTrainingScramble = (
 export const doesBigCubeTrainingStateMatch = (
   scrambleTypeId: BigCubeTrainingScrambleTypeId,
   scramble: string,
-): boolean => isEdgePairingTemplate(scramble, eventAndSize(scrambleTypeId).size);
+): boolean => isEdgePairingState(scramble, eventAndSize(scrambleTypeId).size);

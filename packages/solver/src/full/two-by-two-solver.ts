@@ -466,12 +466,12 @@ export class TwoByTwoSolver {
     const facelets = Array.from({ length: 24 }, (_, index) => Math.floor(index / 4));
     const cornerFacelets = [
       [3, 4, 9],
-      [1, 20, 5],
       [2, 8, 17],
+      [1, 20, 5],
       [0, 16, 21],
       [13, 11, 6],
-      [15, 7, 22],
       [12, 19, 10],
+      [15, 7, 22],
     ] as const;
 
     for (let position = 0; position < cornerFacelets.length; position += 1) {

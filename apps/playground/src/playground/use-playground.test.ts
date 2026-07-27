@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import type { EventId } from '@cubegin/shared/events';
+import { getScrambleTypeDefinition } from '@cubegin/scramble-core';
 import { describe, expect, it } from 'vitest';
 import type {
   PlaygroundFullSolverInput,
@@ -22,6 +23,42 @@ describe('usePlayground', () => {
     expect(result.current.selectedScramble?.id).toBe('333-1');
     expect(result.current.svg).toBe('<svg>generated-net</svg>');
     expect(result.current.generationError).toBeUndefined();
+  });
+
+  it('routes a selected training type and parsed case options to the service', async () => {
+    let generationInput: PlaygroundGenerateInput | undefined;
+    const service = fakeService();
+    const { result } = renderHook(() =>
+      usePlayground({
+        service: {
+          ...service,
+          async generate(input) {
+            generationInput = input;
+            return await service.generate(input);
+          },
+        },
+      }),
+    );
+
+    act(() => {
+      result.current.setScrambleTypeId('333.pll');
+      result.current.setCaseSelectionMode('natural');
+      result.current.setEnabledCaseIdsText('333.pll.aa, 333.pll.ab');
+    });
+    await act(async () => {
+      await result.current.generate();
+    });
+
+    expect(result.current.eventId).toBe('333');
+    expect(result.current.scrambleTypeDefinition).toEqual(getScrambleTypeDefinition('333.pll'));
+    expect(generationInput).toEqual({
+      scrambleTypeId: '333.pll',
+      count: 5,
+      multiBlindCubeCount: 3,
+      imageView: 'net',
+      enabledCaseIds: ['333.pll.aa', '333.pll.ab'],
+      mode: 'natural',
+    });
   });
 
   it('renders manual text without replacing generated scrambles', async () => {
@@ -154,12 +191,26 @@ describe('usePlayground', () => {
 
 const fakeService = (): PlaygroundService => ({
   async generate(input: PlaygroundGenerateInput) {
+    const definition = getScrambleTypeDefinition(input.scrambleTypeId);
+    const selectedScramble = {
+      id: `${input.scrambleTypeId}-1`,
+      scrambleTypeId: input.scrambleTypeId,
+      eventId: definition.baseEventId,
+      scramble: "R U R' U'",
+      ...(input.enabledCaseIds?.[0] === undefined ? {} : { caseId: input.enabledCaseIds[0] }),
+    };
+
     return {
       scrambles: [
-        { id: '333-1', eventId: '333' as const, scramble: "R U R' U'" },
-        { id: '333-2', eventId: '333' as const, scramble: 'F2 U2' },
+        selectedScramble,
+        {
+          id: `${input.scrambleTypeId}-2`,
+          scrambleTypeId: input.scrambleTypeId,
+          eventId: definition.baseEventId,
+          scramble: 'F2 U2',
+        },
       ],
-      selectedScramble: { id: '333-1', eventId: '333' as const, scramble: "R U R' U'" },
+      selectedScramble,
       svg: `<svg>generated-${input.imageView}</svg>`,
       generation: { durationMs: 1, count: 2 },
       render: { durationMs: 2, scrambleLength: 9, svgBytes: 20 },

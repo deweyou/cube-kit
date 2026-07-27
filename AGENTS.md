@@ -24,6 +24,7 @@ generation, scramble visualization, and a WeChat miniprogram shell.
 
 | Document                                                                         | What it covers                                            |
 | -------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| [DESIGN.md](DESIGN.md)                                                           | Shared interface principles and responsive UI rules       |
 | [docs/project-structure.md](docs/project-structure.md)                           | Workspace layout, startup paths, and package roles        |
 | [docs/timer-workflow.md](docs/timer-workflow.md)                                 | Web timer state flow, gestures, and timer ownership       |
 | [docs/scramble-runtime.md](docs/scramble-runtime.md)                             | WCA generation packages, SVG flow, and app runtime        |
@@ -58,6 +59,8 @@ generation, scramble visualization, and a WeChat miniprogram shell.
 
 ## Task Routing
 
+- If you change UI, UX, responsive layout, or visual styling, read
+  [DESIGN.md](DESIGN.md) first.
 - If you change app startup, workspace layout, or package ownership, read
   [docs/project-structure.md](docs/project-structure.md) first.
 - If you change timer states, gestures, or solve-result flow, read

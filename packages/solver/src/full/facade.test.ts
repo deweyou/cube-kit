@@ -1,3 +1,4 @@
+import { createCubeDefinition } from '@cubegin/scramble-puzzle';
 import { describe, expect, it } from 'vitest';
 import {
   NoSolverSolutionError,
@@ -20,6 +21,81 @@ describe('solvePuzzleFull', () => {
 
     expect(solver.cubiesFromState(solver.stateFromCubies(cubies))).toEqual(cubies);
     expect(solver.isNoBarState(solver.stateFromScramble("R U R' F2"))).toBeTypeOf('boolean');
+  });
+
+  it('evaluates 2x2 no-bar states against the independent sticker model', () => {
+    const solver = new TwoByTwoSolver();
+    const cube = createCubeDefinition(2, ['222']);
+    const faces = ['U', 'R', 'F'] as const;
+    const suffixes = ['', '2', "'"] as const;
+    let seed = 0x222;
+
+    for (let sample = 0; sample < 200; sample += 1) {
+      const moves: string[] = [];
+      let previousFace = -1;
+      for (let index = 0; index < 11; index += 1) {
+        seed = (Math.imul(seed, 1_664_525) + 1_013_904_223) >>> 0;
+        const face = (seed + previousFace + 1) % faces.length;
+        previousFace = face;
+        seed = (Math.imul(seed, 1_664_525) + 1_013_904_223) >>> 0;
+        moves.push(`${faces[face]}${suffixes[seed % suffixes.length]}`);
+      }
+
+      const scramble = moves.join(' ');
+      const stickerState = cube.applyAlgorithm(cube.createSolvedState(), scramble);
+      const isVisuallyBarFree = stickerState.image.every((face) => {
+        const [topLeft, topRight, bottomLeft, bottomRight] = face.flat();
+        return (
+          topLeft !== topRight &&
+          topLeft !== bottomLeft &&
+          topRight !== bottomRight &&
+          bottomLeft !== bottomRight
+        );
+      });
+
+      expect(solver.isNoBarState(solver.stateFromScramble(scramble)), scramble).toBe(
+        isVisuallyBarFree,
+      );
+    }
+
+    const diagonalOnlyRegression = "U' R' F R' U' F R' U2 F U R2";
+    const regressionState = cube.applyAlgorithm(cube.createSolvedState(), diagonalOnlyRegression);
+    const isRegressionBarFree = regressionState.image.every((face) => {
+      const [topLeft, topRight, bottomLeft, bottomRight] = face.flat();
+      return (
+        topLeft !== topRight &&
+        topLeft !== bottomLeft &&
+        topRight !== bottomRight &&
+        bottomLeft !== bottomRight
+      );
+    });
+    expect(
+      solver.isNoBarState(solver.stateFromScramble(diagonalOnlyRegression)),
+      diagonalOnlyRegression,
+    ).toBe(isRegressionBarFree);
+  });
+
+  it('generates the exact sampled 2x2 state used by no-bar training', () => {
+    const solver = new TwoByTwoSolver();
+    let seed = 0x222;
+    const random = {
+      nextInt(maxExclusive: number) {
+        seed = (Math.imul(seed, 1_664_525) + 1_013_904_223) >>> 0;
+        return seed % maxExclusive;
+      },
+    };
+    let checked = 0;
+
+    for (let attempt = 0; attempt < 10_000 && checked < 30; attempt += 1) {
+      const target = solver.randomState(random);
+      if (!solver.isNoBarState(target)) continue;
+
+      const scramble = solver.generateExactly(target, 11);
+      expect(solver.stateFromScramble(scramble), scramble).toEqual(target);
+      checked += 1;
+    }
+
+    expect(checked).toBe(30);
   });
 
   it('round-trips Pyraminx cubie states and evaluates the no-bar predicate', () => {

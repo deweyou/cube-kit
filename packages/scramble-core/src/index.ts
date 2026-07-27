@@ -12,6 +12,13 @@ export type {
   ScrambleTypeId,
   TrainingScrambleTypeId,
 } from './catalog.js';
+export { TRAINING_ORIENTATION_COLORS, resolveTrainingOrientation } from './training-orientation.js';
+export type {
+  ResolvedTrainingOrientation,
+  TrainingOrientationColor,
+  TrainingOrientationPreference,
+  TrainingOrientationTarget,
+} from './training-orientation.js';
 export { selectScrambleCase } from './case-selection.js';
 export type { CaseSelectionOptions, ScrambleCaseDefinition } from './case-selection.js';
 export { generateClockScramble } from './generators/clock.js';

@@ -11,6 +11,10 @@ import { selectScrambleCase, type ScrambleCaseDefinition } from '../case-selecti
 import type { TrainingScrambleTypeId } from '../catalog.js';
 import type { GenerateTypeOptions, TrainingScrambleResult } from '../generator.js';
 import type { RandomSource } from '../random-source.js';
+import {
+  restoreCubeScrambleFromOrientation,
+  type ResolvedTrainingOrientation,
+} from '../training-orientation.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 const MAX_PARTIAL_STATE_ATTEMPTS = 100;
@@ -27,7 +31,66 @@ interface FourByFourTrainingCase extends ScrambleCaseDefinition {
   readonly state: FourByFourState;
 }
 
+interface EdgePairingTemplateSpec {
+  readonly eventId: '444' | '555' | '666' | '777';
+  readonly start: readonly string[];
+  readonly endings: readonly (readonly string[])[];
+  readonly misalignmentMoves: readonly string[];
+}
+
 const solved = createSolvedFourByFourState();
+const EDGE_PAIRING_TRIGGERS = [
+  ['R', "R'"],
+  ["R'", 'R'],
+  ['L', "L'"],
+  ["L'", 'L'],
+  ["F'", 'F'],
+  ['F', "F'"],
+  ['B', "B'"],
+  ["B'", 'B'],
+] as const;
+const EDGE_PAIRING_TEMPLATE_SPECS = {
+  4: {
+    eventId: '444',
+    start: ['Rw', 'Bw2'],
+    endings: [
+      ['Bw2', "Rw'"],
+      ['Bw2', 'U2', 'Rw', 'U2', 'Rw', 'U2', 'Rw', 'U2', 'Rw'],
+    ],
+    misalignmentMoves: ['Uw'],
+  },
+  5: {
+    eventId: '555',
+    start: ['Rw', 'R', 'Bw', 'B'],
+    endings: [
+      ["B'", "Bw'", "R'", "Rw'"],
+      ["B'", "Bw'", "R'", 'U2', 'Rw', 'U2', 'Rw', 'U2', 'Rw', 'U2', 'Rw'],
+    ],
+    misalignmentMoves: ['Uw', 'Dw'],
+  },
+  6: {
+    eventId: '666',
+    start: ['3Rw', 'Rw', '3Bw', 'Bw'],
+    endings: [
+      ["3Bw'", "Bw'", "3Rw'", "Rw'"],
+      ["3Bw'", "Bw'", "3Rw'", 'U2', 'Rw', 'U2', 'Rw', 'U2', 'Rw', 'U2', 'Rw'],
+      ["3Bw'", "Bw'", "Rw'", 'U2', '3Rw', 'U2', '3Rw', 'U2', '3Rw', 'U2', '3Rw'],
+      ["3Bw'", "Bw'", 'Rw2', 'U2', '3Rw', 'U2', '3Rw', 'U2', '3Rw', 'U2', '3Rw', 'U2', 'Rw'],
+    ],
+    misalignmentMoves: ['Uw', '3Uw', 'Dw'],
+  },
+  7: {
+    eventId: '777',
+    start: ['3Rw', 'Rw', '3Bw', 'Bw'],
+    endings: [
+      ["3Bw'", "Bw'", "3Rw'", "Rw'"],
+      ["3Bw'", "Bw'", "3Rw'", 'U2', 'Rw', 'U2', 'Rw', 'U2', 'Rw', 'U2', 'Rw'],
+      ["3Bw'", "Bw'", "Rw'", 'U2', '3Rw', 'U2', '3Rw', 'U2', '3Rw', 'U2', '3Rw'],
+      ["3Bw'", "Bw'", 'Rw2', 'U2', '3Rw', 'U2', '3Rw', 'U2', '3Rw', 'U2', '3Rw', 'U2', 'Rw'],
+    ],
+    misalignmentMoves: ['Uw', '3Uw', '3Dw', 'Dw'],
+  },
+} as const satisfies Record<4 | 5 | 6 | 7, EdgePairingTemplateSpec>;
 
 const PARTIAL_MASKS: Readonly<
   Record<
@@ -227,13 +290,18 @@ export const getFourByFourTrainingCaseDefinitions = (
 export const doesFourByFourTrainingStateMatch = (
   scrambleTypeId: FourByFourTrainingScrambleTypeId,
   scramble: string,
+  orientation?: ResolvedTrainingOrientation,
 ): boolean => {
-  if (scrambleTypeId === '444.edge_pairing') return isEdgePairingTemplate(scramble, 4);
+  const canonicalScramble =
+    orientation === undefined
+      ? scramble
+      : restoreCubeScrambleFromOrientation(scramble, orientation);
+  if (scrambleTypeId === '444.edge_pairing') return isEdgePairingState(canonicalScramble, 4);
   if (scrambleTypeId === '444.subset.rruu') {
-    return splitAlgorithm(scramble).every((move) => /^(?:R|Rw|U)(?:2|')?$/.test(move));
+    return splitAlgorithm(canonicalScramble).every((move) => /^(?:R|Rw|U)(?:2|')?$/.test(move));
   }
 
-  const state = getFourByFourStateFromScramble(scramble);
+  const state = getFourByFourStateFromScramble(canonicalScramble);
   if (scrambleTypeId === '444.poll') {
     return POLL_CASES.some(({ state: candidate }) => statesEqual(state, candidate));
   }
@@ -255,38 +323,97 @@ export const generateEdgePairingTemplate = (size: number, random: RandomSource):
     throw new RangeError(`${ERROR_PREFIX}: edge-pairing template size must be from 4 to 7`);
   }
 
-  const maxWidth = Math.floor(size / 2);
-  const blocks: string[] = [];
-  const axes = ['R', 'F', 'L', 'B'] as const;
-  for (let block = 0; block < 8 + size; block += 1) {
-    const width = 2 + drawRandomInt(random, maxWidth - 1);
-    const face = axes[drawRandomInt(random, axes.length)] as string;
-    const wideMove = `${width === 2 ? '' : width}${face}w`;
-    const amount = ['', '2', "'"][drawRandomInt(random, 3)] as string;
-    const interleaveFace = block % 2 === 0 ? 'U' : 'D';
-    const interleaveAmount = ['', '2', "'"][drawRandomInt(random, 3)] as string;
-    blocks.push(
-      `${wideMove}${amount}`,
-      `${interleaveFace}${interleaveAmount}`,
-      inverseMove(`${wideMove}${amount}`),
-    );
+  const spec = EDGE_PAIRING_TEMPLATE_SPECS[size as 4 | 5 | 6 | 7];
+  const moves: string[] = [...spec.start];
+  const misalignmentTotals = spec.misalignmentMoves.map(() => 0);
+  const outerLayerTotals = [0, 0];
+
+  for (let block = 0; block < 8; block += 1) {
+    let amounts: number[];
+    do {
+      amounts = spec.misalignmentMoves.map(() => drawRandomInt(random, 4));
+    } while (amounts.every((amount) => amount === 0));
+
+    amounts.forEach((amount, index) => {
+      if (amount === 0) return;
+      moves.push(formatTurn(spec.misalignmentMoves[index] as string, amount));
+      misalignmentTotals[index] = ((misalignmentTotals[index] as number) + amount) % 4;
+    });
+
+    const trigger = EDGE_PAIRING_TRIGGERS[drawRandomInt(random, EDGE_PAIRING_TRIGGERS.length)];
+    const outerLayer = drawRandomInt(random, 2);
+    const outerLayerAmount = drawRandomInt(random, 3) + 1;
+    moves.push(trigger[0], formatTurn(outerLayer === 0 ? 'U' : 'D', outerLayerAmount), trigger[1]);
+    outerLayerTotals[outerLayer] =
+      ((outerLayerTotals[outerLayer] as number) + outerLayerAmount) % 4;
   }
-  return blocks.join(' ');
+
+  spec.misalignmentMoves.forEach((move, index) => {
+    const correction = (4 - (misalignmentTotals[index] as number)) % 4;
+    if (correction !== 0) moves.push(formatTurn(move, correction));
+  });
+  ['U', 'D'].forEach((move, index) => {
+    const correction = (4 - (outerLayerTotals[index] as number)) % 4;
+    if (correction !== 0) moves.push(formatTurn(move, correction));
+  });
+
+  const ending = spec.endings[drawRandomInt(random, spec.endings.length)];
+  moves.push(...ending);
+  return moves.join(' ');
 };
 
 export const isEdgePairingTemplate = (scramble: string, size: number): boolean => {
+  if (!Number.isSafeInteger(size) || size < 4 || size > 7) return false;
+
   const maxWidth = Math.floor(size / 2);
   const moves = splitAlgorithm(scramble);
   let wideMoveCount = 0;
+  let outerMoveCount = 0;
   for (const move of moves) {
-    if (/^[UD](?:2|')?$/.test(move)) continue;
-    const match = move.match(/^(\d+)?[RFLB]w(?:2|')?$/);
+    if (/^[URFLBD](?:2|')?$/.test(move)) {
+      outerMoveCount += 1;
+      continue;
+    }
+    const match = move.match(/^(\d+)?[URFLBD]w(?:2|')?$/);
     if (match === null) return false;
     const width = match[1] === undefined ? 2 : Number.parseInt(match[1], 10);
     if (width < 2 || width > maxWidth) return false;
     wideMoveCount += 1;
   }
-  return wideMoveCount >= 2 && moves.length >= 12;
+  return wideMoveCount >= 2 && outerMoveCount >= 3 && moves.length >= 12;
+};
+
+export const isEdgePairingState = (scramble: string, size: number): boolean => {
+  if (!isEdgePairingTemplate(scramble, size)) return false;
+
+  try {
+    const spec = EDGE_PAIRING_TEMPLATE_SPECS[size as 4 | 5 | 6 | 7];
+    const cube = createCubeDefinition(size, [spec.eventId]);
+    const solvedState = cube.createSolvedState();
+    const state = cube.applyAlgorithm(solvedState, scramble);
+    const last = size - 1;
+    let hasChangedEdgeSticker = false;
+
+    for (let face = 0; face < state.image.length; face += 1) {
+      for (let row = 0; row < size; row += 1) {
+        for (let column = 0; column < size; column += 1) {
+          const isCenter = row > 0 && row < last && column > 0 && column < last;
+          const isEdge =
+            (row === 0 || row === last || column === 0 || column === last) &&
+            !((row === 0 || row === last) && (column === 0 || column === last));
+          const sticker = state.image[face]?.[row]?.[column];
+          const solvedSticker = solvedState.image[face]?.[row]?.[column];
+
+          if (isCenter && sticker !== solvedSticker) return false;
+          if (isEdge && sticker !== solvedSticker) hasChangedEdgeSticker = true;
+        }
+      }
+    }
+
+    return hasChangedEdgeSticker;
+  } catch {
+    return false;
+  }
 };
 
 const createPartialState = (masks: PartialStateMasks, random: RandomSource): FourByFourState => {
@@ -389,6 +516,13 @@ const inverseMove = (move: string): string => {
   if (move.endsWith('2')) return move;
   if (move.endsWith("'")) return move.slice(0, -1);
   return `${move}'`;
+};
+
+const formatTurn = (move: string, amount: number): string => {
+  if (amount === 1) return move;
+  if (amount === 2) return `${move}2`;
+  if (amount === 3) return `${move}'`;
+  throw new RangeError(`${ERROR_PREFIX}: turn amount must be from 1 to 3`);
 };
 
 const drawRandomInt = (random: RandomSource, maxExclusive: number): number => {
