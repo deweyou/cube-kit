@@ -46,6 +46,14 @@ import {
   generateSquareOneTrainingScramble,
   type SquareOneTrainingScrambleTypeId,
 } from './generators/training-square-one.js';
+import {
+  generateFourByFourTrainingScramble,
+  type FourByFourTrainingScrambleTypeId,
+} from './generators/training-four-by-four.js';
+import {
+  generateBigCubeTrainingScramble,
+  type BigCubeTrainingScrambleTypeId,
+} from './generators/training-big-cube.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 
@@ -229,6 +237,26 @@ const DEFAULT_TRAINING_GENERATORS = Object.fromEntries(
           scrambleTypeId,
           (options: GenerateTypeOptions & { random: RandomSource }) =>
             generateSquareOneTrainingScramble(squareOneType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('444.')) {
+      const fourByFourType = scrambleTypeId as FourByFourTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateFourByFourTrainingScramble(fourByFourType, options),
+        ],
+      ];
+    }
+    if (/^(?:555|666|777)\./.test(scrambleTypeId)) {
+      const bigCubeType = scrambleTypeId as BigCubeTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateBigCubeTrainingScramble(bigCubeType, options),
         ],
       ];
     }

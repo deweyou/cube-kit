@@ -79,6 +79,12 @@ export type {
   ThreeByThreeStatePart,
   ThreeByThreeTrainingStateConstraints,
 } from './training/three-by-three-state.js';
+export {
+  createSolvedFourByFourState,
+  getFourByFourStateFromScramble,
+  scrambleFourByFourState,
+} from './training/four-by-four-state.js';
+export type { FourByFourState } from './training/four-by-four-state.js';
 import { solvePuzzleAssist as solvePuzzleAssistImpl } from './assist/facade.js';
 import { solvePyraminxV as solvePyraminxVImpl } from './assist/pyraminx/v.js';
 import { solveSkewbFace as solveSkewbFaceImpl } from './assist/skewb/face.js';

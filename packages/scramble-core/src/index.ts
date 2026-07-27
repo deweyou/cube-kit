@@ -79,6 +79,19 @@ export type {
   SquareOneTrainingScrambleTypeId,
   SquareOneTrainingStateSnapshot,
 } from './generators/training-square-one.js';
+export {
+  doesFourByFourTrainingStateMatch,
+  generateEdgePairingTemplate,
+  generateFourByFourTrainingScramble,
+  getFourByFourTrainingCaseDefinitions,
+  isEdgePairingTemplate,
+} from './generators/training-four-by-four.js';
+export type { FourByFourTrainingScrambleTypeId } from './generators/training-four-by-four.js';
+export {
+  doesBigCubeTrainingStateMatch,
+  generateBigCubeTrainingScramble,
+} from './generators/training-big-cube.js';
+export type { BigCubeTrainingScrambleTypeId } from './generators/training-big-cube.js';
 export { PyraminxSolver, SkewbSolver, TwoByTwoSolver } from '@cubegin/solver';
 export type { PyraminxSolverState, SkewbSolverState, TwoByTwoState } from '@cubegin/solver';
 export type {

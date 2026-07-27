@@ -3,6 +3,7 @@ import { SearchWCA } from '../min2phase/search-wca.js';
 import { Center1, Center2, Center3 } from './center.js';
 import { Edge3 } from './edge.js';
 import { FullCube } from './full-cube.js';
+import type { FourByFourState } from '../../training/four-by-four-state.js';
 import {
   bx3,
   ckmv2,
@@ -76,6 +77,12 @@ export class Search {
 
   solve(scramble: string): string {
     this.cube = FullCube.fromMoves(scramble);
+    this.doSearch();
+    return this.solution;
+  }
+
+  solveState(state: FourByFourState): string {
+    this.cube = FullCube.fromState(state);
     this.doSearch();
     return this.solution;
   }

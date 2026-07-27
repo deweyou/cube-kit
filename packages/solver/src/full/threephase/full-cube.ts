@@ -1,4 +1,5 @@
 import type { RandomSource } from '../../random-source.js';
+import type { FourByFourState } from '../../training/four-by-four-state.js';
 import { Center1 } from './center.js';
 import { EdgeCube } from './edge.js';
 import {
@@ -432,6 +433,37 @@ export class FullCube {
     return cube;
   }
 
+  static fromState(state: FourByFourState): FullCube {
+    validatePermutation('edgePermutation', state.edgePermutation, 24);
+    validateCenters(state.centerColors);
+    validatePermutation('cornerPermutation', state.cornerPermutation, 8);
+    validateOrientations(state.cornerOrientation);
+
+    const cube = new FullCube();
+    state.edgePermutation.forEach((piece, position) => {
+      cube.edge.ep[position] = piece;
+    });
+    state.centerColors.forEach((color, position) => {
+      cube.center.ct[position] = color;
+    });
+    state.cornerPermutation.forEach((piece, position) => {
+      cube.corner.cp[position] = piece;
+    });
+    state.cornerOrientation.forEach((orientation, position) => {
+      cube.corner.co[position] = orientation;
+    });
+    return cube;
+  }
+
+  toState(): FourByFourState {
+    return {
+      edgePermutation: [...this.getEdge().ep],
+      centerColors: [...this.getCenter().ct],
+      cornerPermutation: [...this.getCorner().cp],
+      cornerOrientation: [...this.getCorner().co],
+    };
+  }
+
   copy(cube: FullCube): void {
     this.edge.copy(cube.edge);
     this.center.copy(cube.center);
@@ -545,3 +577,44 @@ export class FullCube {
 }
 
 const MOVE_TO_ROT = [35, 1, 34, 2, 4, 6, 22, 5, 19] as const;
+
+const validatePermutation = (
+  name: string,
+  permutation: readonly number[],
+  length: number,
+): void => {
+  if (
+    permutation.length !== length ||
+    new Set(permutation).size !== length ||
+    permutation.some((piece) => !Number.isSafeInteger(piece) || piece < 0 || piece >= length)
+  ) {
+    throw new RangeError(`@cubegin/solver: 4x4 ${name} must contain 0 through ${length - 1} once`);
+  }
+};
+
+const validateCenters = (centers: readonly number[]): void => {
+  const counts = Array.from({ length: 6 }, () => 0);
+  for (const center of centers) {
+    if (!Number.isSafeInteger(center) || center < 0 || center >= 6) {
+      throw new RangeError('@cubegin/solver: 4x4 center colors must be integers from 0 to 5');
+    }
+    counts[center] = (counts[center] as number) + 1;
+  }
+  if (centers.length !== 24 || counts.some((count) => count !== 4)) {
+    throw new RangeError('@cubegin/solver: 4x4 center colors must contain four of each color');
+  }
+};
+
+const validateOrientations = (orientations: readonly number[]): void => {
+  if (
+    orientations.length !== 8 ||
+    orientations.some(
+      (orientation) => !Number.isSafeInteger(orientation) || orientation < 0 || orientation >= 3,
+    ) ||
+    orientations.reduce((sum, orientation) => sum + orientation, 0) % 3 !== 0
+  ) {
+    throw new RangeError(
+      '@cubegin/solver: 4x4 corner orientations must contain eight values with zero twist sum',
+    );
+  }
+};
