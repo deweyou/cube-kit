@@ -92,6 +92,12 @@ export {
   generateBigCubeTrainingScramble,
 } from './generators/training-big-cube.js';
 export type { BigCubeTrainingScrambleTypeId } from './generators/training-big-cube.js';
+export {
+  doesMegaminxTrainingStateMatch,
+  generateMegaminxTrainingScramble,
+  getMegaminxTrainingCaseDefinitions,
+} from './generators/training-megaminx.js';
+export type { MegaminxTrainingScrambleTypeId } from './generators/training-megaminx.js';
 export { PyraminxSolver, SkewbSolver, TwoByTwoSolver } from '@cubegin/solver';
 export type { PyraminxSolverState, SkewbSolverState, TwoByTwoState } from '@cubegin/solver';
 export type {

@@ -54,6 +54,10 @@ import {
   generateBigCubeTrainingScramble,
   type BigCubeTrainingScrambleTypeId,
 } from './generators/training-big-cube.js';
+import {
+  generateMegaminxTrainingScramble,
+  type MegaminxTrainingScrambleTypeId,
+} from './generators/training-megaminx.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 
@@ -257,6 +261,16 @@ const DEFAULT_TRAINING_GENERATORS = Object.fromEntries(
           scrambleTypeId,
           (options: GenerateTypeOptions & { random: RandomSource }) =>
             generateBigCubeTrainingScramble(bigCubeType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('minx.')) {
+      const megaminxType = scrambleTypeId as MegaminxTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateMegaminxTrainingScramble(megaminxType, options),
         ],
       ];
     }
