@@ -19,6 +19,12 @@ import {
 } from './generators/three-by-three.js';
 import { generateTwoByTwoScramble } from './generators/two-by-two.js';
 import type { RandomSource } from './random-source.js';
+import type { CaseSelectionOptions } from './case-selection.js';
+import {
+  getScrambleTypeDefinition,
+  type ScrambleTypeId,
+  type TrainingScrambleTypeId,
+} from './catalog.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 
@@ -27,18 +33,30 @@ export interface GenerateOptions {
   multiBlindCubeCount?: number;
 }
 
+export interface GenerateTypeOptions extends GenerateOptions, CaseSelectionOptions {}
+
 export interface ScrambleResult {
   eventId: EventId;
   scramble: string;
+}
+
+export interface TrainingScrambleResult extends ScrambleResult {
+  scrambleTypeId: ScrambleTypeId;
+  caseId?: string;
 }
 
 export type EventScrambleGenerator = (
   options: GenerateOptions & { random: RandomSource },
 ) => ScrambleResult | Promise<ScrambleResult>;
 
+export type TrainingScrambleGenerator = (
+  options: GenerateTypeOptions & { random: RandomSource },
+) => TrainingScrambleResult | Promise<TrainingScrambleResult>;
+
 export interface ScrambleGeneratorOptions {
   random: RandomSource;
   generators: Partial<Record<EventId, EventScrambleGenerator>>;
+  trainingGenerators?: Partial<Record<TrainingScrambleTypeId, TrainingScrambleGenerator>>;
 }
 
 export interface DefaultScrambleGeneratorOptions {
@@ -52,11 +70,21 @@ export interface ScrambleGenerator {
     count: number,
     options?: GenerateOptions,
   ): Promise<readonly ScrambleResult[]>;
+  generateType(
+    scrambleTypeId: ScrambleTypeId,
+    options?: GenerateTypeOptions,
+  ): Promise<TrainingScrambleResult>;
+  generateTypeBatch(
+    scrambleTypeId: ScrambleTypeId,
+    count: number,
+    options?: GenerateTypeOptions,
+  ): Promise<readonly TrainingScrambleResult[]>;
 }
 
 export const createScrambleGenerator = ({
   random,
   generators,
+  trainingGenerators = {},
 }: ScrambleGeneratorOptions): ScrambleGenerator => {
   const api: ScrambleGenerator = {
     async generate(eventId, options = {}) {
@@ -66,6 +94,23 @@ export const createScrambleGenerator = ({
     },
     async generateBatch(eventId, count, options = {}) {
       return generateUniqueScrambleBatch(count, () => api.generate(eventId, options));
+    },
+    async generateType(scrambleTypeId, options = {}) {
+      const definition = getScrambleTypeDefinition(scrambleTypeId);
+      if (definition.kind === 'official') {
+        const officialResult = await api.generate(definition.baseEventId, options);
+        return { ...officialResult, scrambleTypeId };
+      }
+
+      const generator = trainingGenerators[scrambleTypeId as TrainingScrambleTypeId];
+      if (generator === undefined) {
+        throw new Error(`${ERROR_PREFIX}: scramble type '${scrambleTypeId}' has no generator`);
+      }
+
+      return await generator({ ...options, random: options.random ?? random });
+    },
+    async generateTypeBatch(scrambleTypeId, count, options = {}) {
+      return generateUniqueScrambleBatch(count, () => api.generateType(scrambleTypeId, options));
     },
   };
 

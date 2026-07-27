@@ -1,4 +1,19 @@
 export { createDefaultScrambleGenerator, createScrambleGenerator } from './generator.js';
+export {
+  SCRAMBLE_TYPE_CATALOG,
+  SCRAMBLE_TYPE_IDS,
+  TRAINING_SCRAMBLE_TYPE_IDS,
+  getScrambleTypeDefinition,
+} from './catalog.js';
+export type {
+  ScrambleCategoryId,
+  ScrambleGeneratorKind,
+  ScrambleTypeDefinition,
+  ScrambleTypeId,
+  TrainingScrambleTypeId,
+} from './catalog.js';
+export { selectScrambleCase } from './case-selection.js';
+export type { CaseSelectionOptions, ScrambleCaseDefinition } from './case-selection.js';
 export { generateClockScramble } from './generators/clock.js';
 export type { ClockScrambleOptions } from './generators/clock.js';
 export { generateCubeRandomTurnScramble } from './generators/cube-random-turns.js';
@@ -36,9 +51,12 @@ export type {
   EventScrambleGenerator,
   DefaultScrambleGeneratorOptions,
   GenerateOptions,
+  GenerateTypeOptions,
   ScrambleGenerator,
   ScrambleGeneratorOptions,
   ScrambleResult,
+  TrainingScrambleGenerator,
+  TrainingScrambleResult,
 } from './generator.js';
 export { createMathRandomSource } from './random-source.js';
 export type { RandomSource } from './random-source.js';

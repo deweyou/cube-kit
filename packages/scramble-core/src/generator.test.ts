@@ -71,6 +71,73 @@ describe('createScrambleGenerator', () => {
     });
   });
 
+  it('preserves event generation while exposing typed training generation', async () => {
+    const generator = createScrambleGenerator({
+      random: deterministicRandom,
+      generators: {
+        333() {
+          return { eventId: '333', scramble: 'official' };
+        },
+      },
+      trainingGenerators: {
+        '333.pll'({ random, enabledCaseIds, mode }) {
+          return {
+            scrambleTypeId: '333.pll',
+            eventId: '333',
+            scramble: `training-${random.nextInt(10)}-${mode}`,
+            caseId: enabledCaseIds?.[0],
+          };
+        },
+      },
+    });
+
+    await expect(generator.generate('333')).resolves.toEqual({
+      eventId: '333',
+      scramble: 'official',
+    });
+    await expect(
+      generator.generateType('333.pll', {
+        enabledCaseIds: ['pll.aa'],
+        mode: 'uniform',
+      }),
+    ).resolves.toEqual({
+      scrambleTypeId: '333.pll',
+      eventId: '333',
+      scramble: 'training-9-uniform',
+      caseId: 'pll.aa',
+    });
+  });
+
+  it('routes official ids through generateType without changing generate output', async () => {
+    const generator = createScrambleGenerator({
+      random: deterministicRandom,
+      generators: {
+        333() {
+          return { eventId: '333', scramble: 'official' };
+        },
+      },
+      trainingGenerators: {},
+    });
+
+    await expect(generator.generateType('333')).resolves.toEqual({
+      scrambleTypeId: '333',
+      eventId: '333',
+      scramble: 'official',
+    });
+  });
+
+  it('reports missing training generators at the training boundary', async () => {
+    const generator = createScrambleGenerator({
+      random: deterministicRandom,
+      generators: {},
+      trainingGenerators: {},
+    });
+
+    await expect(generator.generateType('333.pll')).rejects.toThrow(
+      "@cubegin/scramble-core: scramble type '333.pll' has no generator",
+    );
+  });
+
   it('returns unique batch scramble strings and retries duplicates', async () => {
     let calls = 0;
     const generator = createScrambleGenerator({
