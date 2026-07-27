@@ -98,6 +98,12 @@ export {
   getMegaminxTrainingCaseDefinitions,
 } from './generators/training-megaminx.js';
 export type { MegaminxTrainingScrambleTypeId } from './generators/training-megaminx.js';
+export {
+  doesFtoTrainingStateMatch,
+  generateFtoTrainingScramble,
+  getFtoTrainingCaseDefinitions,
+} from './generators/training-fto.js';
+export type { FtoTrainingScrambleTypeId } from './generators/training-fto.js';
 export { PyraminxSolver, SkewbSolver, TwoByTwoSolver } from '@cubegin/solver';
 export type { PyraminxSolverState, SkewbSolverState, TwoByTwoState } from '@cubegin/solver';
 export type {

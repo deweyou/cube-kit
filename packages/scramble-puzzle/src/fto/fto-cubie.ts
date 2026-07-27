@@ -117,6 +117,16 @@ export class FtoCubie {
   clone(): FtoCubie {
     return new FtoCubie(this.cp, this.co, this.ep, this.uf, this.rl);
   }
+
+  equals(other: FtoCubie): boolean {
+    return (
+      this.cp.every((piece, index) => piece === other.cp[index]) &&
+      this.co.every((orientation, index) => orientation === other.co[index]) &&
+      this.ep.every((piece, index) => piece === other.ep[index]) &&
+      this.uf.every((piece, index) => piece === other.uf[index]) &&
+      this.rl.every((piece, index) => piece === other.rl[index])
+    );
+  }
 }
 
 const fillFacelets = (
@@ -169,6 +179,107 @@ const copyCubie = (source: FtoCubie, target: FtoCubie): void => {
   target.ep = [...source.ep];
   target.uf = [...source.uf];
   target.rl = [...source.rl];
+};
+
+const detectPieceFacelets = (
+  pieces: readonly (readonly number[])[],
+  facelets: readonly number[],
+): { readonly permutation: number[]; readonly orientation: number[] } => {
+  const permutation: number[] = [];
+  const orientation: number[] = [];
+  for (let position = 0; position < pieces.length; position += 1) {
+    const target = pieces[position] as readonly number[];
+    let matched = false;
+    for (let piece = 0; piece < pieces.length && !matched; piece += 1) {
+      const source = pieces[piece] as readonly number[];
+      if (source.length !== target.length) continue;
+      for (let offset = 0; offset < target.length; offset += 1) {
+        const isMatch = source.every(
+          (sourceFacelet, sticker) =>
+            Math.trunc(sourceFacelet / 9) ===
+            facelets[target[(sticker + offset) % target.length] as number],
+        );
+        if (!isMatch) continue;
+        permutation[position] = piece;
+        orientation[position] = offset;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      throw new RangeError('FTO facelets do not describe a legal piece permutation');
+    }
+  }
+  return { permutation, orientation };
+};
+
+const permutationParity = (permutation: readonly number[]): number => {
+  let parity = 0;
+  for (let left = 0; left < permutation.length; left += 1) {
+    for (let right = left + 1; right < permutation.length; right += 1) {
+      if ((permutation[left] as number) > (permutation[right] as number)) parity ^= 1;
+    }
+  }
+  return parity;
+};
+
+const labelCenters = (
+  facelets: readonly number[],
+  positions: readonly number[],
+  colorMap: (color: number) => number,
+): number[] => {
+  const remaining = [3, 3, 3, 3];
+  const permutation = positions.map((facelet) => {
+    const color = colorMap(facelets[facelet] as number);
+    if (!Number.isSafeInteger(color) || color < 0 || color >= 4 || remaining[color] === 0) {
+      throw new RangeError('FTO facelets do not contain four center colors three times each');
+    }
+    const piece = color * 3 + 3 - (remaining[color] as number);
+    remaining[color] = (remaining[color] as number) - 1;
+    return piece;
+  });
+  if (permutationParity(permutation) !== 0) {
+    for (let index = 0; index < permutation.length; index += 1) {
+      if ((permutation[index] as number) < 2)
+        permutation[index] = (permutation[index] as number) ^ 1;
+    }
+  }
+  return permutation;
+};
+
+export const createFtoCubieFromFacelets = (facelets: readonly number[]): FtoCubie => {
+  if (
+    facelets.length !== 72 ||
+    facelets.some((color) => !Number.isSafeInteger(color) || color < 0 || color >= 8)
+  ) {
+    throw new RangeError('FTO state must contain 72 integer facelets from 0 to 7');
+  }
+  const counts = Array.from({ length: 8 }, () => 0);
+  facelets.forEach((color) => {
+    counts[color] = (counts[color] as number) + 1;
+  });
+  if (counts.some((count) => count !== 9)) {
+    throw new RangeError('FTO state must contain each face color exactly nine times');
+  }
+
+  const corners = detectPieceFacelets(CORNER_FACELETS, facelets);
+  const edges = detectPieceFacelets(EDGE_FACELETS, facelets);
+  const cornerOrientation = corners.orientation.map((orientation) => orientation >> 1);
+  if (
+    cornerOrientation.reduce((parity, orientation) => parity ^ orientation, 0) !== 0 ||
+    permutationParity(corners.permutation) !== 0 ||
+    permutationParity(edges.permutation) !== 0
+  ) {
+    throw new RangeError('FTO facelets violate corner orientation or piece parity');
+  }
+
+  return new FtoCubie(
+    corners.permutation,
+    cornerOrientation,
+    edges.permutation,
+    labelCenters(facelets, CENTER_UF_FACELETS, (color) => color),
+    labelCenters(facelets, CENTER_RL_FACELETS, (color) => [0, 1, 3, 2][color - 4] as number),
+  );
 };
 
 const createFtoMoveCubies = (): readonly FtoCubie[] => {

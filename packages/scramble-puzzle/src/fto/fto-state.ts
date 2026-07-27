@@ -6,7 +6,12 @@ import {
   type FtoMoveAmount,
   type FtoMoveFace,
 } from './fto-parser.js';
-import { FTO_FACELET_SOURCE_BY_TARGET, FTO_MOVE_FACE_TO_INDEX } from './fto-cubie.js';
+import {
+  createFtoCubieFromFacelets,
+  FtoCubie,
+  FTO_FACELET_SOURCE_BY_TARGET,
+  FTO_MOVE_FACE_TO_INDEX,
+} from './fto-cubie.js';
 
 export type FtoFacelet = number;
 export type FtoFaceState = readonly FtoFacelet[];
@@ -88,6 +93,12 @@ export const getFtoMoveSourceByTarget = (move: FtoMove): readonly number[] => {
 
 export const createSolvedFtoState = (): FtoState =>
   createFtoState(FTO_FACES.map((_, face) => Array<FtoFacelet>(STICKERS_PER_FACE).fill(face)));
+
+export const createFtoCubieFromState = (state: FtoState): FtoCubie =>
+  createFtoCubieFromFacelets(flattenImage(state.image));
+
+export const createFtoStateFromCubie = (cubie: FtoCubie): FtoState =>
+  createFtoState(inflateImage(cubie.toFacelets()));
 
 export const applyFtoMove = (state: FtoState, move: FtoMove): FtoState => {
   const sourceByTarget = getFtoMoveSourceByTarget(move);

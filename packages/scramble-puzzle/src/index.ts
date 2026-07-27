@@ -58,9 +58,12 @@ export {
 export {
   applyFtoMove,
   areFtoStatesEqual,
+  createFtoCubieFromState,
   createSolvedFtoState,
+  createFtoStateFromCubie,
   getFtoMoveSourceByTarget,
 } from './fto/fto-state.js';
+export { createFtoCubieFromFacelets, FtoCubie, FTO_MOVE_CUBIES } from './fto/fto-cubie.js';
 export {
   applySquareOneMove,
   areSquareOneStatesEqual,

@@ -108,8 +108,8 @@ describe('solvePuzzleFull', () => {
     const restored = new FtoSolver().stateFromScramble(`${result.scramble} ${result.solution}`);
 
     expect(result.eventId).toBe('fto');
-    expect(result.engine).toBe('fto-inverse');
-    expect(result.solution).toBe("BR U BR' BL' R' L' B' F' D' U'");
+    expect(result.engine).toBe('fto-three-phase');
+    expect(result.solution.length).toBeGreaterThan(0);
     expect(restored).toEqual(new FtoSolver().stateFromScramble(''));
   });
 

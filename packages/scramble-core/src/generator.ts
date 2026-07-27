@@ -58,6 +58,10 @@ import {
   generateMegaminxTrainingScramble,
   type MegaminxTrainingScrambleTypeId,
 } from './generators/training-megaminx.js';
+import {
+  generateFtoTrainingScramble,
+  type FtoTrainingScrambleTypeId,
+} from './generators/training-fto.js';
 
 const ERROR_PREFIX = '@cubegin/scramble-core';
 
@@ -271,6 +275,16 @@ const DEFAULT_TRAINING_GENERATORS = Object.fromEntries(
           scrambleTypeId,
           (options: GenerateTypeOptions & { random: RandomSource }) =>
             generateMegaminxTrainingScramble(megaminxType, options),
+        ],
+      ];
+    }
+    if (scrambleTypeId.startsWith('fto.')) {
+      const ftoType = scrambleTypeId as FtoTrainingScrambleTypeId;
+      return [
+        [
+          scrambleTypeId,
+          (options: GenerateTypeOptions & { random: RandomSource }) =>
+            generateFtoTrainingScramble(ftoType, options),
         ],
       ];
     }
