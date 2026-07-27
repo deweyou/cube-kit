@@ -27,6 +27,7 @@ generation, scramble visualization, and a WeChat miniprogram shell.
 | [docs/project-structure.md](docs/project-structure.md)                           | Workspace layout, startup paths, and package roles        |
 | [docs/timer-workflow.md](docs/timer-workflow.md)                                 | Web timer state flow, gestures, and timer ownership       |
 | [docs/scramble-runtime.md](docs/scramble-runtime.md)                             | WCA generation packages, SVG flow, and app runtime        |
+| [docs/training-scramble-system.md](docs/training-scramble-system.md)             | Training catalog, cases, state solvers, and provenance    |
 | [docs/tnoodle-baseline.md](docs/tnoodle-baseline.md)                             | TNoodle official baseline, tags, and upgrade diff flow    |
 | [docs/tnoodle-implementation-notes.md](docs/tnoodle-implementation-notes.md)     | TNoodle package split, verification, and runtime boundary |
 | [docs/packages/scramble-puzzle/index.md](docs/packages/scramble-puzzle/index.md) | Puzzle notation, state, and parser package boundary       |
@@ -63,6 +64,9 @@ generation, scramble visualization, and a WeChat miniprogram shell.
   [docs/timer-workflow.md](docs/timer-workflow.md) first.
 - If you change WCA events, scramble generation, SVG output, or browser runtime
   behavior, read [docs/scramble-runtime.md](docs/scramble-runtime.md) first.
+- If you change training scramble ids, case selection, constrained state
+  generation, or training solvers, read
+  [docs/training-scramble-system.md](docs/training-scramble-system.md) first.
 - If you change TNoodle-compatible scramble logic or upgrade the upstream
   compatibility target, read [docs/tnoodle-baseline.md](docs/tnoodle-baseline.md)
   and [docs/tnoodle-implementation-notes.md](docs/tnoodle-implementation-notes.md)

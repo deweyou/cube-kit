@@ -5,6 +5,7 @@
   "license": "GPL-3.0-only",
   "files": [
     "dist",
+    "NOTICE",
     "README.md"
   ],
   "type": "module",

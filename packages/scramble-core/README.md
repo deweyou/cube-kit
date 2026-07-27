@@ -25,12 +25,16 @@ const generator = createDefaultScrambleGenerator({
 
 const three = await generator.generate('333');
 const batch = await generator.generateBatch('pyram', 5);
+const pll = await generator.generateType('333.pll', {
+  enabledCaseIds: ['333.pll.aa'],
+});
 const multiBlind = await generator.generate('333mbld', {
   multiBlindCubeCount: 3,
 });
 
 console.log(three.scramble);
 console.log(batch.map((item) => item.scramble));
+console.log(pll.scramble, pll.caseId);
 console.log(multiBlind.scramble.split('\n'));
 ```
 
@@ -40,6 +44,8 @@ console.log(multiBlind.scramble.split('\n'));
 - `createScrambleGenerator` allows tests or apps to inject a custom event
   generator map.
 - `generateBatch` deduplicates generated scramble strings inside one batch.
+- `generateType` and `generateTypeBatch` cover the stable official plus training
+  catalog; case-backed types accept `enabledCaseIds` and uniform/natural modes.
 - `createMathRandomSource` adapts `Math.random` to the package `RandomSource`
   interface.
 - Event-specific helpers such as `generateTwoByTwoScramble`,
@@ -56,7 +62,9 @@ console.log(multiBlind.scramble.split('\n'));
   scramble per cube, separated by newlines.
 - 5x5, 6x6, 7x7, Clock, and Megaminx use the TNoodle-compatible random-turn
   families documented in the package tests.
-- FTO uses legal face-turn notation over `U D F B L R BL BR`.
+- FTO official scrambles use legal face-turn notation over
+  `U D F B L R BL BR`; FTO training types use constrained states and the full
+  coordinate solver.
 
 The baseline is TNoodle `lib-scrambles` v0.19.2, recorded in
 [`../../docs/tnoodle-baseline.md`](../../docs/tnoodle-baseline.md). Cubegin is
@@ -67,6 +75,7 @@ Durable notes:
 - [Core package overview](../../docs/packages/scramble-core/index.md)
 - [Generation rule notes](../../docs/packages/scramble-core/wca-generation-rules.md)
 - [Coverage notes](../../docs/packages/scramble-core/test-coverage.md)
+- [Training scramble system](../../docs/training-scramble-system.md)
 
 ## Development
 

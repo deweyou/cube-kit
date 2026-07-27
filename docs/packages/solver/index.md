@@ -31,10 +31,14 @@ packages.
   General mask, 2x2 Face/Layer, Square-1 shape in FTM/TTM-style metrics,
   Pyraminx V, and Skewb Face.
 - Full solver primitives include 2x2, 3x3 min2phase/WCA search, 4x4
-  threephase, Clock linear state solver, Pyraminx, Skewb, and Square-1.
+  threephase, Clock linear state solver, Pyraminx, Skewb, Square-1, Megaminx
+  LSLL coordinates, and the FTO fixed-color three-phase solver.
 - `solvePuzzleFull` exposes full restore output for 3x3, 4x4, 2x2,
-  Pyraminx, Skewb, Square-1, and Clock. 2x2 full input follows the current
-  URF coordinate move scope.
+  Pyraminx, Skewb, Square-1, Clock, and FTO. 2x2 full input follows the
+  current URF coordinate move scope.
+- FTO coordinate tables initialize lazily and are cached without browser
+  globals. `FtoSolver.getInitializationStats()` reports initialization time and
+  logical table size for Worker/runtime diagnostics.
 - The package depends only on
   [@cubegin/scramble-puzzle](../../../packages/scramble-puzzle/src/index.ts#L1)
   for notation parsing and shared puzzle state semantics.
@@ -78,9 +82,11 @@ pnpm --filter @cubegin/solver build
 - [packages/solver/src/assist/pyraminx/v.ts#L1](../../../packages/solver/src/assist/pyraminx/v.ts#L1) - Pyraminx V helper.
 - [packages/solver/src/assist/skewb/face.ts#L1](../../../packages/solver/src/assist/skewb/face.ts#L1) - Skewb Face helper.
 - [packages/solver/src/full/clock-solver.ts#L1](../../../packages/solver/src/full/clock-solver.ts#L1) - Clock full state solver.
+- [packages/solver/src/full/fto-solver.ts#L1](../../../packages/solver/src/full/fto-solver.ts#L1) - arbitrary legal FTO state and fixed-color three-phase solver.
+- [packages/solver/src/training/megaminx-lsll-solver.ts#L1](../../../packages/solver/src/training/megaminx-lsll-solver.ts#L1) - Megaminx last-slot/last-layer coordinate solver.
 - [packages/solver/src/full/min2phase/search-wca.ts#L1](../../../packages/solver/src/full/min2phase/search-wca.ts#L1) - 3x3 WCA min2phase search wrapper.
 - [packages/solver/src/fewest-moves/validate.ts#L1](../../../packages/solver/src/fewest-moves/validate.ts#L1) - FMC notation, move metrics, solved-state, and inverse-scramble validation.
 
 ---
 
-_Last updated: 2026-07-20 | Reason: add the platform-agnostic Fewest Moves validator_
+_Last updated: 2026-07-27 | Reason: add Megaminx training and full FTO coordinate solvers_

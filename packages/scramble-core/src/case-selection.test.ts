@@ -14,6 +14,12 @@ const randomAt = (index: number): RandomSource => ({
   },
 });
 
+const uncheckedRandomAt = (index: number): RandomSource => ({
+  nextInt() {
+    return index;
+  },
+});
+
 describe('selectScrambleCase', () => {
   it('uses a uniform distribution by default', () => {
     expect(selectScrambleCase(cases, {}, randomAt(1))).toEqual(cases[1]);
@@ -36,6 +42,12 @@ describe('selectScrambleCase', () => {
     );
   });
 
+  it('rejects an empty case set', () => {
+    expect(() => selectScrambleCase([], {}, randomAt(0))).toThrow(
+      '@cubegin/scramble-core: case set must contain at least one case',
+    );
+  });
+
   it('rejects unknown and duplicate ids', () => {
     expect(() => selectScrambleCase(cases, { enabledCaseIds: ['case-c'] }, randomAt(0))).toThrow(
       "@cubegin/scramble-core: unknown case id 'case-c'",
@@ -49,5 +61,22 @@ describe('selectScrambleCase', () => {
     expect(() =>
       selectScrambleCase([{ id: 'invalid', naturalWeight: 0 }], { mode: 'natural' }, randomAt(0)),
     ).toThrow("@cubegin/scramble-core: case 'invalid' has an invalid natural weight");
+  });
+
+  it('defaults missing natural weights to one', () => {
+    const unweightedCases = [{ id: 'case-a' }, { id: 'case-b' }] as const;
+
+    expect(selectScrambleCase(unweightedCases, { mode: 'natural' }, randomAt(1))).toEqual(
+      unweightedCases[1],
+    );
+  });
+
+  it('rejects out-of-range random indexes for uniform and natural selection', () => {
+    expect(() => selectScrambleCase(cases, {}, uncheckedRandomAt(cases.length))).toThrow(
+      '@cubegin/scramble-core: random source returned 2 for max 2',
+    );
+    expect(() => selectScrambleCase(cases, { mode: 'natural' }, uncheckedRandomAt(4))).toThrow(
+      '@cubegin/scramble-core: random source returned an invalid weighted case index',
+    );
   });
 });

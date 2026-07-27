@@ -16,6 +16,8 @@ This package also includes FTO puzzle-state behavior derived from:
 
     Name:       cs0x7f/cstimer FTO tools
     Source:     https://github.com/cs0x7f/cstimer
+    Commit:     22a6aedde88fd59255ab6a8ae8c06180e7a55d64
+    Files:      src/js/solver/ftocta.js
     License:    GNU General Public License v3.0
 
 Cubegin is not an official WCA scramble program. Official competitions must use

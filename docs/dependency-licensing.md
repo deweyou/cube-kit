@@ -4,6 +4,8 @@
 flowchart TD
     TnoodleLib["tnoodle-lib GPL-v3.0"] --> SharedPkg["shared GPL-3.0-only"]
     CsTimer["cs0x7f/cstimer GPL-3.0"] --> ScramblePuzzle["@cubegin/scramble-puzzle GPL-3.0-only"]
+    CsTimer --> Solver["@cubegin/solver GPL-3.0-only"]
+    DCTimer["DCTimer-Android GPL-v3"] -. "Behavior and taxonomy cross-check" .-> NewPackages
     SharedPkg --> NewPackages["scramble-puzzle / scramble-core / scramble-image GPL-3.0-only"]
     ScramblePuzzle --> NewPackages
     RepoLicense --> Icons["@cubegin/icons GPL-3.0-only"]
@@ -49,6 +51,10 @@ decisions as licensing decisions, not only build decisions.
 - FTO notation/state support may use GPL-3.0 source-provenance from
   `cs0x7f/cstimer` for the face-turning octahedron cubie and facelet model.
   Keep this attribution in package NOTICE files when modifying the FTO model.
+- Training state and solver behavior is compared against pinned GPL-v3
+  snapshots of `cs0x7f/cstimer` and `MeigenChou/DCTimer-Android`. Pin commits
+  and source paths in NOTICE/docs; do not add either repository as a runtime
+  dependency.
 - Published scramble packages and the public `cubegin` aggregation package must
   ship GPL text and attribution through their `LICENSE` and `NOTICE` files.
 - `citty` is an MIT-licensed runtime dependency for the public `cubegin` CLI and
@@ -81,4 +87,4 @@ decisions as licensing decisions, not only build decisions.
 
 ---
 
-_Last updated: 2026-07-23 | Reason: record the web app's MIT-licensed dnd-kit dependencies_
+_Last updated: 2026-07-27 | Reason: record training scramble and solver provenance_

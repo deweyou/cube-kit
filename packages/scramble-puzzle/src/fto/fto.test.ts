@@ -71,9 +71,7 @@ describe('FTO state transitions', () => {
       ),
     };
 
-    expect(() => createFtoCubieFromState(malformed)).toThrow(
-      'each face color exactly nine times',
-    );
+    expect(() => createFtoCubieFromState(malformed)).toThrow('each face color exactly nine times');
   });
 
   it('creates immutable solved FTO states', () => {
