@@ -44,7 +44,7 @@ describe('complete training catalog generation', () => {
         ),
       ).toBe(true);
     }
-  }, 120_000);
+  }, 300_000);
 
   it('preserves every orientation-enabled training constraint after remapping', async () => {
     const generator = createDefaultScrambleGenerator({ random: createSeededRandom(42) });

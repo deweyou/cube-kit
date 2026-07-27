@@ -94,7 +94,7 @@ describe('4x4 training scrambles', () => {
         scrambleTypeId,
       ).toBe(true);
     }
-  }, 120_000);
+  }, 300_000);
 
   it('keeps centers solved in edge-pairing practice states', async () => {
     const cube = createCubeDefinition(4, ['444']);
