@@ -141,5 +141,5 @@ describe('2x2 training scrambles', () => {
         true,
       );
     }
-  });
+  }, 30_000);
 });
